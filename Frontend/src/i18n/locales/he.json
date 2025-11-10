@@ -1,0 +1,49 @@
+{
+  "app": {
+    "title": "מערכת עיבוד נתונים",
+    "subtitle": "פלטפורמה לניהול וטיפול בנתונים"
+  },
+  "navigation": {
+    "dashboard": "דשבורד",
+    "datasources": "מקורות נתונים",
+    "schemaManagement": "ניהול Schema",
+    "metricsConfig": "הגדרות מדדים",
+    "validation": "אימות נתונים",
+    "monitoring": "ניטור מערכת",
+    "settings": "הגדרות"
+  },
+  "dashboard": {
+    "title": "לוח בקרה",
+    "overview": "סקירה כללית",
+    "totalFiles": "סך הכל קבצים",
+    "validRecords": "רשומות תקינות",
+    "invalidRecords": "רשומות לא תקינות",
+    "errorRate": "שיעור שגיאות",
+    "lastUpdate": "עדכון אחרון"
+  },
+  "datasources": {
+    "title": "ניהול מקורות נתונים",
+    "subtitle": "צפייה וניהול מקורות הנתונים במערכת",
+    "create": "הוסף מקור נתונים חדש",
+    "edit": "ערוך מקור נתונים",
+    "delete": "מחק מקור נתונים",
+    "search": "חיפוש מקורות נתונים..."
+  },
+  "schema": {
+    "title": "ניהול Schema",
+    "subtitle": "צור ונהל schemas לאימות נתונים",
+    "create": "צור Schema חדש",
+    "edit": "ערוך Schema",
+    "delete": "מחק Schema"
+  },
+  "common": {
+    "save": "שמור",
+    "cancel": "בטל",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "create": "צור",
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "success": "הצלחה"
+  }
+}

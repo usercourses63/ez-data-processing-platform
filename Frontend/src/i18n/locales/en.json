@@ -1,0 +1,47 @@
+{
+  "app": {
+    "title": "Data Processing System",
+    "subtitle": "Platform for Data Management and Processing"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "datasources": "Data Sources",
+    "validation": "Validation Results",
+    "monitoring": "System Monitoring",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview",
+    "totalFiles": "Total Files",
+    "validRecords": "Valid Records",
+    "invalidRecords": "Invalid Records",
+    "errorRate": "Error Rate",
+    "lastUpdate": "Last Update"
+  },
+  "datasources": {
+    "title": "Data Source Management",
+    "subtitle": "View and manage data sources in the system",
+    "create": "Add New Data Source",
+    "edit": "Edit Data Source",
+    "delete": "Delete Data Source",
+    "search": "Search data sources..."
+  },
+  "schema": {
+    "title": "Schema Management",
+    "subtitle": "Manage schemas for data validation",
+    "create": "Create New Schema",
+    "edit": "Edit Schema",
+    "delete": "Delete Schema"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  }
+}
