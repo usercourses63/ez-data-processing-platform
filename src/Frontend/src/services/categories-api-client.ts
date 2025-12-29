@@ -167,3 +167,26 @@ export const toggleCategoryActive = async (id: string, isActive: boolean): Promi
 
   return response.json();
 };
+
+export interface CategoryUsageInfo {
+  categoryId: string;
+  categoryName: string;
+  usageCount: number;
+  canHardDelete: boolean;
+}
+
+/**
+ * Get datasource usage count for a category
+ * @param id - Category ID
+ * @returns Usage information
+ */
+export const getCategoryUsageCount = async (id: string): Promise<CategoryUsageInfo> => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/categories/${id}/usage-count`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'שגיאה בקבלת מידע על שימוש');
+  }
+
+  return response.json();
+};

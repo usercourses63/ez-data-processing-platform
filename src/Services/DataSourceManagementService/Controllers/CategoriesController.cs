@@ -260,4 +260,43 @@ public class CategoriesController : ControllerBase
             return StatusCode(500, new { message = "שגיאה בשינוי סטטוס קטגוריה", error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Get datasource usage count for a category
+    /// </summary>
+    /// <param name="id">Category ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Usage count</returns>
+    [HttpGet("{id}/usage-count")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetUsageCount(
+        string id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var category = await _categoryService.GetCategoryByIdAsync(id, cancellationToken);
+
+            if (category == null)
+            {
+                return NotFound(new { message = $"קטגוריה לא נמצאה: {id}" });
+            }
+
+            var count = await _categoryService.GetDataSourceCountByCategoryAsync(category.Name, cancellationToken);
+
+            return Ok(new
+            {
+                categoryId = id,
+                categoryName = category.Name,
+                usageCount = count,
+                canHardDelete = count == 0
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "שגיאה בקבלת מספר שימושים בקטגוריה: {CategoryId}", id);
+            return StatusCode(500, new { message = "שגיאה בקבלת מספר שימושים", error = ex.Message });
+        }
+    }
 }

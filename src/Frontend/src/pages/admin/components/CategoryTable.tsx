@@ -1,9 +1,10 @@
 import React from 'react';
 import { Table, Tag, Button, Popconfirm, Space, Tooltip } from 'antd';
-import { EditOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined } from '@ant-design/icons';
+import { EditOutlined, CheckCircleOutlined, StopOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { DataSourceCategory } from '../../../services/categories-api-client';
 import type { ColumnsType } from 'antd/es/table';
+import DeleteCategoryButton from './DeleteCategoryButton';
 
 interface CategoryTableProps {
   categories: DataSourceCategory[];
@@ -80,38 +81,40 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
             />
           </Tooltip>
 
-          <Tooltip
+          <Popconfirm
             title={
               record.IsActive
-                ? t('admin.categories.actions.deactivate') || 'סמן כלא פעיל'
-                : t('admin.categories.actions.activate') || 'הפעל מחדש'
+                ? t('admin.categories.confirmToggleInactive') || 'האם לסמן כלא פעיל?'
+                : t('admin.categories.confirmToggleActive') || 'האם להפעיל מחדש?'
             }
-          >
-            <Button
-              type="link"
-              icon={record.IsActive ? <StopOutlined /> : <CheckCircleOutlined />}
-              onClick={() => onToggleActive(record)}
-              style={{ color: record.IsActive ? '#faad14' : '#52c41a' }}
-            />
-          </Tooltip>
-
-          <Popconfirm
-            title={t('admin.categories.confirmDelete') || 'האם למחוק קטגוריה זו?'}
             description={
               record.IsActive
-                ? t('admin.categories.deleteWarning') ||
-                  'קטגוריה זו תסומן כלא פעילה. datasources קיימים ישמרו את הערך.'
-                : t('admin.categories.deleteInactive') ||
-                  'קטגוריה לא פעילה - מחיקה תסמן אותה כלא פעילה.'
+                ? 'קטגוריה זו תוסתר מרשימת הבחירה אך תישאר במערכת'
+                : 'קטגוריה זו תופיע שוב ברשימת הבחירה'
             }
-            onConfirm={() => onDelete(record)}
+            onConfirm={() => onToggleActive(record)}
             okText={t('common.yes') || 'כן'}
             cancelText={t('common.no') || 'לא'}
           >
-            <Tooltip title={t('admin.categories.actions.delete') || 'מחק'}>
-              <Button type="link" danger icon={<DeleteOutlined />} />
+            <Tooltip
+              title={
+                record.IsActive
+                  ? t('admin.categories.actions.deactivate') || 'סמן כלא פעיל'
+                  : t('admin.categories.actions.activate') || 'הפעל מחדש'
+              }
+            >
+              <Button
+                type="link"
+                icon={record.IsActive ? <StopOutlined /> : <CheckCircleOutlined />}
+                style={{ color: record.IsActive ? '#faad14' : '#52c41a' }}
+              />
             </Tooltip>
           </Popconfirm>
+
+          <DeleteCategoryButton
+            category={record}
+            onDelete={onDelete}
+          />
         </Space>
       ),
     },

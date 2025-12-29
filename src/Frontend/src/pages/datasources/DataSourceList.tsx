@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Button, Space, Table, Card, Alert, Spin, Tag, Popconfirm, message, Select, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ThunderboltOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ThunderboltOutlined, ClockCircleOutlined, FilterOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { humanizeCron } from '../../components/datasource/shared/helpers';
+import { getAllCategories } from '../../services/categories-api-client';
 
 const { Title, Paragraph } = Typography;
 const { Option } = Select;
@@ -75,6 +76,33 @@ const DataSourceList: React.FC = () => {
     columnKey: 'CreatedAt'
   });
   const [triggeringMap, setTriggeringMap] = useState<Record<string, boolean>>({});
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<boolean | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+
+  // Fetch categories for filter dropdown
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const cats = await getAllCategories(false); // Only active
+        setCategories(cats);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Refetch datasources when filters change
+  useEffect(() => {
+    if (pagination.current > 0) {
+      fetchDataSources(1, pagination.pageSize);
+    }
+  }, [categoryFilter, statusFilter]);
 
   // Handle manual trigger
   const handleManualTrigger = async (id: string, name: string) => {
@@ -384,13 +412,29 @@ const DataSourceList: React.FC = () => {
       'Category': 'Category',
       'TotalFilesProcessed': 'TotalFilesProcessed'
     };
-    
+
     const backendSortField = sortField ? sortFieldMap[sortField] || 'CreatedAt' : 'CreatedAt';
     const backendSortOrder = sortOrder === 'ascend' ? 'Ascending' : 'Descending';
 
+    // Build query parameters with filters
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: pageSize.toString(),
+      sortBy: backendSortField,
+      sortDirection: backendSortOrder,
+    });
+
+    if (categoryFilter) {
+      params.append('category', categoryFilter);
+    }
+
+    if (statusFilter !== null) {
+      params.append('isActive', statusFilter.toString());
+    }
+
     try {
       const response = await fetch(
-        `http://localhost:5001/api/v1/datasource?page=${page}&size=${pageSize}&sortBy=${backendSortField}&sortDirection=${backendSortOrder}`,
+        `http://localhost:5001/api/v1/datasource?${params.toString()}`,
         {
           method: 'GET',
           headers: {
@@ -487,15 +531,39 @@ const DataSourceList: React.FC = () => {
           </Paragraph>
         </div>
         <Space>
-          <Button 
-            icon={<ReloadOutlined />} 
+          <Select
+            placeholder={<><FilterOutlined /> סנן לפי קטגוריה</>}
+            allowClear
+            style={{ width: 200 }}
+            loading={categoriesLoading}
+            value={categoryFilter}
+            onChange={(value) => setCategoryFilter(value || null)}
+          >
+            {categories.map(cat => (
+              <Option key={cat.ID} value={cat.Name}>
+                {cat.Name}
+              </Option>
+            ))}
+          </Select>
+          <Select
+            placeholder={<><FilterOutlined /> סנן לפי סטטוס</>}
+            allowClear
+            style={{ width: 150 }}
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+          >
+            <Option value={true}>פעיל</Option>
+            <Option value={false}>לא פעיל</Option>
+          </Select>
+          <Button
+            icon={<ReloadOutlined />}
             onClick={() => fetchDataSources(pagination.current, pagination.pageSize)}
             loading={loading}
           >
             {t('common.refresh')}
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => navigate('/datasources/new')}
           >

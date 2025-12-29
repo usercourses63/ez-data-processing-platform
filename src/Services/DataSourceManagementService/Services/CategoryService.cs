@@ -154,12 +154,28 @@ public class CategoryService : ICategoryService
         }
     }
 
+    public async Task<long> GetDataSourceCountByCategoryAsync(string categoryName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var count = await DB.CountAsync<DataProcessingDataSource>(
+                ds => ds.Category == categoryName,
+                cancellationToken);
+
+            _logger.LogInformation("מספר datasources המשתמשים בקטגוריה '{CategoryName}': {Count}", categoryName, count);
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "שגיאה בספירת datasources לקטגוריה: {CategoryName}", categoryName);
+            throw;
+        }
+    }
+
     public async Task<bool> DeleteCategoryAsync(string id, CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Soft deleting category (marking as inactive): {CategoryId}", id);
-
             var category = await GetCategoryByIdAsync(id, cancellationToken);
             if (category == null)
             {
@@ -167,18 +183,44 @@ public class CategoryService : ICategoryService
                 return false;
             }
 
-            // Soft delete: mark as inactive instead of hard delete
-            // Existing datasources keep the category value, but new datasources cannot use it
-            category.IsActive = false;
-            category.UpdatedAt = DateTime.UtcNow;
-            await category.SaveAsync(cancellation: cancellationToken);
+            // Check if any datasources are using this category
+            var usageCount = await GetDataSourceCountByCategoryAsync(category.Name, cancellationToken);
 
-            _logger.LogInformation("קטגוריה סומנה כלא פעילה (soft delete) בהצלחה: {CategoryId}", id);
+            if (usageCount > 0)
+            {
+                // Soft delete: mark as inactive if in use
+                _logger.LogInformation("קטגוריה '{CategoryName}' בשימוש על ידי {Count} datasources - מבצע soft delete",
+                    category.Name, usageCount);
+
+                category.IsActive = false;
+                category.UpdatedAt = DateTime.UtcNow;
+                await category.SaveAsync(cancellation: cancellationToken);
+
+                _logger.LogInformation("✅ קטגוריה סומנה כלא פעילה (soft delete): {CategoryId}", id);
+            }
+            else
+            {
+                // Hard delete: permanently remove if not in use
+                _logger.LogInformation("קטגוריה '{CategoryName}' אינה בשימוש - מבצע hard delete", category.Name);
+
+                var result = await DB.DeleteAsync<DataSourceCategory>(id, cancellationToken);
+
+                if (result.DeletedCount > 0)
+                {
+                    _logger.LogInformation("✅ קטגוריה נמחקה לצמיתות (hard delete): {CategoryId}", id);
+                }
+                else
+                {
+                    _logger.LogWarning("⚠️ לא הצלחנו למחוק קטגוריה: {CategoryId}", id);
+                    return false;
+                }
+            }
+
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "שגיאה במחיקת קטגוריה: {CategoryId}", id);
+            _logger.LogError(ex, "❌ שגיאה במחיקת קטגוריה: {CategoryId}", id);
             throw;
         }
     }
