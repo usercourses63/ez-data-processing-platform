@@ -41,7 +41,15 @@ public interface ICategoryService
     Task<DataSourceCategory?> UpdateCategoryAsync(string id, DataSourceCategory category, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Delete a category
+    /// Get count of datasources using a specific category
+    /// </summary>
+    /// <param name="categoryName">Category name to check</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Number of datasources using this category</returns>
+    Task<long> GetDataSourceCountByCategoryAsync(string categoryName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete a category (smart delete: hard delete if unused, soft delete if in use)
     /// </summary>
     /// <param name="id">Category ID</param>
     /// <param name="cancellationToken">Cancellation token</param>

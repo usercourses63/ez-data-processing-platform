@@ -159,8 +159,7 @@ public class CategoryService : ICategoryService
         try
         {
             var count = await DB.CountAsync<DataProcessingDataSource>(
-                ds => ds.Category == categoryName,
-                cancellationToken);
+                ds => ds.Category == categoryName);
 
             _logger.LogInformation("מספר datasources המשתמשים בקטגוריה '{CategoryName}': {Count}", categoryName, count);
             return count;
@@ -203,7 +202,7 @@ public class CategoryService : ICategoryService
                 // Hard delete: permanently remove if not in use
                 _logger.LogInformation("קטגוריה '{CategoryName}' אינה בשימוש - מבצע hard delete", category.Name);
 
-                var result = await DB.DeleteAsync<DataSourceCategory>(id, cancellationToken);
+                var result = await DB.DeleteAsync<DataSourceCategory>(id);
 
                 if (result.DeletedCount > 0)
                 {
