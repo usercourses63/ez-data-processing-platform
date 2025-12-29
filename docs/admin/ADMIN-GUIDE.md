@@ -878,6 +878,207 @@ Update service configurations to point to external ES cluster
 
 ---
 
+## Maintenance Tools & Utilities
+
+### Reset Hazelcast Cache
+
+**Clear all cached data:**
+```bash
+# Delete file-content map
+kubectl exec deployment/hazelcast -n ez-platform -- \
+  curl -X DELETE http://localhost:5701/hazelcast/rest/maps/file-content
+
+# Delete valid-records map
+kubectl exec deployment/hazelcast -n ez-platform -- \
+  curl -X DELETE http://localhost:5701/hazelcast/rest/maps/valid-records
+
+# Verify cleared
+kubectl exec deployment/hazelcast -n ez-platform -- \
+  curl http://localhost:5701/hazelcast/rest/maps/file-content/size
+```
+
+**Or restart Hazelcast pods (clears all):**
+```bash
+kubectl rollout restart deployment/hazelcast -n ez-platform
+```
+
+### Purge RabbitMQ Queues
+
+**List queues:**
+```bash
+kubectl exec deployment/rabbitmq -n ez-platform -- \
+  rabbitmqctl list_queues name messages
+```
+
+**Purge specific queue:**
+```bash
+kubectl exec deployment/rabbitmq -n ez-platform -- \
+  rabbitmqctl purge_queue "queue-name"
+```
+
+**Delete all messages in all queues:**
+```bash
+# Get all queue names
+kubectl exec deployment/rabbitmq -n ez-platform -- \
+  rabbitmqctl list_queues name -q | while read queue; do
+    kubectl exec deployment/rabbitmq -n ez-platform -- \
+      rabbitmqctl purge_queue "$queue"
+  done
+```
+
+**Access RabbitMQ Management UI:**
+```bash
+# Port forward (if not already running)
+kubectl port-forward deployment/rabbitmq 15672:15672 -n ez-platform
+
+# Open browser
+http://localhost:15672
+# Login: guest / guest
+```
+
+### Clear Kafka Topics
+
+**List topics:**
+```bash
+kubectl exec -it kafka-0 -n ez-platform -- \
+  kafka-topics.sh --bootstrap-server localhost:9092 --list
+```
+
+**Delete topic (removes all messages):**
+```bash
+kubectl exec -it kafka-0 -n ez-platform -- \
+  kafka-topics.sh --bootstrap-server localhost:9092 \
+  --delete --topic topic-name
+```
+
+**Recreate topic:**
+```bash
+kubectl exec -it kafka-0 -n ez-platform -- \
+  kafka-topics.sh --bootstrap-server localhost:9092 \
+  --create --topic topic-name \
+  --partitions 3 \
+  --replication-factor 1
+```
+
+### Reset MongoDB Collections
+
+**⚠️ DANGER: This deletes data!**
+
+```bash
+# Backup first!
+kubectl exec -it mongodb-0 -n ez-platform -- \
+  mongodump --db=ezplatform --out=/tmp/backup-$(date +%Y%m%d)
+
+# Connect to MongoDB
+kubectl exec -it mongodb-0 -n ez-platform -- mongosh
+
+# In mongosh:
+use ezplatform
+
+# Drop specific collection
+db.DataSources.drop()
+
+# Or delete all documents (keeps collection)
+db.DataSources.deleteMany({})
+
+# Verify
+db.DataSources.countDocuments()
+```
+
+### Reset System to Clean State
+
+**Complete reset (for testing):**
+```bash
+# Stop all services
+kubectl scale deployment --all --replicas=0 -n ez-platform
+
+# Clear Hazelcast
+kubectl exec deployment/hazelcast -n ez-platform -- \
+  curl -X DELETE http://localhost:5701/hazelcast/rest/maps/file-content
+kubectl exec deployment/hazelcast -n ez-platform -- \
+  curl -X DELETE http://localhost:5701/hazelcast/rest/maps/valid-records
+
+# Clear RabbitMQ
+kubectl exec deployment/rabbitmq -n ez-platform -- \
+  rabbitmqctl reset
+
+# Clear MongoDB (optional - DANGER!)
+kubectl exec -it mongodb-0 -n ez-platform -- mongosh --eval "
+  use ezplatform;
+  db.DataSources.deleteMany({});
+  db.InvalidRecords.deleteMany({});
+"
+
+# Restart services
+kubectl scale deployment datasource-management --replicas=1 -n ez-platform
+kubectl scale deployment filediscovery --replicas=1 -n ez-platform
+kubectl scale deployment fileprocessor --replicas=1 -n ez-platform
+kubectl scale deployment validation --replicas=1 -n ez-platform
+kubectl scale deployment output --replicas=1 -n ez-platform
+kubectl scale deployment invalidrecords --replicas=1 -n ez-platform
+kubectl scale deployment scheduling --replicas=1 -n ez-platform
+kubectl scale deployment metrics-configuration --replicas=1 -n ez-platform
+kubectl scale deployment frontend --replicas=1 -n ez-platform
+```
+
+### Database Seeding
+
+**Re-seed default categories:**
+```bash
+# Categories are auto-seeded on first startup
+# To force re-seed, delete categories collection and restart:
+
+kubectl exec -it mongodb-0 -n ez-platform -- mongosh --eval "
+  use ezplatform;
+  db.DataSourceCategories.drop();
+"
+
+# Restart DataSourceManagement to trigger seeding
+kubectl rollout restart deployment/datasource-management -n ez-platform
+
+# Check logs for seeding confirmation
+kubectl logs deployment/datasource-management -n ez-platform | grep -i "קטגוריות"
+```
+
+### Generate Test Data
+
+**Using DemoDataGenerator:**
+```bash
+# Navigate to tool
+cd tools/DemoDataGenerator
+
+# Generate demo data (20 datasources, 20 metrics)
+dotnet run
+
+# Or incremental mode (adds to existing)
+dotnet run -- --incremental
+```
+
+### Export/Import Categories
+
+**Export categories:**
+```bash
+kubectl exec -it mongodb-0 -n ez-platform -- mongosh --eval "
+  use ezplatform;
+  printjson(db.DataSourceCategories.find().toArray());
+" > categories-export.json
+```
+
+**Import categories:**
+```bash
+# Copy JSON to pod
+kubectl cp categories-export.json mongodb-0:/tmp/categories.json -n ez-platform
+
+# Import
+kubectl exec -it mongodb-0 -n ez-platform -- mongoimport \
+  --db=ezplatform \
+  --collection=DataSourceCategories \
+  --file=/tmp/categories.json \
+  --jsonArray
+```
+
+---
+
 ## Appendix
 
 ### Useful Commands Reference

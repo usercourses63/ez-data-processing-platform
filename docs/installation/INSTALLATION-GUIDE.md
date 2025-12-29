@@ -590,6 +590,130 @@ kubectl get namespace ez-platform
 
 ---
 
+## Volume Mounting for File-Based DataSources
+
+### Overview
+
+For **Local folder** datasources, you need to mount external directories into the FileDiscovery pod so it can access files.
+
+### Option 1: HostPath (Development/Minikube)
+
+**For Minikube:**
+```bash
+# Mount host directory into Minikube
+minikube mount C:\Users\UserC\data\uploads:/mnt/data/uploads
+
+# Keep this terminal running
+```
+
+**Update FileDiscovery deployment:**
+```yaml
+# Edit k8s/deployments/filediscovery.yaml
+spec:
+  template:
+    spec:
+      containers:
+      - name: filediscovery
+        volumeMounts:
+        - name: external-data
+          mountPath: /mnt/external-data
+      volumes:
+      - name: external-data
+        hostPath:
+          path: /mnt/data/uploads  # Path in Minikube
+          type: Directory
+```
+
+**Then restart:**
+```bash
+kubectl apply -f k8s/deployments/filediscovery.yaml
+kubectl rollout restart deployment/filediscovery -n ez-platform
+```
+
+### Option 2: PersistentVolume (Production)
+
+**Create PV and PVC:**
+```yaml
+# k8s/storage/file-input-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: file-input-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany  # Multiple pods can read
+  nfs:  # Or other shared storage
+    server: your-nfs-server.com
+    path: "/exports/data-input"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: file-input-pvc
+  namespace: ez-platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+```
+
+**Apply and mount:**
+```bash
+kubectl apply -f k8s/storage/file-input-pv.yaml
+
+# Update filediscovery deployment to use PVC
+kubectl set volume deployment/filediscovery \
+  --add --name=file-input \
+  --mount-path=/mnt/external-data \
+  --type=persistentVolumeClaim \
+  --claim-name=file-input-pvc \
+  -n ez-platform
+```
+
+### Option 3: Cloud Storage (AWS/Azure/GCP)
+
+**AWS EFS:**
+```yaml
+# Use EFS CSI driver
+storageClassName: efs-sc
+```
+
+**Azure Files:**
+```yaml
+# Use Azure File storage class
+storageClassName: azurefile
+```
+
+### Output Volume Mounting
+
+**Similar process for Output service:**
+```bash
+# Mount output directory
+kubectl set volume deployment/output \
+  --add --name=file-output \
+  --mount-path=/mnt/external-output \
+  --type=persistentVolumeClaim \
+  --claim-name=file-output-pvc \
+  -n ez-platform
+```
+
+### Verify Mounts
+
+```bash
+# Check FileDiscovery can see files
+kubectl exec deployment/filediscovery -n ez-platform -- ls -la /mnt/external-data
+
+# Check Output can write
+kubectl exec deployment/output -n ez-platform -- touch /mnt/external-output/test.txt
+```
+
+---
+
 ## Advanced Configuration
 
 ### Custom Storage Class
