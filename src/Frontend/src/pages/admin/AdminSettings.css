@@ -1,0 +1,23 @@
+.admin-settings .ant-tabs-nav {
+  margin-bottom: 24px;
+}
+
+.admin-settings .ant-tabs-tab {
+  font-size: 16px;
+  padding: 12px 16px;
+}
+
+.admin-settings .inactive-row {
+  background-color: #fafafa;
+  opacity: 0.7;
+}
+
+.admin-settings .category-name-cell {
+  font-weight: 600;
+}
+
+.admin-settings .category-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}

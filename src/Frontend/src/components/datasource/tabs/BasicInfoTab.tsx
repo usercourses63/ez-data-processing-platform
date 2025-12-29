@@ -1,6 +1,9 @@
 import React from 'react';
-import { Form, Input, Select, Switch, InputNumber, Row, Col } from 'antd';
+import { Form, Input, Select, Switch, InputNumber, Row, Col, Alert, Spin } from 'antd';
 import { FormInstance } from 'antd/es/form';
+import { useQuery } from '@tanstack/react-query';
+import { getAllCategories } from '../../../services/categories-api-client';
+import { Link } from 'react-router-dom';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -11,6 +14,12 @@ interface BasicInfoTabProps {
 }
 
 export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
+  // Fetch active categories from API
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery({
+    queryKey: ['categories', 'active'],
+    queryFn: () => getAllCategories(false), // Only active categories
+  });
+
   return (
     <>
       <Row gutter={16}>
@@ -56,14 +65,38 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
             label={t('datasources.fields.category')}
             rules={[{ required: true, message: t('errors.required') }]}
           >
-            <Select placeholder="בחר קטגוריה">
-              <Option value="financial">{t('datasources.categories.financial')}</Option>
-              <Option value="customers">{t('datasources.categories.customers')}</Option>
-              <Option value="inventory">{t('datasources.categories.inventory')}</Option>
-              <Option value="sales">{t('datasources.categories.sales')}</Option>
-              <Option value="operations">{t('datasources.categories.operations')}</Option>
-              <Option value="other">{t('datasources.categories.other')}</Option>
-            </Select>
+            {categoriesError ? (
+              <Alert
+                message="שגיאה בטעינת קטגוריות"
+                description={(categoriesError as any).message}
+                type="error"
+                showIcon
+              />
+            ) : categories.length === 0 && !categoriesLoading ? (
+              <Alert
+                message="לא קיימות קטגוריות פעילות"
+                description={
+                  <>
+                    יש ליצור קטגוריה אחת לפחות בטרם יצירת מקור נתונים.{' '}
+                    <Link to="/admin/settings">עבור להגדרות מערכת</Link>
+                  </>
+                }
+                type="warning"
+                showIcon
+              />
+            ) : (
+              <Select
+                placeholder="בחר קטגוריה"
+                loading={categoriesLoading}
+                notFoundContent={categoriesLoading ? <Spin size="small" /> : 'לא נמצאו קטגוריות'}
+              >
+                {categories.map(cat => (
+                  <Option key={cat.ID} value={cat.Name}>
+                    {cat.Name} ({cat.NameEn})
+                  </Option>
+                ))}
+              </Select>
+            )}
           </Form.Item>
         </Col>
 

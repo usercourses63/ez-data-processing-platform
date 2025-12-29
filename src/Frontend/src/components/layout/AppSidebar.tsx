@@ -9,6 +9,7 @@ import {
   ExclamationCircleOutlined,
   RobotOutlined,
   BellOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -47,6 +48,11 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ collapsed = false }) => {
       key: '/ai-assistant',
       icon: <RobotOutlined />,
       label: t('navigation.aiAssistant'),
+    },
+    {
+      key: '/admin/settings',
+      icon: <SettingOutlined />,
+      label: t('navigation.adminSettings') || 'הגדרות מערכת',
     },
   ];
 

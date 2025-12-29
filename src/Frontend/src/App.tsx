@@ -26,6 +26,7 @@ import MetricConfigurationWizard from './pages/metrics/MetricConfigurationWizard
 import AlertsManagement from './pages/alerts/AlertsManagement';
 import InvalidRecordsManagement from './pages/invalid-records/InvalidRecordsManagement';
 import AIAssistant from './pages/ai-assistant/AIAssistant';
+import AdminSettings from './pages/admin/AdminSettings';
 
 const { Content } = Layout;
 
@@ -107,6 +108,7 @@ const App: React.FC = () => {
                   <Route path="/ai-assistant" element={<AIAssistant />} />
                   <Route path="/validation" element={<ValidationResults />} />
                   <Route path="/monitoring" element={<SystemMonitoring />} />
+                  <Route path="/admin/settings" element={<AdminSettings />} />
                   <Route path="*" element={<Navigate to="/datasources" replace />} />
                 </Routes>
               </Content>
