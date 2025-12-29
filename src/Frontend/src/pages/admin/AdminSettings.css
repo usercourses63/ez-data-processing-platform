@@ -18,6 +18,13 @@
 
 .admin-settings .category-actions {
   display: flex;
-  gap: 8px;
+  gap: 16px;
   justify-content: flex-start;
+  align-items: center;
+}
+
+.admin-settings .category-actions .ant-btn-link {
+  padding: 4px;
+  min-width: 32px;
+  height: 32px;
 }

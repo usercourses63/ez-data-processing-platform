@@ -854,5 +854,77 @@
     "dataSourceCreated": "מקור הנתונים נוצר בהצלחה",
     "dataSourceUpdated": "מקור הנתונים עודכן בהצלחה",
     "dataSourceDeleted": "מקור הנתונים נמחק בהצלחה"
+  },
+  "admin": {
+    "title": "הגדרות מערכת",
+    "tabs": {
+      "categories": "קטגוריות",
+      "systemSettings": "הגדרות מערכת"
+    },
+    "categories": {
+      "title": "ניהול קטגוריות",
+      "subtitle": "ניהול קטגוריות מקורות נתונים",
+      "addButton": "הוסף קטגוריה",
+      "addTitle": "הוספת קטגוריה חדשה",
+      "editTitle": "עריכת קטגוריה",
+      "deleteSuccess": "קטגוריה נמחקה בהצלחה",
+      "deleteError": "שגיאה במחיקת קטגוריה",
+      "createSuccess": "קטגוריה נוצרה בהצלחה",
+      "createError": "שגיאה ביצירת קטגוריה",
+      "updateSuccess": "קטגוריה עודכנה בהצלחה",
+      "updateError": "שגיאה בעדכון קטגוריה",
+      "toggleSuccess": "סטטוס קטגוריה עודכן בהצלחה",
+      "toggleError": "שגיאה בשינוי סטטוס קטגוריה",
+      "confirmDelete": "האם למחוק קטגוריה זו?",
+      "deleteWarning": "קטגוריה זו תסומן כלא פעילה. מקורות נתונים קיימים ישמרו את הערך.",
+      "deleteInactive": "קטגוריה לא פעילה - מחיקה תסמן אותה כלא פעילה.",
+      "renameWarning": "שים לב",
+      "renameWarningText": "שינוי שם הקטגוריה יעדכן אוטומטית את כל מקורות הנתונים הקיימים שמשתמשים בקטגוריה זו.",
+      "columns": {
+        "name": "שם (עברית)",
+        "nameEn": "שם (אנגלית)",
+        "description": "תיאור",
+        "status": "סטטוס",
+        "actions": "פעולות"
+      },
+      "filters": {
+        "active": "פעיל",
+        "inactive": "לא פעיל"
+      },
+      "status": {
+        "active": "פעיל",
+        "inactive": "לא פעיל"
+      },
+      "actions": {
+        "edit": "ערוך",
+        "delete": "מחק",
+        "activate": "הפעל מחדש",
+        "deactivate": "סמן כלא פעיל"
+      },
+      "form": {
+        "nameHebrew": "שם בעברית",
+        "nameEnglish": "שם באנגלית",
+        "description": "תיאור (אופציונלי)",
+        "nameRequired": "שם בעברית נדרש",
+        "nameEnRequired": "שם באנגלית נדרש",
+        "nameMaxLength": "שם לא יכול להיות ארוך מ-100 תווים",
+        "nameEnMaxLength": "שם לא יכול להיות ארוך מ-100 תווים",
+        "descriptionMaxLength": "תיאור לא יכול להיות ארוך מ-500 תווים"
+      }
+    }
+  },
+  "navigation": {
+    "dashboard": "דשבורד",
+    "datasources": "מקורות נתונים",
+    "schemaManagement": "ניהול Schema",
+    "metricsConfig": "הגדרות מדדים",
+    "metricsDashboard": "לוח מדדים",
+    "invalidRecords": "רשומות לא תקינות",
+    "aiAssistant": "עוזר AI",
+    "notifications": "התרעות",
+    "validation": "אימות נתונים",
+    "monitoring": "ניטור מערכת",
+    "settings": "הגדרות",
+    "adminSettings": "הגדרות מערכת"
   }
 }
