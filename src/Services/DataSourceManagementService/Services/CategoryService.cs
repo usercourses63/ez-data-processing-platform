@@ -101,6 +101,17 @@ public class CategoryService : ICategoryService
                 return null;
             }
 
+            // If name is changing, propagate to all datasources
+            if (existing.Name != category.Name)
+            {
+                _logger.LogInformation("שם קטגוריה משתנה מ-'{OldName}' ל-'{NewName}', מעדכן datasources...",
+                    existing.Name, category.Name);
+
+                var updatedCount = await PropagateRenameToDataSourcesAsync(id, existing.Name, category.Name, cancellationToken);
+
+                _logger.LogInformation("עודכנו {Count} datasources עם שם קטגוריה חדש", updatedCount);
+            }
+
             existing.Name = category.Name;
             existing.NameEn = category.NameEn;
             existing.Description = category.Description;
@@ -121,22 +132,49 @@ public class CategoryService : ICategoryService
         }
     }
 
+    public async Task<int> PropagateRenameToDataSourcesAsync(string id, string oldName, string newName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("מעדכן datasources: '{OldName}' → '{NewName}'", oldName, newName);
+
+            var result = await DB.Update<DataProcessingDataSource>()
+                .Match(ds => ds.Category == oldName)
+                .Modify(ds => ds.Category, newName)
+                .Modify(ds => ds.UpdatedAt, DateTime.UtcNow)
+                .ExecuteAsync(cancellationToken);
+
+            _logger.LogInformation("עודכנו {Count} datasources בהצלחה", result.ModifiedCount);
+            return (int)result.ModifiedCount;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "שגיאה בהעברת שינויים ל-datasources");
+            throw;
+        }
+    }
+
     public async Task<bool> DeleteCategoryAsync(string id, CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogInformation("Deleting category: {CategoryId}", id);
+            _logger.LogInformation("Soft deleting category (marking as inactive): {CategoryId}", id);
 
-            var result = await DB.DeleteAsync<DataSourceCategory>(id, cancellationToken);
-
-            if (result.DeletedCount > 0)
+            var category = await GetCategoryByIdAsync(id, cancellationToken);
+            if (category == null)
             {
-                _logger.LogInformation("קטגוריה נמחקה בהצלחה: {CategoryId}", id);
-                return true;
+                _logger.LogWarning("קטגוריה לא נמצאה למחיקה: {CategoryId}", id);
+                return false;
             }
 
-            _logger.LogWarning("קטגוריה לא נמצאה למחיקה: {CategoryId}", id);
-            return false;
+            // Soft delete: mark as inactive instead of hard delete
+            // Existing datasources keep the category value, but new datasources cannot use it
+            category.IsActive = false;
+            category.UpdatedAt = DateTime.UtcNow;
+            await category.SaveAsync(cancellation: cancellationToken);
+
+            _logger.LogInformation("קטגוריה סומנה כלא פעילה (soft delete) בהצלחה: {CategoryId}", id);
+            return true;
         }
         catch (Exception ex)
         {

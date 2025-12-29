@@ -64,4 +64,14 @@ public interface ICategoryService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated category or null if not found</returns>
     Task<DataSourceCategory?> ToggleCategoryActiveAsync(string id, bool isActive, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Update category name and propagate changes to all datasources using this category
+    /// </summary>
+    /// <param name="id">Category ID</param>
+    /// <param name="oldName">Current category name</param>
+    /// <param name="newName">New category name</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Number of datasources updated</returns>
+    Task<int> PropagateRenameToDataSourcesAsync(string id, string oldName, string newName, CancellationToken cancellationToken = default);
 }

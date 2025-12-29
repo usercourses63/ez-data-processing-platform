@@ -10,6 +10,7 @@ public static class CategorySeeder
 {
     /// <summary>
     /// Seed default categories if they don't exist
+    /// Migrates existing category values from datasources first
     /// </summary>
     public static async Task SeedDefaultCategoriesAsync(ILogger logger)
     {
@@ -23,7 +24,50 @@ public static class CategorySeeder
                 return;
             }
 
-            logger.LogInformation("יוצר קטגוריות ברירת מחדל...");
+            logger.LogInformation("מתחיל תהליך seeding קטגוריות...");
+
+            // STEP 1: Migrate existing category values from datasources
+            var existingCategories = await DB.Find<DataProcessingDataSource>()
+                .Match(ds => ds.Category != null && ds.Category != string.Empty)
+                .Project(ds => ds.Category)
+                .ExecuteAsync();
+
+            var uniqueCategories = existingCategories
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Distinct()
+                .ToList();
+
+            if (uniqueCategories.Any())
+            {
+                logger.LogInformation("נמצאו {Count} קטגוריות ייחודיות ב-datasources קיימים, מייבא...", uniqueCategories.Count);
+
+                var migratedCategories = new List<DataSourceCategory>();
+                int sortOrder = 1;
+
+                foreach (var categoryName in uniqueCategories.OrderBy(c => c))
+                {
+                    migratedCategories.Add(new DataSourceCategory
+                    {
+                        Name = categoryName,
+                        NameEn = categoryName, // Will need manual translation by admin
+                        Description = "קטגוריה שהועברה אוטומטית ממקורות נתונים קיימים",
+                        SortOrder = sortOrder++,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedBy = "System Migration"
+                    });
+                }
+
+                await DB.SaveAsync(migratedCategories);
+                logger.LogInformation("✅ {Count} קטגוריות הועברו מ-datasources קיימים", migratedCategories.Count);
+
+                // Don't add defaults if we migrated existing categories
+                return;
+            }
+
+            // STEP 2: If no existing datasources, create default categories
+            logger.LogInformation("לא נמצאו datasources קיימים, יוצר קטגוריות ברירת מחדל...");
 
             var defaultCategories = new List<DataSourceCategory>
             {
