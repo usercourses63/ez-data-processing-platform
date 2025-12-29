@@ -3,6 +3,8 @@
 
 ---
 # Grafana credentials Secret
+# BETA: Password is base64-encoded. Default password: EZPlatform2025!Beta
+# To change: echo -n "your-password" | base64
 # NOTE: For production, replace with externally managed secrets (e.g., Vault, sealed-secrets)
 apiVersion: v1
 kind: Secret
@@ -12,8 +14,8 @@ metadata:
   labels:
     app: ezplatform-grafana
 type: Opaque
-stringData:
-  admin-password: "admin"  # TODO: Change for production deployment
+data:
+  admin-password: RVpQbGF0Zm9ybTIwMjUhQmV0YQ==  # Base64 encoded: EZPlatform2025!Beta
 
 ---
 apiVersion: v1
