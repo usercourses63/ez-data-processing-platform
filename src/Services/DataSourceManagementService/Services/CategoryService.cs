@@ -21,7 +21,7 @@ public class CategoryService : ICategoryService
         {
             _logger.LogInformation("Retrieving all categories. IncludeInactive: {IncludeInactive}", includeInactive);
 
-            var query = DB.Find<DataSourceCategory>();
+            var query = DB.Find<DataSourceCategory, DataSourceCategory>();
 
             if (!includeInactive)
             {
@@ -47,7 +47,7 @@ public class CategoryService : ICategoryService
         try
         {
             _logger.LogInformation("Retrieving category by ID: {CategoryId}", id);
-            return await DB.Find<DataSourceCategory>().OneAsync(id, cancellationToken);
+            return await DB.Find<DataSourceCategory, DataSourceCategory>().OneAsync(id, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -65,7 +65,7 @@ public class CategoryService : ICategoryService
             // Set default sort order to highest + 1 if not specified
             if (category.SortOrder == 0)
             {
-                var maxSortOrder = await DB.Find<DataSourceCategory>()
+                var maxSortOrder = await DB.Find<DataSourceCategory, DataSourceCategory>()
                     .Sort(c => c.SortOrder, MongoDB.Entities.Order.Descending)
                     .Limit(1)
                     .ExecuteAsync(cancellationToken);

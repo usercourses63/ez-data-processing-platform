@@ -53,7 +53,7 @@ services.AddSingleton(activitySource);
 services.AddDataProcessingOpenTelemetry(configuration, serviceName);
 
 // Configure metrics
-services.AddSingleton<DataProcessingMetrics>();
+services.AddSingleton<BusinessMetrics>();
 
 // Configure MassTransit with RabbitMQ transport
 var rabbitMqHost = configuration.GetValue<string>("RabbitMQ:Host") ?? "rabbitmq.ez-platform.svc.cluster.local";

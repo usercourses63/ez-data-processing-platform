@@ -27,12 +27,12 @@ public static class CategorySeeder
             logger.LogInformation("מתחיל תהליך seeding קטגוריות...");
 
             // STEP 1: Migrate existing category values from datasources
-            var existingCategories = await DB.Find<DataProcessingDataSource>()
+            var datasources = await DB.Find<DataProcessingDataSource, DataProcessingDataSource>()
                 .Match(ds => ds.Category != null && ds.Category != string.Empty)
-                .Project(ds => ds.Category)
                 .ExecuteAsync();
 
-            var uniqueCategories = existingCategories
+            var uniqueCategories = datasources
+                .Select(ds => ds.Category)
                 .Where(c => !string.IsNullOrWhiteSpace(c))
                 .Distinct()
                 .ToList();

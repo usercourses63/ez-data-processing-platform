@@ -21,14 +21,14 @@ public class DataSourceService : IDataSourceService
 {
     private readonly IDataSourceRepository _repository;
     private readonly ILogger<DataSourceService> _logger;
-    private readonly DataProcessingMetrics _metrics;
+    private readonly BusinessMetrics _metrics;
     private readonly IPublishEndpoint _publishEndpoint;
     private static readonly ActivitySource ActivitySource = new("DataProcessing.DataSourceManagement.Service");
 
     public DataSourceService(
         IDataSourceRepository repository,
         ILogger<DataSourceService> logger,
-        DataProcessingMetrics metrics,
+        BusinessMetrics metrics,
         IPublishEndpoint publishEndpoint)
     {
         _repository = repository;
