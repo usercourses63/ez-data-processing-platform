@@ -16,13 +16,13 @@ public class DataSourcePollingJob : IJob
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<DataSourcePollingJob> _logger;
-    private readonly DataProcessingMetrics _metrics;
+    private readonly BusinessMetrics _metrics;
     private static readonly ActivitySource ActivitySource = new("DataProcessing.Scheduling");
 
     public DataSourcePollingJob(
         IPublishEndpoint publishEndpoint,
         ILogger<DataSourcePollingJob> logger,
-        DataProcessingMetrics metrics)
+        BusinessMetrics metrics)
     {
         _publishEndpoint = publishEndpoint;
         _logger = logger;
@@ -65,7 +65,7 @@ public class DataSourcePollingJob : IJob
             await Task.WhenAll(pollingTasks);
 
             // Update success metrics
-            DataProcessingMetrics.FilesProcessedTotal
+            BusinessMetrics.FilesProcessedTotal
                 .WithLabels("all", "scheduling", "success")
                 .Inc(dataSources.Count);
 
@@ -79,7 +79,7 @@ public class DataSourcePollingJob : IJob
             _logger.LogError(ex, "Error during scheduled data source polling execution. CorrelationId: {CorrelationId}", correlationId);
             
             // Update error metrics
-            DataProcessingMetrics.FilesProcessedTotal
+            BusinessMetrics.FilesProcessedTotal
                 .WithLabels("all", "scheduling", "failed")
                 .Inc();
 
@@ -90,7 +90,7 @@ public class DataSourcePollingJob : IJob
         {
             stopwatch.Stop();
             
-            DataProcessingMetrics.ProcessingDurationSeconds
+            BusinessMetrics.ProcessingDurationSeconds
                 .WithLabels("all", "scheduling", "job_execution")
                 .Observe(stopwatch.Elapsed.TotalSeconds);
         }
@@ -181,7 +181,7 @@ public class DataSourcePollingJob : IJob
             _logger.LogError(ex, "Failed to publish polling event for data source {DataSourceName}. CorrelationId: {CorrelationId}",
                 dataSource.Name, correlationId);
             
-            DataProcessingMetrics.FilesProcessedTotal
+            BusinessMetrics.FilesProcessedTotal
                 .WithLabels(dataSource.ID, "scheduling", "failed")
                 .Inc();
             

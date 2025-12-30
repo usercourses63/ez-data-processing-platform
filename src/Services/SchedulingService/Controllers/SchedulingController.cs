@@ -16,13 +16,13 @@ public class SchedulingController : ControllerBase
 {
     private readonly ISchedulingManager _schedulingManager;
     private readonly ILogger<SchedulingController> _logger;
-    private readonly DataProcessingMetrics _metrics;
+    private readonly BusinessMetrics _metrics;
     private static readonly ActivitySource ActivitySource = new("DataProcessing.Scheduling");
 
     public SchedulingController(
         ISchedulingManager schedulingManager,
         ILogger<SchedulingController> logger,
-        DataProcessingMetrics metrics)
+        BusinessMetrics metrics)
     {
         _schedulingManager = schedulingManager;
         _logger = logger;

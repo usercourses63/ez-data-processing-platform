@@ -94,7 +94,7 @@ builder.Services.AddHostedService<ScheduleReloadService>();
 builder.Services.AddDataProcessingHealthChecks(builder.Configuration, serviceName);
 
 // Configure metrics
-builder.Services.AddSingleton<DataProcessingMetrics>();
+builder.Services.AddSingleton<BusinessMetrics>();
 builder.Services.AddBusinessMetrics();
 
 // Configure CORS for development

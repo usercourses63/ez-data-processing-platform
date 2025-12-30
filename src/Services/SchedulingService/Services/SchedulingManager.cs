@@ -16,7 +16,7 @@ public class SchedulingManager : ISchedulingManager
 {
     private readonly IScheduler _scheduler;
     private readonly ILogger<SchedulingManager> _logger;
-    private readonly DataProcessingMetrics _metrics;
+    private readonly BusinessMetrics _metrics;
     private static readonly ActivitySource ActivitySource = new("DataProcessing.Scheduling");
 
     // Constants for job and trigger naming
@@ -27,7 +27,7 @@ public class SchedulingManager : ISchedulingManager
     public SchedulingManager(
         IScheduler scheduler,
         ILogger<SchedulingManager> logger,
-        DataProcessingMetrics metrics)
+        BusinessMetrics metrics)
     {
         _scheduler = scheduler;
         _logger = logger;

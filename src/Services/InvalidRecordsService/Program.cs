@@ -61,7 +61,7 @@ builder.Services.AddScoped<InvalidRecordsService.Services.ICorrectionService,
 builder.Services.AddDataProcessingHealthChecks(builder.Configuration, serviceName);
 
 // Configure metrics
-builder.Services.AddSingleton<DataProcessingMetrics>();
+builder.Services.AddSingleton<BusinessMetrics>();
 
 // Configure CORS for development
 builder.Services.AddCors(options =>
