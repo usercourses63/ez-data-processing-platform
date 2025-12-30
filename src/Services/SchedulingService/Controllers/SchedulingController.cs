@@ -81,7 +81,7 @@ public class SchedulingController : ControllerBase
             {
                 var status = await _schedulingManager.GetScheduleStatusAsync(dataSourceId);
                 
-                _metrics.RecordMessageReceived("schedule_request", "scheduling", true);
+                _metrics.RecordMessageReceived("schedule_request", "scheduling", "success");
                 
                 return Ok(new ScheduleApiResponse
                 {
@@ -93,7 +93,7 @@ public class SchedulingController : ControllerBase
             }
             else
             {
-                _metrics.RecordMessageReceived("schedule_request", "scheduling", false);
+                _metrics.RecordMessageReceived("schedule_request", "scheduling", "failed");
                 
                 return BadRequest(new ErrorResponse
                 {

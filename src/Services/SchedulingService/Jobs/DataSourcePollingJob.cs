@@ -65,9 +65,10 @@ public class DataSourcePollingJob : IJob
             await Task.WhenAll(pollingTasks);
 
             // Update success metrics
-            BusinessMetrics.FilesProcessedTotal
-                .WithLabels("all", "scheduling", "success")
-                .Inc(dataSources.Count);
+            foreach (var ds in dataSources)
+            {
+                _metrics.RecordFileProcessed(ds.Name, "Scheduling", "polling", true);
+            }
 
             _logger.LogInformation("Successfully completed data source polling for {Count} sources in {Duration}ms. CorrelationId: {CorrelationId}",
                 dataSources.Count, stopwatch.ElapsedMilliseconds, correlationId);
@@ -78,10 +79,8 @@ public class DataSourcePollingJob : IJob
             
             _logger.LogError(ex, "Error during scheduled data source polling execution. CorrelationId: {CorrelationId}", correlationId);
             
-            // Update error metrics
-            BusinessMetrics.FilesProcessedTotal
-                .WithLabels("all", "scheduling", "failed")
-                .Inc();
+            // Update error metrics (no specific datasource for global polling failure)
+            _metrics.RecordFileProcessed("all", "Scheduling", "polling", false);
 
             // Re-throw to let Quartz handle retry logic
             throw;
@@ -89,10 +88,12 @@ public class DataSourcePollingJob : IJob
         finally
         {
             stopwatch.Stop();
-            
-            BusinessMetrics.ProcessingDurationSeconds
-                .WithLabels("all", "scheduling", "job_execution")
-                .Observe(stopwatch.Elapsed.TotalSeconds);
+
+            _metrics.RecordProcessingDuration(
+                stopwatch.Elapsed.TotalSeconds,
+                "all",
+                "Scheduling",
+                "polling");
         }
     }
 
@@ -181,9 +182,7 @@ public class DataSourcePollingJob : IJob
             _logger.LogError(ex, "Failed to publish polling event for data source {DataSourceName}. CorrelationId: {CorrelationId}",
                 dataSource.Name, correlationId);
             
-            BusinessMetrics.FilesProcessedTotal
-                .WithLabels(dataSource.ID, "scheduling", "failed")
-                .Inc();
+            _metrics.RecordFileProcessed(dataSource.Name, "Scheduling", "polling", false);
             
             throw;
         }

@@ -122,7 +122,7 @@ public class SchedulingManager : ISchedulingManager
             await scheduledDataSource.SaveAsync();
 
             // Update metrics
-            _metrics.RecordMessageSent("schedule_created", "scheduling", true);
+            _metrics.RecordMessageSent("schedule_created", "scheduling", "success");
 
             _logger.LogInformation("Successfully scheduled polling for data source {DataSourceName}. Next execution: {NextExecution}. CorrelationId: {CorrelationId}",
                 dataSource.Name, trigger.GetNextFireTimeUtc(), correlationId);
@@ -134,7 +134,7 @@ public class SchedulingManager : ISchedulingManager
             _logger.LogError(ex, "Failed to schedule polling for data source {DataSourceName}. CorrelationId: {CorrelationId}",
                 dataSource.Name, correlationId);
 
-            _metrics.RecordMessageSent("schedule_created", "scheduling", false);
+            _metrics.RecordMessageSent("schedule_created", "scheduling", "failed");
             return false;
         }
     }
@@ -160,7 +160,7 @@ public class SchedulingManager : ISchedulingManager
 
             if (result)
             {
-                _metrics.RecordMessageSent("schedule_deleted", "scheduling", true);
+                _metrics.RecordMessageSent("schedule_deleted", "scheduling", "success");
                 _logger.LogInformation("Successfully unscheduled polling for data source {DataSourceId}. Deleted {Count} persisted schedule(s). CorrelationId: {CorrelationId}",
                     dataSourceId, deleteCount, correlationId);
             }
@@ -177,7 +177,7 @@ public class SchedulingManager : ISchedulingManager
             _logger.LogError(ex, "Failed to unschedule polling for data source {DataSourceId}. CorrelationId: {CorrelationId}",
                 dataSourceId, correlationId);
 
-            _metrics.RecordMessageSent("schedule_deleted", "scheduling", false);
+            _metrics.RecordMessageSent("schedule_deleted", "scheduling", "failed");
             return false;
         }
     }
@@ -223,7 +223,7 @@ public class SchedulingManager : ISchedulingManager
             // Reschedule with new trigger
             await _scheduler.RescheduleJob(triggerKey, newTrigger);
 
-            _metrics.RecordMessageSent("schedule_updated", "scheduling", true);
+            _metrics.RecordMessageSent("schedule_updated", "scheduling", "success");
 
             _logger.LogInformation("Successfully updated polling interval for data source {DataSourceId}. Next execution: {NextExecution}. CorrelationId: {CorrelationId}",
                 dataSourceId, newTrigger.GetNextFireTimeUtc(), correlationId);
@@ -235,7 +235,7 @@ public class SchedulingManager : ISchedulingManager
             _logger.LogError(ex, "Failed to update polling interval for data source {DataSourceId}. CorrelationId: {CorrelationId}",
                 dataSourceId, correlationId);
 
-            _metrics.RecordMessageSent("schedule_updated", "scheduling", false);
+            _metrics.RecordMessageSent("schedule_updated", "scheduling", "failed");
             return false;
         }
     }
@@ -254,7 +254,7 @@ public class SchedulingManager : ISchedulingManager
             var jobKey = CreateJobKey(dataSourceId);
             await _scheduler.PauseJob(jobKey);
 
-            _metrics.RecordMessageSent("schedule_paused", "scheduling", true);
+            _metrics.RecordMessageSent("schedule_paused", "scheduling", "success");
 
             _logger.LogInformation("Successfully paused polling for data source {DataSourceId}. CorrelationId: {CorrelationId}",
                 dataSourceId, correlationId);
@@ -266,7 +266,7 @@ public class SchedulingManager : ISchedulingManager
             _logger.LogError(ex, "Failed to pause polling for data source {DataSourceId}. CorrelationId: {CorrelationId}",
                 dataSourceId, correlationId);
 
-            _metrics.RecordMessageSent("schedule_paused", "scheduling", false);
+            _metrics.RecordMessageSent("schedule_paused", "scheduling", "failed");
             return false;
         }
     }
@@ -285,7 +285,7 @@ public class SchedulingManager : ISchedulingManager
             var jobKey = CreateJobKey(dataSourceId);
             await _scheduler.ResumeJob(jobKey);
 
-            _metrics.RecordMessageSent("schedule_resumed", "scheduling", true);
+            _metrics.RecordMessageSent("schedule_resumed", "scheduling", "success");
 
             _logger.LogInformation("Successfully resumed polling for data source {DataSourceId}. CorrelationId: {CorrelationId}",
                 dataSourceId, correlationId);
@@ -297,7 +297,7 @@ public class SchedulingManager : ISchedulingManager
             _logger.LogError(ex, "Failed to resume polling for data source {DataSourceId}. CorrelationId: {CorrelationId}",
                 dataSourceId, correlationId);
 
-            _metrics.RecordMessageSent("schedule_resumed", "scheduling", false);
+            _metrics.RecordMessageSent("schedule_resumed", "scheduling", "failed");
             return false;
         }
     }
@@ -424,12 +424,12 @@ public class SchedulingManager : ISchedulingManager
 
             // Trigger job immediately
             var jobDataMap = new JobDataMap();
-            jobDataMap.Put("manualTrigger", true);
+            jobDataMap.Put("manualTrigger", "success");
             jobDataMap.Put("correlationId", correlationId);
             
             await _scheduler.TriggerJob(jobKey, jobDataMap);
 
-            _metrics.RecordMessageSent("manual_trigger", "scheduling", true);
+            _metrics.RecordMessageSent("manual_trigger", "scheduling", "success");
 
             _logger.LogInformation("Successfully triggered immediate polling for data source {DataSourceId}. CorrelationId: {CorrelationId}",
                 dataSourceId, correlationId);
@@ -441,7 +441,7 @@ public class SchedulingManager : ISchedulingManager
             _logger.LogError(ex, "Failed to trigger immediate polling for data source {DataSourceId}. CorrelationId: {CorrelationId}",
                 dataSourceId, correlationId);
 
-            _metrics.RecordMessageSent("manual_trigger", "scheduling", false);
+            _metrics.RecordMessageSent("manual_trigger", "scheduling", "failed");
             return false;
         }
     }
