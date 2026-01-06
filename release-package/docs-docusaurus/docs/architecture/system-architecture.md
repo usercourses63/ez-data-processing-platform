@@ -414,10 +414,10 @@ EZ Platform is a microservices-based data processing platform that provides:
 
 | Metric | Target | Notes |
 |--------|--------|-------|
-| File processing | <1s per 100-record file | Standard file sizes |
-| Cache hit rate | >95% | Hazelcast efficiency |
-| Service startup | <5s | Container readiness |
-| P99 API latency | <500ms | End-user experience |
+| File processing | &lt;1s per 100-record file | Standard file sizes |
+| Cache hit rate | &gt;95% | Hazelcast efficiency |
+| Service startup | &lt;5s | Container readiness |
+| P99 API latency | &lt;500ms | End-user experience |
 
 ---
 
