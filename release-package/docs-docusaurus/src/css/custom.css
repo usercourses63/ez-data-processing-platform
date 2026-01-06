@@ -26,6 +26,19 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
+/* Logo sizing */
+.navbar__logo img {
+  height: 48px !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+.navbar__title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
 /* Hebrew/RTL Support */
 html[dir='rtl'] {
   text-align: right;
