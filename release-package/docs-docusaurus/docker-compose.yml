@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ez-platform-docs
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.docs.rule=Host(`docs.ezplatform.local`)"
+      - "traefik.http.services.docs.loadbalancer.server.port=80"
