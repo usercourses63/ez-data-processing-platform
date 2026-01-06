@@ -126,9 +126,9 @@ if ($Clean) {
 $minikubeStatus = minikube status --format='{{.Host}}' 2>&1
 if ($minikubeStatus -ne "Running") {
     Write-Info "Starting minikube cluster..."
-    Write-Info 'Configuration: 8 CPUs, 48GB RAM, Docker driver'
+    Write-Info 'Configuration: 8 CPUs, 40GB RAM, Docker driver'
 
-    minikube start --driver=docker --memory=48g --cpus=8
+    minikube start --driver=docker --memory=40g --cpus=8
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error-Custom "Failed to start minikube"
