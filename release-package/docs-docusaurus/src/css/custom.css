@@ -39,7 +39,31 @@ html[dir='rtl'] .menu {
   text-align: right;
 }
 
+/* RTL Content wrapper */
+.rtl-content {
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl-content h1,
+.rtl-content h2,
+.rtl-content h3,
+.rtl-content h4,
+.rtl-content h5,
+.rtl-content h6 {
+  text-align: right;
+}
+
+.rtl-content p,
+.rtl-content li,
+.rtl-content td {
+  text-align: right;
+}
+
 /* Code blocks - keep LTR even in RTL mode */
+.rtl-content .prism-code,
+.rtl-content pre,
+.rtl-content code,
 .prism-code,
 pre,
 code {

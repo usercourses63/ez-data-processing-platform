@@ -1,6 +1,9 @@
 ---
 sidebar_position: 2
+custom_edit_url: null
 ---
+
+<div dir="rtl" className="rtl-content">
 
 
 # מדריך למשתמש - EZ Platform גרסה 0.1.0-beta
@@ -899,3 +902,4 @@ JSON Schema מגדיר:
 **גרסת פלטפורמה:** v0.1.0-beta
 **עודכן לאחרונה:** 29 בדצמבר 2025
 
+</div>
