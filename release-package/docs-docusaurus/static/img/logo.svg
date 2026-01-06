@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120">
+  <defs>
+    <linearGradient id="mainGradFull" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E3A5F"/>
+      <stop offset="100%" style="stop-color:#0E7490"/>
+    </linearGradient>
+    <linearGradient id="accentGradFull" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22D3EE"/>
+      <stop offset="100%" style="stop-color:#0891B2"/>
+    </linearGradient>
+    <filter id="subtleGlow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Logo Icon -->
+  <g transform="translate(20, 25)">
+    <!-- Outer glow ring -->
+    <circle cx="35" cy="35" r="38" fill="none" stroke="url(#accentGradFull)" stroke-width="1" opacity="0.3"/>
+    
+    <!-- Eye outline -->
+    <ellipse cx="35" cy="35" rx="28" ry="17" fill="none" stroke="url(#accentGradFull)" stroke-width="3" filter="url(#subtleGlow)"/>
+    
+    <!-- Iris ring -->
+    <circle cx="35" cy="35" r="11" fill="none" stroke="#0891B2" stroke-width="2.5"/>
+    
+    <!-- Pupil -->
+    <circle cx="35" cy="35" r="5.5" fill="url(#accentGradFull)"/>
+    
+    <!-- Light reflection -->
+    <circle cx="32" cy="32" r="2" fill="white" opacity="0.9"/>
+    
+    <!-- Data flow dots -->
+    <circle cx="5" cy="28" r="2" fill="#0891B2" opacity="0.5"/>
+    <circle cx="5" cy="42" r="2" fill="#0891B2" opacity="0.5"/>
+    <circle cx="65" cy="28" r="2" fill="#0891B2" opacity="0.5"/>
+    <circle cx="65" cy="42" r="2" fill="#0891B2" opacity="0.5"/>
+  </g>
+  
+  <!-- EZ Text -->
+  <text x="115" y="65" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="url(#mainGradFull)">EZ</text>
+  
+  <!-- Platform text -->
+  <text x="115" y="90" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#64748B" letter-spacing="4">PLATFORM</text>
+  
+  <!-- Subtle accent line -->
+  <rect x="115" y="96" width="80" height="2" rx="1" fill="url(#accentGradFull)" opacity="0.5"/>
+</svg>

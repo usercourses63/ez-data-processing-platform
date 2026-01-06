@@ -58,6 +58,19 @@ const config = {
     ],
   ],
 
+  themes: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      /** @type {import('@easyops-cn/docusaurus-search-local').PluginOptions} */
+      ({
+        hashed: true,
+        language: ['en', 'he'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+      }),
+    ],
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -132,13 +145,14 @@ const config = {
         darkTheme: darkCodeTheme,
         additionalLanguages: ['bash', 'powershell', 'csharp', 'yaml', 'json'],
       },
-      algolia: {
-        // Search configuration (optional)
-        appId: 'YOUR_APP_ID',
-        apiKey: 'YOUR_SEARCH_API_KEY',
-        indexName: 'ez-platform',
-        contextualSearch: true,
-      },
+      // Algolia search disabled - use local search plugin instead
+      // To enable Algolia, get API keys from https://docsearch.algolia.com/
+      // algolia: {
+      //   appId: 'YOUR_APP_ID',
+      //   apiKey: 'YOUR_SEARCH_API_KEY',
+      //   indexName: 'ez-platform',
+      //   contextualSearch: true,
+      // },
       docs: {
         sidebar: {
           hideable: true,
