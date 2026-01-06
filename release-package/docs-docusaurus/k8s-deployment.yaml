@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
       - name: docs
-        image: ez-platform-docs:latest
-        imagePullPolicy: Always
+        image: ez-platform-docs:v0.1.1-rc1
+        imagePullPolicy: Never
         ports:
         - containerPort: 80
           name: http
