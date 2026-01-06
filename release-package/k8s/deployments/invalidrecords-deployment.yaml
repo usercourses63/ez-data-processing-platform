@@ -12,7 +12,7 @@ metadata:
     component: api
     tier: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: invalidrecords
@@ -28,7 +28,7 @@ spec:
       containers:
       - name: invalidrecords
         image: ez-platform/invalidrecords:v0.1.1-rc1
-        imagePullPolicy: Always
+        imagePullPolicy: Never
         ports:
         - containerPort: 5006
           name: http
@@ -42,6 +42,11 @@ spec:
             configMapKeyRef:
               name: services-config
               key: mongodb-connection
+        - name: ConnectionStrings__DatabaseName
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: database-name
         resources:
           requests:
             cpu: "500m"

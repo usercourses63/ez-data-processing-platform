@@ -12,7 +12,7 @@ metadata:
     component: processing
     tier: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: fileprocessor
@@ -111,5 +111,5 @@ spec:
       - name: external-data
         hostPath:
           path: /mnt/external-test-data
-          type: Directory
+          type: DirectoryOrCreate
       restartPolicy: Always

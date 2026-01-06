@@ -1,0 +1,69 @@
+# EZ Platform Documentation - Kubernetes Deployment
+# MkDocs static site with deployment troubleshooting guide
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ezplatform-docs
+  namespace: ez-platform
+  labels:
+    app: ezplatform-docs
+    component: documentation
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ezplatform-docs
+  template:
+    metadata:
+      labels:
+        app: ezplatform-docs
+        component: documentation
+        tier: frontend
+    spec:
+      containers:
+      - name: ezplatform-docs
+        image: ezplatform-docs:v0.1.1-rc1-updated
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ezplatform-docs
+  namespace: ez-platform
+  labels:
+    app: ezplatform-docs
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30800
+    name: http
+  selector:
+    app: ezplatform-docs

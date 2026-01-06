@@ -26,7 +26,7 @@ metadata:
   namespace: ez-platform
 spec:
   serviceName: mongodb
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: mongodb

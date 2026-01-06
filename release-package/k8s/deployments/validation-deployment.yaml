@@ -51,6 +51,11 @@ spec:
             configMapKeyRef:
               name: services-config
               key: database-name
+        - name: ConnectionStrings__Kafka
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
         - name: MassTransit__UseKafka
           value: "true"
         - name: MassTransit__Kafka__Server
