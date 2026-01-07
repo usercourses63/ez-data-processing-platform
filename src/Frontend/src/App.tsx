@@ -13,7 +13,7 @@ import SplashScreen from './components/SplashScreen';
 import AppHeader from './components/layout/AppHeader';
 import AppSidebar from './components/layout/AppSidebar';
 import RegexHelperProvider from './components/schema/RegexHelperProvider';
-import { LoadingState } from './components/shared/LoadingState';
+import { LoadingState, ErrorBoundary } from './components/shared';
 
 // Lazy load all page components for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -67,11 +67,12 @@ const App: React.FC = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-    <ConfigProvider
-      locale={antdLocale}
-      direction={isRTL ? 'rtl' : 'ltr'}
-      theme={{
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+      <ConfigProvider
+        locale={antdLocale}
+        direction={isRTL ? 'rtl' : 'ltr'}
+        theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
           fontFamily: isRTL ? 'Rubik, sans-serif' : undefined,
@@ -142,6 +143,7 @@ const App: React.FC = () => {
       </RegexHelperProvider>
     </ConfigProvider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
