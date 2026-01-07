@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Typography, Card, Form, Button, Space, Alert, Spin, message, Divider, Tabs } from 'antd';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import { Typography, Card, Form, Button, Space, Alert, Spin, message, Divider, Tabs, Skeleton } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined, BarChartOutlined } from '@ant-design/icons';
 import { type JSONSchema } from 'jsonjoy-builder';
 
-// Import tab components
-import { BasicInfoTab } from '../../components/datasource/tabs/BasicInfoTab';
-import { ConnectionTab } from '../../components/datasource/tabs/ConnectionTab';
-import { FileSettingsTab } from '../../components/datasource/tabs/FileSettingsTab';
-import { SchemaTab } from '../../components/datasource/tabs/SchemaTab';
-import { ScheduleTab } from '../../components/datasource/tabs/ScheduleTab';
-import { ValidationTab } from '../../components/datasource/tabs/ValidationTab';
-import { NotificationsTab } from '../../components/datasource/tabs/NotificationsTab';
-import { OutputTab } from '../../components/datasource/tabs/OutputTab';
-import { MetricsTab } from '../../components/datasource/tabs/MetricsTab';
-import CronHelperDialog from '../../components/datasource/CronHelperDialog';
+// Lazy load tab components for better performance
+const BasicInfoTab = lazy(() => import('../../components/datasource/tabs/BasicInfoTab').then(m => ({ default: m.BasicInfoTab })));
+const ConnectionTab = lazy(() => import('../../components/datasource/tabs/ConnectionTab').then(m => ({ default: m.ConnectionTab })));
+const FileSettingsTab = lazy(() => import('../../components/datasource/tabs/FileSettingsTab').then(m => ({ default: m.FileSettingsTab })));
+const SchemaTab = lazy(() => import('../../components/datasource/tabs/SchemaTab').then(m => ({ default: m.SchemaTab })));
+const ScheduleTab = lazy(() => import('../../components/datasource/tabs/ScheduleTab').then(m => ({ default: m.ScheduleTab })));
+const ValidationTab = lazy(() => import('../../components/datasource/tabs/ValidationTab').then(m => ({ default: m.ValidationTab })));
+const NotificationsTab = lazy(() => import('../../components/datasource/tabs/NotificationsTab').then(m => ({ default: m.NotificationsTab })));
+const OutputTab = lazy(() => import('../../components/datasource/tabs/OutputTab').then(m => ({ default: m.OutputTab })));
+const MetricsTab = lazy(() => import('../../components/datasource/tabs/MetricsTab').then(m => ({ default: m.MetricsTab })));
+const CronHelperDialog = lazy(() => import('../../components/datasource/CronHelperDialog'));
 
 // Import shared utilities
 import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
@@ -404,71 +404,101 @@ const DataSourceEditEnhanced: React.FC = () => {
                 {
                   key: 'basic',
                   label: <span><FileOutlined /> מידע בסיסי</span>,
-                  children: <BasicInfoTab form={form} t={t} />
+                  children: (
+                    <Suspense fallback={<Skeleton active />}>
+                      <BasicInfoTab form={form} t={t} />
+                    </Suspense>
+                  )
                 },
                 {
                   key: 'connection',
                   label: <span><ApiOutlined /> הגדרות חיבור</span>,
                   children: (
-                    <ConnectionTab
-                      form={form}
-                      t={t}
-                      connectionType={connectionType}
-                      testingConnection={testingConnection}
-                      connectionTestResult={connectionTestResult}
-                      onTestConnection={handleTestConnection}
-                    />
+                    <Suspense fallback={<Skeleton active />}>
+                      <ConnectionTab
+                        form={form}
+                        t={t}
+                        connectionType={connectionType}
+                        testingConnection={testingConnection}
+                        connectionTestResult={connectionTestResult}
+                        onTestConnection={handleTestConnection}
+                      />
+                    </Suspense>
                   )
                 },
                 {
                   key: 'file',
                   label: <span><FileOutlined /> הגדרות קובץ</span>,
-                  children: <FileSettingsTab form={form} t={t} fileType={fileType} />
+                  children: (
+                    <Suspense fallback={<Skeleton active />}>
+                      <FileSettingsTab form={form} t={t} fileType={fileType} />
+                    </Suspense>
+                  )
                 },
                 {
                   key: 'schema',
                   label: <span><FileTextOutlined /> הגדרת Schema</span>,
-                  children: <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
+                  children: (
+                    <Suspense fallback={<Skeleton active />}>
+                      <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
+                    </Suspense>
+                  )
                 },
                 {
                   key: 'metrics',
                   label: <span><BarChartOutlined /> מדדים</span>,
                   children: (
-                    <MetricsTab
-                      dataSourceId={id!}
-                      dataSourceName={dataSource.Name}
-                      onCreateMetric={() => navigate(`/metrics/new?dataSourceId=${id}`)}
-                      onEditMetric={(metricId) => navigate(`/metrics/edit/${metricId}?dataSourceId=${id}`)}
-                    />
+                    <Suspense fallback={<Skeleton active />}>
+                      <MetricsTab
+                        dataSourceId={id!}
+                        dataSourceName={dataSource.Name}
+                        onCreateMetric={() => navigate(`/metrics/new?dataSourceId=${id}`)}
+                        onEditMetric={(metricId) => navigate(`/metrics/edit/${metricId}?dataSourceId=${id}`)}
+                      />
+                    </Suspense>
                   )
                 },
                 {
                   key: 'schedule',
                   label: <span><ClockCircleOutlined /> תזמון</span>,
                   children: (
-                    <ScheduleTab
-                      form={form}
-                      t={t}
-                      scheduleFrequency={scheduleFrequency}
-                      cronExpression={cronExpression}
-                      onOpenCronHelper={() => setCronHelperVisible(true)}
-                    />
+                    <Suspense fallback={<Skeleton active />}>
+                      <ScheduleTab
+                        form={form}
+                        t={t}
+                        scheduleFrequency={scheduleFrequency}
+                        cronExpression={cronExpression}
+                        onOpenCronHelper={() => setCronHelperVisible(true)}
+                      />
+                    </Suspense>
                   )
                 },
                 {
                   key: 'validation',
                   label: <span><SafetyOutlined /> כללי אימות</span>,
-                  children: <ValidationTab form={form} t={t} />
+                  children: (
+                    <Suspense fallback={<Skeleton active />}>
+                      <ValidationTab form={form} t={t} />
+                    </Suspense>
+                  )
                 },
                 {
                   key: 'notifications',
                   label: <span><BellOutlined /> התראות</span>,
-                  children: <NotificationsTab form={form} t={t} />
+                  children: (
+                    <Suspense fallback={<Skeleton active />}>
+                      <NotificationsTab form={form} t={t} />
+                    </Suspense>
+                  )
                 },
                 {
                   key: 'output',
                   label: <span><ExportOutlined /> פלט</span>,
-                  children: <OutputTab output={outputConfig} onChange={setOutputConfig} />
+                  children: (
+                    <Suspense fallback={<Skeleton active />}>
+                      <OutputTab output={outputConfig} onChange={setOutputConfig} />
+                    </Suspense>
+                  )
                 }
               ]}
             />
@@ -488,12 +518,16 @@ const DataSourceEditEnhanced: React.FC = () => {
         </Spin>
       </Card>
 
-      <CronHelperDialog
-        visible={cronHelperVisible}
-        onClose={() => setCronHelperVisible(false)}
-        onSelect={handleCronHelperSelect}
-        currentValue={form.getFieldValue('cronExpression')}
-      />
+      {cronHelperVisible && (
+        <Suspense fallback={null}>
+          <CronHelperDialog
+            visible={cronHelperVisible}
+            onClose={() => setCronHelperVisible(false)}
+            onSelect={handleCronHelperSelect}
+            currentValue={form.getFieldValue('cronExpression')}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

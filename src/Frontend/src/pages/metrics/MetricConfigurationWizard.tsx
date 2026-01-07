@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Card, Steps, Button, Space, message, Typography, Alert } from 'antd';
+import { Card, Steps, Button, Space, message, Typography, Alert, Skeleton } from 'antd';
 import { SaveOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
-// NOTE: WizardStepDataSource removed - metrics are always created from datasource context
-import WizardStepField from '../../components/metrics/WizardStepField';
-// NOTE: WizardStepGlobalMetrics removed - operational metrics are now hardcoded in BusinessMetrics.cs
-import WizardStepDetails from '../../components/metrics/WizardStepDetails';
-import WizardStepLabels from '../../components/metrics/WizardStepLabels';
-import WizardStepAlerts from '../../components/metrics/WizardStepAlerts';
 import { metricsApi } from '../../services/metrics-api-client';
 import type { AlertRule } from '../../components/metrics/AlertRuleBuilder';
+
+// Lazy load wizard step components for better performance
+const WizardStepField = lazy(() => import('../../components/metrics/WizardStepField'));
+const WizardStepDetails = lazy(() => import('../../components/metrics/WizardStepDetails'));
+const WizardStepLabels = lazy(() => import('../../components/metrics/WizardStepLabels'));
+const WizardStepAlerts = lazy(() => import('../../components/metrics/WizardStepAlerts'));
 
 const { Title } = Typography;
 
@@ -291,40 +291,48 @@ const MetricConfigurationWizard: React.FC = () => {
       title: 'בחירת שדה',
       description: 'שדה חובה לחילוץ ערכים',
       content: (
-        <WizardStepField
-          value={wizardData}
-          onChange={updateWizardData}
-        />
+        <Suspense fallback={<Skeleton active />}>
+          <WizardStepField
+            value={wizardData}
+            onChange={updateWizardData}
+          />
+        </Suspense>
       )
     },
     {
       title: 'פרטי מדד',
       description: 'שם, תיאור וסוג המדד',
       content: (
-        <WizardStepDetails
-          value={wizardData}
-          onChange={updateWizardData}
-        />
+        <Suspense fallback={<Skeleton active />}>
+          <WizardStepDetails
+            value={wizardData}
+            onChange={updateWizardData}
+          />
+        </Suspense>
       )
     },
     {
       title: 'תוויות',
       description: 'הגדרת תוויות למדד (אופציונלי)',
       content: (
-        <WizardStepLabels
-          value={wizardData}
-          onChange={updateWizardData}
-        />
+        <Suspense fallback={<Skeleton active />}>
+          <WizardStepLabels
+            value={wizardData}
+            onChange={updateWizardData}
+          />
+        </Suspense>
       )
     },
     {
       title: 'כללי התראה',
       description: 'הוספת התראות (אופציונלי)',
       content: (
-        <WizardStepAlerts
-          value={wizardData}
-          onChange={updateWizardData}
-        />
+        <Suspense fallback={<Skeleton active />}>
+          <WizardStepAlerts
+            value={wizardData}
+            onChange={updateWizardData}
+          />
+        </Suspense>
       )
     }
   ];
