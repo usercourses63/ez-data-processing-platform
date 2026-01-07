@@ -40,6 +40,7 @@ interface DataSource {
   SchemaVersion?: number;
   ScheduleFrequency?: string;
   ScheduleEnabled?: boolean;
+  CronExpression?: string;
 }
 
 interface PagedResult<T> {

@@ -581,7 +581,7 @@ const AlertsManagement: React.FC = () => {
       title: 'שם התרעה',
       dataIndex: 'name',
       key: 'name',
-      render: (text: string, record: AlertRule) => (
+      render: (text: string, record: ExtendedAlertRule) => (
         <Space direction="vertical" size={0}>
           <Text strong>{text}</Text>
           {record.description && (
@@ -671,7 +671,7 @@ const AlertsManagement: React.FC = () => {
       title: 'פעולות',
       key: 'actions',
       width: 120,
-      render: (_: any, record: AlertRule) => (
+      render: (_: any, record: ExtendedAlertRule) => (
         <Space size="small">
           <Button
             type="text"

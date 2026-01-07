@@ -15,7 +15,7 @@ import {
   ApiResponse
 } from '../types/schema-api';
 
-const API_BASE_URL = process.env.REACT_APP_SCHEMA_API_URL || 'http://localhost:5001/api/v1/schema';
+const API_BASE_URL = import.meta.env.VITE_SCHEMA_API_URL || 'http://localhost:5001/api/v1/schema';
 
 export class SchemaApiClient {
   private async request<T>(

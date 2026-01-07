@@ -21,7 +21,7 @@ i18n
     resources,
     fallbackLng: 'he',
     lng: 'he',
-    debug: process.env.NODE_ENV === 'development',
+    debug: import.meta.env.DEV,
     
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],

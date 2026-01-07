@@ -23,6 +23,15 @@ export interface DataSource {
   SchemaVersion: number;
   PollingRate: string;
   JsonSchema: any;
+  // Schedule properties
+  ScheduleFrequency?: string;
+  scheduleFrequency?: string;
+  ScheduleEnabled?: boolean;
+  scheduleEnabled?: boolean;
+  CronExpression?: string;
+  cronExpression?: string;
+  // Output configuration
+  Output?: OutputConfiguration;
 }
 
 export interface ApiResponse<T> {
@@ -120,6 +129,7 @@ export interface FolderOutputConfig {
   path: string;
   fileNamePattern?: string;
   createSubfolders?: boolean;
+  subfolderPattern?: string;
 }
 
 export interface SftpOutputConfig {

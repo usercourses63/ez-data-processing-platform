@@ -134,7 +134,7 @@ const InvalidRecordsManagement: React.FC = () => {
 
       if (data.Data?.Items) {
         setDataSources(data.Data.Items);
-        const uniqueCategories = [...new Set(data.Data.Items.map((ds: DataSource) => ds.Category))];
+        const uniqueCategories = [...new Set(data.Data.Items.map((ds: DataSource) => ds.Category))] as string[];
         setCategories(uniqueCategories);
       }
     } catch (error) {
