@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, Layout, theme } from 'antd';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,27 +8,30 @@ import enUS from 'antd/locale/en_US';
 import './i18n';
 import './App.css';
 
-// Components
+// Layout components (keep these synchronous)
 import SplashScreen from './components/SplashScreen';
 import AppHeader from './components/layout/AppHeader';
 import AppSidebar from './components/layout/AppSidebar';
 import RegexHelperProvider from './components/schema/RegexHelperProvider';
-import Dashboard from './pages/Dashboard';
-import DataSourceList from './pages/datasources/DataSourceList';
-import DataSourceForm from './pages/datasources/DataSourceFormEnhanced';
-import DataSourceEdit from './pages/datasources/DataSourceEditEnhanced';
-import DataSourceDetails from './pages/datasources/DataSourceDetailsEnhanced';
-import ValidationResults from './pages/validation/ValidationResults';
-import SystemMonitoring from './pages/monitoring/SystemMonitoring';
-import SchemaManagement from './pages/schema/SchemaManagementEnhanced';
-import SchemaBuilder from './pages/schema/SchemaBuilderNew';
-import SchemaEditorPage from './pages/schema/SchemaEditorPage';
-import MetricConfigurationWizard from './pages/metrics/MetricConfigurationWizard';
-import AlertsManagement from './pages/alerts/AlertsManagement';
-import InvalidRecordsManagement from './pages/invalid-records/InvalidRecordsManagement';
-import AIAssistant from './pages/ai-assistant/AIAssistant';
-import AdminSettings from './pages/admin/AdminSettings';
-import HelpPage from './pages/help/HelpPage';
+import { LoadingState } from './components/shared/LoadingState';
+
+// Lazy load all page components for code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const DataSourceList = lazy(() => import('./pages/datasources/DataSourceList'));
+const DataSourceForm = lazy(() => import('./pages/datasources/DataSourceFormEnhanced'));
+const DataSourceEdit = lazy(() => import('./pages/datasources/DataSourceEditEnhanced'));
+const DataSourceDetails = lazy(() => import('./pages/datasources/DataSourceDetailsEnhanced'));
+const ValidationResults = lazy(() => import('./pages/validation/ValidationResults'));
+const SystemMonitoring = lazy(() => import('./pages/monitoring/SystemMonitoring'));
+const SchemaManagement = lazy(() => import('./pages/schema/SchemaManagementEnhanced'));
+const SchemaBuilder = lazy(() => import('./pages/schema/SchemaBuilderNew'));
+const SchemaEditorPage = lazy(() => import('./pages/schema/SchemaEditorPage'));
+const MetricConfigurationWizard = lazy(() => import('./pages/metrics/MetricConfigurationWizard'));
+const AlertsManagement = lazy(() => import('./pages/alerts/AlertsManagement'));
+const InvalidRecordsManagement = lazy(() => import('./pages/invalid-records/InvalidRecordsManagement'));
+const AIAssistant = lazy(() => import('./pages/ai-assistant/AIAssistant'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const HelpPage = lazy(() => import('./pages/help/HelpPage'));
 
 const { Content } = Layout;
 
@@ -105,30 +108,32 @@ const App: React.FC = () => {
             <AppSidebar />
             <Layout className="app-content-layout">
               <Content className="app-content">
-                <Routes>
-                  <Route path="/" element={<Navigate to="/datasources" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/datasources" element={<DataSourceList />} />
-                  <Route path="/datasources/new" element={<DataSourceForm />} />
-                  <Route path="/datasources/:id/edit" element={<DataSourceEdit />} />
-                  <Route path="/datasources/:id" element={<DataSourceDetails />} />
-                  <Route path="/schema-management" element={<SchemaManagement />} />
-                  <Route path="/schema" element={<SchemaManagement />} />
-                  <Route path="/schema/builder" element={<SchemaBuilder />} />
-                  <Route path="/schema/edit/:id" element={<SchemaEditorPage />} />
-                  <Route path="/metrics/new" element={<MetricConfigurationWizard />} />
-                  <Route path="/metrics/create" element={<MetricConfigurationWizard />} />
-                  <Route path="/metrics/:id/edit" element={<MetricConfigurationWizard />} />
-                  <Route path="/metrics/edit/:id" element={<MetricConfigurationWizard />} />
-                  <Route path="/alerts" element={<AlertsManagement />} />
-                  <Route path="/invalid-records" element={<InvalidRecordsManagement />} />
-                  <Route path="/ai-assistant" element={<AIAssistant />} />
-                  <Route path="/validation" element={<ValidationResults />} />
-                  <Route path="/monitoring" element={<SystemMonitoring />} />
-                  <Route path="/admin/settings" element={<AdminSettings />} />
-                  <Route path="/help" element={<HelpPage />} />
-                  <Route path="*" element={<Navigate to="/datasources" replace />} />
-                </Routes>
+                <Suspense fallback={<LoadingState type="page" />}>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/datasources" replace />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/datasources" element={<DataSourceList />} />
+                    <Route path="/datasources/new" element={<DataSourceForm />} />
+                    <Route path="/datasources/:id/edit" element={<DataSourceEdit />} />
+                    <Route path="/datasources/:id" element={<DataSourceDetails />} />
+                    <Route path="/schema-management" element={<SchemaManagement />} />
+                    <Route path="/schema" element={<SchemaManagement />} />
+                    <Route path="/schema/builder" element={<SchemaBuilder />} />
+                    <Route path="/schema/edit/:id" element={<SchemaEditorPage />} />
+                    <Route path="/metrics/new" element={<MetricConfigurationWizard />} />
+                    <Route path="/metrics/create" element={<MetricConfigurationWizard />} />
+                    <Route path="/metrics/:id/edit" element={<MetricConfigurationWizard />} />
+                    <Route path="/metrics/edit/:id" element={<MetricConfigurationWizard />} />
+                    <Route path="/alerts" element={<AlertsManagement />} />
+                    <Route path="/invalid-records" element={<InvalidRecordsManagement />} />
+                    <Route path="/ai-assistant" element={<AIAssistant />} />
+                    <Route path="/validation" element={<ValidationResults />} />
+                    <Route path="/monitoring" element={<SystemMonitoring />} />
+                    <Route path="/admin/settings" element={<AdminSettings />} />
+                    <Route path="/help" element={<HelpPage />} />
+                    <Route path="*" element={<Navigate to="/datasources" replace />} />
+                  </Routes>
+                </Suspense>
               </Content>
             </Layout>
           </Layout>
