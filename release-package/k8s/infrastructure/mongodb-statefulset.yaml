@@ -37,16 +37,12 @@ spec:
         component: database
     spec:
       securityContext:
-        runAsNonRoot: true
         fsGroup: 999
-        seccompProfile:
-          type: RuntimeDefault
       containers:
       - name: mongodb
         image: mongo:8.0
         imagePullPolicy: IfNotPresent
         securityContext:
-          runAsUser: 999
           allowPrivilegeEscalation: false
           capabilities:
             drop:

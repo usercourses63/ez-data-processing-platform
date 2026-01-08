@@ -21,7 +21,7 @@ data:
         Tag               kube.*
         Path              /var/log/containers/*ez-platform*.log
         Parser            docker
-        DB                /var/log/flb_kube.db
+        DB                /tmp/flb_kube.db
         Mem_Buf_Limit     50MB
         Skip_Long_Lines   On
         Refresh_Interval  10
@@ -173,7 +173,7 @@ spec:
             - name: fluent-bit-config
               mountPath: /fluent-bit/etc/
             - name: fluent-bit-state
-              mountPath: /var/log/flb_kube.db
+              mountPath: /tmp
           livenessProbe:
             httpGet:
               path: /api/v1/health

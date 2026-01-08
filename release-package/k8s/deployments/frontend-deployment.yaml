@@ -1,7 +1,5 @@
 # Frontend - Kubernetes Deployment
-# Week 2: Day 2
-# Replicas: 2 (UI service, moderate scaling)
-# OCP-compatible: uses non-privileged port 8080
+# OCP-compatible: runs as non-root user on non-privileged port 8080
 
 apiVersion: apps/v1
 kind: Deployment
@@ -31,9 +29,9 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -52,10 +50,6 @@ spec:
         env:
         - name: NODE_ENV
           value: "production"
-        - name: REACT_APP_API_URL
-          value: "http://datasource-management:5001"
-        - name: REACT_APP_METRICS_API_URL
-          value: "http://metrics-configuration:5002"
         resources:
           requests:
             cpu: "250m"

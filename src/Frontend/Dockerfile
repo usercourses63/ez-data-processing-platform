@@ -6,18 +6,21 @@ FROM nginx:alpine
 RUN addgroup -g 1001 -S nginx-group && \
     adduser -u 1001 -S nginx-user -G nginx-group && \
     # Create necessary directories with correct permissions
-    mkdir -p /var/cache/nginx/client_temp && \
-    mkdir -p /var/run && \
+    mkdir -p /tmp/client_temp /tmp/proxy_temp /tmp/fastcgi_temp /tmp/uwsgi_temp /tmp/scgi_temp && \
+    chown -R nginx-user:nginx-group /tmp && \
     chown -R nginx-user:nginx-group /var/cache/nginx && \
-    chown -R nginx-user:nginx-group /var/run && \
+    chown -R nginx-user:nginx-group /var/log/nginx && \
     chown -R nginx-user:nginx-group /usr/share/nginx/html && \
     # Remove default config
     rm -f /etc/nginx/conf.d/default.conf
 
+# Copy nginx main configuration (with writable PID path)
+COPY --chown=nginx-user:nginx-group nginx-main.conf /etc/nginx/nginx.conf
+
 # Copy built React app to nginx html directory
 COPY --chown=nginx-user:nginx-group build /usr/share/nginx/html
 
-# Copy nginx configuration
+# Copy nginx server configuration
 COPY --chown=nginx-user:nginx-group nginx.conf /etc/nginx/conf.d/default.conf
 
 # Switch to non-root user
