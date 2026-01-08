@@ -1,11 +1,12 @@
-# EZ Platform v0.1.1-rc1
+# EZ Platform v0.1.1-rc2
 
 **Data Processing Platform for Enterprise File Management**
 
-[![Release](https://img.shields.io/badge/release-v0.1.1--rc1-blue)](https://github.com/usercourses63/ez-data-processing-platform/releases/tag/v0.1.1-rc1)
+[![Release](https://img.shields.io/badge/release-v0.1.1--rc2-blue)](https://github.com/usercourses63/ez-data-processing-platform/releases/tag/v0.1.1-rc2)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
+[![OCP Compatible](https://img.shields.io/badge/OCP-Compatible-red)](https://www.openshift.com/)
 
 ---
 
@@ -20,7 +21,8 @@ EZ Platform: Microservices-based data processing with automated file discovery, 
 - 📤 Multi-destination output
 - 🌐 Hebrew/RTL UI
 - 📊 Business metrics & monitoring
-- 📝 Swagger/OpenAPI documentation (NEW in v0.1.1)
+- 📝 Swagger/OpenAPI documentation
+- 🔒 OCP/OpenShift Compatible (NEW in v0.1.1-rc2)
 
 ---
 
@@ -105,14 +107,45 @@ MongoDB, RabbitMQ, Kafka, Hazelcast, Elasticsearch, Prometheus, Grafana, Jaeger
 
 ---
 
-**Version:** v0.1.1-rc1
-**Release:** January 1, 2026
-**Status:** Release Candidate - Production Readiness Update
-**Download:** [GitHub Releases](https://github.com/usercourses63/ez-data-processing-platform/releases/tag/v0.1.1-rc1)
+**Version:** v0.1.1-rc2
+**Release:** January 8, 2026
+**Status:** Release Candidate - OCP Compatibility Update
+**Download:** [GitHub Releases](https://github.com/usercourses63/ez-data-processing-platform/releases/tag/v0.1.1-rc2)
 
-**What's New in v0.1.1-rc1:**
+**What's New in v0.1.1-rc2:**
+- 🔒 Full OCP/OpenShift Container Platform compatibility
+- 🔐 SecurityContext with non-root user for all pods
+- 🛡️ NetworkPolicies for pod isolation
+- 🔌 Non-privileged ports (8080 for web services)
+- 📦 All images pinned to specific versions (no :latest)
+- 🪟 PowerShell deployment scripts for Windows
+- 📄 Comprehensive deployment troubleshooting guide
+
+**Previous (v0.1.1-rc1):**
 - ✅ Swagger/OpenAPI documentation on all backend services
 - ✅ Frontend branding with EZ Platform logo and splash screen
 - ✅ Fixed MetricsConfigurationService health checks
-- ✅ Updated nginx routing for correct API v1 endpoints
-- ✅ Added database-name to ConfigMap for consistency
+
+---
+
+## OCP Deployment
+
+For OpenShift Container Platform, use the OCP-specific resources:
+
+```bash
+# Apply OCP Routes instead of Ingress
+kubectl apply -f k8s/ocp/routes/
+
+# Apply NetworkPolicies
+kubectl apply -f k8s/networkpolicies/
+
+# Verify SCC compliance
+oc get pod -n ez-platform -o yaml | grep -A5 securityContext
+```
+
+**Requirements:**
+- SCC: restricted-v2 (default)
+- Ports: All services use >1024 (non-privileged)
+- Users: All containers run as non-root (UID 1000+)
+
+See [DEPLOYMENT-TROUBLESHOOTING-GUIDE.md](release-package/DEPLOYMENT-TROUBLESHOOTING-GUIDE.md) for OCP-specific issues.

@@ -6,7 +6,69 @@ sidebar_position: 2
 
 ---
 
-## v0.1.1-rc2 (January 1, 2026)
+## v0.1.1-rc2 (January 8, 2026)
+
+**Status:** Release Candidate 2
+**Type:** OCP Compatibility & Security Hardening
+
+### Highlights
+
+This release focuses on **OpenShift Container Platform (OCP) compatibility** with comprehensive security hardening for enterprise Kubernetes deployments.
+
+### New Features
+
+#### OCP/OpenShift Compatibility
+- **SecurityContext for all pods**: `runAsNonRoot: true`, `runAsUser: 1000`, `fsGroup: 1000`
+- **Container SecurityContext**: `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`
+- **seccompProfile**: RuntimeDefault for all workloads
+- **Non-privileged ports**: Frontend and docs changed from port 80 to 8080
+- **OCP Routes**: Alternative to Ingress for OpenShift deployments
+
+#### Network Security
+- **NetworkPolicies**: Default deny-all-ingress with explicit allow rules
+- **Pod isolation**: Inter-service communication whitelisted explicitly
+- **Namespace isolation**: All traffic restricted to ez-platform namespace
+
+#### Image Management
+- **Version pinning**: All images use specific versions (no `:latest` tags)
+- **Image pull policy**: Changed to `IfNotPresent` for production
+- **Non-root users**: All Dockerfiles updated with USER directive
+
+#### PowerShell Scripts
+- **Windows-native deployment**: All bash scripts converted to PowerShell
+- **deploy-all.ps1**: Complete deployment automation
+- **install.ps1/uninstall.ps1**: Installation management
+
+### Bug Fixes
+
+#### OCP-Specific Fixes
+- **Nginx PID permission error**: Custom nginx-main.conf with PID in `/tmp/nginx.pid`
+- **Fluent-bit volume mount**: Changed DB path from `/var/log/flb_kube.db` to `/tmp/flb_kube.db`
+- **Default nginx page override**: Clear `/usr/share/nginx/html/*` before copying custom content
+
+#### Configuration Updates
+- **Frontend Dockerfile**: Added non-root nginx user (UID 1001)
+- **Docs-Docusaurus Dockerfile**: OCP-compatible nginx configuration
+- **All deployments**: SecurityContext added consistently
+
+### Technical Improvements
+- Comprehensive DEPLOYMENT-TROUBLESHOOTING-GUIDE.md with OCP section
+- CLAUDE.md updated with OCP requirements
+- README.md updated with OCP deployment instructions
+
+### Deployment Changes
+- SCC (Security Context Constraints): restricted-v2 compatible
+- All containers drop ALL capabilities
+- PodSecurityPolicy/PodSecurityStandard: restricted
+
+### Upgrade from v0.1.1-rc1
+- **Backward Compatible:** Yes
+- **Breaking Changes:** Port change from 80 to 8080 for frontend/docs
+- **Migration Required:** Update port-forward scripts, Ingress/Route configurations
+
+---
+
+## v0.1.1-rc1 (January 1, 2026)
 
 **Status:** Release Candidate 1
 **Type:** Production Readiness Update
@@ -44,15 +106,9 @@ sidebar_position: 2
 - Standardized demo data generator to use Corvus format
 
 ### Deployment Changes
-- Updated image tags from v0.1.0-beta to v0.1.1-rc2 (9 images)
+- Updated image tags from v0.1.0-beta to v0.1.1-rc1 (9 images)
 - Modified ConfigMap with database-name key
 - Adjusted health check probe settings for production stability
-
-### Known Issues
-- E2E test gaps remain (XML, Excel, high-load scenarios)
-- Jaeger persistence still in-memory (requires Elasticsearch backend)
-- Grafana credentials hardcoded (needs K8s Secret)
-- Elasticsearch security disabled (needs production hardening)
 
 ### Upgrade from v0.1.0-beta
 - **Backward Compatible:** Yes
