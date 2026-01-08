@@ -129,7 +129,7 @@ const InvalidRecordsManagement: React.FC = () => {
   // Fetch datasources for filter dropdown
   const fetchDataSources = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/v1/datasource?page=1&pageSize=100');
+      const response = await fetch('/api/v1/datasource?page=1&pageSize=100');
       const data = await response.json();
 
       if (data.Data?.Items) {
@@ -403,7 +403,7 @@ const InvalidRecordsManagement: React.FC = () => {
       const recordIds = allRecords.data.map(r => r.id);
 
       // Call bulk delete API
-      const response = await fetch('http://localhost:5007/api/v1/invalid-records/bulk/delete', {
+      const response = await fetch('/api/v1/invalid-records/bulk/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recordIds, requestedBy: 'User' })

@@ -78,7 +78,7 @@ const MetricConfigurationWizard: React.FC = () => {
   // Load datasource name if dataSourceId is provided via URL
   const loadDataSourceName = useCallback(async (dsId: string) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/v1/datasource/${dsId}`, {
+      const response = await fetch(`/api/v1/datasource/${dsId}`, {
         method: 'GET',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       });

@@ -197,6 +197,64 @@ All pods use:
 
 ---
 
+## PRODUCTION API ACCESS
+
+### How Frontend Communicates with Backend
+
+In production, the frontend **does not need direct access** to backend ports (5001, 5002, etc.). The frontend nginx is configured to proxy all API requests:
+
+```
+Browser → Frontend (NodePort 30080 or Ingress)
+                ↓
+        Frontend Nginx Proxy
+                ↓
+    /api/v1/invalid-records → invalidrecords:5006
+    /api/* → datasource-management:5001
+```
+
+### Access Methods
+
+**Option 1: NodePort (Internal Network)**
+```bash
+# Get the NodePort
+kubectl get svc frontend -n ez-platform
+
+# Access frontend (includes API proxy)
+http://<NODE-IP>:30080
+```
+
+**Option 2: Ingress (External Access)**
+Configure Ingress for external domain access.
+
+**Option 3: OCP Routes**
+```yaml
+# k8s/ocp/routes/frontend-route.yaml
+kind: Route
+spec:
+  host: ez-platform.apps.cluster.example.com
+  to:
+    kind: Service
+    name: frontend
+  port:
+    targetPort: 8080
+```
+
+### Port-Forward Limitations
+
+When using `kubectl port-forward` for development:
+- The frontend React code has some hardcoded `localhost:5001` URLs
+- This works inside Kubernetes but not with local port-forwarding
+- For local testing, use NodePort access or modify the code to use relative URLs
+
+### Recommended Production Setup
+
+1. Deploy frontend service with NodePort or Ingress
+2. All API calls go through frontend nginx proxy
+3. Backend services remain ClusterIP (internal only)
+4. No need to expose individual API ports
+
+---
+
 ## Verification After Deployment
 
 1. Check all pods are running:

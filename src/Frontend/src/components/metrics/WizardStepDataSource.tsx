@@ -47,7 +47,7 @@ const WizardStepDataSource: React.FC<WizardStepDataSourceProps> = ({ value, onCh
   const loadDataSources = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5001/api/v1/datasource?page=1&size=100');
+      const response = await fetch('/api/v1/datasource?page=1&size=100');
       const data: ApiResponse<PagedResult<DataSource>> = await response.json();
       if (data.IsSuccess && data.Data) {
         setDataSources(data.Data.Items || []);

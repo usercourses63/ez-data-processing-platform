@@ -40,7 +40,7 @@ const DataSourceDetailsEnhanced: React.FC = () => {
   const fetchSchemas = async () => {
     setLoadingSchemas(true);
     try {
-      const response = await fetch('http://localhost:5001/api/v1/schema', {
+      const response = await fetch('/api/v1/schema', {
         method: 'GET',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       });
@@ -68,7 +68,7 @@ const DataSourceDetailsEnhanced: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:5001/api/v1/datasource/${id}`, {
+      const response = await fetch(`/api/v1/datasource/${id}`, {
         method: 'GET',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       });
@@ -111,7 +111,7 @@ const DataSourceDetailsEnhanced: React.FC = () => {
 
     setTriggering(true);
     try {
-      const response = await fetch(`http://localhost:5004/api/v1/scheduling/datasources/${id}/trigger`, {
+      const response = await fetch(`/api/v1/scheduling/datasources/${id}/trigger`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',

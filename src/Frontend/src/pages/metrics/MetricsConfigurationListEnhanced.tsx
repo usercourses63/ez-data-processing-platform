@@ -39,7 +39,7 @@ const MetricsConfigurationListEnhanced: React.FC = () => {
       const allMetrics = await metricsApi.getAll();
 
       // Load data sources
-      const dsResponse = await fetch('http://localhost:5001/api/v1/datasource?page=1&size=100');
+      const dsResponse = await fetch('/api/v1/datasource?page=1&size=100');
       const dsData = await dsResponse.json();
       if (dsData.IsSuccess && dsData.Data) {
         setDataSources(dsData.Data.Items || []);

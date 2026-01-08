@@ -109,7 +109,7 @@ const DataSourceList: React.FC = () => {
   const handleManualTrigger = async (id: string, name: string) => {
     setTriggeringMap(prev => ({ ...prev, [id]: true }));
     try {
-      const response = await fetch(`http://localhost:5004/api/v1/scheduling/datasources/${id}/trigger`, {
+      const response = await fetch(`/api/v1/scheduling/datasources/${id}/trigger`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -135,7 +135,7 @@ const DataSourceList: React.FC = () => {
   const handleStatusChange = async (id: string, isActive: boolean) => {
     try {
       // First fetch the current data source to get all required fields
-      const getResponse = await fetch(`http://localhost:5001/api/v1/datasource/${id}`);
+      const getResponse = await fetch(`/api/v1/datasource/${id}`);
       const getData: ApiResponse<DataSource> = await getResponse.json();
       
       if (!getData.IsSuccess || !getData.Data) {
@@ -145,7 +145,7 @@ const DataSourceList: React.FC = () => {
       const currentDataSource = getData.Data;
       
       // Now update with all required fields including ConnectionString
-      const response = await fetch(`http://localhost:5001/api/v1/datasource/${id}`, {
+      const response = await fetch(`/api/v1/datasource/${id}`, {
         method: 'PUT',
         headers: {
           'Accept': 'application/json',
@@ -435,7 +435,7 @@ const DataSourceList: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/v1/datasource?${params.toString()}`,
+        `/api/v1/datasource?${params.toString()}`,
         {
           method: 'GET',
           headers: {
@@ -473,7 +473,7 @@ const DataSourceList: React.FC = () => {
   const handleDelete = async (id: string, name: string) => {
     try {
       const response = await fetch(
-        `http://localhost:5001/api/v1/datasource/${id}?deletedBy=User`,
+        `/api/v1/datasource/${id}?deletedBy=User`,
         {
           method: 'DELETE',
           headers: {

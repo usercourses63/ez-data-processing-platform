@@ -1,7 +1,7 @@
 // Metrics Configuration API Client
 // Connects to MetricsConfigurationService on port 5002
 
-const BASE_URL = 'http://localhost:5002/api/v1/metrics';
+const BASE_URL = '/api/v1/metrics';
 
 export interface MetricConfiguration {
   id: string;
@@ -316,7 +316,7 @@ class MetricsApiClient {
   }
 
   // Global Alert methods (for business/system metrics)
-  private readonly GLOBAL_ALERTS_URL = 'http://localhost:5002/api/v1/global-alerts';
+  private readonly GLOBAL_ALERTS_URL = '/api/v1/global-alerts';
 
   async getGlobalAlerts(metricType?: 'business' | 'system'): Promise<GlobalAlertConfiguration[]> {
     const url = metricType

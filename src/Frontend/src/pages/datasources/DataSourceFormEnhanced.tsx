@@ -146,7 +146,7 @@ const DataSourceFormEnhanced: React.FC = () => {
         requestPayload.JsonSchema = jsonSchema;
       }
 
-      const response = await fetch('http://localhost:5001/api/v1/datasource', {
+      const response = await fetch('/api/v1/datasource', {
         method: 'POST',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify(requestPayload),

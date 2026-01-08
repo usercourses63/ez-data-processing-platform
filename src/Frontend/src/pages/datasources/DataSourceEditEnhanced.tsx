@@ -90,7 +90,7 @@ const DataSourceEditEnhanced: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:5001/api/v1/datasource/${id}`, {
+      const response = await fetch(`/api/v1/datasource/${id}`, {
         method: 'GET',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       });
@@ -315,7 +315,7 @@ const DataSourceEditEnhanced: React.FC = () => {
         requestPayload.JsonSchema = jsonSchema;
       }
 
-      const response = await fetch(`http://localhost:5001/api/v1/datasource/${id}`, {
+      const response = await fetch(`/api/v1/datasource/${id}`, {
         method: 'PUT',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify(requestPayload),

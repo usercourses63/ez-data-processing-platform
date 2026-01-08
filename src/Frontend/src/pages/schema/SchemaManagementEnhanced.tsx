@@ -166,7 +166,7 @@ const SchemaManagementEnhanced: React.FC = () => {
   // Fetch data sources for dropdown
   const fetchDataSources = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/v1/datasource');
+      const response = await fetch('/api/v1/datasource');
       const data = await response.json();
       if (data.IsSuccess) {
         setDataSources(data.Data.Items || []);
@@ -307,7 +307,7 @@ const SchemaManagementEnhanced: React.FC = () => {
 
   const handleStatusChange = async (id: string, newStatus: 'Draft' | 'Active' | 'Inactive' | 'Archived') => {
     try {
-      const response = await fetch(`http://localhost:5001/api/v1/schema/${id}`);
+      const response = await fetch(`/api/v1/schema/${id}`);
       const apiResponse = await response.json();
       
       if (!apiResponse.isSuccess || !apiResponse.data) {
@@ -323,7 +323,7 @@ const SchemaManagementEnhanced: React.FC = () => {
         'Archived': 3
       };
 
-      const updateResponse = await fetch(`http://localhost:5001/api/v1/schema/${id}`, {
+      const updateResponse = await fetch(`/api/v1/schema/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -358,7 +358,7 @@ const SchemaManagementEnhanced: React.FC = () => {
 
   const handleDataSourceAssignment = async (schemaId: string, dataSourceId?: string) => {
     try {
-      const freshSchemasResponse = await fetch('http://localhost:5001/api/v1/schema');
+      const freshSchemasResponse = await fetch('/api/v1/schema');
       const freshSchemasData = await freshSchemasResponse.json();
       
       if (!freshSchemasData.isSuccess || !freshSchemasData.data) {
@@ -403,7 +403,7 @@ const SchemaManagementEnhanced: React.FC = () => {
 
   const performAssignment = async (schemaId: string, dataSourceId: string | undefined, schemaDisplayName: string) => {
     try {
-      const getResponse = await fetch(`http://localhost:5001/api/v1/schema/${schemaId}`);
+      const getResponse = await fetch(`/api/v1/schema/${schemaId}`);
       const getData = await getResponse.json();
       
       if (!getData.isSuccess || !getData.data) {
@@ -434,7 +434,7 @@ const SchemaManagementEnhanced: React.FC = () => {
         payload.dataSourceId = null;
       }
 
-      const updateResponse = await fetch(`http://localhost:5001/api/v1/schema/${schemaId}`, {
+      const updateResponse = await fetch(`/api/v1/schema/${schemaId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json; charset=utf-8',

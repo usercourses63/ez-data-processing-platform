@@ -45,7 +45,7 @@ export const SchemaEditorPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        const response = await axios.get(`http://localhost:5001/api/v1/schema/${id}`);
+        const response = await axios.get(`/api/v1/schema/${id}`);
         
         if (response.data.isSuccess && response.data.data) {
           const apiData = response.data.data;
@@ -115,7 +115,7 @@ export const SchemaEditorPage: React.FC = () => {
       };
 
       const response = await axios.put(
-        `http://localhost:5001/api/v1/schema/${id}`,
+        `/api/v1/schema/${id}`,
         updatePayload,
         {
           headers: {

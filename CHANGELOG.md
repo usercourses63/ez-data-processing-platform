@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.1-rc2] - 2026-01-08
+
+### Fixed
+- **Frontend API Connectivity**: Fixed hardcoded localhost URLs, now using nginx proxy with relative URLs
+- **Production Deployment**: Frontend now works in any Kubernetes environment without port-forward
+- **Docusaurus Root Page**: Added meta refresh redirect from root to /docs/
+
+### Changed
+- **Frontend Image**: Updated to use ez-platform/frontend:v0.1.1-rc2 with nginx proxy configuration
+- **Docs Image**: Updated to ez-platform/docs-docusaurus:v0.1.1-rc2 with root redirect fix
+- **K8s Manifests**: Updated frontend-deployment.yaml with correct image reference
+
+### Documentation
+- **Production API Guide**: Added comprehensive API proxy configuration documentation
+- **Deployment Troubleshooting**: Updated with OCP compatibility fixes (v2.0)
+- **Incremental Package**: Created 132MB incremental update package (vs 4.0GB full package)
+
+### Technical Details
+- Converted 15+ TypeScript files from `localhost:5001` to relative paths
+- Added nginx proxy routes for all backend services (datasource, metrics, scheduling, invalid-records)
+- Verified frontend loads data correctly with Playwright browser testing
+
+---
+
 ## [0.1.0-beta] - 2025-12-29
 
 ### Added
