@@ -1,0 +1,72 @@
+# OpenShift Routes for EZ Platform
+# Use these instead of Ingress when deploying to OpenShift
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: frontend
+  namespace: ez-platform
+  labels:
+    app: frontend
+spec:
+  to:
+    kind: Service
+    name: frontend
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: docs
+  namespace: ez-platform
+  labels:
+    app: docs
+spec:
+  path: /docs
+  to:
+    kind: Service
+    name: docs
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: api
+  namespace: ez-platform
+  labels:
+    app: datasource-management
+spec:
+  path: /api
+  to:
+    kind: Service
+    name: datasource-management
+    weight: 100
+  port:
+    targetPort: 5001
+  tls:
+    termination: edge
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: grafana
+  namespace: ez-platform
+spec:
+  path: /grafana
+  to:
+    kind: Service
+    name: ezplatform-grafana
+    weight: 100
+  port:
+    targetPort: 3000
+  tls:
+    termination: edge

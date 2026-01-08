@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
       - name: prometheus-business
-        image: prom/prometheus:latest
+        image: prom/prometheus:v3.1.0
         ports:
         - containerPort: 9090
           name: http

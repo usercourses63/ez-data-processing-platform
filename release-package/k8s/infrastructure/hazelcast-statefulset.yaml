@@ -85,9 +85,21 @@ spec:
         app: hazelcast
         component: cache
     spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: hazelcast
         image: hazelcast/hazelcast:5.6
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 5701
           name: hazelcast

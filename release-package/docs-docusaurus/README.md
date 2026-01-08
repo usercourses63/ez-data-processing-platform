@@ -1,6 +1,6 @@
 # EZ Platform Documentation (Docusaurus)
 
-This directory contains the Docusaurus-based documentation for EZ Platform v0.1.1-rc1.
+This directory contains the Docusaurus-based documentation for EZ Platform v0.1.1-rc2.
 
 ## Installation
 

@@ -133,7 +133,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: fluent-bit
-          image: fluent/fluent-bit:latest
+          image: fluent/fluent-bit:3.2.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 2020

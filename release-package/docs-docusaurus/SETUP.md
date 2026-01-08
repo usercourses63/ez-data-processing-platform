@@ -100,7 +100,7 @@ Edit [docusaurus.config.js](docusaurus.config.js):
 
 ```javascript
 const config = {
-  title: 'EZ Platform v0.1.1-rc1',
+  title: 'EZ Platform v0.1.1-rc2',
   tagline: 'Data Processing Platform - Official Documentation',
   url: 'https://your-domain.com',
   baseUrl: '/',

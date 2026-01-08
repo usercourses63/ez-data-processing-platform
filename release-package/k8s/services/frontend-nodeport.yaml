@@ -1,5 +1,6 @@
 # Frontend Service - NodePort for Internal LAN Access
 # BETA v0.1.0 - Network Access Configuration
+# OCP-compatible: targets non-privileged port 8080
 # Users can access via: http://<NODE-IP>:30080
 
 apiVersion: v1
@@ -17,7 +18,7 @@ spec:
   ports:
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: 8080
     nodePort: 30080  # Fixed port for easy documentation
     protocol: TCP
   sessionAffinity: None

@@ -53,9 +53,21 @@ spec:
         app: kafka
         component: messaging
     spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: kafka
         image: confluentinc/cp-kafka:7.5.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 9092
           name: kafka-internal
@@ -144,9 +156,21 @@ spec:
       labels:
         app: zookeeper
     spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: zookeeper
         image: confluentinc/cp-zookeeper:7.5.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 2181
           name: client

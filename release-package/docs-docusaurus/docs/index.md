@@ -4,7 +4,7 @@ title: Welcome
 slug: /
 ---
 
-# EZ Platform v0.1.1-rc1 Documentation
+# EZ Platform v0.1.1-rc2 Documentation
 
 Welcome to the official documentation for EZ Platform version 0.1.1-rc1.
 
@@ -100,5 +100,5 @@ For issues or questions, refer to:
 ---
 
 **Documentation Version:** 1.1
-**Platform Version:** v0.1.1-rc1
+**Platform Version:** v0.1.1-rc2
 **Last Updated:** January 6, 2026

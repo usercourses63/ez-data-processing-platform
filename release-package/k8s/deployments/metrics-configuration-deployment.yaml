@@ -25,10 +25,22 @@ spec:
         component: api
         tier: backend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: metrics-configuration
-        image: ez-platform/metrics-configuration:v0.1.1-rc1
-        imagePullPolicy: Never
+        image: ez-platform/metrics-configuration:v0.1.1-rc2
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 5002
           name: http

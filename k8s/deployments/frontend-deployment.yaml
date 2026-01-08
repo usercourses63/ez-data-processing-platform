@@ -1,6 +1,7 @@
 # Frontend - Kubernetes Deployment
 # Week 2: Day 2
 # Replicas: 2 (UI service, moderate scaling)
+# OCP-compatible: uses non-privileged port 8080
 
 apiVersion: apps/v1
 kind: Deployment
@@ -33,7 +34,7 @@ spec:
         image: frontend:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
           protocol: TCP
         env:
@@ -53,13 +54,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /
-            port: 80
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /
-            port: 80
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 5
       restartPolicy: Always

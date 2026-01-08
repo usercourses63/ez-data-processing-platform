@@ -124,6 +124,50 @@ This script configures ALL 18 required port forwards:
 
 ---
 
+## OCP Compatibility Requirements (v0.1.1-rc2+)
+
+### Security Context (Required for all pods)
+```yaml
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: container-name
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+```
+
+### Port Requirements
+- All services use non-privileged ports (>1024)
+- Frontend: 8080 (not 80)
+- Docusaurus docs: 8080 (not 80)
+
+### Image Requirements
+- All images pinned to specific versions (no :latest)
+- imagePullPolicy: IfNotPresent (not Never)
+- Non-root USER in Dockerfiles
+
+### Network Policies
+- Default deny-all-ingress policy
+- Explicit allow rules for service communication
+
+### OCP-Specific Resources
+- Routes (alternative to Ingress)
+- SCC (Security Context Constraints): use restricted-v2
+
+---
+
 ## Project Structure
 
 ```

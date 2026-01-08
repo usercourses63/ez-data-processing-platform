@@ -1,4 +1,4 @@
-# EZ Platform v0.1.1-rc1 - Release Package Manifest
+# EZ Platform v0.1.1-rc2 - Release Package Manifest
 
 **Release Date:** January 1, 2026
 **Version:** 0.1.1-rc1
@@ -31,16 +31,16 @@
 - Improved error message parsing in frontend error parser
 
 ### Updated Images (9 total)
-- datasource-management:v0.1.1-rc1
-- filediscovery:v0.1.1-rc1
-- fileprocessor:v0.1.1-rc1
-- validation:v0.1.1-rc1
-- output:v0.1.1-rc1
-- invalidrecords:v0.1.1-rc1
-- scheduling:v0.1.1-rc1
-- metrics-configuration:v0.1.1-rc1
-- frontend:v0.1.1-rc1
-- ezplatform-docs:v0.1.1-rc1
+- datasource-management:v0.1.1-rc2
+- filediscovery:v0.1.1-rc2
+- fileprocessor:v0.1.1-rc2
+- validation:v0.1.1-rc2
+- output:v0.1.1-rc2
+- invalidrecords:v0.1.1-rc2
+- scheduling:v0.1.1-rc2
+- metrics-configuration:v0.1.1-rc2
+- frontend:v0.1.1-rc2
+- ezplatform-docs:v0.1.1-rc2
 
 **Commits:** 17 commits since v0.1.0-beta
 **Backward Compatible:** Yes (no breaking changes)
@@ -50,7 +50,7 @@
 ## Package Structure
 
 ```
-ez-platform-v0.1.1-rc1/
+ez-platform-v0.1.1-rc2/
 ├── helm/                           # Helm Chart (COMPLETE)
 │   └── ez-platform/
 │       ├── Chart.yaml              # Chart metadata

@@ -15,10 +15,22 @@ spec:
         app: demo-data-generator
     spec:
       restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: demo-data-generator
-        image: ez-platform/demo-data-generator:latest
-        imagePullPolicy: Never
+        image: ez-platform/demo-data-generator:v0.1.1-rc2
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         args:
           - "--mongodb-connection=mongodb"
         env:

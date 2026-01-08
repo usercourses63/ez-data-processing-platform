@@ -43,9 +43,22 @@ spec:
         app: rabbitmq
         component: messaging
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: rabbitmq
         image: rabbitmq:3-management-alpine
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - name: amqp
           containerPort: 5672

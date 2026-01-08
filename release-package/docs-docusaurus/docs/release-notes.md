@@ -6,7 +6,7 @@ sidebar_position: 2
 
 ---
 
-## v0.1.1-rc1 (January 1, 2026)
+## v0.1.1-rc2 (January 1, 2026)
 
 **Status:** Release Candidate 1
 **Type:** Production Readiness Update
@@ -44,7 +44,7 @@ sidebar_position: 2
 - Standardized demo data generator to use Corvus format
 
 ### Deployment Changes
-- Updated image tags from v0.1.0-beta to v0.1.1-rc1 (9 images)
+- Updated image tags from v0.1.0-beta to v0.1.1-rc2 (9 images)
 - Modified ConfigMap with database-name key
 - Adjusted health check probe settings for production stability
 
