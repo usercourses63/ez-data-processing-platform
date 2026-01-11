@@ -1,6 +1,6 @@
-# EZ Platform Helm Chart (Vanilla Kubernetes)
+# EZ Platform Helm Chart (OpenShift)
 
-Complete Helm chart for deploying EZ Platform on vanilla Kubernetes clusters.
+Production-ready Helm chart for deploying EZ Platform on OpenShift Container Platform with full OCP compliance.
 
 ## Features
 
@@ -13,22 +13,23 @@ Complete Helm chart for deploying EZ Platform on vanilla Kubernetes clusters.
   - Elasticsearch log aggregation
   - OpenTelemetry Collector
 - **Zero-Trust Networking**: 12 NetworkPolicies for pod-to-pod security
-- **Ingress**: NGINX Ingress Controller for external access
-- **OCP Compatibility**: All resources include SecurityContext (pod + container level)
+- **OpenShift Routes**: 4 Routes with TLS edge termination for external access
+- **OCP Security Hardening**: All resources run as non-root (UID 1000), non-privileged ports only
+- **Full OCP Compliance**: restricted-v2 SCC compatible, SecurityContext at pod + container level
 
 ## Version Information
 
 - **Chart Version**: 1.1.0
 - **App Version**: v0.1.1-rc2
-- **Kubernetes Version**: 1.28+
+- **OpenShift Version**: 4.12+
 - **Helm Version**: 3.12+
 
 ## Prerequisites
 
-- Kubernetes 1.28+ cluster
-- Helm 3.12+
+- OpenShift Container Platform 4.12+ cluster
+- Helm 3.12+ (`oc` CLI or Helm)
+- cluster-admin permissions (for initial setup)
 - Persistent storage provisioner (for MongoDB, Kafka, Hazelcast)
-- NGINX Ingress Controller (or compatible ingress controller)
 - 32GB+ RAM available in cluster
 - 8+ CPU cores available
 
@@ -36,21 +37,24 @@ Complete Helm chart for deploying EZ Platform on vanilla Kubernetes clusters.
 
 ### Quick Start
 
-Deploy with default values:
+Deploy with your OpenShift domain:
 
 ```bash
-helm install ez-platform ./helm/ez-platform \
-  -n ez-platform --create-namespace
+helm install ez-platform ./release-package/helm/ez-platform-ocp \
+  -n ez-platform --create-namespace \
+  --set ocp.domain=apps.openshift-cluster.example.com
 ```
+
+**Note**: Replace `apps.openshift-cluster.example.com` with your actual OpenShift cluster's apps domain.
 
 ### Custom Values
 
 Deploy with custom configuration:
 
 ```bash
-helm install ez-platform ./helm/ez-platform \
+helm install ez-platform ./release-package/helm/ez-platform-ocp \
   -n ez-platform --create-namespace \
-  --set ingress.host=myapp.example.com \
+  --set ocp.domain=apps.prod.example.com \
   --set services.docs.enabled=false \
   --set mongodb.storage=50Gi
 ```
@@ -171,15 +175,14 @@ Example services:
 | `networkPolicies.infrastructure.allowMongoDBAccess` | Allow backend → MongoDB | `true` |
 | `networkPolicies.observability.allowOTELAccess` | Allow all → OTEL | `true` |
 
-### Ingress
+### OpenShift Routes
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `ingress.enabled` | Enable Ingress resource | `true` |
-| `ingress.className` | Ingress class name | `nginx` |
-| `ingress.host` | Hostname | `ez-platform.local` |
-| `ingress.tls.enabled` | Enable TLS | `false` |
-| `ingress.tls.secretName` | TLS secret name | `ez-platform-tls` |
+| `ocp.enabled` | Enable OCP-specific features | `true` |
+| `ocp.domain` | OpenShift cluster apps domain | `apps.example.com` |
+| `ocp.routes.enabled` | Enable Route resources | `true` |
+| `ocp.routes.tls.termination` | TLS termination type | `edge` |
 
 ### Security Context
 
@@ -213,33 +216,39 @@ kubectl get pods -n ez-platform
 
 Expected output: ~50-55 pods in Running state.
 
-### Access Services
+### Access Services via Routes
 
-Get Ingress address:
+Get Route URLs:
 
 ```bash
-kubectl get ingress -n ez-platform
+oc get routes -n ez-platform
 ```
 
-Access services:
-- Frontend: `http://<ingress-host>/`
-- Documentation: `http://<ingress-host>/docs`
-- API: `http://<ingress-host>/api`
-- Grafana: `http://<ingress-host>/grafana`
+Access services (all with HTTPS/TLS):
+- Frontend: `https://frontend.<your-ocp-domain>/`
+- Documentation: `https://docs.<your-ocp-domain>/`
+- API: `https://api.<your-ocp-domain>/`
+- Grafana: `https://grafana.<your-ocp-domain>/`
 
-### Port Forwarding (Development)
+Example with domain `apps.prod.example.com`:
+- Frontend: https://frontend.apps.prod.example.com/
+- Docs: https://docs.apps.prod.example.com/
+- API: https://api.apps.prod.example.com/
+- Grafana: https://grafana.apps.prod.example.com/
 
-For local development without Ingress:
+### Port Forwarding (Development/Testing)
+
+For local development or testing:
 
 ```bash
 # Frontend
-kubectl port-forward svc/frontend 3000:80 -n ez-platform
+oc port-forward svc/frontend 3000:8080 -n ez-platform
 
 # API
-kubectl port-forward svc/datasource-management 5001:5001 -n ez-platform
+oc port-forward svc/datasource-management 5001:5001 -n ez-platform
 
 # Grafana
-kubectl port-forward svc/grafana 3001:3000 -n ez-platform
+oc port-forward svc/grafana 3001:3000 -n ez-platform
 ```
 
 ## Upgrading
@@ -327,14 +336,15 @@ helm upgrade ez-platform ./helm/ez-platform \
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Ingress (NGINX)                       │
-│  / → frontend:80  |  /docs → docs:80  |  /api → datasource:5001
+│                  OpenShift Routes (TLS Edge)                 │
+│  frontend → :8080  |  docs → :8080  |  api → :5001  |  grafana → :3000
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                     Microservices Layer                      │
 │  FileDiscovery | FileProcessor | Validation | Output         │
 │  DataSource Mgmt | Metrics Config | Invalid Records | Scheduling
+│  (All running as non-root UID 1000, non-privileged ports)   │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐

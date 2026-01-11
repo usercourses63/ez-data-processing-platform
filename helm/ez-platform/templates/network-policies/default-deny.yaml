@@ -1,0 +1,15 @@
+{{- if .Values.networkPolicies.enabled }}
+{{- if .Values.networkPolicies.defaultDenyIngress }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+{{- end }}
+{{- end }}

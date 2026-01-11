@@ -1,0 +1,24 @@
+{{- if .Values.ocp.enabled }}
+{{- if .Values.ocp.routes.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: frontend
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: frontend
+spec:
+  host: frontend.{{ .Values.ocp.domain }}
+  to:
+    kind: Service
+    name: frontend
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: {{ .Values.ocp.routes.tls.termination }}
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}
+{{- end }}

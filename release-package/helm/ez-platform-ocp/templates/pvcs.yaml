@@ -1,0 +1,30 @@
+# Persistent Volume Claims for Data Storage
+# Week 2: Day 2
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-input-pvc
+  namespace: ez-platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-output-pvc
+  namespace: ez-platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard

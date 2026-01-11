@@ -1,0 +1,68 @@
+{{- if .Values.networkPolicies.enabled }}
+{{- if .Values.networkPolicies.observability.allowOTELAccess }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-otel
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: otel-collector
+  ingress:
+  - from:
+    - podSelector: {}
+    ports:
+    - port: 4317
+      protocol: TCP
+    - port: 4318
+      protocol: TCP
+{{- end }}
+
+{{- if .Values.networkPolicies.observability.allowElasticsearch }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-elasticsearch
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: elasticsearch
+  ingress:
+  - from:
+    - podSelector: {}
+    ports:
+    - port: 9200
+      protocol: TCP
+{{- end }}
+
+{{- if .Values.networkPolicies.observability.allowPrometheusScrape }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      tier: backend
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    - podSelector:
+        matchLabels:
+          app: prometheus-business
+{{- end }}
+{{- end }}

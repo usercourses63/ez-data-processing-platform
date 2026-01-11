@@ -8,9 +8,10 @@ global:
 
 # OCP Compatibility Settings
 ocp:
-  enabled: false  # Set to true for OpenShift deployments
+  enabled: true  # OpenShift deployment with Routes
+  domain: apps.example.com  # Replace with your OpenShift cluster domain
   routes:
-    enabled: false
+    enabled: true
     tls:
       termination: edge
 
@@ -50,9 +51,9 @@ networkPolicies:
   grafana:
     allowExternal: true
 
-# Ingress Configuration (Vanilla K8s)
+# Ingress Configuration (Disabled for OCP - uses Routes instead)
 ingress:
-  enabled: true
+  enabled: false
   className: nginx
   host: ez-platform.local
   annotations: {}
@@ -296,14 +297,15 @@ services:
       repository: frontend
       tag: v0.1.1-rc2
       pullPolicy: IfNotPresent
+    containerPort: 8080  # OCP requires non-privileged ports
     strategy:
       maxSurge: 1
       maxUnavailable: 0
     config:
       apiBaseUrl: "http://datasource-management:5001"
     service:
-      type: LoadBalancer
-      port: 80
+      type: ClusterIP  # Changed from LoadBalancer for OCP (uses Routes instead)
+      port: 8080
     resources:
       requests:
         cpu: 250m

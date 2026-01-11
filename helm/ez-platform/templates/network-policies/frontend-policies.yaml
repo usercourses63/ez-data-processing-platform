@@ -1,0 +1,67 @@
+{{- if .Values.networkPolicies.enabled }}
+{{- if .Values.networkPolicies.frontend.allowExternal }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-ingress
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  ingress:
+  - from: []
+    ports:
+    - port: 8080
+      protocol: TCP
+{{- end }}
+
+{{- if .Values.networkPolicies.frontend.allowApiAccess }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-api
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: datasource-management
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - port: 5001
+      protocol: TCP
+{{- end }}
+
+{{- if .Values.networkPolicies.frontend.allowMetricsAccess }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-metrics
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app: metrics-configuration
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - port: 5002
+      protocol: TCP
+{{- end }}
+{{- end }}

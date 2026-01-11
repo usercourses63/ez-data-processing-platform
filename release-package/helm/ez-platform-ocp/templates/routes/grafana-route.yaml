@@ -1,0 +1,24 @@
+{{- if .Values.ocp.enabled }}
+{{- if .Values.ocp.routes.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: grafana
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: grafana
+spec:
+  host: grafana.{{ .Values.ocp.domain }}
+  to:
+    kind: Service
+    name: grafana
+    weight: 100
+  port:
+    targetPort: 3000
+  tls:
+    termination: {{ .Values.ocp.routes.tls.termination }}
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}
+{{- end }}

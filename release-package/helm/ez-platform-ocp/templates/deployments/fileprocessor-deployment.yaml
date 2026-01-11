@@ -1,0 +1,138 @@
+{{- if .Values.services.fileprocessor.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fileprocessor
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: fileprocessor
+    component: processing
+    tier: backend
+spec:
+  replicas: {{ .Values.services.fileprocessor.replicas }}
+  selector:
+    matchLabels:
+      app: fileprocessor
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.services.fileprocessor.strategy.maxSurge | default 2 }}
+      maxUnavailable: {{ .Values.services.fileprocessor.strategy.maxUnavailable | default 1 }}
+  template:
+    metadata:
+      labels:
+        app: fileprocessor
+        component: processing
+        tier: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5008"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: fileprocessor
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem | default false }}
+          capabilities:
+            drop:
+              - ALL
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.services.fileprocessor.image "Chart" .Chart) }}
+        imagePullPolicy: {{ include "ez-platform.imagePullPolicy" . }}
+        ports:
+        - containerPort: 5008
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.config.environment | default "Production" | quote }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:5008"
+        - name: ConnectionStrings__MongoDB
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: mongodb-connection
+        - name: ConnectionStrings__DatabaseName
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: database-name
+        - name: MassTransit__UseKafka
+          value: "true"
+        - name: MassTransit__Kafka__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
+        - name: Hazelcast__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: hazelcast-server
+        - name: Hazelcast__ClusterName
+          value: {{ .Values.hazelcast.clusterName | default "data-processing-cluster" | quote }}
+        - name: OpenTelemetry__OtlpEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: otlp-endpoint
+        - name: Hazelcast__CacheTTLHours
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: Hazelcast__CacheTTLHours
+        - name: FileProcessor__ConcurrentFiles
+          value: {{ .Values.services.fileprocessor.config.concurrentFiles | default "10" | quote }}
+        - name: FileProcessor__MaxFileSizeMB
+          value: {{ .Values.services.fileprocessor.config.maxFileSizeMB | default "1000" | quote }}
+        {{- with .Values.services.fileprocessor.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.services.fileprocessor.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5008
+          initialDelaySeconds: {{ .Values.services.fileprocessor.livenessProbe.initialDelaySeconds | default 30 }}
+          periodSeconds: {{ .Values.services.fileprocessor.livenessProbe.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.services.fileprocessor.livenessProbe.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.services.fileprocessor.livenessProbe.failureThreshold | default 3 }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5008
+          initialDelaySeconds: {{ .Values.services.fileprocessor.readinessProbe.initialDelaySeconds | default 20 }}
+          periodSeconds: {{ .Values.services.fileprocessor.readinessProbe.periodSeconds | default 5 }}
+          timeoutSeconds: {{ .Values.services.fileprocessor.readinessProbe.timeoutSeconds | default 3 }}
+          failureThreshold: {{ .Values.services.fileprocessor.readinessProbe.failureThreshold | default 2 }}
+        volumeMounts:
+        - name: data-input
+          mountPath: /data/input
+          readOnly: true
+        {{- if .Values.storage.externalData.enabled }}
+        - name: external-data
+          mountPath: /mnt/external-test-data
+          readOnly: true
+        {{- end }}
+      volumes:
+      - name: data-input
+        persistentVolumeClaim:
+          claimName: data-input-pvc
+      {{- if .Values.storage.externalData.enabled }}
+      - name: external-data
+        hostPath:
+          path: {{ .Values.storage.externalData.hostPath }}
+          type: Directory
+      {{- end }}
+      restartPolicy: Always
+{{- end }}
