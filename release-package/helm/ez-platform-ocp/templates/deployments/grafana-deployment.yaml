@@ -1,91 +1,85 @@
+{{- if .Values.observability.grafana.enabled }}
 # EZ Platform Grafana - Kubernetes Deployment
 # Unified visualization and dashboards for system and business metrics
-
----
-# Grafana credentials Secret
-# BETA: Password is base64-encoded. Default password: EZPlatform2025!Beta
-# To change: echo -n "your-password" | base64
-# NOTE: For production, replace with externally managed secrets (e.g., Vault, sealed-secrets)
-apiVersion: v1
-kind: Secret
-metadata:
-  name: grafana-credentials
-  namespace: ez-platform
-  labels:
-    app: ezplatform-grafana
-type: Opaque
-data:
-  admin-password: RVpQbGF0Zm9ybTIwMjUhQmV0YQ==  # Base64 encoded: EZPlatform2025!Beta
-
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-datasources-config
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: ezplatform-grafana
 data:
   datasources.yaml: |
     apiVersion: 1
     datasources:
+      {{- if .Values.observability.grafana.datasources.systemPrometheus.enabled }}
       # System Prometheus - Infrastructure Metrics
       - name: System-Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-system:9090
-        isDefault: false
+        url: {{ .Values.observability.grafana.datasources.systemPrometheus.url }}
+        isDefault: {{ .Values.observability.grafana.datasources.systemPrometheus.isDefault }}
         editable: false
         uid: system-prometheus-uid
         jsonData:
-          timeInterval: 15s
+          timeInterval: {{ .Values.observability.grafana.datasources.systemPrometheus.timeInterval }}
           queryTimeout: 60s
           httpMethod: POST
         version: 1
+      {{- end }}
 
+      {{- if .Values.observability.grafana.datasources.businessPrometheus.enabled }}
       # Business Prometheus - Business KPIs
       - name: Business-Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-business:9090
-        isDefault: true
+        url: {{ .Values.observability.grafana.datasources.businessPrometheus.url }}
+        isDefault: {{ .Values.observability.grafana.datasources.businessPrometheus.isDefault }}
         editable: false
         uid: business-prometheus-uid
         jsonData:
-          timeInterval: 1m
+          timeInterval: {{ .Values.observability.grafana.datasources.businessPrometheus.timeInterval }}
           queryTimeout: 60s
           httpMethod: POST
         version: 1
+      {{- end }}
 
+      {{- if .Values.observability.grafana.datasources.elasticsearch.enabled }}
       # Elasticsearch - Logs
       - name: Elasticsearch-Logs
         type: elasticsearch
         access: proxy
-        url: http://elasticsearch:9200
-        database: dataprocessing-logs-*
+        url: {{ .Values.observability.grafana.datasources.elasticsearch.url }}
+        database: {{ .Values.observability.grafana.datasources.elasticsearch.index }}-*
         isDefault: false
         editable: false
         uid: elasticsearch-logs-uid
         jsonData:
-          index: dataprocessing-logs
+          index: {{ .Values.observability.grafana.datasources.elasticsearch.index }}
           interval: Daily
           timeField: "@timestamp"
           esVersion: "8.0.0"
           logMessageField: message
           logLevelField: level
         version: 1
+      {{- end }}
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: ezplatform-grafana
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
     app: ezplatform-grafana
 spec:
-  type: LoadBalancer
+  type: {{ .Values.observability.grafana.service.type }}
   ports:
-  - port: 3000
-    targetPort: 3000
+  - port: {{ .Values.observability.grafana.service.port }}
+    targetPort: {{ .Values.observability.grafana.service.port }}
     name: http
   selector:
     app: ezplatform-grafana
@@ -95,11 +89,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ezplatform-grafana
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
     app: ezplatform-grafana
 spec:
-  replicas: 1
+  replicas: {{ .Values.observability.grafana.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.observability.grafana.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.observability.grafana.strategy.maxUnavailable | default 0 }}
   selector:
     matchLabels:
       app: ezplatform-grafana
@@ -110,39 +110,45 @@ spec:
         component: monitoring
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
         seccompProfile:
-          type: RuntimeDefault
+          type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
       containers:
       - name: ezplatform-grafana
         securityContext:
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: {{ .Values.securityContext.container.allowPrivilegeEscalation | default false }}
           readOnlyRootFilesystem: false
           capabilities:
             drop:
-              - ALL
-        image: grafana/grafana:latest
+              {{- toYaml .Values.securityContext.container.capabilities.drop | nindent 14 }}
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.observability.grafana.image "Chart" .Chart) }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
         ports:
-        - containerPort: 3000
+        - containerPort: {{ .Values.observability.grafana.service.port }}
           name: http
         env:
+        - name: GF_SECURITY_ADMIN_USER
+          value: {{ .Values.observability.grafana.auth.adminUser | quote }}
         - name: GF_SECURITY_ADMIN_PASSWORD
           valueFrom:
             secretKeyRef:
+              {{- if .Values.observability.grafana.auth.existingSecret }}
+              name: {{ .Values.observability.grafana.auth.existingSecret }}
+              key: {{ .Values.observability.grafana.auth.existingSecretKey | default "admin-password" }}
+              {{- else }}
               name: grafana-credentials
               key: admin-password
+              {{- end }}
         - name: GF_USERS_ALLOW_SIGN_UP
           value: "false"
+        {{- with .Values.observability.grafana.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
         resources:
-          requests:
-            cpu: "250m"
-            memory: "512Mi"
-          limits:
-            cpu: "1000m"
-            memory: "2Gi"
+          {{- toYaml .Values.observability.grafana.resources | nindent 10 }}
         volumeMounts:
         - name: grafana-data
           mountPath: /var/lib/grafana
@@ -179,11 +185,15 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: ezplatform-grafana-data-pvc
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: ezplatform-grafana
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
-  storageClassName: standard
+      storage: {{ .Values.observability.grafana.storage.size }}
+  storageClassName: {{ .Values.observability.grafana.storage.storageClass }}
+{{- end }}

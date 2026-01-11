@@ -105,8 +105,8 @@ Hazelcast cluster members
 OTEL Collector endpoint
 */}}
 {{- define "ez-platform.otelEndpoint" -}}
-{{- if .Values.observability.otel.external.enabled }}
-{{- .Values.observability.otel.external.endpoint }}
+{{- if .Values.observability.otelCollector.external.enabled }}
+{{- .Values.observability.otelCollector.external.endpoint }}
 {{- else }}
 {{- printf "http://otel-collector.%s.svc.cluster.local:4317" .Values.global.namespace }}
 {{- end }}
