@@ -39,9 +39,15 @@ spec:
         component: monitoring
         metrics-type: system
     spec:
+      securityContext:
+        fsGroup: 65534
       containers:
       - name: prometheus-system
-        image: prom/prometheus:latest
+        image: prom/prometheus:v3.1.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 65534
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: 9090
           name: http

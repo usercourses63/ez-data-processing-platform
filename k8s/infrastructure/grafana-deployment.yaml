@@ -109,9 +109,15 @@ spec:
         app: ezplatform-grafana
         component: monitoring
     spec:
+      securityContext:
+        fsGroup: 472
       containers:
       - name: ezplatform-grafana
-        image: grafana/grafana:latest
+        image: grafana/grafana:11.4.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 472
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: 3000
           name: http

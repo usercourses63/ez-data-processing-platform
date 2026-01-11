@@ -28,10 +28,22 @@ spec:
         component: processing
         tier: backend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: validation
-        image: ez-platform/validation:latest
-        imagePullPolicy: Never
+        image: ez-platform/validation:v0.1.1-rc1
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 5003
           name: http
@@ -51,6 +63,11 @@ spec:
             configMapKeyRef:
               name: services-config
               key: database-name
+        - name: ConnectionStrings__Kafka
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
         - name: MassTransit__UseKafka
           value: "true"
         - name: MassTransit__Kafka__Server

@@ -21,7 +21,7 @@ data:
         Tag               kube.*
         Path              /var/log/containers/*ez-platform*.log
         Parser            docker
-        DB                /var/log/flb_kube.db
+        DB                /tmp/flb_kube.db
         Mem_Buf_Limit     50MB
         Skip_Long_Lines   On
         Refresh_Interval  10
@@ -124,6 +124,13 @@ spec:
         component: logging
     spec:
       serviceAccountName: fluent-bit
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       tolerations:
         - key: node-role.kubernetes.io/master
           operator: Exists
@@ -133,8 +140,13 @@ spec:
           effect: NoSchedule
       containers:
         - name: fluent-bit
-          image: fluent/fluent-bit:latest
+          image: fluent/fluent-bit:3.2.2
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 2020
               name: http
@@ -154,11 +166,14 @@ spec:
           volumeMounts:
             - name: varlog
               mountPath: /var/log
+              readOnly: true
             - name: varlibdockercontainers
               mountPath: /var/lib/docker/containers
               readOnly: true
             - name: fluent-bit-config
               mountPath: /fluent-bit/etc/
+            - name: fluent-bit-state
+              mountPath: /tmp
           livenessProbe:
             httpGet:
               path: /api/v1/health
@@ -181,6 +196,8 @@ spec:
         - name: fluent-bit-config
           configMap:
             name: fluent-bit-config
+        - name: fluent-bit-state
+          emptyDir: {}
       terminationGracePeriodSeconds: 10
 
 ---

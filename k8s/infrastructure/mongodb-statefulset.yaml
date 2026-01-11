@@ -26,7 +26,7 @@ metadata:
   namespace: ez-platform
 spec:
   serviceName: mongodb
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: mongodb
@@ -36,9 +36,17 @@ spec:
         app: mongodb
         component: database
     spec:
+      securityContext:
+        fsGroup: 999
       containers:
       - name: mongodb
         image: mongo:8.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         command:
         - mongod
         - "--replSet"

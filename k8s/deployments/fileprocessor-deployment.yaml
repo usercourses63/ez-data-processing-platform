@@ -12,7 +12,7 @@ metadata:
     component: processing
     tier: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: fileprocessor
@@ -28,10 +28,22 @@ spec:
         component: processing
         tier: backend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: fileprocessor
-        image: ez-platform/fileprocessor:latest
-        imagePullPolicy: Never
+        image: ez-platform/fileprocessor:v0.1.1-rc1
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 5008
           name: http
@@ -109,7 +121,5 @@ spec:
         persistentVolumeClaim:
           claimName: data-input-pvc
       - name: external-data
-        hostPath:
-          path: /mnt/external-test-data
-          type: Directory
+        emptyDir: {}
       restartPolicy: Always

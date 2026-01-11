@@ -1,7 +1,5 @@
 # Frontend - Kubernetes Deployment
-# Week 2: Day 2
-# Replicas: 2 (UI service, moderate scaling)
-# OCP-compatible: uses non-privileged port 8080
+# OCP-compatible: runs as non-root user on non-privileged port 8080
 
 apiVersion: apps/v1
 kind: Deployment
@@ -13,7 +11,7 @@ metadata:
     component: ui
     tier: frontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend
@@ -29,10 +27,22 @@ spec:
         component: ui
         tier: frontend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: frontend
         image: ez-platform/frontend:v0.1.1-rc2
         imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 8080
           name: http
@@ -40,10 +50,6 @@ spec:
         env:
         - name: NODE_ENV
           value: "production"
-        - name: REACT_APP_API_URL
-          value: "http://datasource-management:5001"
-        - name: REACT_APP_METRICS_API_URL
-          value: "http://metrics-configuration:5002"
         resources:
           requests:
             cpu: "250m"

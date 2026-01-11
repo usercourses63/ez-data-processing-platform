@@ -12,7 +12,7 @@ metadata:
     component: processing
     tier: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: filediscovery
@@ -28,10 +28,22 @@ spec:
         component: processing
         tier: backend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: filediscovery
-        image: ez-platform/filediscovery:latest
-        imagePullPolicy: Never
+        image: ez-platform/filediscovery:v0.1.1-rc1
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 5007
           name: http
@@ -105,7 +117,5 @@ spec:
         persistentVolumeClaim:
           claimName: data-input-pvc
       - name: external-data
-        hostPath:
-          path: /mnt/external-test-data
-          type: Directory
+        emptyDir: {}
       restartPolicy: Always

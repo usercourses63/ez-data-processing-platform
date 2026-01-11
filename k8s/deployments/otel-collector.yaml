@@ -218,9 +218,22 @@ spec:
         app: otel-collector
         component: telemetry
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: otel-collector
         image: otel/opentelemetry-collector-contrib:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         args:
           - "--config=/etc/otel-collector/config.yaml"
         ports:

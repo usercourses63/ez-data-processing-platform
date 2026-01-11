@@ -31,9 +31,21 @@ spec:
       labels:
         app: elasticsearch
     spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: elasticsearch
         image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         ports:
         - containerPort: 9200
         env:
