@@ -829,6 +829,10 @@ observability:
         p99Threshold: 60  # seconds
         duration: 5m
         severity: warning
+      processingStalled:
+        checkInterval: 10m
+        duration: 10m
+        severity: critical
     infrastructure:
       hazelcastMemoryHigh:
         threshold: 0.85
@@ -836,7 +840,11 @@ observability:
         severity: warning
       podNotReady:
         duration: 5m
-        severity: critical
+        severity: warning
+      fileProcessorScaledDown:
+        minReplicas: 2
+        duration: 5m
+        severity: warning
     validation:
       highInvalidRecordRate:
         threshold: 0.1  # 10%
