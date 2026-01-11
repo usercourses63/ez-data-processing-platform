@@ -204,6 +204,80 @@ securityContext:
         - ALL
 ```
 
+### Observability Stack
+
+The observability stack is fully templated and supports environment-specific customization.
+
+**Components**:
+- **Dual Prometheus**: System metrics (infrastructure) + Business metrics (KPIs)
+- **Grafana**: Unified dashboards with 3 datasources (2 Prometheus + Elasticsearch)
+- **Elasticsearch**: Centralized log storage
+- **Jaeger**: Distributed tracing with Elasticsearch backend
+- **OTEL Collector**: Central telemetry aggregation (4 pipelines)
+- **Fluent-Bit**: DaemonSet for container log collection
+
+**Quick Start**:
+```bash
+# Install with default observability settings
+helm install ez-platform ./ez-platform-ocp -n ez-platform --create-namespace
+
+# Access Grafana
+oc get route grafana -n ez-platform
+# Or port-forward: oc port-forward svc/ezplatform-grafana 3000:3000 -n ez-platform
+
+# Get Grafana password
+oc get secret grafana-credentials -n ez-platform -o jsonpath='{.data.admin-password}' | base64 -d
+```
+
+**Environment-Specific Deployments**:
+
+```bash
+# Development (reduced resources, relaxed alerts)
+helm install ez-platform ./ez-platform-ocp \
+  -f values.yaml \
+  -f values-dev.yaml \
+  -n ez-platform --create-namespace
+
+# Production (HA, strict alerts, large storage)
+helm install ez-platform ./ez-platform-ocp \
+  -f values.yaml \
+  -f values-production.yaml \
+  -n ez-platform --create-namespace
+```
+
+**Configuration**:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `observability.prometheusSystem.enabled` | `true` | Enable system metrics |
+| `observability.prometheusBusiness.enabled` | `true` | Enable business metrics |
+| `observability.grafana.enabled` | `true` | Enable Grafana dashboards |
+| `observability.elasticsearch.enabled` | `true` | Enable log storage |
+| `observability.jaeger.enabled` | `true` | Enable distributed tracing |
+| `observability.otelCollector.enabled` | `true` | Enable OTEL Collector |
+| `observability.fluentBit.enabled` | `true` | Enable log collection |
+
+**Alert Configuration**:
+
+```yaml
+# Customize alert thresholds
+observability:
+  alerts:
+    processingPipeline:
+      rabbitmqQueueBacklog:
+        threshold: 100      # Queue depth warning
+        duration: 5m
+      processingLagHigh:
+        p99Threshold: 60    # P99 latency in seconds
+    infrastructure:
+      hazelcastMemoryHigh:
+        threshold: 0.85     # 85% memory usage
+```
+
+**Documentation**:
+- [Complete Observability Guide](docs/OBSERVABILITY.md)
+- [Upgrade Instructions](docs/UPGRADE.md)
+
 ## Post-Installation
 
 ### Verify Deployment
