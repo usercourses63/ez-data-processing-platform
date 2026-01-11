@@ -1,0 +1,116 @@
+# Development Environment Overrides
+# Usage: helm install ez-platform ./ez-platform-ocp -f values.yaml -f values-dev.yaml
+
+# Reduce resources for local development
+observability:
+  prometheusSystem:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    storage:
+      size: 10Gi
+    config:
+      retentionTime: 7d
+      scrapeInterval: 30s  # Less frequent scraping
+
+  prometheusBusiness:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    storage:
+      size: 10Gi
+    config:
+      retentionTime: 7d
+      scrapeInterval: 30s
+
+  grafana:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    storage:
+      size: 5Gi
+
+  elasticsearch:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    storage:
+      size: 20Gi
+    config:
+      javaOpts: "-Xms512m -Xmx512m"  # Reduced heap
+    security:
+      enabled: false  # Disable for dev
+
+  jaeger:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+  otelCollector:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    processors:
+      memoryLimiter:
+        limitMiB: 256
+        spikeLimitMiB: 64
+
+  fluentBit:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+  # Relaxed alert thresholds for dev
+  alerts:
+    processingPipeline:
+      rabbitmqQueueBacklog:
+        threshold: 50  # Lower threshold for testing
+        duration: 10m  # Longer duration to avoid noise
+      rabbitmqQueueCritical:
+        threshold: 200
+        duration: 5m
+      processingLagHigh:
+        p99Threshold: 120  # More lenient
+        duration: 10m
+      processingStalled:
+        duration: 15m  # Tolerate longer stalls
+    infrastructure:
+      hazelcastMemoryHigh:
+        threshold: 0.90  # Higher threshold (90%)
+        duration: 10m
+      fileProcessorScaledDown:
+        minReplicas: 1  # Only 1 replica in dev

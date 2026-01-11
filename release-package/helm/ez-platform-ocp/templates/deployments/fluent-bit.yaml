@@ -1,15 +1,18 @@
+{{- if .Values.observability.fluentBit.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluent-bit-config
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
     app: fluent-bit
+    component: logging
 data:
   fluent-bit.conf: |
     [SERVICE]
-        Flush         5
-        Log_Level     info
+        Flush         {{ .Values.observability.fluentBit.config.flush }}
+        Log_Level     {{ .Values.observability.fluentBit.config.logLevel }}
         Daemon        off
         Parsers_File  parsers.conf
         HTTP_Server   On
@@ -19,10 +22,10 @@ data:
     [INPUT]
         Name              tail
         Tag               kube.*
-        Path              /var/log/containers/*ez-platform*.log
+        Path              {{ .Values.observability.fluentBit.config.tailPath }}
         Parser            docker
         DB                /var/log/flb_kube.db
-        Mem_Buf_Limit     50MB
+        Mem_Buf_Limit     {{ .Values.observability.fluentBit.config.memBufLimit }}
         Skip_Long_Lines   On
         Refresh_Interval  10
 
@@ -47,14 +50,14 @@ data:
     [OUTPUT]
         Name            es
         Match           kube.*
-        Host            elasticsearch
-        Port            9200
+        Host            {{ .Values.observability.fluentBit.config.elasticsearchHost }}
+        Port            {{ .Values.observability.fluentBit.config.elasticsearchPort }}
         Logstash_Format On
-        Logstash_Prefix ez-logs
+        Logstash_Prefix {{ .Values.observability.fluentBit.config.logstashPrefix }}
         Replace_Dots    On
         Retry_Limit     5
         Suppress_Type_Name On
-        Buffer_Size     512KB
+        Buffer_Size     {{ .Values.observability.fluentBit.config.bufferSize }}
 
   parsers.conf: |
     [PARSER]
@@ -76,13 +79,18 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: fluent-bit
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: fluent-bit
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: fluent-bit-read
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
 rules:
   - apiGroups: [""]
     resources:
@@ -95,6 +103,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: fluent-bit-read
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -102,15 +112,16 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: fluent-bit
-    namespace: ez-platform
+    namespace: {{ .Values.global.namespace }}
 
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: fluent-bit
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
     app: fluent-bit
     component: logging
 spec:
@@ -125,12 +136,12 @@ spec:
     spec:
       serviceAccountName: fluent-bit
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
         seccompProfile:
-          type: RuntimeDefault
+          type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
       tolerations:
         - key: node-role.kubernetes.io/master
           operator: Exists
@@ -141,13 +152,13 @@ spec:
       containers:
         - name: fluent-bit
           securityContext:
-            allowPrivilegeEscalation: false
+            allowPrivilegeEscalation: {{ .Values.securityContext.container.allowPrivilegeEscalation | default false }}
             readOnlyRootFilesystem: false
             capabilities:
               drop:
-                - ALL
-          image: fluent/fluent-bit:latest
-          imagePullPolicy: IfNotPresent
+                {{- toYaml .Values.securityContext.container.capabilities.drop | nindent 16 }}
+          image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.observability.fluentBit.image "Chart" .Chart) }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
           ports:
             - containerPort: 2020
               name: http
@@ -157,13 +168,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          {{- with .Values.observability.fluentBit.extraEnv }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 256Mi
+            {{- toYaml .Values.observability.fluentBit.resources | nindent 12 }}
           volumeMounts:
             - name: varlog
               mountPath: /var/log
@@ -201,9 +210,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: fluent-bit
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
     app: fluent-bit
+    component: logging
 spec:
   type: ClusterIP
   ports:
@@ -212,3 +223,4 @@ spec:
       name: http
   selector:
     app: fluent-bit
+{{- end }}

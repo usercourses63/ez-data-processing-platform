@@ -1,17 +1,22 @@
+{{- if .Values.observability.otelCollector.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: otel-collector-config
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: otel-collector
+    component: telemetry
 data:
   config.yaml: |
     receivers:
       otlp:
         protocols:
           grpc:
-            endpoint: 0.0.0.0:4317
+            endpoint: 0.0.0.0:{{ .Values.observability.otelCollector.service.ports.otlpGrpc }}
           http:
-            endpoint: 0.0.0.0:4318
+            endpoint: 0.0.0.0:{{ .Values.observability.otelCollector.service.ports.otlpHttp }}
             cors:
               allowed_origins:
                 - "http://*"
@@ -19,14 +24,14 @@ data:
 
     processors:
       batch:
-        timeout: 10s
-        send_batch_size: 1024
-        send_batch_max_size: 2048
+        timeout: {{ .Values.observability.otelCollector.processors.batch.timeout }}
+        send_batch_size: {{ .Values.observability.otelCollector.processors.batch.sendBatchSize }}
+        send_batch_max_size: {{ .Values.observability.otelCollector.processors.batch.sendBatchMaxSize }}
 
       memory_limiter:
-        check_interval: 1s
-        limit_mib: 512
-        spike_limit_mib: 128
+        check_interval: {{ .Values.observability.otelCollector.processors.memoryLimiter.checkInterval }}
+        limit_mib: {{ .Values.observability.otelCollector.processors.memoryLimiter.limitMiB }}
+        spike_limit_mib: {{ .Values.observability.otelCollector.processors.memoryLimiter.spikeLimitMiB }}
 
       filter/system_metrics:
         metrics:
@@ -53,59 +58,63 @@ data:
       resource:
         attributes:
           - key: environment
-            value: production
+            value: {{ .Values.observability.otelCollector.processors.resource.environment }}
             action: upsert
           - key: cluster
-            value: dataprocessing
+            value: {{ .Values.observability.otelCollector.processors.resource.cluster }}
             action: insert
           - key: region
-            value: israel
+            value: {{ .Values.observability.otelCollector.processors.resource.region }}
             action: insert
 
       attributes/timezone:
         actions:
           - key: timezone
-            value: "Asia/Jerusalem"
+            value: {{ .Values.observability.otelCollector.processors.resource.timezone | quote }}
             action: insert
 
     exporters:
       prometheusremotewrite/system:
-        endpoint: http://prometheus-system:9090/api/v1/write
+        endpoint: {{ .Values.observability.otelCollector.exporters.prometheusSystemEndpoint }}
         tls:
           insecure: true
         resource_to_telemetry_conversion:
           enabled: true
-        timeout: 30s
+        timeout: {{ .Values.observability.otelCollector.exporters.timeout }}
+        {{- if .Values.observability.otelCollector.exporters.retryEnabled }}
         retry_on_failure:
           enabled: true
           initial_interval: 5s
           max_interval: 30s
           max_elapsed_time: 300s
+        {{- end }}
 
       prometheusremotewrite/business:
-        endpoint: http://prometheus-business:9090/api/v1/write
+        endpoint: {{ .Values.observability.otelCollector.exporters.prometheusBusinessEndpoint }}
         tls:
           insecure: true
         resource_to_telemetry_conversion:
           enabled: true
-        timeout: 30s
+        timeout: {{ .Values.observability.otelCollector.exporters.timeout }}
+        {{- if .Values.observability.otelCollector.exporters.retryEnabled }}
         retry_on_failure:
           enabled: true
           initial_interval: 5s
           max_interval: 30s
           max_elapsed_time: 300s
+        {{- end }}
 
       elasticsearch:
         endpoints:
-          - http://elasticsearch:9200
-        logs_index: dataprocessing-logs
-        traces_index: dataprocessing-traces
-        timeout: 30s
+          - {{ .Values.observability.otelCollector.exporters.elasticsearchEndpoint }}
+        logs_index: {{ .Values.observability.otelCollector.exporters.elasticsearchLogsIndex }}
+        traces_index: {{ .Values.observability.otelCollector.exporters.elasticsearchTracesIndex }}
+        timeout: {{ .Values.observability.otelCollector.exporters.timeout }}
         mapping:
           mode: ecs
 
       otlp/jaeger:
-        endpoint: jaeger:4317
+        endpoint: {{ .Values.observability.otelCollector.exporters.jaegerEndpoint }}
         tls:
           insecure: true
 
@@ -172,24 +181,25 @@ apiVersion: v1
 kind: Service
 metadata:
   name: otel-collector
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
     app: otel-collector
     component: telemetry
 spec:
-  type: ClusterIP
+  type: {{ .Values.observability.otelCollector.service.type }}
   ports:
     - name: otlp-grpc
-      port: 4317
-      targetPort: 4317
+      port: {{ .Values.observability.otelCollector.service.ports.otlpGrpc }}
+      targetPort: {{ .Values.observability.otelCollector.service.ports.otlpGrpc }}
       protocol: TCP
     - name: otlp-http
-      port: 4318
-      targetPort: 4318
+      port: {{ .Values.observability.otelCollector.service.ports.otlpHttp }}
+      targetPort: {{ .Values.observability.otelCollector.service.ports.otlpHttp }}
       protocol: TCP
     - name: metrics
-      port: 8888
-      targetPort: 8888
+      port: {{ .Values.observability.otelCollector.service.ports.metrics }}
+      targetPort: {{ .Values.observability.otelCollector.service.ports.metrics }}
       protocol: TCP
     - name: health
       port: 13133
@@ -203,12 +213,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: otel-collector
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
     app: otel-collector
     component: telemetry
 spec:
-  replicas: 1
+  replicas: {{ .Values.observability.otelCollector.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.observability.otelCollector.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.observability.otelCollector.strategy.maxUnavailable | default 0 }}
   selector:
     matchLabels:
       app: otel-collector
@@ -219,39 +235,43 @@ spec:
         component: telemetry
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
         seccompProfile:
-          type: RuntimeDefault
+          type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
       containers:
       - name: otel-collector
         securityContext:
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: {{ .Values.securityContext.container.allowPrivilegeEscalation | default false }}
           readOnlyRootFilesystem: false
           capabilities:
             drop:
-              - ALL
-        image: otel/opentelemetry-collector-contrib:latest
+              {{- toYaml .Values.securityContext.container.capabilities.drop | nindent 14 }}
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.observability.otelCollector.image "Chart" .Chart) }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
         args:
           - "--config=/etc/otel-collector/config.yaml"
         ports:
           - name: otlp-grpc
-            containerPort: 4317
+            containerPort: {{ .Values.observability.otelCollector.service.ports.otlpGrpc }}
             protocol: TCP
           - name: otlp-http
-            containerPort: 4318
+            containerPort: {{ .Values.observability.otelCollector.service.ports.otlpHttp }}
             protocol: TCP
           - name: metrics
-            containerPort: 8888
+            containerPort: {{ .Values.observability.otelCollector.service.ports.metrics }}
             protocol: TCP
           - name: health
             containerPort: 13133
             protocol: TCP
         env:
           - name: ENVIRONMENT
-            value: "production"
+            value: {{ .Values.observability.otelCollector.processors.resource.environment | quote }}
+        {{- with .Values.observability.otelCollector.extraEnv }}
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
         volumeMounts:
           - name: config
             mountPath: /etc/otel-collector
@@ -269,14 +289,10 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
         resources:
-          limits:
-            cpu: "1"
-            memory: 1Gi
-          requests:
-            cpu: 250m
-            memory: 512Mi
+          {{- toYaml .Values.observability.otelCollector.resources | nindent 10 }}
       volumes:
         - name: config
           configMap:
             name: otel-collector-config
       restartPolicy: Always
+{{- end }}

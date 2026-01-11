@@ -1,0 +1,178 @@
+# Production Environment Overrides
+# Usage: helm install ez-platform ./ez-platform-ocp -f values.yaml -f values-production.yaml
+
+# Production hardening with HA and larger resources
+observability:
+  prometheusSystem:
+    replicas: 2  # High availability
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 4Gi
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+    storage:
+      size: 200Gi
+      storageClass: fast-ssd  # Premium storage
+    config:
+      retentionTime: 30d  # Longer retention
+      scrapeInterval: 10s  # More frequent scraping
+      evaluationInterval: 10s
+
+  prometheusBusiness:
+    replicas: 2  # High availability
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 4Gi
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+    storage:
+      size: 200Gi
+      storageClass: fast-ssd
+    config:
+      retentionTime: 30d
+      scrapeInterval: 10s
+      evaluationInterval: 10s
+
+  grafana:
+    replicas: 2  # High availability
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    storage:
+      size: 20Gi
+      storageClass: fast-ssd
+    auth:
+      # Use external secret management in production
+      existingSecret: "grafana-vault-secret"
+      existingSecretKey: "admin-password"
+
+  elasticsearch:
+    replicas: 3  # Cluster mode
+    resources:
+      requests:
+        cpu: 2000m
+        memory: 8Gi
+      limits:
+        cpu: 4000m
+        memory: 16Gi
+    storage:
+      size: 500Gi
+      storageClass: fast-ssd
+    config:
+      javaOpts: "-Xms4g -Xmx4g"  # Large heap
+    security:
+      enabled: true  # Enable security in production
+      existingSecret: "elasticsearch-vault-secret"
+      username: elastic
+
+  jaeger:
+    replicas: 2  # High availability
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    config:
+      storage:
+        type: elasticsearch  # Persist traces
+        elasticsearchServerUrls: "http://elasticsearch:9200"
+        elasticsearchIndexPrefix: "jaeger-prod"
+
+  otelCollector:
+    replicas: 3  # High throughput
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    processors:
+      batch:
+        timeout: 5s  # Faster batching
+        sendBatchSize: 2048
+        sendBatchMaxSize: 4096
+      memoryLimiter:
+        limitMiB: 1024
+        spikeLimitMiB: 256
+      resource:
+        environment: production  # Tag as production
+
+  fluentBit:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    config:
+      flush: 3  # More frequent flushing
+      memBufLimit: 100MB  # Larger buffer
+
+  # Strict alert thresholds for production
+  alerts:
+    processingPipeline:
+      rabbitmqQueueBacklog:
+        threshold: 100
+        duration: 2m  # Alert faster
+        severity: warning
+      rabbitmqQueueCritical:
+        threshold: 500
+        duration: 1m  # Alert immediately
+        severity: critical
+      processingLagHigh:
+        p99Threshold: 30  # Stricter SLA (30 seconds)
+        duration: 2m
+        severity: critical
+      processingStalled:
+        duration: 5m  # Alert quickly
+        severity: critical
+    infrastructure:
+      hazelcastMemoryHigh:
+        threshold: 0.80  # Alert earlier (80%)
+        duration: 2m
+        severity: warning
+      podNotReady:
+        duration: 2m  # Alert quickly
+        severity: critical
+      fileProcessorScaledDown:
+        minReplicas: 3  # Require 3+ replicas
+        duration: 2m
+        severity: critical
+    validation:
+      highInvalidRecordRate:
+        threshold: 0.05  # Stricter threshold (5%)
+        duration: 2m
+        severity: critical
+
+# Security hardening
+securityContext:
+  pod:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  container:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+# Resource quotas for production
+global:
+  imagePullPolicy: IfNotPresent
+  namespace: ez-platform-prod

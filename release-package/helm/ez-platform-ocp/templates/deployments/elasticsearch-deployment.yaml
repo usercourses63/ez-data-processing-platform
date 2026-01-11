@@ -1,16 +1,21 @@
+{{- if .Values.observability.elasticsearch.enabled }}
 # Elasticsearch - Kubernetes Deployment
-# Quick deployment for service logging
+# Log storage and search
 
 apiVersion: v1
 kind: Service
 metadata:
   name: elasticsearch
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: elasticsearch
+    component: logging
 spec:
-  type: ClusterIP
+  type: {{ .Values.observability.elasticsearch.service.type }}
   ports:
-  - port: 9200
-    targetPort: 9200
+  - port: {{ .Values.observability.elasticsearch.service.port }}
+    targetPort: {{ .Values.observability.elasticsearch.service.port }}
     name: http
   selector:
     app: elasticsearch
@@ -20,9 +25,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: elasticsearch
-  namespace: ez-platform
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: elasticsearch
+    component: logging
 spec:
-  replicas: 1
+  replicas: {{ .Values.observability.elasticsearch.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.observability.elasticsearch.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.observability.elasticsearch.strategy.maxUnavailable | default 0 }}
   selector:
     matchLabels:
       app: elasticsearch
@@ -30,36 +44,89 @@ spec:
     metadata:
       labels:
         app: elasticsearch
+        component: logging
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
         seccompProfile:
-          type: RuntimeDefault
+          type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
       containers:
       - name: elasticsearch
         securityContext:
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: {{ .Values.securityContext.container.allowPrivilegeEscalation | default false }}
           readOnlyRootFilesystem: false
           capabilities:
             drop:
-              - ALL
-        image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+              {{- toYaml .Values.securityContext.container.capabilities.drop | nindent 14 }}
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.observability.elasticsearch.image "Chart" .Chart) }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
         ports:
-        - containerPort: 9200
+        - containerPort: {{ .Values.observability.elasticsearch.service.port }}
+          name: http
         env:
         - name: discovery.type
-          value: single-node
+          value: {{ .Values.observability.elasticsearch.config.discoveryType | quote }}
         - name: xpack.security.enabled
-          value: "false"
+          value: {{ .Values.observability.elasticsearch.security.enabled | quote }}
+        {{- if .Values.observability.elasticsearch.security.enabled }}
+        {{- if .Values.observability.elasticsearch.security.existingSecret }}
+        - name: ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.observability.elasticsearch.security.existingSecret }}
+              key: elastic-password
+        {{- end }}
+        {{- end }}
         - name: ES_JAVA_OPTS
-          value: "-Xms1g -Xmx1g"
+          value: {{ .Values.observability.elasticsearch.config.javaOpts | quote }}
+        - name: cluster.name
+          value: {{ .Values.observability.elasticsearch.config.clusterName | quote }}
+        {{- with .Values.observability.elasticsearch.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
         resources:
-          requests:
-            cpu: 500m
-            memory: 2Gi
-          limits:
-            cpu: 2000m
-            memory: 4Gi
+          {{- toYaml .Values.observability.elasticsearch.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: {{ .Values.observability.elasticsearch.service.port }}
+          initialDelaySeconds: {{ .Values.observability.elasticsearch.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.observability.elasticsearch.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.observability.elasticsearch.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.observability.elasticsearch.livenessProbe.failureThreshold }}
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: {{ .Values.observability.elasticsearch.service.port }}
+          initialDelaySeconds: {{ .Values.observability.elasticsearch.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.observability.elasticsearch.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.observability.elasticsearch.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.observability.elasticsearch.readinessProbe.failureThreshold }}
+        volumeMounts:
+        - name: elasticsearch-data
+          mountPath: /usr/share/elasticsearch/data
+      volumes:
+      - name: elasticsearch-data
+        persistentVolumeClaim:
+          claimName: elasticsearch-data-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: elasticsearch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.observability.elasticsearch.storage.size }}
+  storageClassName: {{ .Values.observability.elasticsearch.storage.storageClass }}
+{{- end }}
