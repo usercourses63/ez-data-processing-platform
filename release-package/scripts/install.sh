@@ -1,6 +1,12 @@
 #!/bin/bash
 # Install EZ Platform v0.1.0-beta
 # Complete installation script for offline deployment
+#
+# ⚠️  LEGACY SCRIPT WARNING ⚠️
+# This bash script is maintained for Linux compatibility only.
+# For Windows deployments, use the PowerShell version in parent directory.
+# PowerShell scripts are the primary and recommended installation method.
+#
 
 set -e
 

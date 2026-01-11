@@ -26,8 +26,21 @@ spec:
         component: ui
         tier: frontend
     spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: frontend
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem | default false }}
+          capabilities:
+            drop:
+              - ALL
         image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.services.frontend.image "Chart" .Chart) }}
         imagePullPolicy: {{ .Values.services.frontend.image.pullPolicy | default "IfNotPresent" }}
         ports:

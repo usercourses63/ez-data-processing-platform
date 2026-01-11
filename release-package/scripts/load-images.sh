@@ -1,6 +1,12 @@
 #!/bin/bash
 # Load all EZ Platform Docker images from .tar files
 # Run from release-package directory
+#
+# ⚠️  LEGACY SCRIPT WARNING ⚠️
+# This bash script is maintained for Linux compatibility only.
+# For Windows deployments, use PowerShell equivalents.
+# PowerShell scripts are the primary and recommended method.
+#
 
 set -e
 

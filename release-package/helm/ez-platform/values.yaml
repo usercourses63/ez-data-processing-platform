@@ -40,7 +40,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/filediscovery
-      tag: v0.1.1-rc2
+      tag: latest
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -68,7 +68,7 @@ services:
     replicas: 5
     image:
       repository: ez-platform/fileprocessor
-      tag: v0.1.1-rc2
+      tag: latest
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -99,7 +99,7 @@ services:
     replicas: 3
     image:
       repository: ez-platform/validation
-      tag: v0.1.1-rc2
+      tag: latest
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -127,7 +127,7 @@ services:
     replicas: 3
     image:
       repository: ez-platform/output
-      tag: v0.1.1-rc2
+      tag: latest
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -155,7 +155,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/datasource-management
-      tag: v0.1.1-rc2
+      tag: latest
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -183,7 +183,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/metrics-configuration
-      tag: v0.1.1-rc2
+      tag: latest
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -195,15 +195,15 @@ services:
         cpu: 2000m
         memory: 3Gi
     livenessProbe:
-      initialDelaySeconds: 60
-      periodSeconds: 30
-      timeoutSeconds: 5
-      failureThreshold: 5
-    readinessProbe:
       initialDelaySeconds: 30
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
+    readinessProbe:
+      initialDelaySeconds: 20
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 2
     extraEnv: []
 
   invalidrecords:
@@ -211,7 +211,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/invalidrecords
-      tag: v0.1.1-rc2
+      tag: latest
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -239,7 +239,7 @@ services:
     replicas: 1
     image:
       repository: ez-platform/scheduling
-      tag: v0.1.1-rc2
+      tag: latest
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -267,7 +267,7 @@ services:
     replicas: 2
     image:
       repository: frontend
-      tag: v0.1.1-rc2
+      tag: latest
       pullPolicy: IfNotPresent
     strategy:
       maxSurge: 1
@@ -276,9 +276,7 @@ services:
       apiBaseUrl: "http://datasource-management:5001"
     service:
       type: LoadBalancer
-      port: 8080
-      targetPort: 8080  # OCP-compatible non-privileged port
-    containerPort: 8080  # Container listens on non-privileged port
+      port: 80
     resources:
       requests:
         cpu: 250m

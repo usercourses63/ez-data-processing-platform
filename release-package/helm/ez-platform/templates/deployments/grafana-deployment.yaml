@@ -109,9 +109,22 @@ spec:
         app: ezplatform-grafana
         component: monitoring
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: ezplatform-grafana
-        image: grafana/grafana:11.4.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+        image: grafana/grafana:latest
         ports:
         - containerPort: 3000
           name: http

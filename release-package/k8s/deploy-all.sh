@@ -2,6 +2,12 @@
 # Complete EZ Platform Deployment Script
 # Week 2: Day 7
 # Run this after K8s cluster is ready
+#
+# ⚠️  LEGACY SCRIPT WARNING ⚠️
+# This bash script is maintained for Linux compatibility only.
+# For Windows deployments, use the PowerShell version: deploy-all.ps1
+# PowerShell scripts are the primary and recommended deployment method.
+#
 
 set -e
 

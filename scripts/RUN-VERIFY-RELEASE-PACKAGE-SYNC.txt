@@ -1,0 +1,131 @@
+==========================================================================
+  EZ Platform - Release Package Synchronization Verification Script
+==========================================================================
+
+SCRIPT LOCATION:
+  C:\Users\UserC\source\repos\EZ\scripts\verify-release-package-sync.ps1
+
+HOW TO RUN:
+
+  Option 1: PowerShell (Recommended)
+  ----------------------------------
+  1. Open PowerShell (not PowerShell ISE)
+  2. Navigate to scripts directory:
+     cd C:\Users\UserC\source\repos\EZ\scripts
+
+  3. Run the script:
+     .\verify-release-package-sync.ps1
+
+  4. For verbose output:
+     .\verify-release-package-sync.ps1 -VerboseOutput
+
+
+  Option 2: Direct Execution
+  ---------------------------
+  1. Right-click on verify-release-package-sync.ps1
+  2. Select "Run with PowerShell"
+
+
+  Option 3: Command Line (Full Path)
+  -----------------------------------
+  powershell.exe -ExecutionPolicy Bypass -File "C:\Users\UserC\source\repos\EZ\scripts\verify-release-package-sync.ps1"
+
+
+WHAT THE SCRIPT DOES:
+---------------------
+1. Compares k8s/ directory structure between dev and release-package
+2. Verifies file counts match in each subdirectory
+3. Checks SecurityContext presence in deployment/infrastructure files
+4. Validates OCP-specific files exist (network-policies.yaml, ocp-routes.yaml)
+5. Compares Helm chart templates
+6. Provides detailed diff information for mismatched files
+
+
+EXIT CODES:
+-----------
+  0 = All checks passed - synchronized
+  1 = Differences found - synchronization required
+
+
+OUTPUT:
+-------
+- Color-coded results (Green=PASS, Red=FAIL, Yellow=WARNING)
+- Summary report with statistics
+- Detailed diff information (with -VerboseOutput flag)
+
+
+EXAMPLE OUTPUT:
+---------------
+[✓] Development k8s directory exists
+[✓] Release package k8s directory exists
+[✓] OCP file network-policies.yaml exists in both
+[✓] Content match: network-policies.yaml
+[✗] Content match: deployments/fileprocessor-deployment.yaml
+    → 12 lines differ
+
+
+TROUBLESHOOTING:
+----------------
+Issue: "cannot be loaded because running scripts is disabled"
+Solution: Run PowerShell as Administrator and execute:
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Issue: Functions not recognized
+Solution: Ensure you're running PowerShell 5.1 or later:
+  $PSVersionTable.PSVersion
+
+Issue: Path not found errors
+Solution: Verify both directories exist:
+  - C:\Users\UserC\source\repos\EZ\k8s
+  - C:\Users\UserC\source\repos\EZ\release-package\k8s
+
+
+VERIFICATION CHECKLIST:
+-----------------------
+The script performs these verification steps:
+
+Prerequisites:
+  □ Development k8s directory exists
+  □ Release package k8s directory exists
+
+OCP-Specific Files:
+  □ network-policies.yaml exists in both
+  □ ocp-routes.yaml exists in both
+  □ Content matches between dev and release
+
+Directory Comparisons:
+  □ configmaps/ - file count and content
+  □ deployments/ - file count and content
+  □ infrastructure/ - file count and content
+  □ services/ - file count and content
+  □ ingress/ - file count and content
+  □ jobs/ - file count and content
+
+SecurityContext Validation (per deployment/infrastructure file):
+  □ 2+ securityContext entries present
+    - Pod-level securityContext
+    - Container-level securityContext
+
+Helm Charts:
+  □ Chart.yaml content matches
+  □ Templates directory content matches
+
+
+RELATED SCRIPTS:
+----------------
+- sync-release-package.ps1 - Synchronizes dev changes to release package
+- build-release-package.ps1 - Builds complete release package
+
+
+NOTES:
+------
+- Run this script BEFORE building a release package
+- Run this script AFTER making changes to k8s/ files
+- This script is READ-ONLY - it does not modify any files
+- For best results, run with -VerboseOutput to see all differences
+
+
+==========================================================================
+Last Updated: 2026-01-11
+Script Version: 1.0.0
+==========================================================================

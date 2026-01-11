@@ -76,12 +76,22 @@ scripts/start-port-forwards.ps1
 
 ## Documentation
 
+### Primary Documentation (Docusaurus)
+The official documentation is built with Docusaurus and available in the release-package:
+- **[Release-Package Docs](release-package/docs-docusaurus/)** - Complete Docusaurus documentation site
+- Includes: Installation, Administration, User Guides (Hebrew/English), API Docs, Release Notes
+
+### Development Documentation (Legacy MkDocs)
 - **[Installation Guide](docs/installation/INSTALLATION-GUIDE.md)** - Complete deployment
 - **[Admin Guide](docs/admin/ADMIN-GUIDE.md)** - System administration
 - **[User Guide (Hebrew)](docs/user-guide/USER-GUIDE-HE.md)** - מדריך משתמש
-- **[Release Notes](release-package/docs/docs/release-notes.md)** - What's new
-- **[Deployment Plan v0.1.1](release-package/Deployment Plan v0.1.1-rc1.md)** - Offline deployment guide
+
+**Note:** The `docs/` folder (MkDocs) is maintained for backward compatibility.
+Primary documentation is the Docusaurus site in release-package.
+
+### Additional Resources
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history
+- **[CLAUDE.md](CLAUDE.md)** - Project guidelines and conventions
 
 ---
 

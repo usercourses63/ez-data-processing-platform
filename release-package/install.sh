@@ -2,6 +2,12 @@
 # EZ Platform Installation Script
 # Version: 0.1.1-rc1
 # Date: January 1, 2026
+#
+# ⚠️  LEGACY SCRIPT WARNING ⚠️
+# This bash script is maintained for Linux compatibility only.
+# For Windows deployments, use the PowerShell version: install.ps1
+# PowerShell scripts are the primary and recommended installation method.
+#
 
 set -e
 
