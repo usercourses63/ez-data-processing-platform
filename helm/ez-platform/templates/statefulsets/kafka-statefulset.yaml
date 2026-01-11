@@ -58,8 +58,21 @@ spec:
         app: kafka
         component: messaging
     spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: kafka
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem | default false }}
+          capabilities:
+            drop:
+              - ALL
         image: {{ .Values.kafka.image | default "confluentinc/cp-kafka:7.5.0" }}
         ports:
         - containerPort: 9092
@@ -152,8 +165,21 @@ spec:
         app: zookeeper
         component: coordination
     spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: zookeeper
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem | default false }}
+          capabilities:
+            drop:
+              - ALL
         image: {{ .Values.kafka.zookeeper.image | default "confluentinc/cp-zookeeper:7.5.0" }}
         ports:
         - containerPort: 2181

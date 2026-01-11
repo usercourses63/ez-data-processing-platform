@@ -124,6 +124,13 @@ spec:
         component: logging
     spec:
       serviceAccountName: fluent-bit
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       tolerations:
         - key: node-role.kubernetes.io/master
           operator: Exists
@@ -133,6 +140,12 @@ spec:
           effect: NoSchedule
       containers:
         - name: fluent-bit
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
           image: fluent/fluent-bit:latest
           imagePullPolicy: IfNotPresent
           ports:

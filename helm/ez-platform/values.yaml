@@ -4,7 +4,34 @@
 global:
   namespace: ez-platform
   imageRegistry: docker.io
-  imagePullPolicy: Always
+  imagePullPolicy: IfNotPresent
+
+# OCP Compatibility Settings
+ocp:
+  enabled: false  # Set to true for OpenShift deployments
+  routes:
+    enabled: false
+    tls:
+      termination: edge
+
+# Global Security Context (OCP-compatible)
+securityContext:
+  pod:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  container:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+# Network Policies
+networkPolicies:
+  enabled: true
 
 # Microservices Configuration
 services:

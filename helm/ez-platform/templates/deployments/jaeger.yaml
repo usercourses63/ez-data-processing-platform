@@ -56,8 +56,21 @@ spec:
         app: jaeger
         component: tracing
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: jaeger
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
         image: jaegertracing/all-in-one:latest
         ports:
           - name: otlp-grpc

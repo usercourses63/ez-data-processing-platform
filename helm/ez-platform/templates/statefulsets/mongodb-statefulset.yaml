@@ -40,8 +40,21 @@ spec:
         app: mongodb
         component: database
     spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: mongodb
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem | default false }}
+          capabilities:
+            drop:
+              - ALL
         image: {{ .Values.mongodb.image | default "mongo:8.0" }}
         command:
         - mongod

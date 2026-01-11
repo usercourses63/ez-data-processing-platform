@@ -30,8 +30,21 @@ spec:
         prometheus.io/port: "5006"
         prometheus.io/path: "/metrics"
     spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: filediscovery
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem | default false }}
+          capabilities:
+            drop:
+              - ALL
         image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.services.filediscovery.image "Chart" .Chart) }}
         imagePullPolicy: {{ include "ez-platform.imagePullPolicy" . }}
         ports:
