@@ -22,33 +22,59 @@ const ClusterHeader: React.FC<ClusterHeaderProps> = ({ clusterInfo, lastUpdate }
   };
 
   return (
-    <div className="cluster-header">
+    <div className="cluster-header" style={{
+      background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+      border: '1px solid #334155'
+    }}>
       <div className="cluster-header-left">
-        <div className="k8s-icon">K8s</div>
-        <h2 className="cluster-title">{t('monitoring.k8sOperationsCenter')}</h2>
+        <div className="k8s-icon" style={{
+          background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+          color: '#ffffff'
+        }}>K8s</div>
+        <h2 className="cluster-title" style={{ color: '#f1f5f9' }}>
+          {t('monitoring.k8sOperationsCenter')}
+        </h2>
       </div>
       <div className="cluster-info-grid">
         <div className="cluster-stat">
-          <span className="cluster-stat-label">{t('monitoring.cluster')}</span>
-          <span className="cluster-stat-value">{clusterInfo.clusterName}</span>
+          <span className="cluster-stat-label" style={{ color: '#94a3b8' }}>
+            {t('monitoring.cluster')}
+          </span>
+          <span className="cluster-stat-value" style={{ color: '#3b82f6' }}>
+            {clusterInfo.clusterName}
+          </span>
         </div>
         <div className="cluster-stat">
-          <span className="cluster-stat-label">{t('monitoring.namespace')}</span>
-          <span className="cluster-stat-value">{clusterInfo.namespace}</span>
+          <span className="cluster-stat-label" style={{ color: '#94a3b8' }}>
+            {t('monitoring.namespace')}
+          </span>
+          <span className="cluster-stat-value" style={{ color: '#3b82f6' }}>
+            {clusterInfo.namespace}
+          </span>
         </div>
         <div className="cluster-stat">
-          <span className="cluster-stat-label">{t('monitoring.version')}</span>
-          <span className="cluster-stat-value">{clusterInfo.version}</span>
+          <span className="cluster-stat-label" style={{ color: '#94a3b8' }}>
+            {t('monitoring.version')}
+          </span>
+          <span className="cluster-stat-value" style={{ color: '#3b82f6' }}>
+            {clusterInfo.version}
+          </span>
         </div>
         <div className="cluster-stat">
-          <span className="cluster-stat-label">{t('monitoring.pods')}</span>
-          <span className="cluster-stat-value">
+          <span className="cluster-stat-label" style={{ color: '#94a3b8' }}>
+            {t('monitoring.pods')}
+          </span>
+          <span className="cluster-stat-value" style={{ color: '#3b82f6' }}>
             {clusterInfo.healthyPods}/{clusterInfo.totalPods}
           </span>
         </div>
         <div className="cluster-stat">
-          <span className="cluster-stat-label">{t('monitoring.lastUpdate')}</span>
-          <span className="cluster-stat-value cluster-stat-update">{formatLastUpdate()}</span>
+          <span className="cluster-stat-label" style={{ color: '#94a3b8' }}>
+            {t('monitoring.lastUpdate')}
+          </span>
+          <span className="cluster-stat-value cluster-stat-update" style={{ color: '#10b981' }}>
+            {formatLastUpdate()}
+          </span>
         </div>
       </div>
     </div>

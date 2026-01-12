@@ -46,19 +46,19 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
   return (
     <Row gutter={[16, 16]} className="metrics-overview" style={{ marginBottom: 24 }}>
       <Col xs={24} sm={12} md={8} lg={4}>
-        <Card>
+        <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.totalThroughput', 'Total Throughput')}
             value={metrics.totalThroughput.toLocaleString()}
             suffix="rec/s"
             prefix={<ThunderboltOutlined />}
-            valueStyle={{ color: '#1890ff' }}
+            valueStyle={{ color: '#f1f5f9', fontSize: '1.5rem', fontWeight: 600 }}
           />
         </Card>
       </Col>
 
       <Col xs={24} sm={12} md={8} lg={4}>
-        <Card>
+        <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.successRate', 'Success Rate')}
             value={metrics.successRate}
@@ -71,7 +71,7 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
       </Col>
 
       <Col xs={24} sm={12} md={8} lg={4}>
-        <Card>
+        <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.avgLatency', 'Avg Latency')}
             value={metrics.avgLatency}
@@ -83,7 +83,7 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
       </Col>
 
       <Col xs={24} sm={12} md={8} lg={4}>
-        <Card>
+        <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.activeJobs', 'Active Jobs')}
             value={metrics.activeJobs}
@@ -94,7 +94,7 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
       </Col>
 
       <Col xs={24} sm={12} md={8} lg={4}>
-        <Card>
+        <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.queueDepth', 'Queue Depth')}
             value={metrics.queueDepth.toLocaleString()}
@@ -105,7 +105,7 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
       </Col>
 
       <Col xs={24} sm={12} md={8} lg={4}>
-        <Card>
+        <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.errorRate', 'Error Rate')}
             value={metrics.errorRate}

@@ -85,14 +85,14 @@ const PerformanceCharts: React.FC<PerformanceChartsProps> = ({ metrics }) => {
                     <stop offset="95%" stopColor="#1890ff" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis
                   dataKey="time"
-                  stroke="#d1d5db"
-                  tick={{ fontSize: 12, fill: '#d1d5db' }}
+                  stroke="#94a3b8"
+                  tick={{ fontSize: 12, fill: '#94a3b8' }}
                   interval="preserveStartEnd"
                 />
-                <YAxis stroke="#d1d5db" tick={{ fontSize: 12, fill: '#d1d5db' }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12, fill: '#94a3b8' }} />
                 <Tooltip
                   contentStyle={{
                     background: 'rgba(0, 0, 0, 0.8)',
@@ -120,9 +120,9 @@ const PerformanceCharts: React.FC<PerformanceChartsProps> = ({ metrics }) => {
           <Card title={t('monitoring.latencyDistribution', 'Latency Distribution (ms)')}>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={latencyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                <XAxis dataKey="name" stroke="#d1d5db" tick={{ fontSize: 12, fill: '#d1d5db' }} />
-                <YAxis stroke="#d1d5db" tick={{ fontSize: 12, fill: '#d1d5db' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 12, fill: '#94a3b8' }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12, fill: '#94a3b8' }} />
                 <Tooltip
                   contentStyle={{
                     background: 'rgba(0, 0, 0, 0.8)',
@@ -152,14 +152,14 @@ const PerformanceCharts: React.FC<PerformanceChartsProps> = ({ metrics }) => {
                     <stop offset="95%" stopColor="#722ed1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis
                   dataKey="time"
-                  stroke="#d1d5db"
-                  tick={{ fontSize: 12, fill: '#d1d5db' }}
+                  stroke="#94a3b8"
+                  tick={{ fontSize: 12, fill: '#94a3b8' }}
                   interval="preserveStartEnd"
                 />
-                <YAxis stroke="#d1d5db" tick={{ fontSize: 12, fill: '#d1d5db' }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12, fill: '#94a3b8' }} />
                 <Tooltip
                   contentStyle={{
                     background: 'rgba(0, 0, 0, 0.8)',
@@ -193,14 +193,14 @@ const PerformanceCharts: React.FC<PerformanceChartsProps> = ({ metrics }) => {
                     <stop offset="95%" stopColor="#ff4d4f" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis
                   dataKey="time"
-                  stroke="#d1d5db"
-                  tick={{ fontSize: 12, fill: '#d1d5db' }}
+                  stroke="#94a3b8"
+                  tick={{ fontSize: 12, fill: '#94a3b8' }}
                   interval="preserveStartEnd"
                 />
-                <YAxis stroke="#d1d5db" tick={{ fontSize: 12, fill: '#d1d5db' }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12, fill: '#94a3b8' }} />
                 <Tooltip
                   contentStyle={{
                     background: 'rgba(0, 0, 0, 0.8)',

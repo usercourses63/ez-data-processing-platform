@@ -59,10 +59,9 @@ const ServiceHealthGrid: React.FC<ServiceHealthGridProps> = ({ services }) => {
               hoverable
               style={{
                 height: '100%',
-                background: 'rgba(15, 23, 42, 0.8)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: 12,
+                background: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: 8,
                 transition: 'all 0.3s ease',
               }}
               bodyStyle={{ padding: 16 }}
@@ -72,7 +71,7 @@ const ServiceHealthGrid: React.FC<ServiceHealthGridProps> = ({ services }) => {
                 <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: 4, color: '#f1f5f9' }}>
                   {service.displayName}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                   Port {service.port}
                 </div>
               </div>
@@ -89,7 +88,7 @@ const ServiceHealthGrid: React.FC<ServiceHealthGridProps> = ({ services }) => {
 
               <div style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                     <DatabaseOutlined /> {t('monitoring.cpu', 'CPU')}
                   </span>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{service.cpu}%</span>
@@ -107,7 +106,7 @@ const ServiceHealthGrid: React.FC<ServiceHealthGridProps> = ({ services }) => {
 
               <div style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                     <DatabaseOutlined /> {t('monitoring.memory', 'Memory')}
                   </span>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{service.memory}%</span>

@@ -79,7 +79,7 @@ const EventStream: React.FC<EventStreamProps> = ({ events }) => {
           />
         </div>
       }
-      style={{ height: '100%' }}
+      style={{ height: '100%', background: '#1e293b', border: '1px solid #334155' }}
     >
       <div
         className="event-feed"
