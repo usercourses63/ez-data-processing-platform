@@ -3,7 +3,7 @@ name: ez-platform-ocp
 description: EZ Data Processing Platform - OpenShift production deployment with Routes and security hardening
 type: application
 version: 1.1.0
-appVersion: "v0.1.1-rc2"
+appVersion: "v0.1.1-rc3"
 keywords:
   - data-processing
   - microservices

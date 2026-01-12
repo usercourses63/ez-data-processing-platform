@@ -69,10 +69,10 @@ const ServiceHealthGrid: React.FC<ServiceHealthGridProps> = ({ services }) => {
             >
               <div style={{ textAlign: 'center', marginBottom: 12 }}>
                 <div style={{ fontSize: '2rem', marginBottom: 8 }}>{service.icon}</div>
-                <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: 4 }}>
+                <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: 4, color: '#f1f5f9' }}>
                   {service.displayName}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#888' }}>
+                <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
                   Port {service.port}
                 </div>
               </div>
@@ -89,7 +89,7 @@ const ServiceHealthGrid: React.FC<ServiceHealthGridProps> = ({ services }) => {
 
               <div style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: '0.75rem', color: '#888' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
                     <DatabaseOutlined /> {t('monitoring.cpu', 'CPU')}
                   </span>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{service.cpu}%</span>
@@ -107,7 +107,7 @@ const ServiceHealthGrid: React.FC<ServiceHealthGridProps> = ({ services }) => {
 
               <div style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: '0.75rem', color: '#888' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
                     <DatabaseOutlined /> {t('monitoring.memory', 'Memory')}
                   </span>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{service.memory}%</span>
