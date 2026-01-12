@@ -9,14 +9,14 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 $services = @(
-    @{Name="datasource-management"; Path="src/Services/DataSourceManagementService"; Image="ez-platform/datasource-management"},
-    @{Name="fileprocessor"; Path="src/Services/FileProcessorService"; Image="ez-platform/fileprocessor"},
-    @{Name="filediscovery"; Path="src/Services/FileDiscoveryService"; Image="ez-platform/filediscovery"},
-    @{Name="validation"; Path="src/Services/ValidationService"; Image="ez-platform/validation"},
-    @{Name="scheduling"; Path="src/Services/SchedulingService"; Image="ez-platform/scheduling"},
-    @{Name="output"; Path="src/Services/OutputService"; Image="ez-platform/output"},
-    @{Name="metrics-configuration"; Path="src/Services/MetricsConfigurationService"; Image="ez-platform/metrics-configuration"},
-    @{Name="invalidrecords"; Path="src/Services/InvalidRecordsService"; Image="ez-platform/invalidrecords"}
+    @{Name="datasource-management"; Dockerfile="docker/DataSourceManagementService.Dockerfile"; Image="ez-platform/datasource-management"},
+    @{Name="fileprocessor"; Dockerfile="docker/FileProcessorService.Dockerfile"; Image="ez-platform/fileprocessor"},
+    @{Name="filediscovery"; Dockerfile="docker/FileDiscoveryService.Dockerfile"; Image="ez-platform/filediscovery"},
+    @{Name="validation"; Dockerfile="docker/ValidationService.Dockerfile"; Image="ez-platform/validation"},
+    @{Name="scheduling"; Dockerfile="docker/SchedulingService.Dockerfile"; Image="ez-platform/scheduling"},
+    @{Name="output"; Dockerfile="docker/OutputService.Dockerfile"; Image="ez-platform/output"},
+    @{Name="metrics-configuration"; Dockerfile="docker/MetricsConfigurationService.Dockerfile"; Image="ez-platform/metrics-configuration"},
+    @{Name="invalidrecords"; Dockerfile="docker/InvalidRecordsService.Dockerfile"; Image="ez-platform/invalidrecords"}
 )
 
 $version = "v0.1.1-rc3"
@@ -28,17 +28,16 @@ foreach ($service in $services) {
 
     try {
         # Check if Dockerfile exists
-        $dockerfilePath = Join-Path $service.Path "Dockerfile"
-        if (-not (Test-Path $dockerfilePath)) {
-            Write-Host "  ⚠️  Dockerfile not found at $dockerfilePath - Skipping" -ForegroundColor Yellow
+        if (-not (Test-Path $service.Dockerfile)) {
+            Write-Host "  ⚠️  Dockerfile not found at $($service.Dockerfile) - Skipping" -ForegroundColor Yellow
             continue
         }
 
-        # Build Docker image
-        $buildCmd = "docker build -f `"$dockerfilePath`" -t `"$($service.Image):$version`" ."
+        # Build Docker image from repository root
         Write-Host "  Building: $($service.Image):$version" -ForegroundColor Gray
+        Write-Host "  Dockerfile: $($service.Dockerfile)" -ForegroundColor Gray
 
-        Invoke-Expression $buildCmd
+        docker build -f $service.Dockerfile -t "$($service.Image):$version" .
 
         if ($LASTEXITCODE -eq 0) {
             Write-Host "  ✅ Build successful: $($service.Name)" -ForegroundColor Green
