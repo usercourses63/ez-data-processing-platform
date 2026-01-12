@@ -71,5 +71,19 @@ spec:
           periodSeconds: {{ .Values.services.frontend.readinessProbe.periodSeconds | default 5 }}
           timeoutSeconds: {{ .Values.services.frontend.readinessProbe.timeoutSeconds | default 3 }}
           failureThreshold: {{ .Values.services.frontend.readinessProbe.failureThreshold | default 2 }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /var/cache/nginx
+        - name: run
+          mountPath: /var/run
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      - name: run
+        emptyDir: {}
       restartPolicy: Always
 {{- end }}

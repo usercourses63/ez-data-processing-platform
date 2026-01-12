@@ -26,6 +26,7 @@ securityContext:
       type: RuntimeDefault
   container:
     allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
     capabilities:
       drop:
         - ALL
