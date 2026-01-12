@@ -107,20 +107,20 @@ const EventStream: React.FC<EventStreamProps> = ({ events }) => {
                 lineHeight: '1.5',
               }}
             >
-              <span className="event-time" style={{ color: '#888', marginRight: 10 }}>
+              <span className="event-time" style={{ color: '#cbd5e1', marginRight: 10 }}>
                 [{formatTime(event.timestamp)}]
               </span>
               <Tag color={getLevelColor(event.level)} style={{ marginRight: 10, fontWeight: 600 }}>
                 {event.level.toUpperCase()}
               </Tag>
-              <span className="event-service" style={{ color: '#1890ff', fontWeight: 600, marginRight: 10 }}>
+              <span className="event-service" style={{ color: '#3b82f6', fontWeight: 600, marginRight: 10 }}>
                 [{event.service}]
               </span>
-              <span className="event-message" style={{ color: '#e0e0e0' }}>
+              <span className="event-message" style={{ color: '#f1f5f9' }}>
                 {event.message}
               </span>
               {event.correlationId && (
-                <span className="event-correlation" style={{ color: '#666', marginLeft: 10, fontSize: '0.75rem' }}>
+                <span className="event-correlation" style={{ color: '#94a3b8', marginLeft: 10, fontSize: '0.75rem' }}>
                   (ID: {event.correlationId})
                 </span>
               )}

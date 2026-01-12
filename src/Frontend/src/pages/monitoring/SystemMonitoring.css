@@ -113,7 +113,7 @@
 }
 
 .recharts-cartesian-axis-tick-value {
-  fill: #888;
+  fill: #d1d5db;
   font-size: 0.85rem;
 }
 
@@ -214,7 +214,7 @@
 /* Statistic styling */
 .ant-statistic-title {
   font-size: 0.85rem;
-  color: #888;
+  color: #d1d5db;
   margin-bottom: 8px;
 }
 
@@ -256,6 +256,13 @@
 .monitoring-dashboard .ant-alert {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Section Headings */
+.monitoring-dashboard h3 {
+  color: #f1f5f9;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
 
 /* ============================================
@@ -636,7 +643,7 @@
 .queue-topic-name {
   font-family: 'Courier New', monospace;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
   margin-bottom: 16px;
   background: rgba(255, 255, 255, 0.03);
   padding: 6px 10px;
@@ -733,13 +740,13 @@
 
 .alert-service {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
   font-style: italic;
 }
 
 .alert-time {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #94a3b8;
   white-space: nowrap;
   flex-shrink: 0;
 }

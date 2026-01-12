@@ -38,7 +38,7 @@ const AppFooter: React.FC = () => {
           )}
 
           <Link
-            href="https://github.com/yourusername/ez-platform"
+            href="http://localhost:30800"
             target="_blank"
             className="footer-link"
           >
