@@ -6,6 +6,7 @@
 using Hazelcast;
 using MassTransit;
 using MongoDB.Entities;
+using MongoDB.Driver;
 using Serilog;
 using System.Diagnostics;
 using Confluent.Kafka;

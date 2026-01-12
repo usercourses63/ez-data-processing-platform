@@ -59,7 +59,7 @@ const ServiceHealthGrid: React.FC<ServiceHealthGridProps> = ({ services }) => {
               hoverable
               style={{
                 height: '100%',
-                background: 'rgba(255, 255, 255, 0.05)',
+                background: 'rgba(15, 23, 42, 0.8)',
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: 12,

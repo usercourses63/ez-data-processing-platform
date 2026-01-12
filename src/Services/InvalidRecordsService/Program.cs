@@ -2,6 +2,7 @@ using DataProcessing.Shared.Configuration;
 using DataProcessing.Shared.Middleware;
 using DataProcessing.Shared.Monitoring;
 using MongoDB.Entities;
+using MongoDB.Driver;
 using System.Diagnostics;
 using MassTransit;
 
