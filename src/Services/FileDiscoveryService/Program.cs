@@ -6,6 +6,7 @@ using DataProcessing.Shared.Monitoring;
 using DataProcessing.Shared.Services;
 using Hazelcast;
 using MongoDB.Entities;
+using MongoDB.Driver;
 using Prometheus;
 using MassTransit;
 using System.Diagnostics;

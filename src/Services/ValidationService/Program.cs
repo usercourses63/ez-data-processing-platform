@@ -5,6 +5,7 @@ using DataProcessing.Shared.Monitoring;
 using DataProcessing.Validation.Consumers;
 using DataProcessing.Validation.Services;
 using MongoDB.Entities;
+using MongoDB.Driver;
 using System.Diagnostics;
 using Prometheus;
 using MassTransit;
