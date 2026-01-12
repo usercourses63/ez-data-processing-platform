@@ -10,13 +10,14 @@
 
 ## 📦 Contents Breakdown
 
-### Docker Images (20 images, 4.0 GB)
+### Docker Images (21 images, 4.1 GB)
 
-**Services** (8 images, 1.1 GB)
+**Services** (9 images, 1.2 GB)
 ```
 datasource-management-v0.1.1-rc3.tar
 fileprocessor-v0.1.1-rc3.tar
 filediscovery-v0.1.1-rc3.tar
+frontend-v0.1.1-rc3.tar
 validation-v0.1.1-rc3.tar
 scheduling-v0.1.1-rc3.tar
 output-v0.1.1-rc3.tar
@@ -174,7 +175,7 @@ docs/COMPREHENSIVE-PROJECT-ANALYSIS.md    - Architecture docs
 
 Before deploying to production, verify:
 
-- [ ] All 20 Docker images present (8 services + 12 infrastructure)
+- [ ] All 21 Docker images present (9 services + 12 infrastructure)
 - [ ] Kubernetes cluster version 1.28+ or OpenShift 4.14+
 - [ ] Minimum 16 GB RAM, 8 CPU cores available
 - [ ] 50 GB storage for MongoDB StatefulSet (3x for replicas)

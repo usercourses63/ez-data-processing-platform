@@ -107,6 +107,7 @@
 ./images/services/datasource-management-v0.1.1-rc3.tar
 ./images/services/filediscovery-v0.1.1-rc3.tar
 ./images/services/fileprocessor-v0.1.1-rc3.tar
+./images/services/frontend-v0.1.1-rc3.tar
 ./images/services/invalidrecords-v0.1.1-rc3.tar
 ./images/services/metrics-configuration-v0.1.1-rc3.tar
 ./images/services/output-v0.1.1-rc3.tar
