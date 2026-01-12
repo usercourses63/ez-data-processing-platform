@@ -1,0 +1,119 @@
+# OutputService - Kubernetes Deployment
+# Week 2: Day 1
+# Replicas: 3 (network I/O intensive, medium scaling)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: output
+  namespace: ez-platform
+  labels:
+    app: output
+    component: processing
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: output
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: output
+        component: processing
+        tier: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: output
+        image: ez-platform/output:v0.1.1-rc3
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        ports:
+        - containerPort: 5009
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ASPNETCORE_URLS
+          value: "http://+:5009"
+        - name: ConnectionStrings__MongoDB
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: mongodb-connection
+        - name: ConnectionStrings__Kafka
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
+        - name: MassTransit__UseKafka
+          value: "true"
+        - name: MassTransit__Kafka__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
+        - name: Hazelcast__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: hazelcast-server
+        - name: Hazelcast__ClusterName
+          value: "data-processing-cluster"
+        - name: Hazelcast__CacheTTLHours
+          value: "1"
+        - name: OpenTelemetry__OtlpEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: otlp-endpoint
+        - name: Output__RetryAttempts
+          value: "3"
+        - name: Output__RetryDelayMs
+          value: "1000"
+        - name: Output__EnableMetrics
+          value: "true"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5009
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5009
+          initialDelaySeconds: 20
+          periodSeconds: 5
+        volumeMounts:
+        - name: data-output
+          mountPath: /data/output
+      volumes:
+      - name: data-output
+        persistentVolumeClaim:
+          claimName: data-output-pvc
+      restartPolicy: Always

@@ -1,0 +1,154 @@
+# Hazelcast - StatefulSet
+# Week 2: Day 4
+# Single-node distributed cache for development
+# TTL configured for automatic cleanup (fallback safety)
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hazelcast-config
+  namespace: ez-platform
+data:
+  hazelcast.yaml: |
+    hazelcast:
+      cluster-name: data-processing-cluster
+      network:
+        join:
+          kubernetes:
+            enabled: true
+            namespace: ez-platform
+            service-name: hazelcast
+      map:
+        # File content cache - stores raw file data temporarily
+        file-content:
+          time-to-live-seconds: 300       # 5 minutes TTL (safety fallback)
+          max-idle-seconds: 180           # 3 minutes idle timeout
+          eviction:
+            eviction-policy: LRU
+            max-size-policy: USED_HEAP_SIZE
+            size: 256                     # 256MB max heap for this map
+          backup-count: 0                 # No backups (single node dev)
+
+        # Valid records cache - stores validated data temporarily
+        valid-records:
+          time-to-live-seconds: 300       # 5 minutes TTL (safety fallback)
+          max-idle-seconds: 180           # 3 minutes idle timeout
+          eviction:
+            eviction-policy: LRU
+            max-size-policy: USED_HEAP_SIZE
+            size: 256                     # 256MB max heap for this map
+          backup-count: 0                 # No backups (single node dev)
+
+        # File deduplication cache - stores file hashes to prevent reprocessing
+        file-hashes:
+          time-to-live-seconds: 14400     # 4 hours TTL (matches DeduplicationTTLHours)
+          max-idle-seconds: 7200          # 2 hours idle timeout
+          eviction:
+            eviction-policy: LRU
+            max-size-policy: USED_HEAP_SIZE
+            size: 128                     # 128MB max heap for hash storage
+          backup-count: 0                 # No backups (single node dev)
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hazelcast
+  namespace: ez-platform
+  labels:
+    app: hazelcast
+spec:
+  ports:
+  - port: 5701
+    targetPort: 5701
+    name: hazelcast
+  clusterIP: None  # Headless service
+  selector:
+    app: hazelcast
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hazelcast
+  namespace: ez-platform
+spec:
+  serviceName: hazelcast
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hazelcast
+  template:
+    metadata:
+      labels:
+        app: hazelcast
+        component: cache
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: hazelcast
+        image: hazelcast/hazelcast:5.6
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        ports:
+        - containerPort: 5701
+          name: hazelcast
+        env:
+        - name: JAVA_OPTS
+          value: "-Xms256m -Xmx512m -Dhazelcast.config=/config/hazelcast.yaml"
+        - name: HZ_NETWORK_RESTAPI_ENABLED
+          value: "true"
+        - name: HZ_CLUSTERNAME
+          value: "data-processing-cluster"
+        - name: HZ_KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: HZ_KUBERNETES_SERVICE_NAME
+          value: "hazelcast"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "768Mi"
+        volumeMounts:
+        - name: hazelcast-config
+          mountPath: /config
+        - name: hazelcast-data
+          mountPath: /data
+        livenessProbe:
+          httpGet:
+            path: /hazelcast/health/node-state
+            port: 5701
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /hazelcast/health/ready
+            port: 5701
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: hazelcast-config
+        configMap:
+          name: hazelcast-config
+  volumeClaimTemplates:
+  - metadata:
+      name: hazelcast-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi

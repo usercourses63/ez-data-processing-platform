@@ -1,0 +1,125 @@
+# FileProcessorService - Kubernetes Deployment
+# Week 2: Day 1
+# Replicas: 2 (Optimized based on 1000-file stress test, scale up for >5000 files)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fileprocessor
+  namespace: ez-platform
+  labels:
+    app: fileprocessor
+    component: processing
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fileprocessor
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: fileprocessor
+        component: processing
+        tier: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: fileprocessor
+        image: ez-platform/fileprocessor:v0.1.1-rc3
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        ports:
+        - containerPort: 5008
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ASPNETCORE_URLS
+          value: "http://+:5008"
+        - name: ConnectionStrings__MongoDB
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: mongodb-connection
+        - name: MassTransit__UseKafka
+          value: "true"
+        - name: MassTransit__Kafka__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
+        - name: Hazelcast__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: hazelcast-server
+        - name: Hazelcast__ClusterName
+          value: "data-processing-cluster"
+        - name: OpenTelemetry__OtlpEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: otlp-endpoint
+        - name: Hazelcast__CacheTTLHours
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: Hazelcast__CacheTTLHours
+        - name: FileProcessor__ConcurrentFiles
+          value: "10"
+        - name: FileProcessor__MaxFileSizeMB
+          value: "1000"
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5008
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5008
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        volumeMounts:
+        - name: data-input
+          mountPath: /data/input
+          readOnly: true
+        - name: external-data
+          mountPath: /mnt/external-test-data
+          readOnly: true
+      volumes:
+      - name: data-input
+        persistentVolumeClaim:
+          claimName: data-input-pvc
+      - name: external-data
+        emptyDir: {}
+      restartPolicy: Always

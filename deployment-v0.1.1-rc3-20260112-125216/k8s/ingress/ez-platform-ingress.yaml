@@ -1,0 +1,103 @@
+# EZ Platform - Complete Ingress Configuration
+# Production-Ready Setup - All Services Exposed via Ingress
+# Version: 1.0
+# Date: December 11, 2025
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ez-platform-ingress
+  namespace: ez-platform
+  annotations:
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ezplatform.local
+    http:
+      paths:
+      # API Services (no rewriting - pass through as-is)
+      - path: /api/v1/datasource
+        pathType: Prefix
+        backend:
+          service:
+            name: datasource-management
+            port:
+              number: 5001
+
+      - path: /api/v1/invalid-records
+        pathType: Prefix
+        backend:
+          service:
+            name: invalidrecords
+            port:
+              number: 5006
+
+      - path: /api/v1/metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: metrics-configuration
+            port:
+              number: 5002
+
+      # Frontend - Must be LAST (catch-all)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+
+---
+# Ingress for Direct Service Access (without path rewriting)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ez-platform-api-direct
+  namespace: ez-platform
+  annotations:
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: api.ezplatform.local
+    http:
+      paths:
+      # Datasource Management
+      - path: /v1/datasource
+        pathType: Prefix
+        backend:
+          service:
+            name: datasource-management
+            port:
+              number: 5001
+
+      # Invalid Records
+      - path: /v1/invalid-records
+        pathType: Prefix
+        backend:
+          service:
+            name: invalidrecords
+            port:
+              number: 5006
+
+      # Metrics Configuration
+      - path: /v1/metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: metrics-configuration
+            port:
+              number: 5002

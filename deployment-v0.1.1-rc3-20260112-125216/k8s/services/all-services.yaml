@@ -1,0 +1,165 @@
+# All Microservices - Kubernetes Service Definitions
+# Week 2: Day 2
+# ClusterIP services for internal communication
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: filediscovery
+  namespace: ez-platform
+  labels:
+    app: filediscovery
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5007
+    targetPort: 5007
+    protocol: TCP
+    name: http
+  selector:
+    app: filediscovery
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fileprocessor
+  namespace: ez-platform
+  labels:
+    app: fileprocessor
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5008
+    targetPort: 5008
+    protocol: TCP
+    name: http
+  selector:
+    app: fileprocessor
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: validation
+  namespace: ez-platform
+  labels:
+    app: validation
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5003
+    targetPort: 5003
+    protocol: TCP
+    name: http
+  selector:
+    app: validation
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: output
+  namespace: ez-platform
+  labels:
+    app: output
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5009
+    targetPort: 5009
+    protocol: TCP
+    name: http
+  selector:
+    app: output
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: datasource-management
+  namespace: ez-platform
+  labels:
+    app: datasource-management
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5001
+    targetPort: 5001
+    protocol: TCP
+    name: http
+  selector:
+    app: datasource-management
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-configuration
+  namespace: ez-platform
+  labels:
+    app: metrics-configuration
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5002
+    targetPort: 5002
+    protocol: TCP
+    name: http
+  selector:
+    app: metrics-configuration
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invalidrecords
+  namespace: ez-platform
+  labels:
+    app: invalidrecords
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5006
+    targetPort: 5006
+    protocol: TCP
+    name: http
+  selector:
+    app: invalidrecords
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scheduling
+  namespace: ez-platform
+  labels:
+    app: scheduling
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5004
+    targetPort: 5004
+    protocol: TCP
+    name: http
+  selector:
+    app: scheduling
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: ez-platform
+  labels:
+    app: frontend
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: frontend

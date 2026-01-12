@@ -1,0 +1,20 @@
+apiVersion: v2
+name: ez-platform
+description: EZ Data Processing Platform - Complete microservices deployment with full OCP compatibility
+type: application
+version: 1.1.0
+appVersion: "v0.1.1-rc3"
+keywords:
+  - data-processing
+  - microservices
+  - kafka
+  - mongodb
+  - hazelcast
+  - rabbitmq
+  - kubernetes
+  - ocp-compatible
+  - zero-trust
+home: https://github.com/usercourses63/ez-data-processing-platform
+maintainers:
+  - name: EZ Platform Team
+    email: team@ezplatform.com

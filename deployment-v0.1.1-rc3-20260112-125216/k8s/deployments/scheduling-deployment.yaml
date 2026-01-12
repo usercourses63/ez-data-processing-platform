@@ -1,0 +1,83 @@
+# SchedulingService - Kubernetes Deployment
+# Week 2: Day 2
+# Replicas: 1 (single scheduler instance with Quartz clustering via MongoDB)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduling
+  namespace: ez-platform
+  labels:
+    app: scheduling
+    component: orchestration
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduling
+  strategy:
+    type: Recreate  # Only one scheduler at a time
+  template:
+    metadata:
+      labels:
+        app: scheduling
+        component: orchestration
+        tier: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: scheduling
+        image: ez-platform/scheduling:v0.1.1-rc3
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        ports:
+        - containerPort: 5004
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ASPNETCORE_URLS
+          value: "http://+:5004"
+        - name: ConnectionStrings__MongoDB
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: mongodb-connection
+        - name: MassTransit__UseKafka
+          value: "true"
+        - name: MassTransit__Kafka__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5004
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5004
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      restartPolicy: Always

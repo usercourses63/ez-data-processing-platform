@@ -1,0 +1,98 @@
+# Prometheus Alerting Rules for EZ Platform
+# Session 34: Stress Test Recommendations Implementation
+#
+# Alerts for monitoring processing pipeline health and performance
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alerts
+  namespace: ez-platform
+data:
+  alerts.yml: |
+    groups:
+    - name: processing-pipeline
+      rules:
+      # Alert when RabbitMQ queue depth exceeds threshold
+      - alert: RabbitMQQueueBacklog
+        expr: rabbitmq_queue_messages > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ queue backlog detected"
+          description: "Queue {{ $labels.queue }} has {{ $value }} messages waiting for more than 5 minutes."
+
+      # Alert when queue depth is critically high
+      - alert: RabbitMQQueueCritical
+        expr: rabbitmq_queue_messages > 500
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical RabbitMQ queue backlog"
+          description: "Queue {{ $labels.queue }} has {{ $value }} messages - immediate attention required."
+
+      # Alert when P99 processing latency is high
+      - alert: ProcessingLagHigh
+        expr: histogram_quantile(0.99, rate(business_processing_duration_seconds_bucket[5m])) > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High processing latency detected"
+          description: "P99 processing latency is {{ $value | humanizeDuration }} - above 60 second threshold."
+
+      # Alert when no files processed for extended period
+      - alert: ProcessingStalled
+        expr: increase(business_files_processed_total[10m]) == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "File processing has stalled"
+          description: "No files have been processed in the last 10 minutes."
+
+    - name: infrastructure
+      rules:
+      # Alert when Hazelcast cache memory is high
+      - alert: HazelcastMemoryHigh
+        expr: hazelcast_memory_used_bytes / hazelcast_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Hazelcast memory usage high"
+          description: "Hazelcast is using {{ $value | humanizePercentage }} of available memory."
+
+      # Alert when a service pod is not ready
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{namespace="ez-platform", condition="true"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is not ready."
+
+      # Alert when FileProcessor replicas are below minimum
+      - alert: FileProcessorScaledDown
+        expr: kube_deployment_status_replicas_available{deployment="fileprocessor", namespace="ez-platform"} < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "FileProcessor below recommended replicas"
+          description: "FileProcessor has only {{ $value }} replicas available, recommended minimum is 2."
+
+    - name: validation
+      rules:
+      # Alert when invalid record rate is high
+      - alert: HighInvalidRecordRate
+        expr: rate(business_invalid_records_total[5m]) / rate(business_records_processed_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High invalid record rate"
+          description: "Invalid record rate is {{ $value | humanizePercentage }} - above 10% threshold."

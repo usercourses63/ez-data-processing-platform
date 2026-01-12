@@ -1,0 +1,131 @@
+{{- if .Values.observability.prometheusBusiness.enabled }}
+# Prometheus Business - Kubernetes Deployment
+# Application and business metrics collection
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-business
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: prometheus-business
+    metrics-type: business
+spec:
+  type: {{ .Values.observability.prometheusBusiness.service.type }}
+  ports:
+  - port: {{ .Values.observability.prometheusBusiness.service.port }}
+    targetPort: {{ .Values.observability.prometheusBusiness.service.port }}
+    name: http
+  selector:
+    app: prometheus-business
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-business
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: prometheus-business
+    metrics-type: business
+spec:
+  replicas: {{ .Values.observability.prometheusBusiness.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.observability.prometheusBusiness.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.observability.prometheusBusiness.strategy.maxUnavailable | default 0 }}
+  selector:
+    matchLabels:
+      app: prometheus-business
+  template:
+    metadata:
+      labels:
+        app: prometheus-business
+        component: monitoring
+        metrics-type: business
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
+      containers:
+      - name: prometheus-business
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.securityContext.container.allowPrivilegeEscalation | default false }}
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              {{- toYaml .Values.securityContext.container.capabilities.drop | nindent 14 }}
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.observability.prometheusBusiness.image "Chart" .Chart) }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.observability.prometheusBusiness.service.port }}
+          name: http
+        args:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus'
+        - '--storage.tsdb.retention.time={{ .Values.observability.prometheusBusiness.config.retentionTime }}'
+        {{- if .Values.observability.prometheusBusiness.config.retentionSize }}
+        - '--storage.tsdb.retention.size={{ .Values.observability.prometheusBusiness.config.retentionSize }}'
+        {{- end }}
+        {{- if .Values.observability.prometheusBusiness.config.enableRemoteWrite }}
+        - '--web.enable-remote-write-receiver'
+        {{- end }}
+        resources:
+          {{- toYaml .Values.observability.prometheusBusiness.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: {{ .Values.observability.prometheusBusiness.service.port }}
+          initialDelaySeconds: {{ .Values.observability.prometheusBusiness.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.observability.prometheusBusiness.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.observability.prometheusBusiness.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.observability.prometheusBusiness.livenessProbe.failureThreshold }}
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: {{ .Values.observability.prometheusBusiness.service.port }}
+          initialDelaySeconds: {{ .Values.observability.prometheusBusiness.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.observability.prometheusBusiness.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.observability.prometheusBusiness.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.observability.prometheusBusiness.readinessProbe.failureThreshold }}
+        {{- with .Values.observability.prometheusBusiness.extraEnv }}
+        env:
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        volumeMounts:
+        - name: prometheus-data
+          mountPath: /prometheus
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+      volumes:
+      - name: prometheus-data
+        persistentVolumeClaim:
+          claimName: prometheus-business-data-pvc
+      - name: prometheus-config
+        configMap:
+          name: prometheus-business-config
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-business-data-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: prometheus-business
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.observability.prometheusBusiness.storage.size }}
+  storageClassName: {{ .Values.observability.prometheusBusiness.storage.storageClass }}
+{{- end }}

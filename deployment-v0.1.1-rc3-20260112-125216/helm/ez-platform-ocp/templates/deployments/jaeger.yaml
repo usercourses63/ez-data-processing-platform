@@ -1,0 +1,131 @@
+{{- if .Values.observability.jaeger.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: jaeger
+    component: tracing
+spec:
+  type: {{ .Values.observability.jaeger.service.type }}
+  ports:
+    - name: otlp-grpc
+      port: {{ .Values.observability.jaeger.service.ports.otlpGrpc }}
+      targetPort: {{ .Values.observability.jaeger.service.ports.otlpGrpc }}
+      protocol: TCP
+    - name: otlp-http
+      port: {{ .Values.observability.jaeger.service.ports.otlpHttp }}
+      targetPort: {{ .Values.observability.jaeger.service.ports.otlpHttp }}
+      protocol: TCP
+    - name: grpc-collector
+      port: 14250
+      targetPort: 14250
+      protocol: TCP
+    - name: http-collector
+      port: 14268
+      targetPort: 14268
+      protocol: TCP
+    - name: ui
+      port: {{ .Values.observability.jaeger.service.ports.ui }}
+      targetPort: {{ .Values.observability.jaeger.service.ports.ui }}
+      protocol: TCP
+    - name: zipkin
+      port: {{ .Values.observability.jaeger.service.ports.zipkin }}
+      targetPort: {{ .Values.observability.jaeger.service.ports.zipkin }}
+      protocol: TCP
+  selector:
+    app: jaeger
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: jaeger
+    component: tracing
+spec:
+  replicas: {{ .Values.observability.jaeger.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.observability.jaeger.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.observability.jaeger.strategy.maxUnavailable | default 0 }}
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: tracing
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
+      containers:
+      - name: jaeger
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.securityContext.container.allowPrivilegeEscalation | default false }}
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              {{- toYaml .Values.securityContext.container.capabilities.drop | nindent 14 }}
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.observability.jaeger.image "Chart" .Chart) }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+          - name: otlp-grpc
+            containerPort: {{ .Values.observability.jaeger.service.ports.otlpGrpc }}
+            protocol: TCP
+          - name: otlp-http
+            containerPort: {{ .Values.observability.jaeger.service.ports.otlpHttp }}
+            protocol: TCP
+          - name: grpc-collector
+            containerPort: 14250
+            protocol: TCP
+          - name: http-collector
+            containerPort: 14268
+            protocol: TCP
+          - name: ui
+            containerPort: {{ .Values.observability.jaeger.service.ports.ui }}
+            protocol: TCP
+          - name: zipkin
+            containerPort: {{ .Values.observability.jaeger.service.ports.zipkin }}
+            protocol: TCP
+          - name: udp-compact
+            containerPort: 6831
+            protocol: UDP
+          - name: udp-binary
+            containerPort: 6832
+            protocol: UDP
+        env:
+          - name: COLLECTOR_ZIPKIN_HOST_PORT
+            value: ":{{ .Values.observability.jaeger.service.ports.zipkin }}"
+          - name: COLLECTOR_OTLP_ENABLED
+            value: "true"
+          # Elasticsearch backend for trace persistence
+          - name: SPAN_STORAGE_TYPE
+            value: {{ .Values.observability.jaeger.config.storage.type | quote }}
+          - name: ES_SERVER_URLS
+            value: {{ .Values.observability.jaeger.config.storage.elasticsearchServerUrls | quote }}
+          - name: ES_INDEX_PREFIX
+            value: {{ .Values.observability.jaeger.config.storage.elasticsearchIndexPrefix | quote }}
+          - name: ES_TAGS_AS_FIELDS_ALL
+            value: "true"
+          - name: SAMPLING_STRATEGIES_FILE
+            value: "/etc/jaeger/sampling.json"
+        {{- with .Values.observability.jaeger.extraEnv }}
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.observability.jaeger.resources | nindent 10 }}
+      restartPolicy: Always
+{{- end }}

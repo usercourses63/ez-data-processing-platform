@@ -1,0 +1,199 @@
+{{- if .Values.observability.grafana.enabled }}
+# EZ Platform Grafana - Kubernetes Deployment
+# Unified visualization and dashboards for system and business metrics
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: ezplatform-grafana
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      {{- if .Values.observability.grafana.datasources.systemPrometheus.enabled }}
+      # System Prometheus - Infrastructure Metrics
+      - name: System-Prometheus
+        type: prometheus
+        access: proxy
+        url: {{ .Values.observability.grafana.datasources.systemPrometheus.url }}
+        isDefault: {{ .Values.observability.grafana.datasources.systemPrometheus.isDefault }}
+        editable: false
+        uid: system-prometheus-uid
+        jsonData:
+          timeInterval: {{ .Values.observability.grafana.datasources.systemPrometheus.timeInterval }}
+          queryTimeout: 60s
+          httpMethod: POST
+        version: 1
+      {{- end }}
+
+      {{- if .Values.observability.grafana.datasources.businessPrometheus.enabled }}
+      # Business Prometheus - Business KPIs
+      - name: Business-Prometheus
+        type: prometheus
+        access: proxy
+        url: {{ .Values.observability.grafana.datasources.businessPrometheus.url }}
+        isDefault: {{ .Values.observability.grafana.datasources.businessPrometheus.isDefault }}
+        editable: false
+        uid: business-prometheus-uid
+        jsonData:
+          timeInterval: {{ .Values.observability.grafana.datasources.businessPrometheus.timeInterval }}
+          queryTimeout: 60s
+          httpMethod: POST
+        version: 1
+      {{- end }}
+
+      {{- if .Values.observability.grafana.datasources.elasticsearch.enabled }}
+      # Elasticsearch - Logs
+      - name: Elasticsearch-Logs
+        type: elasticsearch
+        access: proxy
+        url: {{ .Values.observability.grafana.datasources.elasticsearch.url }}
+        database: {{ .Values.observability.grafana.datasources.elasticsearch.index }}-*
+        isDefault: false
+        editable: false
+        uid: elasticsearch-logs-uid
+        jsonData:
+          index: {{ .Values.observability.grafana.datasources.elasticsearch.index }}
+          interval: Daily
+          timeField: "@timestamp"
+          esVersion: "8.0.0"
+          logMessageField: message
+          logLevelField: level
+        version: 1
+      {{- end }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ezplatform-grafana
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: ezplatform-grafana
+spec:
+  type: {{ .Values.observability.grafana.service.type }}
+  ports:
+  - port: {{ .Values.observability.grafana.service.port }}
+    targetPort: {{ .Values.observability.grafana.service.port }}
+    name: http
+  selector:
+    app: ezplatform-grafana
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ezplatform-grafana
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: ezplatform-grafana
+spec:
+  replicas: {{ .Values.observability.grafana.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.observability.grafana.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.observability.grafana.strategy.maxUnavailable | default 0 }}
+  selector:
+    matchLabels:
+      app: ezplatform-grafana
+  template:
+    metadata:
+      labels:
+        app: ezplatform-grafana
+        component: monitoring
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
+      containers:
+      - name: ezplatform-grafana
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.securityContext.container.allowPrivilegeEscalation | default false }}
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              {{- toYaml .Values.securityContext.container.capabilities.drop | nindent 14 }}
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.observability.grafana.image "Chart" .Chart) }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.observability.grafana.service.port }}
+          name: http
+        env:
+        - name: GF_SECURITY_ADMIN_USER
+          value: {{ .Values.observability.grafana.auth.adminUser | quote }}
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              {{- if .Values.observability.grafana.auth.existingSecret }}
+              name: {{ .Values.observability.grafana.auth.existingSecret }}
+              key: {{ .Values.observability.grafana.auth.existingSecretKey | default "admin-password" }}
+              {{- else }}
+              name: grafana-credentials
+              key: admin-password
+              {{- end }}
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "false"
+        {{- with .Values.observability.grafana.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.observability.grafana.resources | nindent 10 }}
+        volumeMounts:
+        - name: grafana-data
+          mountPath: /var/lib/grafana
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: grafana-dashboards-provider
+          mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+          subPath: dashboards.yaml
+        - name: grafana-business-dashboard
+          mountPath: /etc/grafana/provisioning/dashboards/business-metrics.json
+          subPath: business-metrics.json
+        - name: grafana-infrastructure-dashboard
+          mountPath: /etc/grafana/provisioning/dashboards/infrastructure-metrics.json
+          subPath: infrastructure-metrics.json
+      volumes:
+      - name: grafana-data
+        persistentVolumeClaim:
+          claimName: ezplatform-grafana-data-pvc
+      - name: grafana-datasources
+        configMap:
+          name: grafana-datasources-config
+      - name: grafana-dashboards-provider
+        configMap:
+          name: grafana-dashboards-provider
+      - name: grafana-business-dashboard
+        configMap:
+          name: grafana-business-metrics-dashboard
+      - name: grafana-infrastructure-dashboard
+        configMap:
+          name: grafana-infrastructure-dashboard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ezplatform-grafana-data-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: ezplatform-grafana
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.observability.grafana.storage.size }}
+  storageClassName: {{ .Values.observability.grafana.storage.storageClass }}
+{{- end }}

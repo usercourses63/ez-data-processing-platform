@@ -1,0 +1,132 @@
+{{- if .Values.services.filediscovery.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filediscovery
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: filediscovery
+    component: discovery
+    tier: backend
+spec:
+  replicas: {{ .Values.services.filediscovery.replicas }}
+  selector:
+    matchLabels:
+      app: filediscovery
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.services.filediscovery.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.services.filediscovery.strategy.maxUnavailable | default 0 }}
+  template:
+    metadata:
+      labels:
+        app: filediscovery
+        component: discovery
+        tier: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5006"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: filediscovery
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem | default false }}
+          capabilities:
+            drop:
+              - ALL
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.services.filediscovery.image "Chart" .Chart) }}
+        imagePullPolicy: {{ include "ez-platform.imagePullPolicy" . }}
+        ports:
+        - containerPort: 5006
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.config.environment | default "Production" | quote }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:5006"
+        - name: ConnectionStrings__MongoDB
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: mongodb-connection
+        - name: ConnectionStrings__DatabaseName
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: database-name
+        - name: MassTransit__UseKafka
+          value: "true"
+        - name: MassTransit__Kafka__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
+        - name: Hazelcast__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: hazelcast-server
+        - name: Hazelcast__ClusterName
+          value: {{ .Values.hazelcast.clusterName | default "data-processing-cluster" | quote }}
+        - name: OpenTelemetry__OtlpEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: otlp-endpoint
+        - name: FileDiscovery__DeduplicationTTLHours
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: FileDiscovery__DeduplicationTTLHours
+        {{- with .Values.services.filediscovery.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.services.filediscovery.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5006
+          initialDelaySeconds: {{ .Values.services.filediscovery.livenessProbe.initialDelaySeconds | default 30 }}
+          periodSeconds: {{ .Values.services.filediscovery.livenessProbe.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.services.filediscovery.livenessProbe.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.services.filediscovery.livenessProbe.failureThreshold | default 3 }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5006
+          initialDelaySeconds: {{ .Values.services.filediscovery.readinessProbe.initialDelaySeconds | default 20 }}
+          periodSeconds: {{ .Values.services.filediscovery.readinessProbe.periodSeconds | default 5 }}
+          timeoutSeconds: {{ .Values.services.filediscovery.readinessProbe.timeoutSeconds | default 3 }}
+          failureThreshold: {{ .Values.services.filediscovery.readinessProbe.failureThreshold | default 2 }}
+        volumeMounts:
+        - name: data-input
+          mountPath: /data/input
+        {{- if .Values.storage.externalData.enabled }}
+        - name: external-data
+          mountPath: /mnt/external-test-data
+        {{- end }}
+      volumes:
+      - name: data-input
+        persistentVolumeClaim:
+          claimName: data-input-pvc
+      {{- if .Values.storage.externalData.enabled }}
+      - name: external-data
+        hostPath:
+          path: {{ .Values.storage.externalData.hostPath }}
+          type: Directory
+      {{- end }}
+      restartPolicy: Always
+{{- end }}

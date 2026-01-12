@@ -1,0 +1,136 @@
+{{- if .Values.observability.prometheusSystem.enabled }}
+# Prometheus System - Kubernetes Deployment
+# Infrastructure and system metrics collection
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-system
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: prometheus-system
+    metrics-type: system
+spec:
+  type: {{ .Values.observability.prometheusSystem.service.type }}
+  ports:
+  - port: {{ .Values.observability.prometheusSystem.service.port }}
+    targetPort: {{ .Values.observability.prometheusSystem.service.port }}
+    name: http
+  selector:
+    app: prometheus-system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-system
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: prometheus-system
+    metrics-type: system
+spec:
+  replicas: {{ .Values.observability.prometheusSystem.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.observability.prometheusSystem.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.observability.prometheusSystem.strategy.maxUnavailable | default 0 }}
+  selector:
+    matchLabels:
+      app: prometheus-system
+  template:
+    metadata:
+      labels:
+        app: prometheus-system
+        component: monitoring
+        metrics-type: system
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
+      containers:
+      - name: prometheus-system
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.securityContext.container.allowPrivilegeEscalation | default false }}
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              {{- toYaml .Values.securityContext.container.capabilities.drop | nindent 14 }}
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.observability.prometheusSystem.image "Chart" .Chart) }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        ports:
+        - containerPort: {{ .Values.observability.prometheusSystem.service.port }}
+          name: http
+        args:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus'
+        - '--storage.tsdb.retention.time={{ .Values.observability.prometheusSystem.config.retentionTime }}'
+        {{- if .Values.observability.prometheusSystem.config.retentionSize }}
+        - '--storage.tsdb.retention.size={{ .Values.observability.prometheusSystem.config.retentionSize }}'
+        {{- end }}
+        {{- if .Values.observability.prometheusSystem.config.enableRemoteWrite }}
+        - '--web.enable-remote-write-receiver'
+        {{- end }}
+        resources:
+          {{- toYaml .Values.observability.prometheusSystem.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: {{ .Values.observability.prometheusSystem.service.port }}
+          initialDelaySeconds: {{ .Values.observability.prometheusSystem.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.observability.prometheusSystem.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.observability.prometheusSystem.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.observability.prometheusSystem.livenessProbe.failureThreshold }}
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: {{ .Values.observability.prometheusSystem.service.port }}
+          initialDelaySeconds: {{ .Values.observability.prometheusSystem.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.observability.prometheusSystem.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.observability.prometheusSystem.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.observability.prometheusSystem.readinessProbe.failureThreshold }}
+        {{- with .Values.observability.prometheusSystem.extraEnv }}
+        env:
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        volumeMounts:
+        - name: prometheus-data
+          mountPath: /prometheus
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+        - name: prometheus-alerts
+          mountPath: /etc/prometheus/alerts
+      volumes:
+      - name: prometheus-data
+        persistentVolumeClaim:
+          claimName: prometheus-system-data-pvc
+      - name: prometheus-config
+        configMap:
+          name: prometheus-system-config
+      - name: prometheus-alerts
+        configMap:
+          name: prometheus-alerts
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-system-data-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: prometheus-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.observability.prometheusSystem.storage.size }}
+  storageClassName: {{ .Values.observability.prometheusSystem.storage.storageClass }}
+{{- end }}

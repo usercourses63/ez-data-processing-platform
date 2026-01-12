@@ -1,0 +1,103 @@
+{{- if .Values.services.datasourceManagement.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datasource-management
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: datasource-management
+    component: api
+    tier: backend
+spec:
+  replicas: {{ .Values.services.datasourceManagement.replicas }}
+  selector:
+    matchLabels:
+      app: datasource-management
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.services.datasourceManagement.strategy.maxSurge | default 1 }}
+      maxUnavailable: {{ .Values.services.datasourceManagement.strategy.maxUnavailable | default 0 }}
+  template:
+    metadata:
+      labels:
+        app: datasource-management
+        component: api
+        tier: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5001"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
+        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
+        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: datasource-management
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem | default false }}
+          capabilities:
+            drop:
+              - ALL
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.services.datasourceManagement.image "Chart" .Chart) }}
+        imagePullPolicy: {{ include "ez-platform.imagePullPolicy" . }}
+        ports:
+        - containerPort: 5001
+          name: http
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ .Values.config.environment | default "Production" | quote }}
+        - name: ASPNETCORE_URLS
+          value: "http://+:5001"
+        - name: ConnectionStrings__MongoDB
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: mongodb-connection
+        - name: ConnectionStrings__DatabaseName
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: database-name
+        - name: MassTransit__UseKafka
+          value: "true"
+        - name: MassTransit__Kafka__Server
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
+        - name: OpenTelemetry__OtlpEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: otlp-endpoint
+        {{- with .Values.services.datasourceManagement.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.services.datasourceManagement.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: {{ .Values.services.datasourceManagement.livenessProbe.initialDelaySeconds | default 30 }}
+          periodSeconds: {{ .Values.services.datasourceManagement.livenessProbe.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.services.datasourceManagement.livenessProbe.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.services.datasourceManagement.livenessProbe.failureThreshold | default 3 }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: {{ .Values.services.datasourceManagement.readinessProbe.initialDelaySeconds | default 20 }}
+          periodSeconds: {{ .Values.services.datasourceManagement.readinessProbe.periodSeconds | default 5 }}
+          timeoutSeconds: {{ .Values.services.datasourceManagement.readinessProbe.timeoutSeconds | default 3 }}
+          failureThreshold: {{ .Values.services.datasourceManagement.readinessProbe.failureThreshold | default 2 }}
+      restartPolicy: Always
+{{- end }}
