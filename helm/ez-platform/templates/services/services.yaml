@@ -163,10 +163,10 @@ metadata:
     {{- include "ez-platform.labels" . | nindent 4 }}
     app: frontend
 spec:
-  type: LoadBalancer
+  type: {{ .Values.services.frontend.service.type | default "LoadBalancer" }}
   ports:
-  - port: 80
-    targetPort: 80
+  - port: {{ .Values.services.frontend.service.port | default 8080 }}
+    targetPort: {{ .Values.services.frontend.containerPort | default 8080 }}
     protocol: TCP
     name: http
   selector:

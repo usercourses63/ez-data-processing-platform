@@ -10,6 +10,7 @@ import {
   RobotOutlined,
   BellOutlined,
   SettingOutlined,
+  MonitorOutlined,
 } from '@ant-design/icons';
 
 const { Sider } = Layout;
@@ -53,6 +54,11 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ collapsed = false }) => {
       key: '/admin/settings',
       icon: <SettingOutlined />,
       label: t('navigation.adminSettings') || 'הגדרות מערכת',
+    },
+    {
+      key: '/monitoring',
+      icon: <MonitorOutlined />,
+      label: t('navigation.monitoring'),
     },
   ];
 

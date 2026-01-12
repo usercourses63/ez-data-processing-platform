@@ -44,7 +44,7 @@ spec:
         image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.services.frontend.image "Chart" .Chart) }}
         imagePullPolicy: {{ .Values.services.frontend.image.pullPolicy | default "IfNotPresent" }}
         ports:
-        - containerPort: 80
+        - containerPort: {{ .Values.services.frontend.containerPort | default 8080 }}
           name: http
           protocol: TCP
         env:
@@ -58,7 +58,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /
-            port: 80
+            port: {{ .Values.services.frontend.containerPort | default 8080 }}
           initialDelaySeconds: {{ .Values.services.frontend.livenessProbe.initialDelaySeconds | default 30 }}
           periodSeconds: {{ .Values.services.frontend.livenessProbe.periodSeconds | default 10 }}
           timeoutSeconds: {{ .Values.services.frontend.livenessProbe.timeoutSeconds | default 5 }}
@@ -66,7 +66,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /
-            port: 80
+            port: {{ .Values.services.frontend.containerPort | default 8080 }}
           initialDelaySeconds: {{ .Values.services.frontend.readinessProbe.initialDelaySeconds | default 10 }}
           periodSeconds: {{ .Values.services.frontend.readinessProbe.periodSeconds | default 5 }}
           timeoutSeconds: {{ .Values.services.frontend.readinessProbe.timeoutSeconds | default 3 }}

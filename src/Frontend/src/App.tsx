@@ -12,6 +12,7 @@ import './App.css';
 import SplashScreen from './components/SplashScreen';
 import AppHeader from './components/layout/AppHeader';
 import AppSidebar from './components/layout/AppSidebar';
+import AppFooter from './components/layout/AppFooter';
 import RegexHelperProvider from './components/schema/RegexHelperProvider';
 import { LoadingState, ErrorBoundary } from './components/shared';
 
@@ -136,6 +137,7 @@ const App: React.FC = () => {
                   </Routes>
                 </Suspense>
               </Content>
+              <AppFooter />
             </Layout>
           </Layout>
         </Layout>

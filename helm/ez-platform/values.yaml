@@ -296,6 +296,7 @@ services:
       repository: frontend
       tag: v0.1.1-rc2
       pullPolicy: IfNotPresent
+    containerPort: 8080  # OCP requires non-privileged ports
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -303,7 +304,7 @@ services:
       apiBaseUrl: "http://datasource-management:5001"
     service:
       type: LoadBalancer
-      port: 80
+      port: 8080
     resources:
       requests:
         cpu: 250m
