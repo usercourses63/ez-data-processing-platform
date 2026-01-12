@@ -39,7 +39,17 @@ builder.Services.AddDataProcessingOpenTelemetry(builder.Configuration, serviceNa
 var connectionString = builder.Configuration.GetConnectionString("MongoDB")
     ?? throw new InvalidOperationException("MongoDB connection string is required");
 var databaseName = builder.Configuration.GetConnectionString("DatabaseName") ?? "ezplatform";
-await DB.InitAsync(databaseName, connectionString);
+
+// Parse MongoDB URI properly for replica set connections
+if (connectionString.StartsWith("mongodb://") || connectionString.StartsWith("mongodb+srv://"))
+{
+    var settings = MongoClientSettings.FromConnectionString(connectionString);
+    await DB.InitAsync(databaseName, settings);
+}
+else
+{
+    await DB.InitAsync(databaseName, connectionString);
+}
 
 // Configure Hazelcast Client with resilience (auto-reconnect, retry, circuit breaker)
 using var hazelcastLoggerFactory = LoggerFactory.Create(loggingBuilder =>

@@ -129,7 +129,16 @@ var app = builder.Build();
 var databaseName = builder.Configuration.GetValue<string>("MongoDB:DatabaseName") ?? "ezplatform";
 var connectionString = builder.Configuration.GetConnectionString("MongoDB") ?? "mongodb";
 
-await DB.InitAsync(databaseName, connectionString);
+// Parse MongoDB URI properly for replica set connections
+if (connectionString.StartsWith("mongodb://") || connectionString.StartsWith("mongodb+srv://"))
+{
+    var settings = MongoClientSettings.FromConnectionString(connectionString);
+    await DB.InitAsync(databaseName, settings);
+}
+else
+{
+    await DB.InitAsync(databaseName, connectionString);
+}
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("MongoDB initialized: {DatabaseName} at {ConnectionString}", databaseName, connectionString);

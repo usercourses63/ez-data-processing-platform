@@ -2,7 +2,7 @@
 // This file is automatically updated during the build process
 
 export const VERSION_INFO = {
-  version: 'v0.1.8',
+  version: 'v0.1.12',
   buildDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
   environment: process.env.NODE_ENV || 'development',
   gitCommit: process.env.REACT_APP_GIT_COMMIT || 'unknown',

@@ -124,7 +124,7 @@ This script configures ALL 18 required port forwards:
 
 ---
 
-## OCP Compatibility Requirements (v0.1.1-rc2+)
+## OCP Compatibility Requirements (v0.1.1-rc3+)
 
 ### Security Context (Required for all pods)
 ```yaml

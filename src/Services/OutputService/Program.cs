@@ -27,7 +27,17 @@ builder.Services.AddDataProcessingLogging(builder.Configuration, builder.Environ
 // Configure MongoDB
 var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDB") ?? "localhost";
 var databaseName = builder.Configuration.GetConnectionString("DatabaseName") ?? "ezplatform";
-await DB.InitAsync(databaseName, mongoConnectionString);
+
+// Parse MongoDB URI properly for replica set connections
+if (mongoConnectionString.StartsWith("mongodb://") || mongoConnectionString.StartsWith("mongodb+srv://"))
+{
+    var settings = MongoClientSettings.FromConnectionString(mongoConnectionString);
+    await DB.InitAsync(databaseName, settings);
+}
+else
+{
+    await DB.InitAsync(databaseName, mongoConnectionString);
+}
 
 Log.Information("Connected to MongoDB: {ConnectionString}", mongoConnectionString);
 

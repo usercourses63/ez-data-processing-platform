@@ -152,8 +152,17 @@ var connectionString = configuration.GetConnectionString("MongoDB") ?? "localhos
 // Initialize database connection using MongoDB.Entities
 try
 {
-    // Use MongoDB.Entities with simple connection for development
-    await DB.InitAsync(databaseName, connectionString);
+    // Parse MongoDB URI properly for replica set connections
+    if (connectionString.StartsWith("mongodb://") || connectionString.StartsWith("mongodb+srv://"))
+    {
+        var settings = MongoClientSettings.FromConnectionString(connectionString);
+        await DB.InitAsync(databaseName, settings);
+    }
+    else
+    {
+        // Simple hostname for local development
+        await DB.InitAsync(databaseName, connectionString);
+    }
     
     var initLogger = app.Services.GetRequiredService<ILogger<Program>>();
     initLogger.LogInformation("MongoDB.Entities database connection initialized successfully");

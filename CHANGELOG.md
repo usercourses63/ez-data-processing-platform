@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.1-rc3] - 2026-01-12
+
+### Fixed
+- **MongoDB Replica Set Support**: Fixed MongoDB connection string parsing for 3-node replica set deployment
+  - All 8 services now properly parse `mongodb://` URIs without appending `:27017` to query strings
+  - Uses `MongoClientSettings.FromConnectionString()` for replica set URIs
+  - Maintains backward compatibility with simple hostname connections for local development
+
+### Changed
+- **MongoDB Configuration**: Updated ConfigMap with full replica set connection string
+  - Connection string format: `mongodb://mongodb-0...27017,mongodb-1...27017,mongodb-2...27017/?replicaSet=rs0`
+  - MongoDB StatefulSet scaled to 3 replicas for high availability
+- **All Services Updated**: DataSourceManagement, FileProcessor, FileDiscovery, Validation, Scheduling, Output, MetricsConfiguration, InvalidRecords
+
+### Technical Details
+- Fixed `DB.InitAsync()` to detect and parse MongoDB URIs correctly
+- Prevents MongoDB .NET driver from incorrectly appending default port to replica set connection strings
+- Services: [Program.cs] MongoDB initialization now uses conditional URI parsing logic
+
+---
+
 ## [0.1.1-rc2] - 2026-01-08
 
 ### Fixed

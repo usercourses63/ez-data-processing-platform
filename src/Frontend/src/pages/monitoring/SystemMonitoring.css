@@ -212,9 +212,9 @@
 }
 
 /* Statistic styling */
-.ant-statistic-title {
+.metrics-overview .ant-statistic-title {
   font-size: 0.85rem;
-  color: #d1d5db;
+  color: #f1f5f9 !important;
   margin-bottom: 8px;
 }
 
