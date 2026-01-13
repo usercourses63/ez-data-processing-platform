@@ -99,6 +99,22 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({ services }) => {
     }
   };
 
+  // Determine connection type and style
+  const getConnectionStyle = (from: string, to: string): { color: string; dashPattern: number[]; lineWidth: number } => {
+    // Database write (Validation → Invalid Records)
+    if (from === 'validation' && to === 'invalidrecords') {
+      return { color: '#8b5cf6', dashPattern: [2, 4], lineWidth: 2 }; // Purple dotted
+    }
+
+    // Reprocess flow (Invalid Records → Validation)
+    if (from === 'invalidrecords' && to === 'validation') {
+      return { color: '#10b981', dashPattern: [6, 3], lineWidth: 2 }; // Green dashed
+    }
+
+    // Kafka event flow (all others)
+    return { color: '#3b82f6', dashPattern: [], lineWidth: 3 }; // Blue solid
+  };
+
   // Draw connection line between nodes
   const drawConnection = (
     ctx: CanvasRenderingContext2D,
@@ -110,20 +126,102 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({ services }) => {
     const toCenterX = to.x + NODE_WIDTH / 2;
     const toCenterY = to.y + NODE_HEIGHT / 2;
 
+    const style = getConnectionStyle(from.id, to.id);
+
     // Create gradient
     const gradient = ctx.createLinearGradient(fromCenterX, fromCenterY, toCenterX, toCenterY);
-    gradient.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
-    gradient.addColorStop(0.5, 'rgba(102, 126, 234, 0.6)');
-    gradient.addColorStop(1, 'rgba(102, 126, 234, 0.3)');
+    const baseColor = style.color;
+    gradient.addColorStop(0, baseColor + '66'); // 40% opacity
+    gradient.addColorStop(0.5, baseColor + 'CC'); // 80% opacity
+    gradient.addColorStop(1, baseColor + '66'); // 40% opacity
 
     ctx.strokeStyle = gradient;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 5]);
+    ctx.lineWidth = style.lineWidth;
+    ctx.setLineDash(style.dashPattern);
     ctx.beginPath();
     ctx.moveTo(fromCenterX, fromCenterY);
     ctx.lineTo(toCenterX, toCenterY);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // Draw arrow head
+    const angle = Math.atan2(toCenterY - fromCenterY, toCenterX - fromCenterX);
+    const arrowLength = 12;
+    const arrowWidth = 8;
+
+    ctx.fillStyle = baseColor;
+    ctx.beginPath();
+    ctx.moveTo(toCenterX, toCenterY);
+    ctx.lineTo(
+      toCenterX - arrowLength * Math.cos(angle) - arrowWidth * Math.sin(angle),
+      toCenterY - arrowLength * Math.sin(angle) + arrowWidth * Math.cos(angle)
+    );
+    ctx.lineTo(
+      toCenterX - arrowLength * Math.cos(angle) + arrowWidth * Math.sin(angle),
+      toCenterY - arrowLength * Math.sin(angle) - arrowWidth * Math.cos(angle)
+    );
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  // Draw HTTP API connection (bidirectional dashed orange)
+  const drawHTTPConnection = (
+    ctx: CanvasRenderingContext2D,
+    from: ServicePosition,
+    to: ServicePosition
+  ) => {
+    const fromCenterX = from.x + NODE_WIDTH / 2;
+    const fromCenterY = from.y + NODE_HEIGHT / 2;
+    const toCenterX = to.x + NODE_WIDTH / 2;
+    const toCenterY = to.y + NODE_HEIGHT / 2;
+
+    const gradient = ctx.createLinearGradient(fromCenterX, fromCenterY, toCenterX, toCenterY);
+    gradient.addColorStop(0, '#f59e0b66'); // Orange 40%
+    gradient.addColorStop(0.5, '#f59e0bCC'); // Orange 80%
+    gradient.addColorStop(1, '#f59e0b66'); // Orange 40%
+
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 4]);
+    ctx.beginPath();
+    ctx.moveTo(fromCenterX, fromCenterY);
+    ctx.lineTo(toCenterX, toCenterY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw bidirectional arrows (both ends)
+    const angle = Math.atan2(toCenterY - fromCenterY, toCenterX - fromCenterX);
+    const arrowLength = 10;
+    const arrowWidth = 6;
+
+    // Arrow at 'to' end
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.moveTo(toCenterX, toCenterY);
+    ctx.lineTo(
+      toCenterX - arrowLength * Math.cos(angle) - arrowWidth * Math.sin(angle),
+      toCenterY - arrowLength * Math.sin(angle) + arrowWidth * Math.cos(angle)
+    );
+    ctx.lineTo(
+      toCenterX - arrowLength * Math.cos(angle) + arrowWidth * Math.sin(angle),
+      toCenterY - arrowLength * Math.sin(angle) - arrowWidth * Math.cos(angle)
+    );
+    ctx.closePath();
+    ctx.fill();
+
+    // Arrow at 'from' end (reversed)
+    ctx.beginPath();
+    ctx.moveTo(fromCenterX, fromCenterY);
+    ctx.lineTo(
+      fromCenterX + arrowLength * Math.cos(angle) - arrowWidth * Math.sin(angle),
+      fromCenterY + arrowLength * Math.sin(angle) + arrowWidth * Math.cos(angle)
+    );
+    ctx.lineTo(
+      fromCenterX + arrowLength * Math.cos(angle) + arrowWidth * Math.sin(angle),
+      fromCenterY + arrowLength * Math.sin(angle) - arrowWidth * Math.cos(angle)
+    );
+    ctx.closePath();
+    ctx.fill();
   };
 
   // Draw animated particle
@@ -200,6 +298,13 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({ services }) => {
         drawConnection(ctx, fromPos, toPos);
       }
     });
+
+    // Draw HTTP API connection (Validation ↔ Metrics Config)
+    const validationPos = servicePositions.find(s => s.id === 'validation');
+    const metricsPos = servicePositions.find(s => s.id === 'metrics');
+    if (validationPos && metricsPos) {
+      drawHTTPConnection(ctx, validationPos, metricsPos);
+    }
 
     // Draw particles
     particlesRef.current.forEach(particle => {

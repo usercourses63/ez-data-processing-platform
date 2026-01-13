@@ -76,17 +76,26 @@ const EVENT_TEMPLATES = {
 };
 
 /**
- * Pipeline connections between services
+ * Pipeline connections between services (CORRECTED)
+ *
+ * Connection Types:
+ * - Kafka Event Flow: Asynchronous message-driven connections
+ * - HTTP API Call: Synchronous request/response (not shown as pipeline flow)
+ * - Database Write: Data persistence operations
  */
 export const PIPELINE_CONNECTIONS: ServiceConnection[] = [
-  { from: 'filediscovery', to: 'fileprocessor' },
-  { from: 'scheduling', to: 'fileprocessor' },
-  { from: 'fileprocessor', to: 'validation' },
-  { from: 'validation', to: 'output' },
-  { from: 'datasource', to: 'fileprocessor' },
-  { from: 'validation', to: 'invalidrecords' },
-  { from: 'fileprocessor', to: 'metrics' },
-  { from: 'output', to: 'metrics' },
+  // PRIMARY KAFKA EVENT FLOW
+  { from: 'datasource', to: 'scheduling' },      // DataSourceCreated/Updated/Deleted Event
+  { from: 'scheduling', to: 'filediscovery' },   // FilePollingEvent
+  { from: 'filediscovery', to: 'fileprocessor' }, // FileDiscoveredEvent
+  { from: 'fileprocessor', to: 'validation' },    // ValidationRequestEvent
+  { from: 'validation', to: 'output' },           // ValidationCompletedEvent
+
+  // SIDE FLOWS
+  { from: 'validation', to: 'invalidrecords' },   // Database Write (MongoDB)
+  { from: 'invalidrecords', to: 'validation' },   // Reprocess Event
+
+  // Note: Validation ↔ Metrics Config is HTTP API (not included in particle animation)
 ];
 
 // State for time-series data
@@ -323,17 +332,26 @@ export function generateSuccessFailureMetrics(): SuccessFailureMetrics {
 }
 
 /**
- * Get service positions for canvas rendering
+ * Get service positions for canvas rendering (CORRECTED LAYOUT)
+ *
+ * Layout represents correct pipeline flow:
+ * DataSourceMgmt → Scheduling → FileDiscovery → FileProcessor → Validation → Output
+ *                                                                    ↓
+ *                                                            InvalidRecords
+ *                                                    (HTTP API ↔ Metrics Config)
  */
 export function getServicePositions(): Array<{ id: string; name: string; displayName: string; x: number; y: number; icon: string }> {
   return [
-    { id: 'filediscovery', name: 'FileDiscovery', displayName: 'File Discovery', x: 50, y: 150, icon: '📥' },
-    { id: 'scheduling', name: 'Scheduling', displayName: 'Scheduling', x: 50, y: 300, icon: '⏰' },
-    { id: 'fileprocessor', name: 'FileProcessor', displayName: 'File Processor', x: 300, y: 225, icon: '⚙️' },
-    { id: 'validation', name: 'Validation', displayName: 'Validation', x: 550, y: 225, icon: '✓' },
-    { id: 'output', name: 'Output', displayName: 'Output', x: 800, y: 225, icon: '📤' },
-    { id: 'datasource', name: 'DataSourceManagement', displayName: 'Data Source Mgmt', x: 300, y: 50, icon: '🗂️' },
-    { id: 'metrics', name: 'MetricsConfiguration', displayName: 'Metrics Config', x: 550, y: 50, icon: '📊' },
-    { id: 'invalidrecords', name: 'InvalidRecords', displayName: 'Invalid Records', x: 800, y: 50, icon: '⚠️' },
+    // PRIMARY FLOW (Top to Bottom, then Left to Right)
+    { id: 'datasource', name: 'DataSourceManagement', displayName: 'Data Source Mgmt', x: 100, y: 60, icon: '🗂️' },
+    { id: 'scheduling', name: 'Scheduling', displayName: 'Scheduling', x: 100, y: 220, icon: '⏰' },
+    { id: 'filediscovery', name: 'FileDiscovery', displayName: 'File Discovery', x: 280, y: 220, icon: '📥' },
+    { id: 'fileprocessor', name: 'FileProcessor', displayName: 'File Processor', x: 460, y: 220, icon: '⚙️' },
+    { id: 'validation', name: 'Validation', displayName: 'Validation', x: 640, y: 220, icon: '✓' },
+    { id: 'output', name: 'Output', displayName: 'Output', x: 820, y: 220, icon: '📤' },
+
+    // SUPPORTING SERVICES (Top row)
+    { id: 'metrics', name: 'MetricsConfiguration', displayName: 'Metrics Config', x: 640, y: 60, icon: '📊' },
+    { id: 'invalidrecords', name: 'InvalidRecords', displayName: 'Invalid Records', x: 820, y: 60, icon: '⚠️' },
   ];
 }
