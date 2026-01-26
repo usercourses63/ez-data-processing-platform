@@ -78,6 +78,18 @@ Log.Information("Kafka Producer configured: {Server}", kafkaServer);
 builder.Services.AddScoped<IOutputHandler, KafkaOutputHandler>();
 builder.Services.AddScoped<IOutputHandler, FolderOutputHandler>();
 
+// v0.2.0: New output handlers for additional protocols
+builder.Services.AddScoped<IOutputHandler, SftpOutputHandler>();
+builder.Services.AddScoped<IOutputHandler, HttpOutputHandler>();
+builder.Services.AddScoped<IOutputHandler, S3OutputHandler>();
+builder.Services.AddScoped<IOutputHandler, FtpOutputHandler>();
+
+// Register HttpClientFactory for HttpOutputHandler
+builder.Services.AddHttpClient("OutputHandler", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+
 // Register Format Reconstructors (from Task-15)
 builder.Services.AddScoped<JsonToCsvReconstructor>();
 builder.Services.AddScoped<JsonToXmlReconstructor>();
