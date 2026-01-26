@@ -82,15 +82,21 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-// Register data source connectors
-builder.Services.AddScoped<LocalFileConnector>();
-builder.Services.AddScoped<FtpConnector>();
-builder.Services.AddScoped<SftpConnector>();
-builder.Services.AddScoped<IDataSourceConnector>(provider =>
+// Register connector factory and all connectors (Phase 2: v0.2.0)
+builder.Services.AddConnectorFactory();
+
+// Register S3 connector separately (optional, requires AWSSDK.S3)
+builder.Services.AddSingleton<S3Connector>();
+builder.Services.PostConfigure<ConnectorFactoryOptions>(options =>
 {
-    // Factory pattern - will be selected based on datasource type
-    return provider.GetRequiredService<LocalFileConnector>();
+    options.AdditionalConnectors["s3"] = typeof(S3Connector);
 });
+
+// Register archive service for archive detection and extraction
+builder.Services.AddScoped<IArchiveService, SharpCompressArchiveService>();
+
+// Register archive cache service for caching archive content in Hazelcast
+builder.Services.AddScoped<IArchiveCacheService, HazelcastArchiveCacheService>();
 
 // Configure health checks
 builder.Services.AddDataProcessingHealthChecks(builder.Configuration, serviceName);

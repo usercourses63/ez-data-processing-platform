@@ -1,6 +1,7 @@
 using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Monitoring;
 using DataProcessing.Shared.Configuration;
+using DataProcessing.Shared.Connectors;
 using DataProcessing.DataSourceManagement.Infrastructure;
 using DataProcessing.DataSourceManagement.Repositories;
 using DataProcessing.DataSourceManagement.Services;
@@ -100,6 +101,10 @@ services.AddScoped<IDataSourceService, DataSourceService>();
 
 // Register category management service (BETA Release)
 services.AddScoped<ICategoryService, CategoryService>();
+
+// Register server management service (v0.2.0: External File Access)
+services.AddConnectorFactory();
+services.AddScoped<IServerService, ServerService>();
 
 // Register schema management services
 services.AddScoped<DataProcessing.DataSourceManagement.Repositories.Schema.ISchemaRepository,

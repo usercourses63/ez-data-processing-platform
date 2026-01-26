@@ -4,6 +4,7 @@ using DataProcessing.Shared.Converters;
 using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Messages;
 using DataProcessing.Shared.Monitoring;
+using DataProcessing.Shared.Services;
 using Hazelcast;
 using MassTransit;
 using MongoDB.Entities;
@@ -22,6 +23,9 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IConfiguration _configuration;
     private readonly BusinessMetrics _businessMetrics;
+    private readonly IConnectorFactory _connectorFactory;
+    private readonly IArchiveService _archiveService;
+    private readonly IArchiveCacheService _archiveCacheService;
 
     public FileDiscoveredEventConsumer(
         ILogger<FileDiscoveredEventConsumer> logger,
@@ -29,7 +33,10 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
         IHazelcastClient hazelcastClient,
         IServiceScopeFactory scopeFactory,
         IConfiguration configuration,
-        BusinessMetrics businessMetrics)
+        BusinessMetrics businessMetrics,
+        IConnectorFactory connectorFactory,
+        IArchiveService archiveService,
+        IArchiveCacheService archiveCacheService)
     {
         _logger = logger;
         _publishEndpoint = publishEndpoint;
@@ -37,6 +44,9 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
         _scopeFactory = scopeFactory;
         _configuration = configuration;
         _businessMetrics = businessMetrics;
+        _connectorFactory = connectorFactory;
+        _archiveService = archiveService;
+        _archiveCacheService = archiveCacheService;
     }
 
     public async Task Consume(ConsumeContext<FileDiscoveredEvent> context)
@@ -81,10 +91,19 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
             Dictionary<string, object> metadata;
             int contentLength;
 
+            // Log if processing from archive (v0.2.0)
+            if (message.IsFromArchive)
+            {
+                _logger.LogInformation(
+                    "[{CorrelationId}] Processing file from archive: {PathInArchive} (archive: {ArchivePath}, batch: {ArchiveBatchId}, {FileIndex}/{TotalFiles})",
+                    message.CorrelationId, message.PathInArchive, message.ArchivePath,
+                    message.ArchiveBatchId, message.FileIndexInArchive, message.TotalFilesInArchive);
+            }
+
             if (IsBinaryFormat(message.FileName))
             {
                 // Binary file (Excel) - read as bytes to preserve binary integrity
-                var fileContentBytes = await ReadFileContentAsBytesAsync(datasource, message.FilePath, message.CorrelationId);
+                var fileContentBytes = await ReadFileContentAsBytesAsync(datasource, message.FilePath, message.CorrelationId, message);
                 if (fileContentBytes.Length == 0)
                 {
                     _logger.LogWarning(
@@ -108,7 +127,7 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
             else
             {
                 // Text file (CSV, XML, JSON) - read as string
-                var fileContent = await ReadFileContentAsync(datasource, message.FilePath, message.CorrelationId);
+                var fileContent = await ReadFileContentAsync(datasource, message.FilePath, message.CorrelationId, message);
                 if (string.IsNullOrEmpty(fileContent))
                 {
                     _logger.LogWarning(
@@ -190,28 +209,48 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
 
     /// <summary>
     /// Reads file content as text using the appropriate connector
+    /// Supports both direct file access and archive extraction (v0.2.0)
     /// </summary>
     private async Task<string> ReadFileContentAsync(
         DataProcessingDataSource datasource,
         string filePath,
-        string correlationId)
+        string correlationId,
+        FileDiscoveredEvent? message = null)
     {
-        using var scope = _scopeFactory.CreateScope();
-
-        // Get appropriate connector (for now, LocalFileConnector)
-        var connector = scope.ServiceProvider.GetRequiredService<LocalFileConnector>();
-
         try
         {
+            // Check if this file is from an archive (v0.2.0)
+            if (message?.IsFromArchive == true && !string.IsNullOrEmpty(message.PathInArchive))
+            {
+                _logger.LogDebug(
+                    "[{CorrelationId}] Reading file from archive: {PathInArchive} (cache key: {CacheKey})",
+                    correlationId, message.PathInArchive, message.ArchiveCacheKey);
+
+                var bytes = await ExtractFileFromArchiveAsync(datasource, message, correlationId);
+                if (bytes.Length == 0)
+                    return string.Empty;
+
+                var content = System.Text.Encoding.UTF8.GetString(bytes);
+                _logger.LogDebug(
+                    "[{CorrelationId}] Extracted {Bytes} bytes from archive for {PathInArchive}",
+                    correlationId, content.Length, message.PathInArchive);
+
+                return content;
+            }
+
+            // Standard file reading using ConnectorFactory
+            var serverType = DetectServerType(datasource);
+            var connector = _connectorFactory.GetConnector(serverType);
+
             using var stream = await connector.ReadFileAsync(datasource, filePath);
             using var reader = new StreamReader(stream);
-            var content = await reader.ReadToEndAsync();
+            var fileContent = await reader.ReadToEndAsync();
 
             _logger.LogDebug(
-                "[{CorrelationId}] Read {Bytes} bytes from file {FilePath}",
-                correlationId, content.Length, filePath);
+                "[{CorrelationId}] Read {Bytes} bytes from file {FilePath} using {ConnectorType}",
+                correlationId, fileContent.Length, filePath, connector.ConnectorType);
 
-            return content;
+            return fileContent;
         }
         catch (Exception ex)
         {
@@ -225,27 +264,43 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
     /// <summary>
     /// Reads file content as binary bytes using the appropriate connector
     /// Used for binary formats like Excel (.xlsx, .xls) that cannot be read as text
+    /// Supports both direct file access and archive extraction (v0.2.0)
     /// </summary>
     private async Task<byte[]> ReadFileContentAsBytesAsync(
         DataProcessingDataSource datasource,
         string filePath,
-        string correlationId)
+        string correlationId,
+        FileDiscoveredEvent? message = null)
     {
-        using var scope = _scopeFactory.CreateScope();
-
-        // Get appropriate connector (for now, LocalFileConnector)
-        var connector = scope.ServiceProvider.GetRequiredService<LocalFileConnector>();
-
         try
         {
+            // Check if this file is from an archive (v0.2.0)
+            if (message?.IsFromArchive == true && !string.IsNullOrEmpty(message.PathInArchive))
+            {
+                _logger.LogDebug(
+                    "[{CorrelationId}] Reading binary file from archive: {PathInArchive} (cache key: {CacheKey})",
+                    correlationId, message.PathInArchive, message.ArchiveCacheKey);
+
+                var bytes = await ExtractFileFromArchiveAsync(datasource, message, correlationId);
+                _logger.LogDebug(
+                    "[{CorrelationId}] Extracted {Bytes} bytes (binary) from archive for {PathInArchive}",
+                    correlationId, bytes.Length, message.PathInArchive);
+
+                return bytes;
+            }
+
+            // Standard file reading using ConnectorFactory
+            var serverType = DetectServerType(datasource);
+            var connector = _connectorFactory.GetConnector(serverType);
+
             using var stream = await connector.ReadFileAsync(datasource, filePath);
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
             var content = memoryStream.ToArray();
 
             _logger.LogDebug(
-                "[{CorrelationId}] Read {Bytes} bytes (binary) from file {FilePath}",
-                correlationId, content.Length, filePath);
+                "[{CorrelationId}] Read {Bytes} bytes (binary) from file {FilePath} using {ConnectorType}",
+                correlationId, content.Length, filePath, connector.ConnectorType);
 
             return content;
         }
@@ -256,6 +311,136 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
                 correlationId, filePath);
             return Array.Empty<byte>();
         }
+    }
+
+    /// <summary>
+    /// Extracts a file from a cached archive
+    /// First attempts to retrieve from Hazelcast cache, then re-downloads if needed (v0.2.0)
+    /// </summary>
+    private async Task<byte[]> ExtractFileFromArchiveAsync(
+        DataProcessingDataSource datasource,
+        FileDiscoveredEvent message,
+        string correlationId)
+    {
+        byte[]? archiveContent = null;
+
+        // Step 1: Try to get archive from cache
+        if (!string.IsNullOrEmpty(message.ArchiveCacheKey))
+        {
+            archiveContent = await _archiveCacheService.GetArchiveAsync(message.ArchiveCacheKey);
+            if (archiveContent != null)
+            {
+                _logger.LogDebug(
+                    "[{CorrelationId}] Retrieved archive from cache: {CacheKey} ({Bytes} bytes)",
+                    correlationId, message.ArchiveCacheKey, archiveContent.Length);
+            }
+        }
+
+        // Step 2: If not in cache, re-download the archive
+        if (archiveContent == null && !string.IsNullOrEmpty(message.ArchivePath))
+        {
+            _logger.LogInformation(
+                "[{CorrelationId}] Archive not in cache, re-downloading: {ArchivePath}",
+                correlationId, message.ArchivePath);
+
+            var serverType = DetectServerType(datasource);
+            var connector = _connectorFactory.GetConnector(serverType);
+
+            using var stream = await connector.ReadFileAsync(datasource, message.ArchivePath);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            archiveContent = memoryStream.ToArray();
+
+            // Cache for future extractions from same archive
+            if (archiveContent.Length > 0 && !string.IsNullOrEmpty(message.ArchiveCacheKey))
+            {
+                await _archiveCacheService.CacheArchiveAsync(message.ArchiveCacheKey, archiveContent);
+                _logger.LogDebug(
+                    "[{CorrelationId}] Re-cached archive: {CacheKey} ({Bytes} bytes)",
+                    correlationId, message.ArchiveCacheKey, archiveContent.Length);
+            }
+        }
+
+        if (archiveContent == null || archiveContent.Length == 0)
+        {
+            _logger.LogError(
+                "[{CorrelationId}] Failed to retrieve archive content for extraction",
+                correlationId);
+            return Array.Empty<byte>();
+        }
+
+        // Step 3: Extract the specific file from the archive
+        try
+        {
+            var archiveSettings = datasource.ArchiveSettings;
+            var securitySettings = archiveSettings?.SecuritySettings ?? ArchiveSecuritySettings.Default;
+            var password = archiveSettings?.ArchivePassword;
+
+            var extractedContent = await _archiveService.ExtractFileAsync(
+                archiveContent,
+                message.PathInArchive!,
+                archiveType: null, // Auto-detect
+                password: password,
+                settings: securitySettings);
+
+            _logger.LogInformation(
+                "[{CorrelationId}] Successfully extracted {PathInArchive} ({Bytes} bytes) from archive",
+                correlationId, message.PathInArchive, extractedContent.Length);
+
+            return extractedContent;
+        }
+        catch (ArchiveEntryNotFoundException ex)
+        {
+            _logger.LogError(
+                "[{CorrelationId}] Entry not found in archive: {EntryPath}",
+                correlationId, ex.EntryPath);
+            return Array.Empty<byte>();
+        }
+        catch (ArchiveSecurityException ex)
+        {
+            _logger.LogError(
+                "[{CorrelationId}] Archive security violation during extraction: {ViolationType} - {Message}",
+                correlationId, ex.ViolationType, ex.Message);
+            return Array.Empty<byte>();
+        }
+        catch (ArchiveException ex)
+        {
+            _logger.LogError(ex,
+                "[{CorrelationId}] Error extracting file from archive: {PathInArchive}",
+                correlationId, message.PathInArchive);
+            return Array.Empty<byte>();
+        }
+    }
+
+    /// <summary>
+    /// Detects server type from datasource configuration (v0.2.0)
+    /// </summary>
+    private static string DetectServerType(DataProcessingDataSource datasource)
+    {
+        // Check if datasource has a server reference (v0.2.0 architecture)
+        if (!string.IsNullOrEmpty(datasource.FileServerId))
+        {
+            // Check AdditionalConfiguration for server type hint
+            if (datasource.AdditionalConfiguration?.Contains("ServerType") == true)
+            {
+                return datasource.AdditionalConfiguration["ServerType"].AsString;
+            }
+        }
+
+        // Fall back to path-based detection (legacy support)
+        var path = datasource.FilePath?.ToLowerInvariant() ?? "";
+
+        if (path.StartsWith("ftp://"))
+            return "ftp";
+        if (path.StartsWith("sftp://") || path.StartsWith("ssh://"))
+            return "sftp";
+        if (path.StartsWith("s3://") || path.Contains(".s3.") || path.Contains("minio"))
+            return "s3";
+        if (path.StartsWith("http://") || path.StartsWith("https://"))
+            return "http";
+
+        // Default to local file system
+        return "local";
     }
 
     /// <summary>

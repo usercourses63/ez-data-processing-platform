@@ -12,6 +12,7 @@ namespace DataProcessing.FileDiscovery.Workers;
 /// <summary>
 /// Quartz job that discovers new files from configured data sources
 /// Runs periodically to check all active datasources for new files
+/// Uses ConnectorFactory to select appropriate connector based on server type (v0.2.0)
 /// </summary>
 [DisallowConcurrentExecution]
 public class FileDiscoveryWorker : IJob
@@ -21,19 +22,22 @@ public class FileDiscoveryWorker : IJob
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IConfiguration _configuration;
     private readonly IFileHashService _fileHashService;
+    private readonly IConnectorFactory _connectorFactory;
 
     public FileDiscoveryWorker(
         ILogger<FileDiscoveryWorker> logger,
         IPublishEndpoint publishEndpoint,
         IServiceScopeFactory scopeFactory,
         IConfiguration configuration,
-        IFileHashService fileHashService)
+        IFileHashService fileHashService,
+        IConnectorFactory connectorFactory)
     {
         _logger = logger;
         _publishEndpoint = publishEndpoint;
         _scopeFactory = scopeFactory;
         _configuration = configuration;
         _fileHashService = fileHashService;
+        _connectorFactory = connectorFactory;
     }
 
     public async Task Execute(IJobExecutionContext context)
@@ -124,18 +128,20 @@ public class FileDiscoveryWorker : IJob
 
     /// <summary>
     /// Discovers files from a datasource using the appropriate connector
-    /// Uses Hazelcast distributed cache for deduplication (replaces MongoDB-embedded hashes)
+    /// Uses ConnectorFactory to select connector based on server type (v0.2.0)
+    /// Uses Hazelcast distributed cache for deduplication
     /// </summary>
     private async Task<List<FileMetadata>> DiscoverFilesAsync(
         DataProcessingDataSource datasource,
         string correlationId)
     {
-        using var scope = _scopeFactory.CreateScope();
+        // Get the appropriate connector using ConnectorFactory (v0.2.0)
+        var serverType = DetectServerType(datasource);
+        var connector = _connectorFactory.GetConnector(serverType);
 
-        // Get the appropriate connector based on datasource type
-        // For now, we'll use LocalFileConnector as the default
-        // In a full implementation, you'd detect the type from datasource.FilePath
-        var connector = scope.ServiceProvider.GetRequiredService<LocalFileConnector>();
+        _logger.LogDebug(
+            "[{CorrelationId}] Using {ConnectorType} for datasource {DataSourceName}",
+            correlationId, connector.ConnectorType, datasource.Name);
 
         // Get deduplication TTL from configuration (default: 24 hours)
         var ttlHours = _configuration.GetValue("FileDiscovery:DeduplicationTTLHours", 24);
@@ -231,7 +237,8 @@ public class FileDiscoveryWorker : IJob
         string correlationId)
     {
         var pollBatchId = Guid.NewGuid(); // Each discovery cycle gets a batch ID
-        
+        var serverType = DetectServerType(datasource);
+
         var @event = new FileDiscoveredEvent
         {
             CorrelationId = correlationId,
@@ -241,7 +248,11 @@ public class FileDiscoveryWorker : IJob
             FileSizeBytes = file.FileSizeBytes,
             DiscoveredAt = DateTime.UtcNow,
             SequenceNumber = 1, // Will be improved in production to track actual sequence
-            PollBatchId = pollBatchId
+            PollBatchId = pollBatchId,
+
+            // Server reference fields (v0.2.0)
+            ServerId = datasource.FileServerId,
+            ServerType = serverType
         };
 
         await _publishEndpoint.Publish(@event);
@@ -249,5 +260,37 @@ public class FileDiscoveryWorker : IJob
         _logger.LogInformation(
             "[{CorrelationId}] Published FileDiscoveredEvent for file {FileName} from datasource {DataSourceName}",
             correlationId, file.FileName, datasource.Name);
+    }
+
+    /// <summary>
+    /// Detects server type from datasource configuration
+    /// Checks FileServerId first, then falls back to path-based detection
+    /// </summary>
+    private static string DetectServerType(DataProcessingDataSource datasource)
+    {
+        // Check if datasource has a server reference (v0.2.0 architecture)
+        if (!string.IsNullOrEmpty(datasource.FileServerId))
+        {
+            // Check AdditionalConfiguration for server type hint
+            if (datasource.AdditionalConfiguration?.Contains("ServerType") == true)
+            {
+                return datasource.AdditionalConfiguration["ServerType"].AsString;
+            }
+        }
+
+        // Fall back to path-based detection (legacy support)
+        var path = datasource.FilePath?.ToLowerInvariant() ?? "";
+
+        if (path.StartsWith("ftp://"))
+            return "ftp";
+        if (path.StartsWith("sftp://") || path.StartsWith("ssh://"))
+            return "sftp";
+        if (path.StartsWith("s3://") || path.Contains(".s3.") || path.Contains("minio"))
+            return "s3";
+        if (path.StartsWith("http://") || path.StartsWith("https://"))
+            return "http";
+
+        // Default to local file system
+        return "local";
     }
 }
