@@ -80,6 +80,15 @@ mcp__MCP_DOCKER__mcp-exec(
 )
 ```
 
+### Troubleshooting
+
+If you encounter "Tool not found" errors, see: [docs/troubleshooting/task-orchestrator-mcp-usage.md](docs/troubleshooting/task-orchestrator-mcp-usage.md)
+
+**Common issues:**
+- Tool names must be simple (e.g., `update_task` NOT `task-orchestrator_update_task`)
+- Session may expire - re-run `mcp-add` if tools stop working
+- Always use `activate=true` when adding the server
+
 ### Mandatory Git Workflow After Task Completion
 ```powershell
 # After completing any task:
