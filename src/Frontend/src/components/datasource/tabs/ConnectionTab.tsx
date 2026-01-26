@@ -44,7 +44,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
 }) => {
   // Fetch available input servers
   const { data: inputServers = [], isLoading: loadingServers } = useQuery({
-    queryKey: serverQueryKeys.input(),
+    queryKey: serverQueryKeys.list('input'),
     queryFn: getInputServers,
   });
 

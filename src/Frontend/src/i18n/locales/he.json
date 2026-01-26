@@ -914,7 +914,58 @@
     "title": "הגדרות מערכת",
     "tabs": {
       "categories": "קטגוריות",
+      "servers": "שרתי קבצים",
       "systemSettings": "הגדרות מערכת"
+    },
+    "servers": {
+      "subtitle": "ניהול שרתי קבצים",
+      "filterAll": "הכל",
+      "filterInput": "קלט",
+      "filterOutput": "פלט",
+      "addButton": "הוסף שרת",
+      "createTitle": "יצירת שרת חדש",
+      "editTitle": "עריכת שרת",
+      "createSuccess": "שרת נוצר בהצלחה",
+      "createError": "שגיאה ביצירת שרת",
+      "updateSuccess": "שרת עודכן בהצלחה",
+      "updateError": "שגיאה בעדכון שרת",
+      "deleteConfirm": "האם למחוק שרת זה?",
+      "deleteWarning": "פעולה זו לא ניתנת לביטול",
+      "testConnection": "בדוק חיבור",
+      "credentialsNote": "הערה: אישורים מאוחסנים ב-Kubernetes Secrets ומוזכרים באמצעות CredentialSecretRef",
+      "columns": {
+        "name": "שם",
+        "type": "סוג",
+        "direction": "כיוון",
+        "host": "כתובת",
+        "lastTest": "בדיקה אחרונה",
+        "active": "פעיל",
+        "actions": "פעולות"
+      },
+      "fields": {
+        "name": "שם שרת",
+        "description": "תיאור",
+        "type": "סוג שרת",
+        "direction": "כיוון",
+        "host": "כתובת (Host)",
+        "port": "פורט",
+        "basePath": "נתיב בסיס",
+        "credentials": "הפניה לסוד (K8s Secret)",
+        "timeout": "Timeout (שניות)",
+        "retries": "ניסיונות חוזרים",
+        "active": "פעיל",
+        "bootstrapServers": "Bootstrap Servers",
+        "securityProtocol": "Security Protocol",
+        "saslMechanism": "SASL Mechanism",
+        "defaultConsumerGroup": "Default Consumer Group",
+        "enableSsl": "הפעל SSL"
+      },
+      "sections": {
+        "connection": "הגדרות חיבור",
+        "path": "הגדרות נתיב",
+        "kafka": "הגדרות Kafka",
+        "advanced": "הגדרות מתקדמות"
+      }
     },
     "categories": {
       "title": "ניהול קטגוריות",

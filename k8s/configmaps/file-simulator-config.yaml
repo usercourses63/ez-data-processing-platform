@@ -1,0 +1,78 @@
+# File Simulator Configuration - ConfigMap
+# v0.2.0: External File Access Support
+# Development configuration for file-simulator endpoints
+# For use with Minikube development environment
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: file-simulator-config
+  namespace: ez-platform
+  labels:
+    app: ez-platform
+    component: file-access
+    environment: development
+data:
+  # ========================================
+  # File Simulator Service Endpoints
+  # ========================================
+  # These settings configure connections to file-simulator
+  # which provides FTP, SFTP, S3, NFS services for development
+
+  # FTP Configuration
+  FileAccess__Ftp__Host: "file-simulator"
+  FileAccess__Ftp__Port: "21"
+  FileAccess__Ftp__Username: "ftpuser"
+  FileAccess__Ftp__Password: "ftppass"
+  FileAccess__Ftp__UsePassiveMode: "true"
+  FileAccess__Ftp__UseSsl: "false"
+
+  # SFTP Configuration
+  FileAccess__Sftp__Host: "file-simulator"
+  FileAccess__Sftp__Port: "22"
+  FileAccess__Sftp__Username: "sftpuser"
+  FileAccess__Sftp__Password: "sftppass"
+
+  # S3/MinIO Configuration
+  FileAccess__S3__Endpoint: "http://file-simulator:9000"
+  FileAccess__S3__AccessKey: "minioadmin"
+  FileAccess__S3__SecretKey: "minioadmin"
+  FileAccess__S3__Region: "us-east-1"
+  FileAccess__S3__UsePathStyle: "true"
+  FileAccess__S3__DefaultBucket: "ez-data"
+
+  # HTTP/WebDAV Configuration
+  FileAccess__Http__BaseUrl: "http://file-simulator:8080"
+  FileAccess__Http__AuthType: "none"
+
+  # NFS Configuration (requires NFS PV mount)
+  FileAccess__Nfs__MountPath: "/mnt/nfs-data"
+  FileAccess__Nfs__Server: "file-simulator"
+  FileAccess__Nfs__ExportPath: "/exports/data"
+
+  # ========================================
+  # Archive Processing Settings
+  # ========================================
+
+  # Security limits to prevent archive bombs
+  Archive__MaxEntriesPerArchive: "1000"
+  Archive__MaxUncompressedSizeBytes: "1073741824"  # 1GB
+  Archive__MaxArchiveSizeBytes: "536870912"        # 512MB
+  Archive__MaxNestingDepth: "2"
+
+  # Cache settings for archive processing
+  # Size-tiered caching: <10MB=5min, 10-100MB=2min, >100MB=no cache
+  Archive__SmallFileTTLMinutes: "5"
+  Archive__MediumFileTTLMinutes: "2"
+  Archive__SmallFileThresholdBytes: "10485760"     # 10MB
+  Archive__MediumFileThresholdBytes: "104857600"   # 100MB
+
+  # ========================================
+  # Credential Resolver Settings
+  # ========================================
+
+  # Kubernetes namespace for secrets
+  Credentials__SecretNamespace: "ez-platform"
+
+  # Secret naming pattern: {prefix}-{serverName}-credentials
+  Credentials__SecretPrefix: "file-server"

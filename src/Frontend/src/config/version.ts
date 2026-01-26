@@ -4,9 +4,9 @@
 export const VERSION_INFO = {
   version: 'v0.1.15',
   buildDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-  environment: process.env.NODE_ENV || 'development',
-  gitCommit: process.env.REACT_APP_GIT_COMMIT || 'unknown',
-  gitBranch: process.env.REACT_APP_GIT_BRANCH || 'main',
+  environment: import.meta.env.MODE || 'development',
+  gitCommit: import.meta.env.VITE_GIT_COMMIT || 'unknown',
+  gitBranch: import.meta.env.VITE_GIT_BRANCH || 'main',
 };
 
 export const getVersionString = (): string => {

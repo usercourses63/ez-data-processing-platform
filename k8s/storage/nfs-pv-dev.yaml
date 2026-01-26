@@ -1,0 +1,92 @@
+# NFS Persistent Volume - Development Environment
+# v0.2.0: External File Access Support
+# For use with Minikube and file-simulator
+
+---
+# PersistentVolume for NFS data access
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-data-pv
+  labels:
+    app: ez-platform
+    component: file-access
+    type: nfs
+    environment: development
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-data
+  nfs:
+    server: file-simulator.ez-platform.svc.cluster.local
+    path: /exports/data
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+    - intr
+    - rsize=1048576
+    - wsize=1048576
+
+---
+# PersistentVolumeClaim for services to access NFS
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-data-pvc
+  namespace: ez-platform
+  labels:
+    app: ez-platform
+    component: file-access
+    type: nfs
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-data
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Alternative: hostPath PV for Minikube (when NFS is not available)
+# Use this if file-simulator doesn't provide NFS service
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hostpath-data-pv
+  labels:
+    app: ez-platform
+    component: file-access
+    type: hostpath
+    environment: development
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hostpath-data
+  hostPath:
+    path: /data/ez-platform/files
+    type: DirectoryOrCreate
+
+---
+# PersistentVolumeClaim for hostPath (alternative)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hostpath-data-pvc
+  namespace: ez-platform
+  labels:
+    app: ez-platform
+    component: file-access
+    type: hostpath
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: hostpath-data
+  resources:
+    requests:
+      storage: 10Gi

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Tabs, Typography } from 'antd';
-import { SettingOutlined, TagsOutlined, CloudServerOutlined, CloudUploadOutlined } from '@ant-design/icons';
+import { SettingOutlined, TagsOutlined, CloudServerOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import CategoryManagementTab from './tabs/CategoryManagementTab';
 import ServerConfigurationTab from './tabs/ServerConfigurationTab';
@@ -23,24 +23,14 @@ const AdminSettings: React.FC = () => {
       children: <CategoryManagementTab />,
     },
     {
-      key: 'input-servers',
+      key: 'servers',
       label: (
         <span>
           <CloudServerOutlined />
-          {t('admin.tabs.inputServers') || 'שרתי קלט (Input)'}
+          {t('admin.tabs.servers') || 'שרתי קבצים'}
         </span>
       ),
-      children: <ServerConfigurationTab direction="input" />,
-    },
-    {
-      key: 'output-servers',
-      label: (
-        <span>
-          <CloudUploadOutlined />
-          {t('admin.tabs.outputServers') || 'שרתי פלט (Output)'}
-        </span>
-      ),
-      children: <ServerConfigurationTab direction="output" />,
+      children: <ServerConfigurationTab />,
     },
   ];
 
