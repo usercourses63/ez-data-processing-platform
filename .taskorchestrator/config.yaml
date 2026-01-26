@@ -1,0 +1,85 @@
+# Task Orchestrator Configuration for EZ Platform
+# External File Access & Archive Support v0.2.0
+
+version: "2.0"
+
+# Project metadata
+project:
+  name: "EZ Platform"
+  description: "Data processing platform with file access and archive support"
+
+# Status flow configuration
+status_flows:
+  default_flow:
+    - draft
+    - planning
+    - in-development
+    - testing
+    - validating
+    - completed
+
+  feature_flow:
+    - draft
+    - planning
+    - in-development
+    - testing
+    - completed
+
+# Flow mappings based on tags
+flow_mappings:
+  - tags: ["rapid"]
+    flow: rapid_prototype_flow
+  - tags: ["feature"]
+    flow: feature_flow
+  - tags: []
+    flow: default_flow
+
+# Task status configuration
+task_statuses:
+  - backlog
+  - in-progress
+  - blocked
+  - completed
+  - cancelled
+
+# Cascade events
+cascade_events:
+  first_task_started:
+    trigger: "task.status == 'in-progress' && feature.taskCounts.byStatus['in-progress'] == 1"
+    action: "progress_feature"
+
+  all_tasks_complete:
+    trigger: "feature.taskCounts.byStatus.pending == 0 && feature.taskCounts.byStatus['in-progress'] == 0"
+    action: "progress_feature"
+
+# Prerequisites for status transitions
+prerequisites:
+  planning_to_in_development:
+    condition: "taskCount >= 1"
+    message: "At least one task must be created before moving to in-development"
+
+  in_development_to_testing:
+    condition: "allTasksCompleted"
+    message: "All tasks must be completed before moving to testing"
+
+# Agent mapping for specialists
+agent_mapping:
+  backend:
+    tags: ["backend", "api", "service"]
+    agent: "Implementation Specialist"
+
+  frontend:
+    tags: ["frontend", "ui", "react"]
+    agent: "Implementation Specialist"
+
+  database:
+    tags: ["database", "migration", "schema"]
+    agent: "Implementation Specialist"
+
+  testing:
+    tags: ["testing", "test", "e2e"]
+    agent: "Implementation Specialist"
+
+  documentation:
+    tags: ["docs", "documentation"]
+    agent: "Implementation Specialist"

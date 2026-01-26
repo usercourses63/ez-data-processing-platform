@@ -78,4 +78,63 @@ public class FileDiscoveredEvent : IDataProcessingMessage
     /// </summary>
     [Required]
     public Guid PollBatchId { get; set; }
+
+    // ========== Archive Support Fields (v0.2.0) ==========
+
+    /// <summary>
+    /// Indicates if this file was extracted from an archive
+    /// When true, ArchivePath and PathInArchive will be populated
+    /// </summary>
+    public bool IsFromArchive { get; set; }
+
+    /// <summary>
+    /// Full path to the source archive file (when IsFromArchive is true)
+    /// </summary>
+    [StringLength(2000)]
+    public string? ArchivePath { get; set; }
+
+    /// <summary>
+    /// Path of this file within the archive (when IsFromArchive is true)
+    /// </summary>
+    [StringLength(2000)]
+    public string? PathInArchive { get; set; }
+
+    /// <summary>
+    /// Hazelcast cache key for the archive content
+    /// Format: "archive:{guid}" - used to retrieve archive for extraction
+    /// </summary>
+    [StringLength(100)]
+    public string? ArchiveCacheKey { get; set; }
+
+    /// <summary>
+    /// Unique identifier grouping all files from the same archive
+    /// Used to track processing progress across archive contents
+    /// </summary>
+    public Guid? ArchiveBatchId { get; set; }
+
+    /// <summary>
+    /// Total number of files discovered in the source archive
+    /// Used for progress tracking
+    /// </summary>
+    public int? TotalFilesInArchive { get; set; }
+
+    /// <summary>
+    /// Index of this file within the archive (0-based)
+    /// Used for progress tracking and ordering
+    /// </summary>
+    public int? FileIndexInArchive { get; set; }
+
+    // ========== Server Reference Fields (v0.2.0) ==========
+
+    /// <summary>
+    /// ID of the AdminServer used for file access (when using new architecture)
+    /// </summary>
+    [StringLength(24)]
+    public string? ServerId { get; set; }
+
+    /// <summary>
+    /// Server type identifier (ftp, sftp, s3, etc.)
+    /// </summary>
+    [StringLength(20)]
+    public string? ServerType { get; set; }
 }

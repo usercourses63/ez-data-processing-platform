@@ -13,6 +13,10 @@
     <PackageReference Include="MongoDB.Entities" />
     <PackageReference Include="SSH.NET" />
     <PackageReference Include="System.ComponentModel.Annotations" />
+
+    <!-- File Access & Archive Support (v0.2.0) -->
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="SharpCompress" />
     <PackageReference Include="MassTransit" />
     <PackageReference Include="MassTransit.Kafka" />
     <PackageReference Include="Hazelcast.Net" />

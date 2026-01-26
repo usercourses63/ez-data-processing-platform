@@ -10,9 +10,34 @@ EZ Platform is a data processing platform built with microservices architecture 
 
 ---
 
-## CRITICAL: Task Orchestrator MCP Tool
+## CRITICAL: Task Orchestrator MCP Tool (MANDATORY)
 
-**ALWAYS use the `task-orchestrator` MCP tool for planning, managing, and executing tasks and features.**
+**⚠️ STRICT REQUIREMENT: ONLY use `task-orchestrator` MCP tool via `mcp-exec` for ALL task management.**
+
+**DO NOT use any alternative methods (TodoWrite, manual tracking, etc.) without explicit user permission.**
+
+### MCP-Exec Access Pattern (REQUIRED)
+```
+# All task-orchestrator operations MUST use mcp-exec:
+mcp__MCP_DOCKER__mcp-exec with name="<tool_name>" and arguments={...}
+
+# If task-orchestrator tools are not available:
+1. First run: mcp__MCP_DOCKER__mcp-add with name="task-orchestrator" and activate=true
+2. Then retry the mcp-exec call
+3. If still failing, STOP and ask user how to proceed
+```
+
+### Available Task Orchestrator Tools (via mcp-exec)
+| Tool Name | Purpose |
+|-----------|---------|
+| `get_overview` | Get current work state |
+| `create_feature` | Create a new feature |
+| `create_task` | Create a task under a feature |
+| `update_task` | Update task status/details |
+| `search_tasks` | Search for tasks |
+| `create_dependency` | Set task dependencies |
+| `apply_template` | Apply templates |
+| `add_section` | Add documentation sections |
 
 ### Workflow Requirements
 
@@ -34,22 +59,25 @@ EZ Platform is a data processing platform built with microservices architecture 
    - **Git push to remote**
    - Report completion status
 
-### Task Orchestrator Commands
+### Example mcp-exec Calls
 ```
-# Get current work overview
-get_overview
-
-# Create a feature
-create_feature(name, summary, priority, tags)
-
-# Create tasks under a feature
-create_task(title, summary, featureId, priority, complexity, tags)
-
 # Update task status
-update_task(id, status: "in_progress" | "completed")
+mcp__MCP_DOCKER__mcp-exec(
+  name="update_task",
+  arguments={"id": "task-uuid", "status": "completed"}
+)
 
-# Search for tasks
-search_tasks(status, priority, featureId)
+# Create a task
+mcp__MCP_DOCKER__mcp-exec(
+  name="create_task",
+  arguments={"title": "Task title", "summary": "Task description", "featureId": "feature-uuid"}
+)
+
+# Get overview
+mcp__MCP_DOCKER__mcp-exec(
+  name="get_overview",
+  arguments={}
+)
 ```
 
 ### Mandatory Git Workflow After Task Completion
@@ -74,7 +102,7 @@ This script configures ALL 18 required port forwards:
 
 | Service | Port | Purpose |
 |---------|------|---------|
-| Frontend | 3000 | React UI |
+| Frontend | 7000 | React UI |
 | DataSourceManagement | 5001 | Primary API |
 | MetricsConfiguration | 5002 | Metrics API |
 | Validation | 5003 | Schema validation |
@@ -568,7 +596,7 @@ kubectl apply -f k8s/services/
 powershell.exe -ExecutionPolicy Bypass -File "scripts/start-port-forwards.ps1"
 
 # 6. Access frontend
-start http://localhost:3000
+start http://localhost:7000
 ```
 
 ### Generate Demo Data
@@ -794,3 +822,24 @@ start http://localhost:16686 # Jaeger
 *Last Updated: January 12, 2026*
 *Version: v0.1.1-rc3*
 *Status: Production Ready - Week 5 Validation Phase*
+
+[byterover-mcp]
+
+[byterover-mcp]
+
+You are given two tools from Byterover MCP server, including
+## 1. `byterover-store-knowledge`
+You `MUST` always use this tool when:
+
++ Learning new patterns, APIs, or architectural decisions from the codebase
++ Encountering error solutions or debugging techniques
++ Finding reusable code patterns or utility functions
++ Completing any significant task or plan implementation
+
+## 2. `byterover-retrieve-knowledge`
+You `MUST` always use this tool when:
+
++ Starting any new task or implementation to gather relevant context
++ Before making architectural decisions to understand existing patterns
++ When debugging issues to check for previous solutions
++ Working with unfamiliar parts of the codebase
