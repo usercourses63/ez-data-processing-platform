@@ -8,12 +8,13 @@ public class DatabaseResetService
 {
     public async Task ResetAllCollectionsAsync()
     {
-        Console.WriteLine("\n[1/7] 🗑️  Resetting all database collections...");
-        
+        Console.WriteLine("\n[1/11] 🗑️  Resetting all database collections...");
+
         try
         {
             // Reset DataSource Management collections
             await ResetCollectionAsync<DataSourceCategory>("Categories");
+            await ResetCollectionAsync<AdminServer>("AdminServers");
             await ResetCollectionAsync<DataProcessingDataSource>("DataSources");
             await ResetCollectionAsync<DataProcessingSchema>("Schemas");
 

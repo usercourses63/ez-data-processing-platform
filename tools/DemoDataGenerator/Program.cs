@@ -68,36 +68,41 @@ try
     var categorySeeder = new CategorySeederGenerator();
     await categorySeeder.SeedCategoriesAsync();
 
-    // Step 3: Generate DataSources
-    var dsGenerator = new DataSourceGenerator(random);
+    // Step 3: Generate Admin Servers (datasources reference them)
+    var serverGenerator = new AdminServerGenerator(random);
+    var servers = await serverGenerator.GenerateAsync();
+
+    // Step 4: Generate DataSources (with server references)
+    var dsGenerator = new DataSourceGenerator(random, servers);
     var datasources = await dsGenerator.GenerateAsync();
 
-    // Step 3: Generate Schemas
+    // Step 5: Generate Schemas
     var schemaGenerator = new SchemaGenerator(random);
     await schemaGenerator.GenerateForDataSourcesAsync(datasources);
 
-    // Step 4: Generate Global Metrics (skipped - see documentation)
+    // Step 6: Generate Global Metrics (skipped - see documentation)
     var globalMetricGenerator = new GlobalMetricGenerator(random);
     await globalMetricGenerator.GenerateAsync();
 
-    // Step 5: Generate Datasource Metrics
+    // Step 7: Generate Datasource Metrics
     var dsMetricGenerator = new DatasourceMetricGenerator(random);
     await dsMetricGenerator.GenerateAsync(datasources);
 
-    // Step 6: Generate Datasource-Specific Alerts
+    // Step 8: Generate Datasource-Specific Alerts
     var alertGenerator = new AlertGenerator(random);
     await alertGenerator.GenerateAsync();
 
-    // Step 7: Generate Invalid Records (with schema violations)
+    // Step 9: Generate Invalid Records (with schema violations)
     var invalidRecordsGenerator = new InvalidRecordsGenerator(random);
     await invalidRecordsGenerator.GenerateAsync(datasources);
 
-    // Step 8: Generate Global Alerts (system + business + complex)
+    // Step 10: Generate Global Alerts (system + business + complex)
     var globalAlertGenerator = new GlobalAlertGenerator(random);
     await globalAlertGenerator.GenerateAsync();
 
-    // Step 9: Summary
-    Console.WriteLine("[9/9] 📊 Generation Summary:");
+    // Step 11: Summary
+    Console.WriteLine("[11/11] 📊 Generation Summary:");
+    var serverCount = await DB.CountAsync<DataProcessing.Shared.Entities.AdminServer>(_ => true);
     var dsCount = await DB.CountAsync<DataProcessing.Shared.Entities.DataProcessingDataSource>(_ => true);
     var schemaCount = await DB.CountAsync<DataProcessing.Shared.Entities.DataProcessingSchema>(_ => true);
     var categoryCount = await DB.CountAsync<DataProcessing.Shared.Entities.DataSourceCategory>(_ => true);
@@ -109,7 +114,8 @@ try
         .ExecuteAsync();
 
     Console.WriteLine($"  ✅ {categoryCount} Categories");
-    Console.WriteLine($"  ✅ {dsCount} DataSources");
+    Console.WriteLine($"  ✅ {serverCount} Admin Servers");
+    Console.WriteLine($"  ✅ {dsCount} DataSources (with server refs)");
     Console.WriteLine($"  ✅ {schemaCount} Schemas");
     Console.WriteLine($"  ✅ {metricCount} Metrics (datasource-specific)");
     Console.WriteLine($"  ✅ {metricsWithAlerts.Count} Metrics with datasource alerts");

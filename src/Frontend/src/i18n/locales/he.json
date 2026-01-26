@@ -471,6 +471,7 @@
       "supplier": "ספק",
       "supplierName": "שם הספק",
       "filePath": "נתיב הקובץ",
+      "filePattern": "תבנית קובץ",
       "pollingRate": "תדירות בדיקה",
       "jsonSchema": "סכימת JSON",
       "category": "קטגוריה",
@@ -480,7 +481,20 @@
       "createdAt": "תאריך יצירה",
       "updatedAt": "תאריך עדכון",
       "filesProcessed": "קבצים שעובדו",
-      "lastProcessed": "עיבוד אחרון"
+      "lastProcessed": "עיבוד אחרון",
+      "connectionType": "סוג פרוטוקול",
+      "configMode": "אופן הגדרה",
+      "inputServer": "שרת קלט",
+      "s3Bucket": "Bucket / Prefix",
+      "kafkaTopic": "Topic",
+      "kafkaConsumerGroup": "Consumer Group",
+      "kafkaOffsetReset": "Auto Offset Reset"
+    },
+    "sections": {
+      "configMode": "מצב הגדרה",
+      "pathSettings": "הגדרות נתיב",
+      "httpSettings": "הגדרות HTTP",
+      "kafkaSettings": "הגדרות Kafka"
     },
     "categories": {
       "financial": "פיננסי",

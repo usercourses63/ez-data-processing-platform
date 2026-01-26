@@ -11,15 +11,17 @@ namespace DemoDataGenerator.Generators;
 public class DataSourceGenerator
 {
     private readonly Random _random;
-    
-    public DataSourceGenerator(Random random)
+    private readonly List<AdminServer> _servers;
+
+    public DataSourceGenerator(Random random, List<AdminServer>? servers = null)
     {
         _random = random;
+        _servers = servers ?? new List<AdminServer>();
     }
-    
+
     public async Task<List<DataProcessingDataSource>> GenerateAsync()
     {
-        Console.WriteLine("[2/7] 📊 Generating 20 datasources...");
+        Console.WriteLine("[4/11] 📊 Generating 20 datasources...");
         var datasources = new List<DataProcessingDataSource>();
         
         // Various file patterns
@@ -152,6 +154,9 @@ public class DataSourceGenerator
                 outputConfig = GenerateOutputConfiguration(DemoConfig.DataSourceNames[i], filePattern, i)
             };
             
+            // Find matching server for this connection type
+            var server = AdminServerGenerator.GetServerByType(_servers, connType);
+
             var datasource = new DataProcessingDataSource
             {
                 Name = DemoConfig.DataSourceNames[i],
@@ -163,6 +168,7 @@ public class DataSourceGenerator
                 SchemaVersion = 1,
                 IsActive = true,
                 FilePattern = filePattern,
+                FileServerId = server?.ID,  // Reference to AdminServer (v0.2.0)
                 AdditionalConfiguration = new BsonDocument
                 {
                     { "ConfigurationSettings", JsonConvert.SerializeObject(configurationSettings) },
@@ -179,7 +185,8 @@ public class DataSourceGenerator
             
             await datasource.SaveAsync();
             datasources.Add(datasource);
-            Console.WriteLine($"  ✓ Created: {datasource.Name} ({datasource.Category}, {connType}, {filePattern})");
+            var serverInfo = server != null ? $", server={server.Name}" : ", no server";
+            Console.WriteLine($"  ✓ Created: {datasource.Name} ({datasource.Category}, {connType}{serverInfo})");
         }
         
         Console.WriteLine($"  ✅ Generated {datasources.Count} datasources\n");
