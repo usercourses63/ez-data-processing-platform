@@ -90,6 +90,10 @@ spec:
           value: "1000"
         - name: Output__EnableMetrics
           value: "true"
+        envFrom:
+        - configMapRef:
+            name: file-simulator-config
+            optional: true
         resources:
           requests:
             cpu: "500m"
