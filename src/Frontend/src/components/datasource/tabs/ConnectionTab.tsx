@@ -14,6 +14,7 @@ import { ApiOutlined, FileOutlined, CheckCircleOutlined, CloseCircleOutlined, Cl
 import { useQuery } from '@tanstack/react-query';
 import { KAFKA_OFFSET_RESET } from '../shared/constants';
 import { getInputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
+import { ArchiveSettingsSection } from './sections/ArchiveSettingsSection';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -66,6 +67,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
 
   // Watch form fields
   const inputServerId = Form.useWatch('inputServerId', form);
+  const isArchiveSource = Form.useWatch('isArchiveSource', form);
 
   // Filter servers based on selected protocol
   const compatibleServers = useMemo(() => {
@@ -376,6 +378,15 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
             </>
           )}
         </>
+      )}
+
+      {/* Archive Settings - Only for file-based protocols (not Kafka/HTTP) */}
+      {selectedServer && effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && (
+        <ArchiveSettingsSection
+          form={form}
+          t={t}
+          isArchiveSource={isArchiveSource || false}
+        />
       )}
 
       {/* Connection Test Button */}
