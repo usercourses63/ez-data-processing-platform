@@ -39,6 +39,9 @@
     <!-- Archive Support (v0.2.0) -->
     <PackageVersion Include="SharpCompress" Version="0.38.0" />
 
+    <!-- Kubernetes Integration (v0.2.0) -->
+    <PackageVersion Include="KubernetesClient" Version="14.0.2" />
+
     <!-- Scheduling -->
     <PackageVersion Include="Quartz" Version="3.15.1" />
     <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.15.1" />

@@ -6,12 +6,12 @@ WORKDIR /src
 
 # Copy project files
 COPY src/Services/Shared/DataProcessing.Shared.csproj src/Services/Shared/
-COPY src/Services/DataSourceManagementService/DataSourceManagementService.csproj src/Services/DataSourceManagementService/
+COPY src/Services/DataSourceManagementService/DataProcessing.DataSourceManagement.csproj src/Services/DataSourceManagementService/
 COPY Directory.Build.props .
 COPY Directory.Packages.props .
 
 # Restore dependencies
-RUN dotnet restore src/Services/DataSourceManagementService/DataSourceManagementService.csproj
+RUN dotnet restore src/Services/DataSourceManagementService/DataProcessing.DataSourceManagement.csproj
 
 # Copy source code
 COPY src/Services/Shared/ src/Services/Shared/
@@ -19,11 +19,11 @@ COPY src/Services/DataSourceManagementService/ src/Services/DataSourceManagement
 
 # Build
 WORKDIR /src/src/Services/DataSourceManagementService
-RUN dotnet build DataSourceManagementService.csproj -c Release -o /app/build
+RUN dotnet build DataProcessing.DataSourceManagement.csproj -c Release -o /app/build
 
 # Publish
 FROM build AS publish
-RUN dotnet publish DataSourceManagementService.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish DataProcessing.DataSourceManagement.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
