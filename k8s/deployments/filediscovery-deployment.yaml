@@ -82,6 +82,10 @@ spec:
               key: hazelcast-server
         - name: Hazelcast__ClusterName
           value: "data-processing-cluster"
+        envFrom:
+        - configMapRef:
+            name: file-simulator-config
+            optional: true
         resources:
           requests:
             cpu: "100m"
