@@ -26,6 +26,7 @@ const { TextArea } = Input;
 interface ServerModalProps {
   visible: boolean;
   server: AdminServer | null;
+  defaultDirection?: ServerDirection;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -33,6 +34,7 @@ interface ServerModalProps {
 const ServerModal: React.FC<ServerModalProps> = ({
   visible,
   server,
+  defaultDirection,
   onClose,
   onSuccess,
 }) => {
@@ -90,7 +92,7 @@ const ServerModal: React.FC<ServerModalProps> = ({
       } else {
         form.resetFields();
         form.setFieldsValue({
-          Direction: 'Both',
+          Direction: defaultDirection || 'Both',
           IsActive: true,
           ConnectionTimeoutSeconds: 30,
           RetryCount: 3,
@@ -98,7 +100,7 @@ const ServerModal: React.FC<ServerModalProps> = ({
         });
       }
     }
-  }, [visible, server, form]);
+  }, [visible, server, form, defaultDirection]);
 
   const handleSubmit = async () => {
     try {
