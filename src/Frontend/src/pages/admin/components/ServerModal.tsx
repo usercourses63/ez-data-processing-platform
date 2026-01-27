@@ -207,18 +207,20 @@ const ServerModal: React.FC<ServerModalProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="Direction"
-            label={t('admin.servers.fields.direction') || 'כיוון'}
-            rules={[{ required: true }]}
-            style={{ flex: 1 }}
-          >
-            <Select>
-              <Option value="Input">קלט (Input)</Option>
-              <Option value="Output">פלט (Output)</Option>
-              <Option value="Both">קלט + פלט (Both)</Option>
-            </Select>
-          </Form.Item>
+          {!defaultDirection && (
+            <Form.Item
+              name="Direction"
+              label={t('admin.servers.fields.direction') || 'כיוון'}
+              rules={[{ required: true }]}
+              style={{ flex: 1 }}
+            >
+              <Select>
+                <Option value="Input">קלט (Input)</Option>
+                <Option value="Output">פלט (Output)</Option>
+                <Option value="Both">קלט + פלט (Both)</Option>
+              </Select>
+            </Form.Item>
+          )}
         </Space>
 
         {/* Host/Port fields for FTP, SFTP, S3, HTTP */}

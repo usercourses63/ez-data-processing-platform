@@ -103,7 +103,7 @@ export interface OutputDestination {
   id: string;
   name: string;
   description?: string;
-  type: 'kafka' | 'folder' | 'sftp' | 'http' | 's3' | 'nfs';
+  type: 'kafka' | 'sftp' | 'ftp' | 'http' | 's3' | 'nfs';
   enabled: boolean;
   outputFormat?: 'original' | 'json' | 'csv' | 'xml' | null;
   includeInvalidRecords?: boolean | null;

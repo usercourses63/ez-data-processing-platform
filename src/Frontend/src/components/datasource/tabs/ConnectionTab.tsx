@@ -3,7 +3,7 @@
  * v0.2.0: Server-based configuration ONLY (no manual mode)
  *
  * Flow:
- * 1. Select connection protocol (Local, FTP, SFTP, HTTP, Kafka, S3, NFS)
+ * 1. Select connection protocol (FTP, SFTP, HTTP, Kafka, S3, NFS)
  * 2. Select from compatible servers (configured by admin)
  * 3. Enter applicative settings (path, pattern, topic, etc.)
  */
@@ -30,19 +30,16 @@ interface ConnectionTabProps {
 
 // Server type icons for display
 const serverTypeIcons: Record<string, React.ReactNode> = {
-  local: <FileOutlined />,
   ftp: <ApiOutlined />,
   sftp: <ApiOutlined />,
   s3: <CloudServerOutlined />,
   http: <ApiOutlined />,
   nfs: <FileOutlined />,
   kafka: <DatabaseOutlined />,
-  folder: <FileOutlined />,
 };
 
 // Protocol to server type mapping
 const protocolToServerType: Record<string, string> = {
-  'Local': 'local',
   'FTP': 'ftp',
   'SFTP': 'sftp',
   'HTTP': 'http',
@@ -122,12 +119,6 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
             form.setFieldsValue({ inputServerId: undefined });
           }}
         >
-          <Option value="Local">
-            <Space>
-              <FileOutlined />
-              Local - תיקייה מקומית
-            </Space>
-          </Option>
           <Option value="FTP">
             <Space>
               <ApiOutlined />

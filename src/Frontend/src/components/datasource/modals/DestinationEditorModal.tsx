@@ -55,26 +55,22 @@ interface DestinationEditorModalProps {
 
 // Server type icons
 const serverTypeIcons: Record<string, React.ReactNode> = {
-  local: <FileOutlined />,
   ftp: <ApiOutlined />,
   sftp: <ApiOutlined />,
   s3: <CloudServerOutlined />,
   http: <ApiOutlined />,
   nfs: <FileOutlined />,
   kafka: <CloudServerOutlined />,
-  folder: <FolderOutlined />,
 };
 
 // Protocol to server type mapping
 const protocolToServerType: Record<string, string> = {
-  'Local': 'local',
   'FTP': 'ftp',
   'SFTP': 'sftp',
   'HTTP': 'http',
   'Kafka': 'kafka',
   'S3': 's3',
   'NFS': 'nfs',
-  'Folder': 'folder',
 };
 
 export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
@@ -173,7 +169,7 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
           topic: values.kafkaTopic,
           messageKey: values.kafkaMessageKey,
         };
-      } else if (values.type === 'folder' || values.type === 'local' || values.type === 'nfs') {
+      } else if (values.type === 'ftp' || values.type === 'sftp' || values.type === 'nfs') {
         updatedDestination.folderConfig = {
           path: values.path,
           fileNamePattern: values.fileNamePattern,
@@ -261,12 +257,6 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
               <Space>
                 <CloudServerOutlined />
                 Kafka - Message Queue
-              </Space>
-            </Option>
-            <Option value="Local">
-              <Space>
-                <FileOutlined />
-                Local - תיקייה מקומית
               </Space>
             </Option>
             <Option value="FTP">
