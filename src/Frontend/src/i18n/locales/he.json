@@ -488,14 +488,47 @@
       "s3Bucket": "Bucket / Prefix",
       "kafkaTopic": "Topic",
       "kafkaConsumerGroup": "Consumer Group",
-      "kafkaOffsetReset": "Auto Offset Reset"
+      "kafkaOffsetReset": "Auto Offset Reset",
+      "archiveType": "סוג ארכיון",
+      "archivePassword": "סיסמת ארכיון",
+      "extractionPattern": "תבנית חילוץ",
+      "processNestedArchives": "עבד ארכיונים מקוננים"
     },
     "sections": {
       "serverSelection": "בחירת שרת",
       "pathSettings": "הגדרות נתיב",
       "httpSettings": "הגדרות HTTP",
-      "kafkaSettings": "הגדרות Kafka"
+      "kafkaSettings": "הגדרות Kafka",
+      "archiveSettings": "הגדרות ארכיון"
     },
+    "archive": {
+      "description": "הגדר כיצד לטפל בקבצי ארכיון דחוסים (ZIP, TAR.GZ, RAR, 7Z)",
+      "disabledHint": "הפעל אפשרות זו אם מקור הנתונים מכיל קבצים דחוסים",
+      "types": {
+        "auto": "זיהוי אוטומטי",
+        "zip": "ZIP (.zip)",
+        "tarGz": "TAR.GZ (.tar.gz, .tgz)",
+        "rar": "RAR (.rar)",
+        "7z": "7-Zip (.7z)"
+      }
+    },
+    "tooltips": {
+      "archiveType": "בחר את סוג הארכיון או השאר על אוטומטי לזיהוי לפי סיומת הקובץ",
+      "archivePassword": "סיסמה לפתיחת ארכיונים מוגנים (אופציונלי)",
+      "extractionPattern": "תבנית לסינון קבצים בתוך הארכיון. דוגמה: *.csv לחילוץ רק קבצי CSV",
+      "processNestedArchives": "אם מופעל, יעבד גם ארכיונים הנמצאים בתוך ארכיונים אחרים"
+    },
+    "errors": {
+      "serverRequired": "חובה לבחור שרת",
+      "invalidExtractionPattern": "תבנית חילוץ לא תקינה. דוגמאות: *.csv, data_*.json, *.*"
+    },
+    "noServersForProtocol": "אין שרתי {{protocol}} זמינים",
+    "noServersHint": "פנה למנהל המערכת להוספת שרת מתאים",
+    "goToAdminSettings": "עבור להגדרות מערכת",
+    "loadingServers": "טוען שרתים...",
+    "selectServerPlaceholder": "בחר שרת {{protocol}}...",
+    "noServersFound": "לא נמצאו שרתים",
+    "serversAvailable": "שרתים זמינים",
     "categories": {
       "financial": "פיננסי",
       "customers": "לקוחות",
@@ -929,10 +962,24 @@
     "tabs": {
       "categories": "קטגוריות",
       "servers": "שרתי קבצים",
+      "inputServers": "שרתי קלט",
+      "outputServers": "שרתי פלט",
       "systemSettings": "הגדרות מערכת"
     },
     "servers": {
       "subtitle": "ניהול שרתי קבצים",
+      "inputTitle": "ניהול שרתי קלט",
+      "outputTitle": "ניהול שרתי פלט",
+      "addInputServer": "הוסף שרת קלט",
+      "addOutputServer": "הוסף שרת פלט",
+      "noInputServers": "אין שרתי קלט מוגדרים",
+      "noOutputServers": "אין שרתי פלט מוגדרים",
+      "active": "פעילים",
+      "inactive": "לא פעילים",
+      "emptyHint": "לחץ על כפתור 'הוסף' ליצירת שרת חדש",
+      "deleteSuccess": "שרת נמחק בהצלחה",
+      "toggleSuccess": "סטטוס שרת עודכן בהצלחה",
+      "loadError": "שגיאה בטעינת שרתים",
       "filterAll": "הכל",
       "filterInput": "קלט",
       "filterOutput": "פלט",
