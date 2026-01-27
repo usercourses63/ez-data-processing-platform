@@ -19,11 +19,11 @@ interface ArchiveSettingsSectionProps {
 
 // Archive type options
 const ARCHIVE_TYPES = [
-  { value: 'auto', labelKey: 'datasource.archive.types.auto', fallback: 'זיהוי אוטומטי' },
-  { value: 'zip', labelKey: 'datasource.archive.types.zip', fallback: 'ZIP (.zip)' },
-  { value: 'tar.gz', labelKey: 'datasource.archive.types.tarGz', fallback: 'TAR.GZ (.tar.gz, .tgz)' },
-  { value: 'rar', labelKey: 'datasource.archive.types.rar', fallback: 'RAR (.rar)' },
-  { value: '7z', labelKey: 'datasource.archive.types.7z', fallback: '7-Zip (.7z)' },
+  { value: 'auto', labelKey: 'datasources.archive.types.auto', fallback: 'זיהוי אוטומטי' },
+  { value: 'zip', labelKey: 'datasources.archive.types.zip', fallback: 'ZIP (.zip)' },
+  { value: 'tar.gz', labelKey: 'datasources.archive.types.tarGz', fallback: 'TAR.GZ (.tar.gz, .tgz)' },
+  { value: 'rar', labelKey: 'datasources.archive.types.rar', fallback: 'RAR (.rar)' },
+  { value: '7z', labelKey: 'datasources.archive.types.7z', fallback: '7-Zip (.7z)' },
 ];
 
 export const ArchiveSettingsSection: React.FC<ArchiveSettingsSectionProps> = ({
