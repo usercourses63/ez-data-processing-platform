@@ -18,7 +18,7 @@ COPY src/Services/Shared/ src/Services/Shared/
 COPY src/Services/DataSourceManagementService/ src/Services/DataSourceManagementService/
 
 # Build
-WORKDIR /src/Services/DataSourceManagementService
+WORKDIR /src/src/Services/DataSourceManagementService
 RUN dotnet build DataProcessing.DataSourceManagement.csproj -c Release -o /app/build
 
 # Publish
@@ -39,4 +39,4 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 
 EXPOSE 5001
 
-ENTRYPOINT ["dotnet", "DataSourceManagementService.dll"]
+ENTRYPOINT ["dotnet", "DataProcessing.DataSourceManagement.dll"]
