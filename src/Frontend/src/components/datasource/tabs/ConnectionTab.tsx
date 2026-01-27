@@ -172,12 +172,28 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
 
           {!hasCompatibleServers ? (
             <Alert
-              message={`אין שרתי ${connectionType} מוגדרים במערכת`}
-              description="פנה למנהל המערכת להגדרת שרת מתאים בהגדרות מערכת > שרתי קבצים"
+              message={t('datasource.noServersForProtocol', { protocol: connectionType }) || `אין שרתי ${connectionType} זמינים`}
+              description={
+                <Space direction="vertical" size="small">
+                  <Text>{t('datasource.noServersHint') || 'פנה למנהל המערכת להוספת שרת מתאים'}</Text>
+                  <Text type="secondary">
+                    {t('navigation.adminSettings') || 'הגדרות מערכת'} → {t('admin.tabs.inputServers') || 'שרתי קלט'}
+                  </Text>
+                </Space>
+              }
               type="warning"
               showIcon
               icon={<WarningOutlined />}
               style={{ marginBottom: 16 }}
+              action={
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => window.open('/admin', '_blank')}
+                >
+                  {t('datasource.goToAdminSettings') || 'עבור להגדרות מערכת'}
+                </Button>
+              }
             />
           ) : (
             <Form.Item
@@ -186,18 +202,39 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                 <Space>
                   <CloudServerOutlined />
                   {t('datasource.fields.inputServer') || 'שרת קלט'}
-                  <Tag color="green">{compatibleServers.length} שרתים זמינים</Tag>
+                  <Tag color="green">{compatibleServers.length} {t('datasource.serversAvailable') || 'שרתים זמינים'}</Tag>
                 </Space>
               }
-              rules={[{ required: true, message: t('errors.required') }]}
+              rules={[
+                {
+                  required: true,
+                  message: t('datasource.errors.serverRequired') || 'חובה לבחור שרת'
+                }
+              ]}
               tooltip="בחר שרת שהוגדר על ידי מנהל המערכת"
             >
               <Select
-                placeholder={`בחר שרת ${connectionType}...`}
+                placeholder={
+                  loadingServers
+                    ? t('datasource.loadingServers') || 'טוען שרתים...'
+                    : t('datasource.selectServerPlaceholder', { protocol: connectionType }) || `בחר שרת ${connectionType}...`
+                }
                 loading={loadingServers}
+                disabled={loadingServers}
                 allowClear
                 showSearch
                 optionFilterProp="children"
+                notFoundContent={
+                  loadingServers ? (
+                    <Space>
+                      <span role="status" aria-live="polite">
+                        {t('datasource.loadingServers') || 'טוען שרתים...'}
+                      </span>
+                    </Space>
+                  ) : (
+                    t('datasource.noServersFound') || 'לא נמצאו שרתים'
+                  )
+                }
               >
                 {compatibleServers.map((server: AdminServer) => (
                   <Option key={server.ID} value={server.ID}>
