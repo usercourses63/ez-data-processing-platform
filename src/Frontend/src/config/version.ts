@@ -2,7 +2,7 @@
 // This file is automatically updated during the build process
 
 export const VERSION_INFO = {
-  version: 'v0.1.15',
+  version: 'v0.2.0',
   buildDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
   environment: import.meta.env.MODE || 'development',
   gitCommit: import.meta.env.VITE_GIT_COMMIT || 'unknown',

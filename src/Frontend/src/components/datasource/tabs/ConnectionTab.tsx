@@ -174,7 +174,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
 
           {!hasCompatibleServers ? (
             <Alert
-              message={t('datasource.noServersForProtocol', { protocol: connectionType }) || `אין שרתי ${connectionType} זמינים`}
+              message={`אין שרתי ${connectionType} זמינים`}
               description={
                 <Space direction="vertical" size="small">
                   <Text>{t('datasource.noServersHint') || 'פנה למנהל המערכת להוספת שרת מתאים'}</Text>
@@ -218,8 +218,8 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
               <Select
                 placeholder={
                   loadingServers
-                    ? t('datasource.loadingServers') || 'טוען שרתים...'
-                    : t('datasource.selectServerPlaceholder', { protocol: connectionType }) || `בחר שרת ${connectionType}...`
+                    ? 'טוען שרתים...'
+                    : `בחר שרת ${connectionType}...`
                 }
                 loading={loadingServers}
                 disabled={loadingServers}
