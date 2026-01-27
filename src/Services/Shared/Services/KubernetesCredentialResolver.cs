@@ -56,17 +56,17 @@ public class KubernetesCredentialResolver : ICredentialResolver
             throw new ArgumentException("Secret reference cannot be empty", nameof(secretRef));
 
         var stopwatch = Stopwatch.StartNew();
-        var (namespace, secretName) = ParseSecretRef(secretRef);
+        var (secretNamespace, secretName) = ParseSecretRef(secretRef);
 
         // Start OpenTelemetry Activity for distributed tracing
         using var activity = ActivitySource.StartActivity("ResolveCredentials");
-        activity?.SetTag("secret.namespace", namespace);
+        activity?.SetTag("secret.namespace", secretNamespace);
         activity?.SetTag("secret.name", secretName);
         activity?.SetTag("secret.ref", secretRef);
 
         try
         {
-            _logger.LogDebug("Resolving credentials from K8s Secret: {Namespace}/{SecretName}", namespace, secretName);
+            _logger.LogDebug("Resolving credentials from K8s Secret: {Namespace}/{SecretName}", secretNamespace, secretName);
 
             // Read Secret from Kubernetes API
             V1Secret secret;
@@ -74,22 +74,22 @@ public class KubernetesCredentialResolver : ICredentialResolver
             {
                 secret = await _kubernetesClient.CoreV1.ReadNamespacedSecretAsync(
                     secretName,
-                    namespace,
+                    secretNamespace,
                     cancellationToken: cancellationToken);
             }
             catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                _logger.LogWarning("Secret not found: {Namespace}/{SecretName}", namespace, secretName);
+                _logger.LogWarning("Secret not found: {Namespace}/{SecretName}", secretNamespace, secretName);
                 throw new CredentialResolutionException(
                     secretRef,
-                    $"Secret not found: {namespace}/{secretName}");
+                    $"Secret not found: {secretNamespace}/{secretName}");
             }
             catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                _logger.LogError("Access denied to secret: {Namespace}/{SecretName}. Check RBAC permissions.", namespace, secretName);
+                _logger.LogError("Access denied to secret: {Namespace}/{SecretName}. Check RBAC permissions.", secretNamespace, secretName);
                 throw new CredentialResolutionException(
                     secretRef,
-                    $"Access denied to secret: {namespace}/{secretName}. Check service account permissions.");
+                    $"Access denied to secret: {secretNamespace}/{secretName}. Check service account permissions.");
             }
 
             // Map Secret data to ServerCredentials
@@ -99,7 +99,7 @@ public class KubernetesCredentialResolver : ICredentialResolver
 
             _logger.LogInformation(
                 "Successfully resolved credentials from {Namespace}/{SecretName}: {CredentialTypes} in {DurationMs}ms",
-                namespace,
+                secretNamespace,
                 secretName,
                 credentials.ToString(), // Uses redacted ToString() from ServerCredentials
                 stopwatch.ElapsedMilliseconds);
@@ -112,7 +112,7 @@ public class KubernetesCredentialResolver : ICredentialResolver
             var tags = new TagList
             {
                 { "status", "success" },
-                { "namespace", namespace }
+                { "namespace", secretNamespace }
             };
             CredentialResolutionCounter.Add(1, tags);
             CredentialResolutionDuration.Record(stopwatch.Elapsed.TotalSeconds, tags);
@@ -131,7 +131,7 @@ public class KubernetesCredentialResolver : ICredentialResolver
             var tags = new TagList
             {
                 { "status", "failed" },
-                { "namespace", namespace },
+                { "namespace", secretNamespace },
                 { "error_type", "not_found_or_forbidden" }
             };
             CredentialResolutionCounter.Add(1, tags);
@@ -153,7 +153,7 @@ public class KubernetesCredentialResolver : ICredentialResolver
             var tags = new TagList
             {
                 { "status", "error" },
-                { "namespace", namespace },
+                { "namespace", secretNamespace },
                 { "error_type", "unexpected" }
             };
             CredentialResolutionCounter.Add(1, tags);
@@ -176,11 +176,11 @@ public class KubernetesCredentialResolver : ICredentialResolver
 
         try
         {
-            var (namespace, secretName) = ParseSecretRef(secretRef);
+            var (secretNamespace, secretName) = ParseSecretRef(secretRef);
 
             await _kubernetesClient.CoreV1.ReadNamespacedSecretAsync(
                 secretName,
-                namespace,
+                secretNamespace,
                 cancellationToken: cancellationToken);
 
             return true;

@@ -18,7 +18,7 @@ COPY src/Services/Shared/ src/Services/Shared/
 COPY src/Services/DataSourceManagementService/ src/Services/DataSourceManagementService/
 
 # Build
-WORKDIR /src/src/Services/DataSourceManagementService
+WORKDIR /src/Services/DataSourceManagementService
 RUN dotnet build DataProcessing.DataSourceManagement.csproj -c Release -o /app/build
 
 # Publish
