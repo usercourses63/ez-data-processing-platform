@@ -27,7 +27,8 @@ public class ConnectorFactory : IConnectorFactory
         ["http"] = typeof(HttpApiConnector),
         ["https"] = typeof(HttpApiConnector),
         ["kafka"] = typeof(KafkaConnector),
-        // S3Connector will be registered separately
+        ["s3"] = typeof(S3Connector),
+        ["s3compat"] = typeof(S3Connector),        // Alias for S3-compatible (MinIO, etc.)
     };
 
     public ConnectorFactory(
@@ -135,6 +136,7 @@ public static class ConnectorFactoryExtensions
         services.AddSingleton<SftpConnector>();
         services.AddSingleton<HttpApiConnector>();
         services.AddSingleton<KafkaConnector>();
+        services.AddSingleton<S3Connector>();
 
         return services;
     }
