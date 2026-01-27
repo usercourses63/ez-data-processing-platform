@@ -17,6 +17,7 @@
     <!-- File Access & Archive Support (v0.2.0) -->
     <PackageReference Include="AWSSDK.S3" />
     <PackageReference Include="SharpCompress" />
+    <PackageReference Include="KubernetesClient" Version="14.0.1" />
     <PackageReference Include="MassTransit" />
     <PackageReference Include="MassTransit.Kafka" />
     <PackageReference Include="Hazelcast.Net" />
