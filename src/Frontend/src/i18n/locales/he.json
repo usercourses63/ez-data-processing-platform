@@ -491,7 +491,7 @@
       "kafkaOffsetReset": "Auto Offset Reset"
     },
     "sections": {
-      "configMode": "מצב הגדרה",
+      "serverSelection": "בחירת שרת",
       "pathSettings": "הגדרות נתיב",
       "httpSettings": "הגדרות HTTP",
       "kafkaSettings": "הגדרות Kafka"

@@ -1,22 +1,21 @@
 /**
  * ConnectionTab - Data Source Connection Configuration
- * v0.2.0: Added server selection support for admin-configured servers
+ * v0.2.0: Server-based configuration ONLY (no manual mode)
  *
  * Flow:
  * 1. Select connection protocol (Local, FTP, SFTP, HTTP, Kafka, S3, NFS)
- * 2. Select from compatible servers OR configure manually
+ * 2. Select from compatible servers (configured by admin)
  * 3. Enter applicative settings (path, pattern, topic, etc.)
  */
 import React, { useMemo } from 'react';
-import { Form, Input, Select, InputNumber, Button, Space, Alert, Row, Col, Tag, Divider, Typography, Radio } from 'antd';
+import { Form, Input, Select, Button, Space, Alert, Row, Col, Tag, Divider, Typography } from 'antd';
 import { FormInstance } from 'antd/es/form';
-import { ApiOutlined, FileOutlined, CheckCircleOutlined, CloseCircleOutlined, CloudServerOutlined, DatabaseOutlined, SettingOutlined } from '@ant-design/icons';
+import { ApiOutlined, FileOutlined, CheckCircleOutlined, CloseCircleOutlined, CloudServerOutlined, DatabaseOutlined, WarningOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { KAFKA_SECURITY_PROTOCOLS, KAFKA_OFFSET_RESET } from '../shared/constants';
+import { KAFKA_OFFSET_RESET } from '../shared/constants';
 import { getInputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
 
 const { Option } = Select;
-const { TextArea } = Input;
 const { Text } = Typography;
 
 interface ConnectionTabProps {
@@ -66,7 +65,6 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   });
 
   // Watch form fields
-  const configMode = Form.useWatch('configMode', form);
   const inputServerId = Form.useWatch('inputServerId', form);
 
   // Filter servers based on selected protocol
@@ -83,9 +81,9 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
 
   // Get selected server details
   const selectedServer = useMemo(() => {
-    if (!inputServerId || configMode !== 'server') return null;
+    if (!inputServerId) return null;
     return inputServers.find((s: AdminServer) => s.ID === inputServerId) || null;
-  }, [inputServerId, inputServers, configMode]);
+  }, [inputServerId, inputServers]);
 
   // Check if servers are available for the selected protocol
   const hasCompatibleServers = compatibleServers.length > 0;
@@ -97,7 +95,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
     <>
       <Alert
         message="הגדרות חיבור למקור הנתונים"
-        description="בחר את סוג הפרוטוקול, ולאחר מכן בחר שרת מוגדר או הגדר חיבור ידני"
+        description="בחר את סוג הפרוטוקול ושרת שהוגדר על ידי מנהל המערכת"
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
@@ -119,10 +117,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
           placeholder="בחר סוג פרוטוקול..."
           onChange={() => {
             // Reset server selection when protocol changes
-            form.setFieldsValue({
-              inputServerId: undefined,
-              configMode: undefined
-            });
+            form.setFieldsValue({ inputServerId: undefined });
           }}
         >
           <Option value="Local">
@@ -170,50 +165,31 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
         </Select>
       </Form.Item>
 
-      {/* Step 2: Configuration Mode (Server vs Manual) - Only show after protocol selected */}
+      {/* Step 2: Server Selection - Only show after protocol selected */}
       {connectionType && (
         <>
-          <Divider>{t('datasource.sections.configMode') || 'מצב הגדרה'}</Divider>
+          <Divider>{t('datasource.sections.serverSelection') || 'בחירת שרת'}</Divider>
 
-          <Form.Item
-            name="configMode"
-            label={t('datasource.fields.configMode') || 'אופן הגדרה'}
-            rules={[{ required: true, message: t('errors.required') }]}
-          >
-            <Radio.Group>
-              <Space direction="vertical">
-                <Radio value="server" disabled={!hasCompatibleServers}>
-                  <Space>
-                    <CloudServerOutlined />
-                    בחר שרת מוגדר
-                    {hasCompatibleServers ? (
-                      <Tag color="green">{compatibleServers.length} שרתים זמינים</Tag>
-                    ) : (
-                      <Tag color="orange">אין שרתי {connectionType} מוגדרים</Tag>
-                    )}
-                  </Space>
-                </Radio>
-                <Radio value="manual">
-                  <Space>
-                    <SettingOutlined />
-                    הגדרה ידנית
-                  </Space>
-                </Radio>
-              </Space>
-            </Radio.Group>
-          </Form.Item>
-
-          {/* Server Selection - Only show when server mode and protocol has compatible servers */}
-          {configMode === 'server' && hasCompatibleServers && (
+          {!hasCompatibleServers ? (
+            <Alert
+              message={`אין שרתי ${connectionType} מוגדרים במערכת`}
+              description="פנה למנהל המערכת להגדרת שרת מתאים בהגדרות מערכת > שרתי קבצים"
+              type="warning"
+              showIcon
+              icon={<WarningOutlined />}
+              style={{ marginBottom: 16 }}
+            />
+          ) : (
             <Form.Item
               name="inputServerId"
               label={
                 <Space>
                   <CloudServerOutlined />
                   {t('datasource.fields.inputServer') || 'שרת קלט'}
+                  <Tag color="green">{compatibleServers.length} שרתים זמינים</Tag>
                 </Space>
               }
-              rules={[{ required: configMode === 'server', message: t('errors.required') }]}
+              rules={[{ required: true, message: t('errors.required') }]}
               tooltip="בחר שרת שהוגדר על ידי מנהל המערכת"
             >
               <Select
@@ -260,114 +236,28 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
         </>
       )}
 
-      {/* Step 3: Applicative Fields - Based on protocol type */}
-      {connectionType && configMode && (
+      {/* Step 3: Applicative Fields - Only show when server selected */}
+      {selectedServer && (
         <>
           {/* ========== FILE-BASED PROTOCOLS (Local, FTP, SFTP, S3, NFS) ========== */}
           {effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && (
             <>
               <Divider>{t('datasource.sections.pathSettings') || 'הגדרות נתיב'}</Divider>
 
-              {/* Manual connection fields */}
-              {configMode === 'manual' && (effectiveConnectionType === 'ftp' || effectiveConnectionType === 'sftp') && (
-                <>
-                  <Row gutter={16}>
-                    <Col xs={24} lg={16}>
-                      <Form.Item
-                        name="connectionHost"
-                        label="שרת (Host)"
-                        rules={[{ required: true, message: t('errors.required') }]}
-                      >
-                        <Input className="ltr-field" placeholder="לדוגמה: ftp.example.com" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} lg={8}>
-                      <Form.Item
-                        name="connectionPort"
-                        label="פורט"
-                        initialValue={effectiveConnectionType === 'sftp' ? 22 : 21}
-                      >
-                        <InputNumber min={1} max={65535} style={{ width: '100%' }} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={16}>
-                    <Col xs={24} lg={12}>
-                      <Form.Item
-                        name="connectionUsername"
-                        label="שם משתמש"
-                        rules={[{ required: true, message: t('errors.required') }]}
-                      >
-                        <Input placeholder="שם משתמש לחיבור" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} lg={12}>
-                      <Form.Item
-                        name="connectionPassword"
-                        label="סיסמה"
-                        rules={[{ required: true, message: t('errors.required') }]}
-                      >
-                        <Input.Password placeholder="סיסמה לחיבור" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </>
-              )}
-
-              {/* S3 manual fields */}
-              {configMode === 'manual' && effectiveConnectionType === 's3' && (
-                <>
-                  <Form.Item
-                    name="s3Endpoint"
-                    label="S3 Endpoint"
-                    rules={[{ required: true, message: t('errors.required') }]}
-                  >
-                    <Input className="ltr-field" placeholder="https://s3.amazonaws.com או http://minio:9000" />
-                  </Form.Item>
-
-                  <Row gutter={16}>
-                    <Col xs={24} lg={12}>
-                      <Form.Item
-                        name="s3AccessKey"
-                        label="Access Key"
-                        rules={[{ required: true, message: t('errors.required') }]}
-                      >
-                        <Input className="ltr-field" placeholder="AKIAIOSFODNN7EXAMPLE" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} lg={12}>
-                      <Form.Item
-                        name="s3SecretKey"
-                        label="Secret Key"
-                        rules={[{ required: true, message: t('errors.required') }]}
-                      >
-                        <Input.Password className="ltr-field" placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Form.Item name="s3Region" label="Region">
-                    <Input className="ltr-field" placeholder="us-east-1" />
-                  </Form.Item>
-                </>
-              )}
-
-              {/* Path and file pattern - common to all file protocols */}
               <Form.Item
-                name={configMode === 'manual' ? 'connectionPath' : 'filePath'}
+                name="filePath"
                 label={effectiveConnectionType === 's3'
                   ? (t('datasource.fields.s3Bucket') || 'Bucket / Prefix')
                   : (t('datasource.fields.filePath') || 'נתיב (Path)')
                 }
-                tooltip={configMode === 'server' ? 'נתיב יחסי לנתיב הבסיס של השרת' : 'נתיב מלא לתיקייה'}
+                tooltip="נתיב יחסי לנתיב הבסיס של השרת"
                 rules={[{ required: true, message: t('errors.required') }]}
               >
                 <Input
                   className="ltr-field"
                   placeholder={
                     effectiveConnectionType === 's3' ? 'bucket-name/prefix/' :
-                    effectiveConnectionType === 'local' ? 'C:\\Data\\Files או /data/input/' :
+                    effectiveConnectionType === 'local' ? '/data/input/sales/' :
                     '/path/to/files/'
                   }
                 />
@@ -396,43 +286,11 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
             <>
               <Divider>{t('datasource.sections.httpSettings') || 'הגדרות HTTP'}</Divider>
 
-              {configMode === 'manual' && (
-                <>
-                  <Form.Item
-                    name="connectionUrl"
-                    label="כתובת URL בסיסית"
-                    rules={[
-                      { required: true, message: t('errors.required') },
-                      { type: 'url', message: t('errors.invalidUrl') }
-                    ]}
-                  >
-                    <Input className="ltr-field" placeholder="https://api.example.com" />
-                  </Form.Item>
-
-                  <Row gutter={16}>
-                    <Col xs={24} lg={12}>
-                      <Form.Item name="httpAuthType" label="סוג אימות" initialValue="none">
-                        <Select>
-                          <Option value="none">ללא אימות</Option>
-                          <Option value="basic">Basic Auth</Option>
-                          <Option value="bearer">Bearer Token</Option>
-                          <Option value="apikey">API Key</Option>
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} lg={12}>
-                      <Form.Item name="httpAuthCredential" label="אימות (Token/Key)">
-                        <Input.Password className="ltr-field" placeholder="Token או API Key" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </>
-              )}
-
               <Form.Item
                 name="httpEndpointPath"
                 label="נתיב Endpoint"
                 rules={[{ required: true, message: t('errors.required') }]}
+                tooltip="נתיב יחסי ל-URL הבסיסי של השרת"
               >
                 <Input className="ltr-field" placeholder="/data/files" />
               </Form.Item>
@@ -443,48 +301,6 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
           {effectiveConnectionType === 'kafka' && (
             <>
               <Divider>{t('datasource.sections.kafkaSettings') || 'הגדרות Kafka'}</Divider>
-
-              {configMode === 'manual' && (
-                <>
-                  <Form.Item
-                    name="kafkaBrokers"
-                    label="Kafka Brokers"
-                    rules={[{ required: true, message: t('errors.required') }]}
-                    tooltip="רשימת Kafka brokers (מופרדים בפסיקים)"
-                  >
-                    <TextArea
-                      className="ltr-field"
-                      rows={2}
-                      placeholder="localhost:9092,broker2:9092,broker3:9092"
-                    />
-                  </Form.Item>
-
-                  <Row gutter={16}>
-                    <Col xs={24} lg={12}>
-                      <Form.Item
-                        name="kafkaSecurityProtocol"
-                        label="Security Protocol"
-                        initialValue="PLAINTEXT"
-                      >
-                        <Select>
-                          {KAFKA_SECURITY_PROTOCOLS.map(opt => (
-                            <Option key={opt.value} value={opt.value}>{opt.label}</Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} lg={12}>
-                      <Form.Item name="kafkaUsername" label="Username (SASL)">
-                        <Input placeholder="kafka-user" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Form.Item name="kafkaPassword" label="Password (SASL)">
-                    <Input.Password placeholder="kafka-password" />
-                  </Form.Item>
-                </>
-              )}
 
               <Form.Item
                 name="kafkaTopic"
@@ -500,7 +316,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                   <Form.Item
                     name="kafkaConsumerGroup"
                     label={t('datasource.fields.kafkaConsumerGroup') || 'Consumer Group'}
-                    tooltip="Consumer Group ID - אם ריק, ישתמש בברירת המחדל"
+                    tooltip="Consumer Group ID - אם ריק, ישתמש בברירת המחדל של השרת"
                   >
                     <Input className="ltr-field" placeholder="dataprocessing-sales" />
                   </Form.Item>
@@ -520,23 +336,6 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                   </Form.Item>
                 </Col>
               </Row>
-
-              {configMode === 'manual' && (
-                <Alert
-                  message="הגדרות Kafka מתקדמות"
-                  description={
-                    <ul style={{ margin: 0, paddingRight: 20 }}>
-                      <li>Brokers: רשימת כתובות Kafka brokers (host:port)</li>
-                      <li>Topic: שם ה-Topic לצריכת הודעות</li>
-                      <li>Consumer Group: מזהה ייחודי למעקב אחר offset</li>
-                      <li>Security: PLAINTEXT למערכות מקומיות, SSL/SASL לפרודקשן</li>
-                    </ul>
-                  }
-                  type="info"
-                  showIcon
-                  style={{ marginTop: 16 }}
-                />
-              )}
             </>
           )}
         </>
@@ -550,7 +349,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
             icon={<ApiOutlined />}
             onClick={onTestConnection}
             loading={testingConnection}
-            disabled={!connectionType || !configMode}
+            disabled={!selectedServer}
           >
             בדוק חיבור
           </Button>
