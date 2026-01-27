@@ -1,9 +1,10 @@
-// DestinationEditorModal.tsx - Multi-Destination Output Editor
-// Task-26: Enhanced Output Tab Component
-// Version: 1.0
-// Date: December 1, 2025
+/**
+ * DestinationEditorModal.tsx - Multi-Destination Output Editor
+ * v0.2.0: Server-based configuration with AdminServer integration
+ * Updated: January 2026
+ */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Modal,
   Form,
@@ -13,7 +14,6 @@ import {
   Space,
   Card,
   Button,
-  Table,
   Select,
   Typography,
   message,
@@ -22,29 +22,20 @@ import {
   Tag
 } from 'antd';
 import {
-  PlusOutlined,
-  DeleteOutlined,
   CloudServerOutlined,
   FolderOutlined,
   ApiOutlined,
   GlobalOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  SyncOutlined
+  FileOutlined,
+  WarningOutlined
 } from '@ant-design/icons';
-import type {
-  OutputDestination,
-  KafkaOutputConfig,
-  FolderOutputConfig
-} from '../shared/types';
-import {
-  testKafkaConnection,
-  testFolderConnection,
-  testSftpConnection
-} from '../../../api/connection-test-api-client';
+import { useQuery } from '@tanstack/react-query';
+import type { OutputDestination } from '../shared/types';
+import { getOutputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
 
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 const { TextArea } = Input;
+const { Option } = Select;
 
 // Simple UUID generator for browser compatibility
 const generateUUID = () => {
@@ -62,6 +53,30 @@ interface DestinationEditorModalProps {
   onCancel: () => void;
 }
 
+// Server type icons
+const serverTypeIcons: Record<string, React.ReactNode> = {
+  local: <FileOutlined />,
+  ftp: <ApiOutlined />,
+  sftp: <ApiOutlined />,
+  s3: <CloudServerOutlined />,
+  http: <ApiOutlined />,
+  nfs: <FileOutlined />,
+  kafka: <CloudServerOutlined />,
+  folder: <FolderOutlined />,
+};
+
+// Protocol to server type mapping
+const protocolToServerType: Record<string, string> = {
+  'Local': 'local',
+  'FTP': 'ftp',
+  'SFTP': 'sftp',
+  'HTTP': 'http',
+  'Kafka': 'kafka',
+  'S3': 's3',
+  'NFS': 'nfs',
+  'Folder': 'folder',
+};
+
 export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
   visible,
   destination,
@@ -70,13 +85,35 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [destinationType, setDestinationType] = useState<string>(destination?.type || 'kafka');
-  const [kafkaHeaders, setKafkaHeaders] = useState<Array<{ key: string; value: string }>>(
-    destination?.kafkaConfig?.headers
-      ? Object.entries(destination.kafkaConfig.headers).map(([key, value]) => ({ key, value }))
-      : []
-  );
-  const [testingConnection, setTestingConnection] = useState<boolean>(false);
-  const [connectionTestResult, setConnectionTestResult] = useState<'success' | 'failed' | null>(null);
+
+  // Fetch available output servers
+  const { data: outputServers = [], isLoading: loadingServers } = useQuery({
+    queryKey: serverQueryKeys.list('output'),
+    queryFn: getOutputServers,
+  });
+
+  // Watch form fields
+  const outputServerId = Form.useWatch('outputServerId', form);
+
+  // Filter servers based on selected protocol
+  const compatibleServers = useMemo(() => {
+    if (!destinationType) return [];
+    const serverType = protocolToServerType[destinationType]?.toLowerCase() || destinationType.toLowerCase();
+
+    return outputServers.filter((server: AdminServer) =>
+      server.IsActive &&
+      server.ServerType?.toLowerCase() === serverType
+    );
+  }, [destinationType, outputServers]);
+
+  // Get selected server details
+  const selectedServer = useMemo(() => {
+    if (!outputServerId) return null;
+    return outputServers.find((s: AdminServer) => s.ID === outputServerId) || null;
+  }, [outputServerId, outputServers]);
+
+  // Check if servers are available for the selected protocol
+  const hasCompatibleServers = compatibleServers.length > 0;
 
   useEffect(() => {
     if (visible && destination) {
@@ -87,26 +124,14 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
         enabled: destination.enabled,
         outputFormat: destination.outputFormat,
         includeInvalidRecords: destination.includeInvalidRecords,
-        // Kafka config
-        kafkaBrokerServer: destination.kafkaConfig?.brokerServer,
+        outputServerId: destination.outputServerId,
+        // Applicative fields
+        path: destination.folderConfig?.path || destination.kafkaConfig?.topic,
+        fileNamePattern: destination.folderConfig?.fileNamePattern,
         kafkaTopic: destination.kafkaConfig?.topic,
         kafkaMessageKey: destination.kafkaConfig?.messageKey,
-        kafkaSecurityProtocol: destination.kafkaConfig?.securityProtocol,
-        kafkaSaslMechanism: destination.kafkaConfig?.saslMechanism,
-        kafkaUsername: destination.kafkaConfig?.username,
-        kafkaPassword: destination.kafkaConfig?.password,
-        // Folder config
-        folderPath: destination.folderConfig?.path,
-        folderFileNamePattern: destination.folderConfig?.fileNamePattern,
-        folderCreateSubfolders: destination.folderConfig?.createSubfolders
       });
       setDestinationType(destination.type);
-
-      if (destination.kafkaConfig?.headers) {
-        setKafkaHeaders(
-          Object.entries(destination.kafkaConfig.headers).map(([key, value]) => ({ key, value }))
-        );
-      }
     } else if (visible && !destination) {
       // New destination
       form.resetFields();
@@ -117,7 +142,6 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
         includeInvalidRecords: null
       });
       setDestinationType('kafka');
-      setKafkaHeaders([]);
     }
   }, [visible, destination, form]);
 
@@ -125,7 +149,13 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
     try {
       const values = await form.validateFields();
 
-      // Build destination object
+      // Validate server selection
+      if (!values.outputServerId) {
+        message.error('חובה לבחור שרת פלט');
+        return;
+      }
+
+      // Build destination object with server-based configuration
       const updatedDestination: OutputDestination = {
         id: destination?.id || generateUUID(),
         name: values.name,
@@ -133,212 +163,76 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
         type: values.type,
         enabled: values.enabled,
         outputFormat: values.outputFormat,
-        includeInvalidRecords: values.includeInvalidRecords
+        includeInvalidRecords: values.includeInvalidRecords,
+        outputServerId: values.outputServerId, // v0.2.0: Server reference
       };
 
-      // Add type-specific configuration
+      // Add type-specific applicative configuration
       if (values.type === 'kafka') {
         updatedDestination.kafkaConfig = {
-          brokerServer: values.kafkaBrokerServer,
           topic: values.kafkaTopic,
           messageKey: values.kafkaMessageKey,
-          securityProtocol: values.kafkaSecurityProtocol,
-          saslMechanism: values.kafkaSaslMechanism,
-          username: values.kafkaUsername,
-          password: values.kafkaPassword,
-          headers: kafkaHeaders.reduce((acc, { key, value }) => {
-            if (key && value) {
-              acc[key] = value;
-            }
-            return acc;
-          }, {} as Record<string, string>)
         };
-      } else if (values.type === 'folder') {
+      } else if (values.type === 'folder' || values.type === 'local' || values.type === 'nfs') {
         updatedDestination.folderConfig = {
-          path: values.folderPath,
-          fileNamePattern: values.folderFileNamePattern,
-          createSubfolders: values.folderCreateSubfolders
+          path: values.path,
+          fileNamePattern: values.fileNamePattern,
+        };
+      } else if (values.type === 's3') {
+        updatedDestination.folderConfig = {
+          path: values.path, // S3 bucket/prefix
+          fileNamePattern: values.fileNamePattern,
+        };
+      } else if (values.type === 'http') {
+        updatedDestination.httpConfig = {
+          url: values.path, // Endpoint path
+          method: 'POST',
         };
       }
 
       onSave(updatedDestination);
       message.success('יעד הפלט נשמר בהצלחה');
-    } catch (error) {
-      console.error('Validation failed:', error);
-      message.error('אנא מלא את כל השדות הנדרשים');
+    } catch (err) {
+      console.error('Validation failed:', err);
     }
   };
 
-  const handleTestConnection = async () => {
-    setTestingConnection(true);
-    setConnectionTestResult(null);
-
-    try {
-      const values = await form.getFieldsValue();
-
-      if (values.type === 'kafka') {
-        // Validate Kafka connection fields
-        await form.validateFields(['kafkaTopic']);
-
-        // Call real Kafka connection testing API
-        const result = await testKafkaConnection({
-          brokerServer: values.kafkaBrokerServer || 'localhost:9092',
-          topic: values.kafkaTopic || '',
-          username: values.kafkaUsername,
-          password: values.kafkaPassword,
-          timeoutSeconds: 30
-        });
-
-        if (result.success) {
-          setConnectionTestResult('success');
-          const latency = result.details?.latencyMs ? ` (${result.details.latencyMs}ms)` : '';
-          message.success(`חיבור ל-Kafka הצליח${latency}`);
-        } else {
-          setConnectionTestResult('failed');
-          message.error(`חיבור ל-Kafka נכשל: ${result.errorDetails || result.message}`);
-        }
-      } else if (values.type === 'folder') {
-        // Validate folder path
-        await form.validateFields(['folderPath']);
-
-        // Call real Folder validation API
-        const result = await testFolderConnection({
-          path: values.folderPath || '',
-          checkWritePermissions: true,
-          checkDiskSpace: true
-        });
-
-        if (result.success) {
-          setConnectionTestResult('success');
-          const diskSpace = result.details?.diskSpaceGB ? ` (${result.details.diskSpaceGB}GB available)` : '';
-          message.success(`נתיב התיקייה תקין${diskSpace}`);
-        } else {
-          setConnectionTestResult('failed');
-          message.error(`אימות נתיב נכשל: ${result.errorDetails || result.message}`);
-        }
-      } else if (values.type === 'sftp') {
-        // Validate SFTP connection fields
-        await form.validateFields(['sftpHost', 'sftpPort', 'sftpUsername', 'sftpRemotePath']);
-
-        // Call real SFTP connection testing API
-        const result = await testSftpConnection({
-          host: values.sftpHost || '',
-          port: values.sftpPort || 22,
-          username: values.sftpUsername || '',
-          password: values.sftpPassword,
-          sshKey: values.sftpSshKey,
-          remotePath: values.sftpRemotePath || '/',
-          timeoutSeconds: 30
-        });
-
-        if (result.success) {
-          setConnectionTestResult('success');
-          message.success('חיבור SFTP הצליח');
-        } else {
-          setConnectionTestResult('failed');
-          message.error(`חיבור SFTP נכשל: ${result.errorDetails || result.message}`);
-        }
-      }
-    } catch (err: any) {
-      setConnectionTestResult('failed');
-      message.error(err.message || 'בדיקת החיבור נכשלה');
-    } finally {
-      setTestingConnection(false);
-    }
-  };
-
-  const handleAddHeader = () => {
-    setKafkaHeaders([...kafkaHeaders, { key: '', value: '' }]);
-  };
-
-  const handleRemoveHeader = (index: number) => {
-    setKafkaHeaders(kafkaHeaders.filter((_, i) => i !== index));
-  };
-
-  const handleHeaderChange = (index: number, field: 'key' | 'value', value: string) => {
-    const updated = [...kafkaHeaders];
-    updated[index][field] = value;
-    setKafkaHeaders(updated);
-  };
-
-  const headerColumns = [
-    {
-      title: 'מפתח',
-      dataIndex: 'key',
-      key: 'key',
-      render: (_: any, record: any, index: number) => (
-        <Input
-          value={record.key}
-          onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
-          placeholder="source"
-        />
-      )
-    },
-    {
-      title: 'ערך',
-      dataIndex: 'value',
-      key: 'value',
-      render: (_: any, record: any, index: number) => (
-        <Input
-          value={record.value}
-          onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
-          placeholder="banking-system"
-        />
-      )
-    },
-    {
-      title: '',
-      key: 'actions',
-      width: 60,
-      render: (_: any, record: any, index: number) => (
-        <Button
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleRemoveHeader(index)}
-        />
-      )
-    }
-  ];
+  const effectiveDestinationType = destinationType?.toLowerCase();
 
   return (
     <Modal
-      title={destination ? 'עריכת יעד פלט' : 'הוספת יעד פלט חדש'}
+      title={destination ? 'ערוך יעד פלט' : 'הוסף יעד פלט חדש'}
       open={visible}
       onCancel={onCancel}
       onOk={handleSubmit}
-      width={800}
       okText="שמור"
       cancelText="ביטול"
+      width={800}
       destroyOnClose
     >
-      <Form
-        form={form}
-        layout="vertical"
-        preserve={false}
-      >
+      <Form form={form} layout="vertical" preserve={false}>
         <Alert
-          message="הגדרת יעד פלט"
-          description="הגדר יעד פלט חדש לשליחת נתונים מעובדים. ניתן לבחור בין Kafka לשידור זמן-אמת או תיקייה לאחסון קבצים."
+          message="הגדרות יעד פלט"
+          description="בחר את סוג הפרוטוקול ושרת שהוגדר על ידי מנהל המערכת"
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
         />
 
-        {/* Basic Settings */}
+        {/* Basic Information */}
         <Form.Item
           name="name"
-          label="שם יעד"
-          rules={[{ required: true, message: 'נא להזין שם יעד' }]}
-          tooltip="שם מזהה לייעד הפלט, לדוגמה: 'ניתוח זמן-אמת' או 'ארכיון יומי'"
+          label="שם יעד הפלט"
+          rules={[{ required: true, message: 'נא להזין שם ליעד' }]}
+          tooltip="שם זיהוי ליעד הפלט"
         >
-          <Input placeholder="Real-Time Analytics" />
+          <Input placeholder="למשל: Kafka Production, Output Folder" />
         </Form.Item>
 
         <Form.Item
           name="description"
           label="תיאור / הערות"
-          tooltip="תיאור אופציונלי המסביר את מטרת יעד הפלט ותפקידו במערכת"
+          tooltip="תיאור אופציונלי המסביר את מטרת יעד הפלט"
         >
           <TextArea
             rows={2}
@@ -348,292 +242,272 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
           />
         </Form.Item>
 
+        {/* Step 1: Protocol Selection */}
         <Form.Item
           name="type"
-          label="סוג יעד"
-          rules={[{ required: true, message: 'נא לבחור סוג יעד' }]}
-          tooltip="בחר את סוג היעד: Kafka לעיבוד זמן-אמת, Folder לאחסון מקומי"
+          label="סוג פרוטוקול"
+          rules={[{ required: true, message: 'נא לבחור סוג פרוטוקול' }]}
+          tooltip="בחר את סוג החיבור למקור היעד"
         >
-          <Radio.Group onChange={(e) => setDestinationType(e.target.value)}>
-            <Space direction="horizontal" size="large">
-              <Radio value="kafka">
-                <Space>
-                  <CloudServerOutlined style={{ color: '#1890ff' }} />
-                  <span>Kafka</span>
-                </Space>
-              </Radio>
-              <Radio value="folder">
-                <Space>
-                  <FolderOutlined style={{ color: '#faad14' }} />
-                  <span>Folder</span>
-                </Space>
-              </Radio>
-              <Radio value="sftp" disabled>
-                <Space>
-                  <ApiOutlined style={{ color: '#999' }} />
-                  <span>SFTP (עתידי)</span>
-                </Space>
-              </Radio>
-              <Radio value="http" disabled>
-                <Space>
-                  <GlobalOutlined style={{ color: '#999' }} />
-                  <span>HTTP (עתידי)</span>
-                </Space>
-              </Radio>
-            </Space>
-          </Radio.Group>
-        </Form.Item>
-
-        <Form.Item name="enabled" valuePropName="checked">
-          <Space>
-            <Switch defaultChecked />
-            <Text>מופעל</Text>
-          </Space>
-        </Form.Item>
-
-        <Divider />
-
-        {/* Kafka Configuration */}
-        {destinationType === 'kafka' && (
-          <Card
-            title={
-              <Space>
-                <CloudServerOutlined style={{ color: '#1890ff' }} />
-                <span>תצורת Kafka</span>
-              </Space>
-            }
-            style={{ marginBottom: 16 }}
+          <Select
+            placeholder="בחר סוג פרוטוקול..."
+            onChange={(value) => {
+              setDestinationType(value);
+              // Reset server selection when protocol changes
+              form.setFieldsValue({ outputServerId: undefined });
+            }}
           >
-            <Form.Item
-              name="kafkaBrokerServer"
-              label="שרת Kafka (Broker)"
-              tooltip="כתובת שרת Kafka. אם לא מוגדר, המערכת תשתמש בשרת ברירת המחדל מההגדרות הגלובליות"
-              extra={
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  אופציונלי - אם לא מוגדר, ישתמש בשרת ברירת המחדל
-                </Text>
-              }
-            >
-              <Input placeholder="localhost:9092" dir="ltr" style={{ direction: 'ltr', textAlign: 'left' }} />
-            </Form.Item>
+            <Option value="Kafka">
+              <Space>
+                <CloudServerOutlined />
+                Kafka - Message Queue
+              </Space>
+            </Option>
+            <Option value="Local">
+              <Space>
+                <FileOutlined />
+                Local - תיקייה מקומית
+              </Space>
+            </Option>
+            <Option value="FTP">
+              <Space>
+                <ApiOutlined />
+                FTP - File Transfer Protocol
+              </Space>
+            </Option>
+            <Option value="SFTP">
+              <Space>
+                <ApiOutlined />
+                SFTP - Secure FTP
+              </Space>
+            </Option>
+            <Option value="HTTP">
+              <Space>
+                <ApiOutlined />
+                HTTP/HTTPS - Web API
+              </Space>
+            </Option>
+            <Option value="S3">
+              <Space>
+                <CloudServerOutlined />
+                S3 - Object Storage (MinIO)
+              </Space>
+            </Option>
+            <Option value="NFS">
+              <Space>
+                <FileOutlined />
+                NFS - Network File System
+              </Space>
+            </Option>
+          </Select>
+        </Form.Item>
 
-            <Form.Item
-              name="kafkaTopic"
-              label="נושא (Topic)"
-              rules={[{ required: true, message: 'נא להזין נושא Kafka' }]}
-              tooltip="שם ה-Topic ב-Kafka שאליו יישלחו ההודעות. חובה להגדיר"
-            >
-              <Input placeholder="banking-transactions-validated" dir="ltr" style={{ direction: 'ltr', textAlign: 'left' }} />
-            </Form.Item>
+        {/* Step 2: Server Selection - Only show after protocol selected */}
+        {destinationType && (
+          <>
+            <Divider>בחירת שרת</Divider>
 
-            <Form.Item
-              name="kafkaMessageKey"
-              label="מפתח הודעה (Message Key)"
-              tooltip="מפתח ייחודי להודעה. תומך בתבניות כמו {filename}, {datasource}, {timestamp}"
-              extra={
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  Placeholders: {'{filename}'}, {'{datasource}'}, {'{timestamp}'}, {'{date}'}
-                </Text>
-              }
-            >
-              <Input placeholder="{filename}_{timestamp}" />
-            </Form.Item>
-
-            <Form.Item label="כותרות (Headers)">
-              <Table
-                dataSource={kafkaHeaders}
-                columns={headerColumns}
-                pagination={false}
-                size="small"
-                locale={{ emptyText: 'אין כותרות' }}
-                rowKey={(_, index) => `header-${index}`}
+            {!hasCompatibleServers ? (
+              <Alert
+                message={`אין שרתי ${destinationType} זמינים`}
+                description={
+                  <Space direction="vertical" size="small">
+                    <Text>פנה למנהל המערכת להוספת שרת מתאים</Text>
+                    <Text type="secondary">
+                      הגדרות מערכת → שרתי פלט
+                    </Text>
+                  </Space>
+                }
+                type="warning"
+                showIcon
+                icon={<WarningOutlined />}
+                style={{ marginBottom: 16 }}
+                action={
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={() => window.open('/admin/settings?tab=output', '_blank')}
+                  >
+                    עבור להגדרות מערכת
+                  </Button>
+                }
               />
-              <Button
-                type="dashed"
-                icon={<PlusOutlined />}
-                onClick={handleAddHeader}
-                style={{ marginTop: 8 }}
+            ) : (
+              <Form.Item
+                name="outputServerId"
+                label={
+                  <Space>
+                    <CloudServerOutlined />
+                    שרת פלט
+                    <Tag color="green">{compatibleServers.length} שרתים זמינים</Tag>
+                  </Space>
+                }
+                rules={[
+                  {
+                    required: true,
+                    message: 'חובה לבחור שרת'
+                  }
+                ]}
+                tooltip="בחר שרת שהוגדר על ידי מנהל המערכת"
               >
-                הוסף כותרת
-              </Button>
-            </Form.Item>
+                <Select
+                  placeholder={
+                    loadingServers
+                      ? 'טוען שרתים...'
+                      : `בחר שרת ${destinationType}...`
+                  }
+                  loading={loadingServers}
+                  disabled={loadingServers}
+                  allowClear
+                  showSearch
+                  optionFilterProp="children"
+                >
+                  {compatibleServers.map((server: AdminServer) => (
+                    <Option key={server.ID} value={server.ID}>
+                      <Space>
+                        {serverTypeIcons[server.ServerType?.toLowerCase() || 'local']}
+                        {server.Name}
+                        {server.Host && (
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            ({server.Host}{server.Port ? `:${server.Port}` : ''})
+                          </Text>
+                        )}
+                      </Space>
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
 
-            <Divider orientation="left">אימות (Authentication)</Divider>
+            {/* Show server info when selected */}
+            {selectedServer && (
+              <Alert
+                message={`שרת נבחר: ${selectedServer.Name}`}
+                description={
+                  <Space direction="vertical" size={0}>
+                    <Text>סוג: {selectedServer.ServerType?.toUpperCase()}</Text>
+                    {selectedServer.Host && <Text>כתובת: {selectedServer.Host}:{selectedServer.Port}</Text>}
+                    {selectedServer.BasePath && <Text>נתיב בסיס: {selectedServer.BasePath}</Text>}
+                    {selectedServer.Description && <Text type="secondary">{selectedServer.Description}</Text>}
+                  </Space>
+                }
+                type="success"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+            )}
+          </>
+        )}
+
+        {/* Step 3: Applicative Fields - Only show when server selected */}
+        {selectedServer && (
+          <>
+            <Divider>הגדרות יעד</Divider>
+
+            {/* FILE-BASED PROTOCOLS (Local, FTP, SFTP, S3, NFS) */}
+            {effectiveDestinationType !== 'kafka' && effectiveDestinationType !== 'http' && (
+              <>
+                <Form.Item
+                  name="path"
+                  label={effectiveDestinationType === 's3'
+                    ? 'Bucket / Prefix'
+                    : 'נתיב (Path)'
+                  }
+                  tooltip="נתיב יחסי לנתיב הבסיס של השרת"
+                  rules={[{ required: true, message: 'נא להזין נתיב' }]}
+                >
+                  <Input
+                    className="ltr-field"
+                    placeholder={
+                      effectiveDestinationType === 's3' ? 'bucket-name/output/' :
+                      effectiveDestinationType === 'local' ? '/data/output/processed/' :
+                      '/path/to/output/'
+                    }
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="fileNamePattern"
+                  label="תבנית שם קובץ (File Name Pattern)"
+                  initialValue="output_{timestamp}.{format}"
+                  tooltip="תבנית לשמות הקבצים. משתנים: {timestamp}, {format}, {datasource}"
+                >
+                  <Input
+                    className="ltr-field"
+                    placeholder="output_{timestamp}.{format}"
+                  />
+                </Form.Item>
+              </>
+            )}
+
+            {/* HTTP PROTOCOL */}
+            {effectiveDestinationType === 'http' && (
+              <Form.Item
+                name="path"
+                label="נתיב Endpoint"
+                rules={[{ required: true, message: 'נא להזין נתיב endpoint' }]}
+                tooltip="נתיב יחסי ל-URL הבסיסי של השרת"
+              >
+                <Input className="ltr-field" placeholder="/api/data/processed" />
+              </Form.Item>
+            )}
+
+            {/* KAFKA PROTOCOL */}
+            {effectiveDestinationType === 'kafka' && (
+              <>
+                <Form.Item
+                  name="kafkaTopic"
+                  label="Topic"
+                  rules={[{ required: true, message: 'נא להזין topic' }]}
+                  tooltip="שם ה-Topic לפרסום הודעות"
+                >
+                  <Input className="ltr-field" placeholder="processed-data" />
+                </Form.Item>
+
+                <Form.Item
+                  name="kafkaMessageKey"
+                  label="Message Key (אופציונלי)"
+                  tooltip="מפתח להודעות Kafka לחלוקת partitions"
+                >
+                  <Input className="ltr-field" placeholder="datasource-id" />
+                </Form.Item>
+              </>
+            )}
+
+            <Divider>הגדרות פורמט</Divider>
 
             <Form.Item
-              name="kafkaSecurityProtocol"
-              label="פרוטוקול אבטחה"
-              tooltip="פרוטוקול האבטחה לחיבור ל-Kafka. PLAINTEXT ללא הצפנה, SASL_SSL להצפנה ואימות"
+              name="outputFormat"
+              label="פורמט פלט"
+              tooltip="פורמט הפלט. null = ברירת מחדל גלובלית"
             >
-              <Select placeholder="PLAINTEXT" allowClear>
-                <Select.Option value="PLAINTEXT">PLAINTEXT</Select.Option>
-                <Select.Option value="SASL_SSL">SASL_SSL</Select.Option>
-                <Select.Option value="SASL_PLAINTEXT">SASL_PLAINTEXT</Select.Option>
+              <Select allowClear placeholder="ברירת מחדל גלובלית">
+                <Option value="original">פורמט מקורי</Option>
+                <Option value="json">JSON</Option>
+                <Option value="csv">CSV</Option>
+                <Option value="xml">XML</Option>
               </Select>
             </Form.Item>
 
             <Form.Item
-              name="kafkaSaslMechanism"
-              label="מנגנון SASL"
-              tooltip="מנגנון האימות SASL. נדרש רק כאשר משתמשים ב-SASL_SSL או SASL_PLAINTEXT"
+              name="includeInvalidRecords"
+              label="כולל רשומות שגויות"
+              tooltip="האם לכלול רשומות שלא עברו אימות. null = ברירת מחדל גלובלית"
             >
-              <Select placeholder="PLAIN" allowClear>
-                <Select.Option value="PLAIN">PLAIN</Select.Option>
-                <Select.Option value="SCRAM-SHA-256">SCRAM-SHA-256</Select.Option>
-                <Select.Option value="SCRAM-SHA-512">SCRAM-SHA-512</Select.Option>
+              <Select allowClear placeholder="ברירת מחדל גלובלית">
+                <Option value={true}>כן</Option>
+                <Option value={false}>לא</Option>
               </Select>
             </Form.Item>
 
-            <Form.Item
-              name="kafkaUsername"
-              label="שם משתמש"
-              tooltip="שם משתמש לאימות SASL. נדרש כאשר משתמשים באימות"
-            >
-              <Input placeholder="kafka-user" />
-            </Form.Item>
-
-            <Form.Item
-              name="kafkaPassword"
-              label="סיסמה"
-              tooltip="סיסמה לאימות SASL. נדרש כאשר משתמשים באימות"
-            >
-              <Input.Password placeholder="••••••••" />
-            </Form.Item>
-
-            <Divider />
-
-            {/* Test Connection Button */}
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button
-                type="default"
-                icon={testingConnection ? <SyncOutlined spin /> : <CloudServerOutlined />}
-                onClick={handleTestConnection}
-                loading={testingConnection}
-                style={{ width: '100%' }}
-              >
-                בדוק חיבור ל-Kafka
-              </Button>
-              {connectionTestResult === 'success' && (
-                <Tag icon={<CheckCircleOutlined />} color="success">
-                  החיבור ל-Kafka הצליח
-                </Tag>
-              )}
-              {connectionTestResult === 'failed' && (
-                <Tag icon={<CloseCircleOutlined />} color="error">
-                  החיבור ל-Kafka נכשל
-                </Tag>
-              )}
-            </Space>
-          </Card>
-        )}
-
-        {/* Folder Configuration */}
-        {destinationType === 'folder' && (
-          <Card
-            title={
+            <Form.Item name="enabled" valuePropName="checked" initialValue={true}>
               <Space>
-                <FolderOutlined style={{ color: '#faad14' }} />
-                <span>תצורת Folder</span>
-              </Space>
-            }
-            style={{ marginBottom: 16 }}
-          >
-            <Form.Item
-              name="folderPath"
-              label="נתיב תיקייה"
-              rules={[{ required: true, message: 'נא להזין נתיב תיקייה' }]}
-              tooltip="נתיב מלא לתיקייה שבה יישמרו הקבצים. יכול להיות תיקייה מקומית או ברשת"
-            >
-              <Input placeholder="C:\DataProcessing\Archive\Banking" dir="ltr" style={{ direction: 'ltr', textAlign: 'left' }} />
-            </Form.Item>
-
-            <Form.Item
-              name="folderFileNamePattern"
-              label="תבנית שם קובץ"
-              tooltip="תבנית לשם הקובץ. תומך בתבניות כמו {filename}, {datasource}, {timestamp}, {date}"
-              extra={
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  Placeholders: {'{filename}'}, {'{datasource}'}, {'{timestamp}'}, {'{date}'}
-                </Text>
-              }
-            >
-              <Input placeholder="{datasource}_{date}_{timestamp}.json" dir="ltr" style={{ direction: 'ltr', textAlign: 'left' }} />
-            </Form.Item>
-
-            <Form.Item name="folderCreateSubfolders" valuePropName="checked">
-              <Space>
-                <Switch />
-                <Text>צור תיקיות משנה לפי תאריך</Text>
+                <Switch defaultChecked />
+                <Text>מופעל</Text>
               </Space>
             </Form.Item>
-
-            <Divider />
-
-            {/* Test Connection Button */}
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button
-                type="default"
-                icon={testingConnection ? <SyncOutlined spin /> : <FolderOutlined />}
-                onClick={handleTestConnection}
-                loading={testingConnection}
-                style={{ width: '100%' }}
-              >
-                בדוק נתיב תיקייה
-              </Button>
-              {connectionTestResult === 'success' && (
-                <Tag icon={<CheckCircleOutlined />} color="success">
-                  נתיב התיקייה תקין
-                </Tag>
-              )}
-              {connectionTestResult === 'failed' && (
-                <Tag icon={<CloseCircleOutlined />} color="error">
-                  נתיב התיקייה לא תקין
-                </Tag>
-              )}
-            </Space>
-          </Card>
+          </>
         )}
-
-        {/* Advanced Settings */}
-        <Card title="הגדרות מתקדמות" style={{ marginBottom: 16 }}>
-          <Alert
-            message="הגדרות מתקדמות"
-            description="הגדרות אלו דורסות את הגדרות ברירת המחדל הגלובליות רק עבור יעד פלט זה."
-            type="info"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
-
-          <Form.Item
-            name="outputFormat"
-            label="דריסת פורמט פלט"
-            tooltip="פורמט הפלט עבור יעד זה בלבד. אם לא מוגדר, ישתמש בפורמט ברירת המחדל הגלובלי"
-            extra={
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                משנה את ברירת המחדל הגלובלית רק עבור יעד זה
-              </Text>
-            }
-          >
-            <Select placeholder="ברירת מחדל" allowClear style={{ width: 300 }}>
-              <Select.Option value={null}>ברירת מחדל</Select.Option>
-              <Select.Option value="original">פורמט מקורי</Select.Option>
-              <Select.Option value="json">JSON</Select.Option>
-              <Select.Option value="csv">CSV</Select.Option>
-              <Select.Option value="xml">XML</Select.Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="includeInvalidRecords"
-            valuePropName="checked"
-            tooltip="האם לכלול רשומות שלא עברו אימות בפלט של יעד זה"
-          >
-            <Space>
-              <Switch />
-              <Text>כולל רשומות שגויות (דריסה)</Text>
-            </Space>
-          </Form.Item>
-        </Card>
       </Form>
     </Modal>
   );

@@ -103,10 +103,13 @@ export interface OutputDestination {
   id: string;
   name: string;
   description?: string;
-  type: 'kafka' | 'folder' | 'sftp' | 'http';
+  type: 'kafka' | 'folder' | 'sftp' | 'http' | 's3' | 'nfs';
   enabled: boolean;
   outputFormat?: 'original' | 'json' | 'csv' | 'xml' | null;
   includeInvalidRecords?: boolean | null;
+  // v0.2.0: Server-based configuration
+  outputServerId?: string;  // Reference to AdminServer for server-based config
+  // Legacy manual configuration (deprecated in v0.2.0, will be removed in v0.3.0)
   kafkaConfig?: KafkaOutputConfig;
   folderConfig?: FolderOutputConfig;
   sftpConfig?: SftpOutputConfig;
