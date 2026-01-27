@@ -35,7 +35,7 @@ export const OutputTab: React.FC<OutputTabProps> = ({ output, onChange }) => {
     setEditingDestination({
       id: generateUUID(),
       name: '',
-      type: 'kafka',
+      type: 'nfs',
       enabled: true,
       outputFormat: null,
       includeInvalidRecords: null
@@ -84,7 +84,8 @@ export const OutputTab: React.FC<OutputTabProps> = ({ output, onChange }) => {
       render: (type: string) => (
         <Space>
           {type === 'kafka' && <CloudServerOutlined style={{ color: '#1890ff' }} />}
-          {type === 'folder' && <FolderOutlined style={{ color: '#faad14' }} />}
+          {(type === 'ftp' || type === 'sftp' || type === 'nfs') && <FolderOutlined style={{ color: '#faad14' }} />}
+          {type === 's3' && <CloudServerOutlined style={{ color: '#52c41a' }} />}
           <Text>{type.toUpperCase()}</Text>
         </Space>
       )
@@ -110,7 +111,7 @@ export const OutputTab: React.FC<OutputTabProps> = ({ output, onChange }) => {
       render: (_: any, dest: OutputDestination) => {
         if (dest.type === 'kafka' && dest.kafkaConfig) {
           return <Text type="secondary">{dest.kafkaConfig.topic}</Text>;
-        } else if (dest.type === 'folder' && dest.folderConfig) {
+        } else if (dest.folderConfig) {
           return <Text type="secondary">{dest.folderConfig.path}</Text>;
         }
         return <Text type="secondary">לא מוגדר</Text>;

@@ -80,7 +80,7 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
   onCancel
 }) => {
   const [form] = Form.useForm();
-  const [destinationType, setDestinationType] = useState<string>(destination?.type || 'kafka');
+  const [destinationType, setDestinationType] = useState<string>(destination?.type || 'NFS');
 
   // Fetch available output servers
   const { data: outputServers = [], isLoading: loadingServers } = useQuery({
@@ -129,15 +129,15 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
       });
       setDestinationType(destination.type);
     } else if (visible && !destination) {
-      // New destination
+      // New destination - default to NFS
       form.resetFields();
       form.setFieldsValue({
-        type: 'kafka',
+        type: 'NFS',
         enabled: true,
         outputFormat: null,
         includeInvalidRecords: null
       });
-      setDestinationType('kafka');
+      setDestinationType('NFS');
     }
   }, [visible, destination, form]);
 
