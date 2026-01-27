@@ -106,7 +106,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
         label={
           <Space>
             <ApiOutlined />
-            {t('datasource.fields.connectionType') || 'סוג פרוטוקול'}
+            {t('datasources.fields.connectionType') || 'סוג פרוטוקול'}
           </Space>
         }
         rules={[{ required: true, message: t('errors.required') }]}
@@ -161,14 +161,14 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
       {/* Step 2: Server Selection - Only show after protocol selected */}
       {connectionType && (
         <>
-          <Divider>{t('datasource.sections.serverSelection') || 'בחירת שרת'}</Divider>
+          <Divider>{t('datasources.sections.serverSelection') || 'בחירת שרת'}</Divider>
 
           {!hasCompatibleServers ? (
             <Alert
               message={`אין שרתי ${connectionType} זמינים`}
               description={
                 <Space direction="vertical" size="small">
-                  <Text>{t('datasource.noServersHint') || 'פנה למנהל המערכת להוספת שרת מתאים'}</Text>
+                  <Text>{t('datasources.noServersHint') || 'פנה למנהל המערכת להוספת שרת מתאים'}</Text>
                   <Text type="secondary">
                     {t('navigation.adminSettings') || 'הגדרות מערכת'} → {t('admin.tabs.inputServers') || 'שרתי קלט'}
                   </Text>
@@ -184,7 +184,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                   size="small"
                   onClick={() => window.open('/admin', '_blank')}
                 >
-                  {t('datasource.goToAdminSettings') || 'עבור להגדרות מערכת'}
+                  {t('datasources.goToAdminSettings') || 'עבור להגדרות מערכת'}
                 </Button>
               }
             />
@@ -194,14 +194,14 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
               label={
                 <Space>
                   <CloudServerOutlined />
-                  {t('datasource.fields.inputServer') || 'שרת קלט'}
-                  <Tag color="green">{compatibleServers.length} {t('datasource.serversAvailable') || 'שרתים זמינים'}</Tag>
+                  {t('datasources.fields.inputServer') || 'שרת קלט'}
+                  <Tag color="green">{compatibleServers.length} {t('datasources.serversAvailable') || 'שרתים זמינים'}</Tag>
                 </Space>
               }
               rules={[
                 {
                   required: true,
-                  message: t('datasource.errors.serverRequired') || 'חובה לבחור שרת'
+                  message: t('datasources.errors.serverRequired') || 'חובה לבחור שרת'
                 }
               ]}
               tooltip="בחר שרת שהוגדר על ידי מנהל המערכת"
@@ -221,11 +221,11 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                   loadingServers ? (
                     <Space>
                       <span role="status" aria-live="polite">
-                        {t('datasource.loadingServers') || 'טוען שרתים...'}
+                        {t('datasources.loadingServers') || 'טוען שרתים...'}
                       </span>
                     </Space>
                   ) : (
-                    t('datasource.noServersFound') || 'לא נמצאו שרתים'
+                    t('datasources.noServersFound') || 'לא נמצאו שרתים'
                   )
                 }
               >
@@ -272,13 +272,13 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
           {/* ========== FILE-BASED PROTOCOLS (Local, FTP, SFTP, S3, NFS) ========== */}
           {effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && (
             <>
-              <Divider>{t('datasource.sections.pathSettings') || 'הגדרות נתיב'}</Divider>
+              <Divider>{t('datasources.sections.pathSettings') || 'הגדרות נתיב'}</Divider>
 
               <Form.Item
                 name="filePath"
                 label={effectiveConnectionType === 's3'
-                  ? (t('datasource.fields.s3Bucket') || 'Bucket / Prefix')
-                  : (t('datasource.fields.filePath') || 'נתיב (Path)')
+                  ? (t('datasources.fields.s3Bucket') || 'Bucket / Prefix')
+                  : (t('datasources.fields.filePath') || 'נתיב (Path)')
                 }
                 tooltip="נתיב יחסי לנתיב הבסיס של השרת"
                 rules={[{ required: true, message: t('errors.required') }]}
@@ -295,7 +295,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
 
               <Form.Item
                 name="filePattern"
-                label={t('datasource.fields.filePattern') || 'תבנית קובץ (File Pattern)'}
+                label={t('datasources.fields.filePattern') || 'תבנית קובץ (File Pattern)'}
                 initialValue="*.*"
                 rules={[
                   { required: true, message: t('errors.required') },
@@ -314,7 +314,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
           {/* ========== HTTP PROTOCOL ========== */}
           {effectiveConnectionType === 'http' && (
             <>
-              <Divider>{t('datasource.sections.httpSettings') || 'הגדרות HTTP'}</Divider>
+              <Divider>{t('datasources.sections.httpSettings') || 'הגדרות HTTP'}</Divider>
 
               <Form.Item
                 name="httpEndpointPath"
@@ -330,11 +330,11 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
           {/* ========== KAFKA PROTOCOL ========== */}
           {effectiveConnectionType === 'kafka' && (
             <>
-              <Divider>{t('datasource.sections.kafkaSettings') || 'הגדרות Kafka'}</Divider>
+              <Divider>{t('datasources.sections.kafkaSettings') || 'הגדרות Kafka'}</Divider>
 
               <Form.Item
                 name="kafkaTopic"
-                label={t('datasource.fields.kafkaTopic') || 'Topic'}
+                label={t('datasources.fields.kafkaTopic') || 'Topic'}
                 rules={[{ required: true, message: t('errors.required') }]}
                 tooltip="שם ה-Topic לצריכת הודעות"
               >
@@ -345,7 +345,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                 <Col xs={24} lg={12}>
                   <Form.Item
                     name="kafkaConsumerGroup"
-                    label={t('datasource.fields.kafkaConsumerGroup') || 'Consumer Group'}
+                    label={t('datasources.fields.kafkaConsumerGroup') || 'Consumer Group'}
                     tooltip="Consumer Group ID - אם ריק, ישתמש בברירת המחדל של השרת"
                   >
                     <Input className="ltr-field" placeholder="dataprocessing-sales" />
@@ -354,7 +354,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                 <Col xs={24} lg={12}>
                   <Form.Item
                     name="kafkaOffsetReset"
-                    label={t('datasource.fields.kafkaOffsetReset') || 'Auto Offset Reset'}
+                    label={t('datasources.fields.kafkaOffsetReset') || 'Auto Offset Reset'}
                     tooltip="מאיפה להתחיל לקרוא כאשר אין offset שמור"
                     initialValue="latest"
                   >

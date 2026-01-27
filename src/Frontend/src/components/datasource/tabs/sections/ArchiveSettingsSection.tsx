@@ -36,7 +36,7 @@ export const ArchiveSettingsSection: React.FC<ArchiveSettingsSectionProps> = ({
       title={
         <span>
           <FileZipOutlined style={{ marginInlineEnd: 8 }} />
-          {t('datasource.sections.archiveSettings') || 'הגדרות ארכיון'}
+          {t('datasources.sections.archiveSettings') || 'הגדרות ארכיון'}
         </span>
       }
       size="small"
@@ -59,7 +59,7 @@ export const ArchiveSettingsSection: React.FC<ArchiveSettingsSectionProps> = ({
       {isArchiveSource ? (
         <>
           <Text type="secondary" style={{ display: 'block', marginBottom: 16 }} id="archive-toggle-description">
-            {t('datasource.archive.description') || 'הגדר כיצד לטפל בקבצי ארכיון דחוסים (ZIP, TAR.GZ, RAR, 7Z)'}
+            {t('datasources.archive.description') || 'הגדר כיצד לטפל בקבצי ארכיון דחוסים (ZIP, TAR.GZ, RAR, 7Z)'}
           </Text>
 
           <Row gutter={16}>
@@ -68,8 +68,8 @@ export const ArchiveSettingsSection: React.FC<ArchiveSettingsSectionProps> = ({
                 name="archiveType"
                 label={
                   <span id="archive-type-label">
-                    {t('datasource.fields.archiveType') || 'סוג ארכיון'}
-                    <Tooltip title={t('datasource.tooltips.archiveType') || 'בחר את סוג הארכיון או השאר על אוטומטי לזיהוי לפי סיומת הקובץ'}>
+                    {t('datasources.fields.archiveType') || 'סוג ארכיון'}
+                    <Tooltip title={t('datasources.tooltips.archiveType') || 'בחר את סוג הארכיון או השאר על אוטומטי לזיהוי לפי סיומת הקובץ'}>
                       <QuestionCircleOutlined style={{ marginInlineStart: 4 }} />
                     </Tooltip>
                   </span>
@@ -88,14 +88,14 @@ export const ArchiveSettingsSection: React.FC<ArchiveSettingsSectionProps> = ({
             <Col xs={24} lg={12}>
               <Form.Item
                 name="archivePassword"
-                label={t('datasource.fields.archivePassword') || 'סיסמת ארכיון'}
-                tooltip={t('datasource.tooltips.archivePassword') || 'סיסמה לפתיחת ארכיונים מוגנים (אופציונלי)'}
+                label={t('datasources.fields.archivePassword') || 'סיסמת ארכיון'}
+                tooltip={t('datasources.tooltips.archivePassword') || 'סיסמה לפתיחת ארכיונים מוגנים (אופציונלי)'}
               >
                 <Input.Password
                   className="ltr-field"
                   placeholder="********"
                   autoComplete="new-password"
-                  aria-label={t('datasource.fields.archivePassword') || 'סיסמת ארכיון'}
+                  aria-label={t('datasources.fields.archivePassword') || 'סיסמת ארכיון'}
                 />
               </Form.Item>
             </Col>
@@ -105,35 +105,35 @@ export const ArchiveSettingsSection: React.FC<ArchiveSettingsSectionProps> = ({
             <Col xs={24} lg={12}>
               <Form.Item
                 name="extractionPattern"
-                label={t('datasource.fields.extractionPattern') || 'תבנית חילוץ'}
-                tooltip={t('datasource.tooltips.extractionPattern') || 'תבנית לסינון קבצים בתוך הארכיון. דוגמה: *.csv לחילוץ רק קבצי CSV'}
+                label={t('datasources.fields.extractionPattern') || 'תבנית חילוץ'}
+                tooltip={t('datasources.tooltips.extractionPattern') || 'תבנית לסינון קבצים בתוך הארכיון. דוגמה: *.csv לחילוץ רק קבצי CSV'}
                 initialValue="*.*"
                 rules={[
                   {
                     pattern: /^(\*\.[\w]+|\*\.\*|[\w\-*]+\.[\w*]+)$/,
-                    message: t('datasource.errors.invalidExtractionPattern') || 'תבנית חילוץ לא תקינה. דוגמאות: *.csv, data_*.json, *.*',
+                    message: t('datasources.errors.invalidExtractionPattern') || 'תבנית חילוץ לא תקינה. דוגמאות: *.csv, data_*.json, *.*',
                   },
                 ]}
               >
                 <Input
                   className="ltr-field"
                   placeholder="*.csv, data_*.json, *.*"
-                  aria-label={t('datasource.fields.extractionPattern') || 'תבנית חילוץ'}
+                  aria-label={t('datasources.fields.extractionPattern') || 'תבנית חילוץ'}
                 />
               </Form.Item>
             </Col>
             <Col xs={24} lg={12}>
               <Form.Item
                 name="processNestedArchives"
-                label={t('datasource.fields.processNestedArchives') || 'עבד ארכיונים מקוננים'}
+                label={t('datasources.fields.processNestedArchives') || 'עבד ארכיונים מקוננים'}
                 valuePropName="checked"
-                tooltip={t('datasource.tooltips.processNestedArchives') || 'אם מופעל, יעבד גם ארכיונים הנמצאים בתוך ארכיונים אחרים'}
+                tooltip={t('datasources.tooltips.processNestedArchives') || 'אם מופעל, יעבד גם ארכיונים הנמצאים בתוך ארכיונים אחרים'}
                 initialValue={false}
               >
                 <Switch
                   checkedChildren={t('common.yes') || 'כן'}
                   unCheckedChildren={t('common.no') || 'לא'}
-                  aria-label={t('datasource.fields.processNestedArchives') || 'עבד ארכיונים מקוננים'}
+                  aria-label={t('datasources.fields.processNestedArchives') || 'עבד ארכיונים מקוננים'}
                 />
               </Form.Item>
             </Col>
@@ -141,7 +141,7 @@ export const ArchiveSettingsSection: React.FC<ArchiveSettingsSectionProps> = ({
         </>
       ) : (
         <Text type="secondary" role="status" aria-live="polite">
-          {t('datasource.archive.disabledHint') || 'הפעל אפשרות זו אם מקור הנתונים מכיל קבצים דחוסים'}
+          {t('datasources.archive.disabledHint') || 'הפעל אפשרות זו אם מקור הנתונים מכיל קבצים דחוסים'}
         </Text>
       )}
     </Card>
