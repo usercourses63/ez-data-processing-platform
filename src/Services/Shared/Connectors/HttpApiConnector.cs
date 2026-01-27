@@ -1,15 +1,18 @@
 using DataProcessing.Shared.Entities;
+using DataProcessing.Shared.Services;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace DataProcessing.Shared.Connectors;
 
 /// <summary>
-/// Connector for reading data from HTTP/REST APIs
+/// Connector for reading data from HTTP/REST APIs and WebDAV
+/// v0.2.0: Implements IServerConnector for AdminServer support
 /// </summary>
-public class HttpApiConnector : IDataSourceConnector
+public class HttpApiConnector : IDataSourceConnector, IServerConnector
 {
     private readonly ILogger<HttpApiConnector> _logger;
     private readonly HttpClient _httpClient;
@@ -225,4 +228,210 @@ public class HttpApiConnector : IDataSourceConnector
         public string ListEndpoint { get; set; } = string.Empty;
         public Dictionary<string, string> CustomHeaders { get; set; } = new();
     }
+
+    #region IServerConnector Implementation (AdminServer support)
+
+    public async Task<ConnectionTestResult> TestConnectionAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var baseUrl = GetBaseUrl(server);
+
+        try
+        {
+            _logger.LogInformation("Testing HTTP connection: {BaseUrl}", baseUrl);
+
+            ConfigureHttpClientForServer(server, credentials);
+
+            var response = await _httpClient.GetAsync(baseUrl, cancellationToken);
+            stopwatch.Stop();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return ConnectionTestResult.Success(
+                    stopwatch.ElapsedMilliseconds,
+                    $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
+            }
+            else
+            {
+                return ConnectionTestResult.Failure(
+                    $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "HTTP connection test failed: {BaseUrl}", baseUrl);
+            return ConnectionTestResult.Failure($"Connection error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "Unexpected error testing HTTP connection: {BaseUrl}", baseUrl);
+            return ConnectionTestResult.Failure($"Error: {ex.Message}");
+        }
+    }
+
+    public async Task<List<DiscoveredFile>> ListFilesAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string? path,
+        string pattern,
+        CancellationToken cancellationToken = default)
+    {
+        var baseUrl = GetBaseUrl(server);
+        var fullUrl = string.IsNullOrEmpty(path)
+            ? baseUrl
+            : $"{baseUrl.TrimEnd('/')}/{path.TrimStart('/')}";
+
+        _logger.LogInformation("Listing files from HTTP API: {Url}", fullUrl);
+
+        try
+        {
+            ConfigureHttpClientForServer(server, credentials);
+
+            var response = await _httpClient.GetAsync(fullUrl, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            var files = JsonSerializer.Deserialize<List<string>>(content) ?? new List<string>();
+
+            // Convert string paths to DiscoveredFile objects
+            var discoveredFiles = files.Select(f => new DiscoveredFile
+            {
+                FullPath = f,
+                FileName = Path.GetFileName(f),
+                SizeBytes = 0, // Unknown for HTTP listings
+                LastModifiedUtc = DateTime.UtcNow,
+                IsDirectory = false,
+                ContentType = "application/octet-stream"
+            }).ToList();
+
+            _logger.LogInformation("Found {Count} files from HTTP API", discoveredFiles.Count);
+            return discoveredFiles;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error listing files from HTTP API: {Url}", fullUrl);
+            return new List<DiscoveredFile>();
+        }
+    }
+
+    public async Task<byte[]> ReadFileAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        var baseUrl = GetBaseUrl(server);
+        var fullUrl = filePath.StartsWith("http")
+            ? filePath
+            : $"{baseUrl.TrimEnd('/')}/{filePath.TrimStart('/')}";
+
+        _logger.LogInformation("Reading file from HTTP: {Url}", fullUrl);
+
+        try
+        {
+            ConfigureHttpClientForServer(server, credentials);
+
+            var response = await _httpClient.GetAsync(fullUrl, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading file from HTTP: {Url}", fullUrl);
+            throw;
+        }
+    }
+
+    public async Task WriteFileAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string filePath,
+        byte[] content,
+        CancellationToken cancellationToken = default)
+    {
+        var baseUrl = GetBaseUrl(server);
+        var fullUrl = filePath.StartsWith("http")
+            ? filePath
+            : $"{baseUrl.TrimEnd('/')}/{filePath.TrimStart('/')}";
+
+        _logger.LogInformation("Writing file to HTTP: {Url} ({SizeBytes} bytes)", fullUrl, content.Length);
+
+        try
+        {
+            ConfigureHttpClientForServer(server, credentials);
+
+            using var byteContent = new ByteArrayContent(content);
+            byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+            var response = await _httpClient.PutAsync(fullUrl, byteContent, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            _logger.LogInformation("File written successfully to HTTP: {Url}", fullUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing file to HTTP: {Url}", fullUrl);
+            throw;
+        }
+    }
+
+    private string GetBaseUrl(AdminServer server)
+    {
+        // If Host is set, construct URL from components
+        if (!string.IsNullOrEmpty(server.Host))
+        {
+            var useHttps = server.TypeSpecificConfig?.Contains("UseHttps") == true &&
+                          server.TypeSpecificConfig["UseHttps"].AsBoolean;
+            var scheme = useHttps ? "https" : "http";
+            var port = server.Port > 0 && server.Port != 80 && server.Port != 443
+                ? $":{server.Port}"
+                : "";
+            var basePath = server.BasePath ?? "";
+            return $"{scheme}://{server.Host}{port}{basePath}";
+        }
+
+        // Otherwise use BasePath as full URL
+        return server.BasePath ?? "http://localhost";
+    }
+
+    private void ConfigureHttpClientForServer(AdminServer server, ServerCredentials? credentials)
+    {
+        // Clear previous headers to avoid conflicts
+        _httpClient.DefaultRequestHeaders.Clear();
+
+        // Set authentication from ServerCredentials
+        if (credentials != null)
+        {
+            if (!string.IsNullOrEmpty(credentials.BearerToken))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", credentials.BearerToken);
+            }
+            else if (credentials.HasBasicAuth)
+            {
+                var encoded = Convert.ToBase64String(
+                    System.Text.Encoding.ASCII.GetBytes($"{credentials.Username}:{credentials.Password}"));
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Basic", encoded);
+            }
+            else if (!string.IsNullOrEmpty(credentials.ApiKey))
+            {
+                _httpClient.DefaultRequestHeaders.Add("X-API-Key", credentials.ApiKey);
+            }
+        }
+
+        // Set timeout from server config
+        var timeout = server.ConnectionTimeoutSeconds > 0
+            ? server.ConnectionTimeoutSeconds
+            : 30;
+        _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+    }
+
+    #endregion
 }
