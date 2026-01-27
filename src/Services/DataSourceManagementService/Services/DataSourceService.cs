@@ -796,7 +796,8 @@ public class DataSourceService : IDataSourceService
             TotalErrorRecords = 0,
             LastProcessedAt = null,
             AdditionalConfiguration = additionalConfig.ElementCount > 0 ? additionalConfig : null,
-            Output = request.Output ?? new DataProcessing.Shared.Entities.OutputConfiguration()
+            Output = request.Output ?? new DataProcessing.Shared.Entities.OutputConfiguration(),
+            ArchiveSettings = request.ArchiveSettings
         };
     }
 
@@ -894,6 +895,12 @@ public class DataSourceService : IDataSourceService
         if (request.Output != null)
         {
             entity.Output = request.Output;
+        }
+
+        // Map Archive settings (v0.2.0)
+        if (request.ArchiveSettings != null)
+        {
+            entity.ArchiveSettings = request.ArchiveSettings;
         }
 
         // Mark entity as modified to ensure MongoDB saves the changes

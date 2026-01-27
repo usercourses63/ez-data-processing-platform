@@ -101,4 +101,10 @@ public class CreateDataSourceRequest
     /// Output configuration with destinations (folder, Kafka, SFTP, HTTP)
     /// </summary>
     public DataProcessing.Shared.Entities.OutputConfiguration? Output { get; set; }
+
+    /// <summary>
+    /// Archive processing settings (v0.2.0)
+    /// Configures how archive files (ZIP, TAR.GZ, RAR, 7Z) should be handled
+    /// </summary>
+    public DataProcessing.Shared.Services.ArchiveSettings? ArchiveSettings { get; set; }
 }

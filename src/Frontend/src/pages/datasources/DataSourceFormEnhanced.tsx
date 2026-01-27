@@ -146,6 +146,17 @@ const DataSourceFormEnhanced: React.FC = () => {
         requestPayload.JsonSchema = jsonSchema;
       }
 
+      // Map Archive settings (v0.2.0) - nest form fields in ArchiveSettings object
+      if (values.isArchiveSource) {
+        requestPayload.ArchiveSettings = {
+          IsArchiveSource: values.isArchiveSource,
+          ArchiveType: values.archiveType || 'auto',
+          ArchivePassword: values.archivePassword,
+          ExtractionPattern: values.extractionPattern || '*.*',
+          ProcessNestedArchives: values.processNestedArchives || false
+        };
+      }
+
       const response = await fetch('/api/v1/datasource', {
         method: 'POST',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
