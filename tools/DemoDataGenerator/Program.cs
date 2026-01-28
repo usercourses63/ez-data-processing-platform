@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using MongoDB.Entities;
 using DemoDataGenerator.Services;
 using DemoDataGenerator.Generators;
@@ -31,6 +32,11 @@ if (portArg != null)
 }
 
 directConnection = args.Contains("--direct-connection");
+
+// Use file-simulator hostname (stable, no permissions needed)
+// The hostname resolves automatically via DNS/mDNS to the correct IP
+string fileSimulatorHost = "file-simulator.local";
+Console.WriteLine($"✓ Using file-simulator hostname: {fileSimulatorHost}");
 
 Console.WriteLine($"Mode: {mode}");
 Console.WriteLine($"MongoDB: {mongoHost}:{mongoPort} (direct={directConnection})");
@@ -69,7 +75,7 @@ try
     await categorySeeder.SeedCategoriesAsync();
 
     // Step 3: Generate Admin Servers (datasources reference them)
-    var serverGenerator = new AdminServerGenerator(random);
+    var serverGenerator = new AdminServerGenerator(random, fileSimulatorHost);
     var servers = await serverGenerator.GenerateAsync();
 
     // Step 4: Generate DataSources (with server references)

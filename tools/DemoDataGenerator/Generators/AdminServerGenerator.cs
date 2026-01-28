@@ -11,10 +11,12 @@ namespace DemoDataGenerator.Generators;
 public class AdminServerGenerator
 {
     private readonly Random _random;
+    private readonly string _fileSimulatorHost;
 
-    public AdminServerGenerator(Random random)
+    public AdminServerGenerator(Random random, string fileSimulatorHost = "file-simulator.local")
     {
         _random = random;
+        _fileSimulatorHost = fileSimulatorHost;
     }
 
     public async Task<List<AdminServer>> GenerateAsync()
@@ -22,8 +24,9 @@ public class AdminServerGenerator
         Console.WriteLine("[2/10] 🖥️  Generating Admin Servers...");
         var servers = new List<AdminServer>();
 
-        // Define server configurations using external file-simulator (172.23.17.71)
+        // Define server configurations using external file-simulator (file-simulator.local)
         // v0.2.0: Real endpoints for production-like testing
+        // Uses stable hostname that resolves automatically via DNS/mDNS (no IP detection needed)
         // Decision 3B: Extended 10 servers (demonstrates multi-server capability)
         var serverConfigs = new (string Name, string NameEn, string Description, string ServerType, ServerDirection Direction, string? Host, int? Port, string? BasePath, KafkaServerConfig? KafkaConfig)[]
         {
@@ -34,7 +37,7 @@ public class AdminServerGenerator
                 Description: "שרת FTP חיצוני לקליטת קבצים (file-simulator:30021)",
                 ServerType: "ftp",
                 Direction: ServerDirection.Input,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 30021,
                 BasePath: "/input",
                 KafkaConfig: null
@@ -46,7 +49,7 @@ public class AdminServerGenerator
                 Description: "שרת FTP חיצוני לכתיבת קבצים מעובדים (file-simulator:30021)",
                 ServerType: "ftp",
                 Direction: ServerDirection.Output,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 30021,
                 BasePath: "/output",
                 KafkaConfig: null
@@ -58,7 +61,7 @@ public class AdminServerGenerator
                 Description: "שרת SFTP מאובטח לקליטת קבצים רגישים (file-simulator:30022)",
                 ServerType: "sftp",
                 Direction: ServerDirection.Input,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 30022,
                 BasePath: "/data/input",
                 KafkaConfig: null
@@ -70,7 +73,7 @@ public class AdminServerGenerator
                 Description: "שרת SFTP מאובטח לכתיבת קבצים מעובדים (file-simulator:30022)",
                 ServerType: "sftp",
                 Direction: ServerDirection.Output,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 30022,
                 BasePath: "/data/output",
                 KafkaConfig: null
@@ -82,7 +85,7 @@ public class AdminServerGenerator
                 Description: "אחסון S3 לנתונים גולמיים - bucket: input (file-simulator MinIO:30900)",
                 ServerType: "s3",
                 Direction: ServerDirection.Both,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 30900,
                 BasePath: null,
                 KafkaConfig: null
@@ -94,7 +97,7 @@ public class AdminServerGenerator
                 Description: "אחסון S3 לקבצים מעובדים - bucket: output (file-simulator MinIO:30900)",
                 ServerType: "s3",
                 Direction: ServerDirection.Both,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 30900,
                 BasePath: null,
                 KafkaConfig: null
@@ -106,7 +109,7 @@ public class AdminServerGenerator
                 Description: "שרת HTTP/WebDAV לקליטת קבצים דרך REST API (file-simulator:30088)",
                 ServerType: "http",
                 Direction: ServerDirection.Input,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 30088,
                 BasePath: "/input",
                 KafkaConfig: null
@@ -133,10 +136,10 @@ public class AdminServerGenerator
             (
                 Name: "file-simulator NFS קלט",
                 NameEn: "file-simulator NFS Input",
-                Description: "שרת NFS חיצוני לקליטת קבצים - מוגדר דרך PV (172.23.17.71:32149)",
+                Description: "שרת NFS חיצוני לקליטת קבצים - מוגדר דרך PV (file-simulator.local:32149)",
                 ServerType: "nfs",
                 Direction: ServerDirection.Input,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 32149,
                 BasePath: "/mnt/nfs-data/input",
                 KafkaConfig: null
@@ -145,10 +148,10 @@ public class AdminServerGenerator
             (
                 Name: "file-simulator NFS פלט",
                 NameEn: "file-simulator NFS Output",
-                Description: "שרת NFS חיצוני לכתיבת קבצים - מוגדר דרך PV (172.23.17.71:32149)",
+                Description: "שרת NFS חיצוני לכתיבת קבצים - מוגדר דרך PV (file-simulator.local:32149)",
                 ServerType: "nfs",
                 Direction: ServerDirection.Output,
-                Host: "172.23.17.71",
+                Host: _fileSimulatorHost,
                 Port: 32149,
                 BasePath: "/mnt/nfs-data/output",
                 KafkaConfig: null

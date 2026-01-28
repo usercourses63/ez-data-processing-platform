@@ -36,7 +36,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: frontend
-        image: frontend:v0.2.0-latest
+        image: ez-platform/frontend:latest
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
