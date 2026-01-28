@@ -15,14 +15,17 @@ namespace DataProcessing.Shared.Connectors;
 public class HttpApiConnector : IDataSourceConnector, IServerConnector
 {
     private readonly ILogger<HttpApiConnector> _logger;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly Lazy<HttpClient> _lazyHttpClient;
+    private HttpClient _httpClient => _lazyHttpClient.Value;
 
     public string ConnectorType => "http";
 
-    public HttpApiConnector(ILogger<HttpApiConnector> logger, HttpClient httpClient)
+    public HttpApiConnector(ILogger<HttpApiConnector> logger, IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
+        _lazyHttpClient = new Lazy<HttpClient>(() => _httpClientFactory.CreateClient(nameof(HttpApiConnector)));
     }
 
     public async Task<Stream> ReadFileAsync(

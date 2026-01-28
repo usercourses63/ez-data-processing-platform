@@ -376,15 +376,30 @@ public class S3Connector : IDataSourceConnector, IServerConnector
     {
         var typeConfig = server.TypeSpecificConfig ?? new BsonDocument();
 
+        // Get endpoint from TypeSpecificConfig (full URL) or construct from Host:Port
+        string? endpoint = null;
+        if (typeConfig.Contains("Endpoint") && !typeConfig.GetValue("Endpoint").IsBsonNull)
+        {
+            endpoint = typeConfig.GetValue("Endpoint").AsString;
+        }
+        else if (!string.IsNullOrEmpty(server.Host))
+        {
+            // Construct endpoint from Host and Port
+            var useHttp = typeConfig.GetValue("UseHttp", true).AsBoolean;
+            var protocol = useHttp ? "http" : "https";
+            var port = server.Port ?? 443;
+            endpoint = $"{protocol}://{server.Host}:{port}";
+        }
+
         return new S3Config
         {
-            AccessKey = credentials?.AccessKey ?? string.Empty,
-            SecretKey = credentials?.SecretKey ?? string.Empty,
+            AccessKey = credentials?.AccessKey ?? typeConfig.GetValue("AccessKey", string.Empty).AsString,
+            SecretKey = credentials?.SecretKey ?? typeConfig.GetValue("SecretKey", string.Empty).AsString,
             SessionToken = credentials?.SessionToken,
-            Bucket = typeConfig.GetValue("bucket", string.Empty).AsString,
-            Region = typeConfig.GetValue("region", "us-east-1").AsString,
-            Endpoint = server.Host,  // Host is the S3 endpoint for non-AWS
-            UsePathStyle = typeConfig.GetValue("usePathStyle", false).AsBoolean
+            Bucket = typeConfig.GetValue("Bucket", "ez-data").AsString,
+            Region = typeConfig.GetValue("Region", "us-east-1").AsString,
+            Endpoint = endpoint,
+            UsePathStyle = typeConfig.GetValue("ForcePathStyle", true).AsBoolean || typeConfig.GetValue("UsePathStyle", true).AsBoolean
         };
     }
 

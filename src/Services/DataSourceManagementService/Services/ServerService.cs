@@ -1,5 +1,6 @@
 using DataProcessing.Shared.Connectors;
 using DataProcessing.Shared.Entities;
+using DataProcessing.Shared.Services;
 using MongoDB.Entities;
 
 namespace DataProcessing.DataSourceManagement.Services;
@@ -11,6 +12,7 @@ public class ServerService : IServerService
 {
     private readonly ILogger<ServerService> _logger;
     private readonly IConnectorFactory _connectorFactory;
+    private readonly ICredentialResolver? _credentialResolver;
 
     private static readonly List<ServerTypeDefinition> _serverTypes = new()
     {
@@ -24,10 +26,14 @@ public class ServerService : IServerService
         new() { Type = "folder", DisplayName = "Output Folder", DisplayNameHe = "תיקיית פלט", SupportsInput = false, SupportsOutput = true, RequiredFields = new() { "BasePath" } }
     };
 
-    public ServerService(ILogger<ServerService> logger, IConnectorFactory connectorFactory)
+    public ServerService(
+        ILogger<ServerService> logger,
+        IConnectorFactory connectorFactory,
+        ICredentialResolver? credentialResolver = null)
     {
         _logger = logger;
         _connectorFactory = connectorFactory;
+        _credentialResolver = credentialResolver;
     }
 
     public async Task<List<AdminServer>> GetAllServersAsync(bool includeInactive = false, CancellationToken cancellationToken = default)
@@ -317,6 +323,28 @@ public class ServerService : IServerService
 
             _logger.LogInformation("Testing connection to server: {ServerName} ({ServerType})", server.Name, server.ServerType);
 
+            // Resolve credentials for the server
+            ServerCredentials? credentials = null;
+            if (_credentialResolver != null && !string.IsNullOrEmpty(server.CredentialSecretRef))
+            {
+                try
+                {
+                    credentials = await _credentialResolver.ResolveAsync(server.CredentialSecretRef, cancellationToken);
+                    _logger.LogDebug("Resolved credentials from secret: {SecretRef}", server.CredentialSecretRef);
+                }
+                catch (Exception credEx)
+                {
+                    _logger.LogWarning(credEx, "Failed to resolve credentials from secret: {SecretRef}, will use TypeSpecificConfig", server.CredentialSecretRef);
+                }
+            }
+
+            // Fallback: Extract credentials from TypeSpecificConfig if available
+            if (credentials == null && server.TypeSpecificConfig != null)
+            {
+                credentials = ServerCredentials.FromBsonDocument(server.TypeSpecificConfig);
+                _logger.LogDebug("Using credentials from TypeSpecificConfig");
+            }
+
             // Get the appropriate connector
             var connector = _connectorFactory.GetConnector(server.ServerType);
             bool testSuccess = false;
@@ -325,8 +353,8 @@ public class ServerService : IServerService
             // Check if connector supports IServerConnector (AdminServer-based testing)
             if (connector is IServerConnector serverConnector)
             {
-                // Use the AdminServer-aware test method
-                var connectorResult = await serverConnector.TestConnectionAsync(server, credentials: null, cancellationToken);
+                // Use the AdminServer-aware test method with resolved credentials
+                var connectorResult = await serverConnector.TestConnectionAsync(server, credentials, cancellationToken);
                 testSuccess = connectorResult.IsSuccess;
                 errorMessage = connectorResult.ErrorMessage;
                 result.Details = connectorResult.Details;

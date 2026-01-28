@@ -148,6 +148,48 @@ public class ServerCredentials
         if (!string.IsNullOrEmpty(ApiKey)) parts.Add("ApiKey");
         return parts.Count > 0 ? string.Join(", ", parts) : "NoCredentials";
     }
+
+    /// <summary>
+    /// Creates ServerCredentials from BsonDocument (TypeSpecificConfig)
+    /// </summary>
+    public static ServerCredentials FromBsonDocument(MongoDB.Bson.BsonDocument config)
+    {
+        var credentials = new ServerCredentials();
+
+        // Extract basic auth (FTP, SFTP, HTTP)
+        if (config.TryGetValue("Username", out var username))
+            credentials.Username = username.AsString;
+        if (config.TryGetValue("Password", out var password))
+            credentials.Password = password.AsString;
+
+        // Extract S3 credentials
+        if (config.TryGetValue("AccessKey", out var accessKey))
+            credentials.AccessKey = accessKey.AsString;
+        if (config.TryGetValue("SecretKey", out var secretKey))
+            credentials.SecretKey = secretKey.AsString;
+        if (config.TryGetValue("SessionToken", out var sessionToken))
+            credentials.SessionToken = sessionToken.AsString;
+
+        // Extract SFTP key auth
+        if (config.TryGetValue("PrivateKey", out var privateKey))
+            credentials.PrivateKey = privateKey.AsString;
+        if (config.TryGetValue("PrivateKeyPassphrase", out var passphrase))
+            credentials.PrivateKeyPassphrase = passphrase.AsString;
+
+        // Extract Kafka SASL
+        if (config.TryGetValue("SaslUsername", out var saslUser))
+            credentials.SaslUsername = saslUser.AsString;
+        if (config.TryGetValue("SaslPassword", out var saslPass))
+            credentials.SaslPassword = saslPass.AsString;
+
+        // Extract API key / Bearer token
+        if (config.TryGetValue("ApiKey", out var apiKey))
+            credentials.ApiKey = apiKey.AsString;
+        if (config.TryGetValue("BearerToken", out var bearerToken))
+            credentials.BearerToken = bearerToken.AsString;
+
+        return credentials;
+    }
 }
 
 /// <summary>

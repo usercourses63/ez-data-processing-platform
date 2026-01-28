@@ -103,7 +103,7 @@ services.AddScoped<IDataSourceService, DataSourceService>();
 services.AddScoped<ICategoryService, CategoryService>();
 
 // Register server management service (v0.2.0: External File Access)
-services.AddConnectorFactory();
+services.AddConnectorFactory();  // Includes HttpClient registration for HttpApiConnector
 services.AddScoped<IServerService, ServerService>();
 
 // Register schema management services
