@@ -246,9 +246,22 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
         {
             _logger.LogInformation("Testing HTTP connection: {BaseUrl}", baseUrl);
 
-            ConfigureHttpClientForServer(server, credentials);
+            // Create fresh HttpClient to avoid "already started" error
+            using var httpClient = _httpClientFactory.CreateClient(nameof(HttpApiConnector));
 
-            var response = await _httpClient.GetAsync(baseUrl, cancellationToken);
+            // Configure timeout
+            var timeout = server.ConnectionTimeoutSeconds > 0 ? server.ConnectionTimeoutSeconds : 30;
+            httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+
+            // Set auth headers if credentials provided
+            if (credentials?.HasBasicAuth == true)
+            {
+                var encoded = Convert.ToBase64String(
+                    System.Text.Encoding.ASCII.GetBytes($"{credentials.Username}:{credentials.Password}"));
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", encoded);
+            }
+
+            var response = await httpClient.GetAsync(baseUrl, cancellationToken);
             stopwatch.Stop();
 
             if (response.IsSuccessStatusCode)
@@ -392,11 +405,18 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
             var useHttps = server.TypeSpecificConfig?.Contains("UseHttps") == true &&
                           server.TypeSpecificConfig["UseHttps"].AsBoolean;
             var scheme = useHttps ? "https" : "http";
-            var port = server.Port > 0 && server.Port != 80 && server.Port != 443
-                ? $":{server.Port}"
+
+            // Handle nullable Port properly
+            var portValue = server.Port ?? (useHttps ? 443 : 80);
+            var port = portValue != 80 && portValue != 443
+                ? $":{portValue}"
                 : "";
-            var basePath = server.BasePath ?? "";
-            return $"{scheme}://{server.Host}{port}{basePath}";
+
+            var basePath = (server.BasePath ?? "").TrimEnd('/');
+            // Add trailing slash to prevent nginx redirects that drop port
+            var trailingSlash = !string.IsNullOrEmpty(basePath) ? "/" : "";
+
+            return $"{scheme}://{server.Host}{port}{basePath}{trailingSlash}";
         }
 
         // Otherwise use BasePath as full URL
