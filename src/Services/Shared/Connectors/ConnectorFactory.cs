@@ -130,18 +130,18 @@ public static class ConnectorFactoryExtensions
         // Register the factory
         services.AddSingleton<IConnectorFactory, ConnectorFactory>();
 
-        // Register HttpClient factory for HttpApiConnector
+        // Register named HttpClient for HttpApiConnector to use via factory
         services.AddHttpClient(nameof(HttpApiConnector))
             .ConfigureHttpClient(client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
 
-        // Register built-in connectors
+        // Register all connectors as Singleton
         services.AddSingleton<LocalFileConnector>();
         services.AddSingleton<FtpConnector>();
         services.AddSingleton<SftpConnector>();
-        services.AddSingleton<HttpApiConnector>();  // Now uses IHttpClientFactory internally
+        services.AddSingleton<HttpApiConnector>();  // Uses IHttpClientFactory internally
         services.AddSingleton<KafkaConnector>();
         services.AddSingleton<S3Connector>();
 
