@@ -468,13 +468,25 @@ public class ServerService : IServerService
     /// </summary>
     private static DataProcessingDataSource CreateTempDataSourceFromServer(AdminServer server)
     {
+        var additionalConfig = server.TypeSpecificConfig ?? new MongoDB.Bson.BsonDocument();
+
+        // Special handling for Kafka - use KafkaConfig.BootstrapServers
+        if (server.ServerType.Equals("kafka", StringComparison.OrdinalIgnoreCase) && server.KafkaConfig != null)
+        {
+            additionalConfig = new MongoDB.Bson.BsonDocument(additionalConfig)
+            {
+                ["KafkaBootstrapServers"] = server.KafkaConfig.BootstrapServers,
+                ["KafkaConsumerGroup"] = server.KafkaConfig.DefaultConsumerGroup ?? "test-group"
+            };
+        }
+
         return new DataProcessingDataSource
         {
             Name = $"_test_{server.Name}",
             FilePath = server.BasePath ?? "/",
             FilePattern = "*",
             // Map server config to datasource additional configuration
-            AdditionalConfiguration = server.TypeSpecificConfig
+            AdditionalConfiguration = additionalConfig
         };
     }
 }

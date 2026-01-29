@@ -77,4 +77,11 @@ spec:
             port: 5001
           initialDelaySeconds: 15
           periodSeconds: 5
+        volumeMounts:
+        - name: nfs-test-data
+          mountPath: /mnt/nfs-data
+      volumes:
+      - name: nfs-test-data
+        persistentVolumeClaim:
+          claimName: data-input-pvc
       restartPolicy: Always

@@ -21,8 +21,8 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs-data
   nfs:
-    server: file-simulator.ez-platform.svc.cluster.local
-    path: /exports/data
+    server: file-simulator.local
+    path: /data
   mountOptions:
     - nfsvers=4.1
     - hard
