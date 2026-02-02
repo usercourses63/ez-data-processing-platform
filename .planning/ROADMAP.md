@@ -11,8 +11,8 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 - Decimal phases (e.g., 2.1): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: File-Simulator Integration** - Establish file-simulator infrastructure and connectivity verification
-- [ ] **Phase 2: NAS/NFS Architecture Implementation** - Implement NAS device entity and K8s PV/PVC dynamic mounting via .NET 10 API
-- [ ] **Phase 3: Protocol Test Coverage** - Verify all 8 protocols work correctly against file-simulator (including NFS via NAS devices)
+- [x] **Phase 2: NAS/NFS Architecture Implementation** - Implement NAS device entity and K8s PV/PVC dynamic mounting via .NET 10 API
+- [x] **Phase 3: Protocol Test Coverage** - Verify all 8 protocols work correctly against file-simulator (including NFS via NAS devices)
 - [ ] **Phase 4: Format & Pipeline Testing** - Validate format conversions and end-to-end pipeline paths
 - [ ] **Phase 5: CI/CD Foundation** - Automated builds, pipeline quality gates, version injection, and Docusaurus build
 - [ ] **Phase 6: Deployment Automation** - Helm packaging, OCP deployment, Docusaurus portal deployment, documentation workflow
@@ -55,12 +55,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md - NAS device entity and RBAC manifests
-- [ ] 02-02-PLAN.md - Kubernetes client DI and NasResourceService for PV/PVC operations
-- [ ] 02-03-PLAN.md - NasDevicesController REST API and business logic service
-- [ ] 02-04-PLAN.md - NFS connector integration with NAS device mount paths
-- [ ] 02-05-PLAN.md - Frontend NasDevicesTab UI and API client
-- [ ] 02-06-PLAN.md - Integration testing and deployment configuration
+- [x] 02-01-PLAN.md - NAS device entity and RBAC manifests
+- [x] 02-02-PLAN.md - Kubernetes client DI and NasResourceService for PV/PVC operations
+- [x] 02-03-PLAN.md - NasDevicesController REST API and business logic service
+- [x] 02-04-PLAN.md - NFS connector integration with NAS device mount paths
+- [x] 02-05-PLAN.md - Frontend NasDevicesTab UI and API client
+- [x] 02-06-PLAN.md - Integration testing and deployment configuration
 
 ### Phase 3: Protocol Test Coverage
 **Goal**: Every file protocol has verified integration tests against file-simulator
@@ -75,13 +75,13 @@ Plans:
   6. HTTP/WebDAV connector reads files successfully via file-simulator HTTP endpoint
   7. Kafka connector produces/consumes messages successfully (existing tests validated)
   8. Local connector tests documented as OCP-incompatible (reference only)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: FTP, SFTP, HTTP protocol tests
-- [ ] 03-02: S3, SMB protocol tests
-- [ ] 03-03: NFS protocol tests via NAS devices
-- [ ] 03-04: Kafka and protocol test consolidation
+- [x] 03-01-PLAN.md - Test infrastructure (FileSimulatorFixture) and FTP, SFTP, HTTP tests
+- [x] 03-02-PLAN.md - SMB connector implementation and S3, SMB tests
+- [x] 03-03-PLAN.md - NFS tests via NAS devices and Kafka connector tests
+- [x] 03-04-PLAN.md - Local connector tests (OCP-incompatible) and protocol test documentation
 
 ### Phase 4: Format & Pipeline Testing
 **Goal**: All format conversions verified and critical pipeline paths have automated tests
@@ -223,8 +223,8 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. File-Simulator Integration | 2/2 | Complete | 2026-02-02 |
-| 2. NAS/NFS Architecture Implementation | 6/6 | ✓ Complete | 2026-02-02 |
-| 3. Protocol Test Coverage | 0/4 | Not started | - |
+| 2. NAS/NFS Architecture Implementation | 6/6 | Complete | 2026-02-02 |
+| 3. Protocol Test Coverage | 4/4 | Complete | 2026-02-02 |
 | 4. Format & Pipeline Testing | 0/3 | Not started | - |
 | 5. CI/CD Foundation | 0/3 | Not started | - |
 | 6. Deployment Automation | 0/4 | Not started | - |
@@ -240,5 +240,6 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 *Phase 1 planned: 2026-02-02 (2 plans in 2 waves)*
 *Phase 1 revised: 2026-02-02 (narrowed scope to infrastructure + connectivity; protocol tests deferred to Phase 3)*
 *Phase 2 planned: 2026-02-02 (6 plans in 5 waves)*
+*Phase 3 planned: 2026-02-02 (4 plans in 2 waves)*
 *Depth: Comprehensive (10 phases)*
 *Total requirements: 45 | Mapped: 45*
