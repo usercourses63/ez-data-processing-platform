@@ -138,9 +138,9 @@
 | CD-09 | Phase 5 | Pending |
 | CD-10 | Phase 6 | Pending |
 | CD-11 | Phase 6 | Pending |
-| DOC-01 | Phase 7 | Pending |
-| DOC-02 | Phase 7 | Pending |
-| DOC-03 | Phase 7 | Pending |
+| DOC-01 | Phase 7 | Complete |
+| DOC-02 | Phase 7 | Complete |
+| DOC-03 | Phase 7 | Complete |
 | DOC-04 | Phase 8 | Pending |
 | DOC-05 | Phase 8 | Pending |
 | FE-01 | Phase 9 | Pending |
