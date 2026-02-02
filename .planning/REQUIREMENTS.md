@@ -122,9 +122,9 @@
 | TEST-01 | Phase 4 | Pending |
 | TEST-02 | Phase 3 | Pending |
 | TEST-03 | Phase 4 | Pending |
-| TEST-04 | Phase 1 | Pending |
+| TEST-04 | Phase 1 | Complete |
 | TEST-05 | Phase 5 | Pending |
-| TEST-06 | Phase 1 | Pending |
+| TEST-06 | Phase 1 | Complete |
 | TEST-07 | Phase 4 | Pending |
 | TEST-08 | Phase 4 | Pending |
 | CD-01 | Phase 5 | Pending |
