@@ -86,6 +86,10 @@ spec:
           value: "10"
         - name: FileProcessor__MaxFileSizeMB
           value: "1000"
+        envFrom:
+        - configMapRef:
+            name: file-simulator-config
+            optional: true
         resources:
           requests:
             cpu: "200m"
