@@ -13,7 +13,7 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 - [x] **Phase 1: File-Simulator Integration** - Establish file-simulator infrastructure and connectivity verification
 - [x] **Phase 2: NAS/NFS Architecture Implementation** - Implement NAS device entity and K8s PV/PVC dynamic mounting via .NET 10 API
 - [x] **Phase 3: Protocol Test Coverage** - Verify all 8 protocols work correctly against file-simulator (including NFS via NAS devices)
-- [ ] **Phase 4: Format & Pipeline Testing** - Validate format conversions and end-to-end pipeline paths
+- [x] **Phase 4: Format & Pipeline Testing** - Validate format conversions and end-to-end pipeline paths
 - [ ] **Phase 5: CI/CD Foundation** - Automated builds, pipeline quality gates, version injection, and Docusaurus build
 - [ ] **Phase 6: Deployment Automation** - Helm packaging, OCP deployment, Docusaurus portal deployment, documentation workflow
 - [x] **Phase 7: Documentation Audit & Archive** - Audit 270+ docs, archive session logs, delete obsolete
@@ -98,9 +98,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md - Format conversion tests (bidirectional round-trip for CSV, JSON, XML, Excel)
-- [ ] 04-02-PLAN.md - Pipeline integration tests (discovery -> processing -> validation -> output)
-- [ ] 04-03-PLAN.md - Load testing (100-1000 files) and documentation
+- [x] 04-01-PLAN.md - Format conversion tests (bidirectional round-trip for CSV, JSON, XML, Excel)
+- [x] 04-02-PLAN.md - Pipeline integration tests (discovery -> processing -> validation -> output)
+- [x] 04-03-PLAN.md - Load testing (100-1000 files) and documentation
 
 ### Phase 5: CI/CD Foundation
 **Goal**: Every commit triggers automated builds with test quality gates, version injection, and Docusaurus build
@@ -225,7 +225,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 1. File-Simulator Integration | 2/2 | Complete | 2026-02-02 |
 | 2. NAS/NFS Architecture Implementation | 6/6 | Complete | 2026-02-02 |
 | 3. Protocol Test Coverage | 4/4 | Complete | 2026-02-02 |
-| 4. Format & Pipeline Testing | 0/3 | Planned | - |
+| 4. Format & Pipeline Testing | 3/3 | Complete | 2026-02-02 |
 | 5. CI/CD Foundation | 0/3 | Not started | - |
 | 6. Deployment Automation | 0/4 | Not started | - |
 | 7. Documentation Audit & Archive | 2/2 | Complete | 2026-02-02 |
