@@ -40,7 +40,7 @@ Write-Host "Parallel:   ThrottleLimit 5" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Define all 9 services to build
+# Define all 10 services to build (9 backend/frontend + Docusaurus)
 $services = @(
     @{Name="datasource-management"; Dockerfile="docker/DataSourceManagementService.Dockerfile"; Image="ez-platform/datasource-management"},
     @{Name="validation"; Dockerfile="docker/ValidationService.Dockerfile"; Image="ez-platform/validation"},
@@ -50,7 +50,8 @@ $services = @(
     @{Name="output"; Dockerfile="docker/OutputService.Dockerfile"; Image="ez-platform/output"},
     @{Name="metrics-configuration"; Dockerfile="docker/MetricsConfigurationService.Dockerfile"; Image="ez-platform/metrics-configuration"},
     @{Name="invalidrecords"; Dockerfile="docker/InvalidRecordsService.Dockerfile"; Image="ez-platform/invalidrecords"},
-    @{Name="frontend"; Dockerfile="docker/Frontend.Dockerfile"; Image="ez-platform/frontend"}
+    @{Name="frontend"; Dockerfile="docker/Frontend.Dockerfile"; Image="ez-platform/frontend"},
+    @{Name="docusaurus"; Dockerfile="docker/Docusaurus.Dockerfile"; Image="ez-platform/docusaurus"}
 )
 
 # Thread-safe collections for parallel execution (per research Pattern 2)
