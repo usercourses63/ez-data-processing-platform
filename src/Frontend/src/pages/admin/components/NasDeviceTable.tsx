@@ -32,8 +32,16 @@ interface NasDeviceTableProps {
   onTestConnection: (device: NasDevice) => void;
 }
 
+// Enum to string mapping (backend returns 0,1,2,3)
+const roleEnumToString: Record<number, string> = {
+  0: 'Input',
+  1: 'Output',
+  2: 'Backup',
+  3: 'Both',
+};
+
 // Role display configuration
-const roleConfig: Record<NasDeviceRole, { label: string; color: string; icon: React.ReactNode }> = {
+const roleConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   Input: { label: 'Input', color: 'blue', icon: <DownloadOutlined /> },
   Output: { label: 'Output', color: 'green', icon: <UploadOutlined /> },
   Backup: { label: 'Backup', color: 'orange', icon: <CloudServerOutlined /> },
@@ -121,10 +129,11 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
       key: 'role',
       width: 120,
       render: (role: NasDeviceRole) => {
-        const config = roleConfig[role] || { label: role, color: 'default', icon: null };
+        const roleName = typeof role === 'number' ? roleEnumToString[role] : role;
+        const config = roleConfig[roleName] || { label: String(role), color: 'default', icon: null };
         return (
           <Tag color={config.color} icon={config.icon}>
-            {t(`admin.nas.roles.${role}`) || config.label}
+            {t(`admin.nas.roles.${roleName}`) || config.label}
           </Tag>
         );
       },
