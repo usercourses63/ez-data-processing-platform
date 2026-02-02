@@ -1,254 +1,323 @@
 # Architecture
 
-**Analysis Date:** 2026-01-28
+**Analysis Date:** 2026-02-02
 
 ## Pattern Overview
 
-**Overall:** Microservices architecture with event-driven data processing pipeline
+**Overall:** Microservices Event-Driven Architecture with Message Broker Orchestration
 
 **Key Characteristics:**
-- 9 independent backend microservices (DataSourceManagement, Validation, FileProcessor, FileDiscovery, Scheduling, Output, Metrics, InvalidRecords, DataSourceChat)
-- React 19 frontend with TypeScript consuming REST APIs
-- Event-driven asynchronous processing via MassTransit (Kafka/RabbitMQ)
-- MongoDB document database with shared entity base
-- Distributed cache (Hazelcast) for performance optimization
-- Centralized OpenTelemetry monitoring (metrics, traces, logs)
-- Kubernetes orchestration with OCP compliance
+- **Event-driven pipeline:** Services communicate via asynchronous events (MassTransit with RabbitMQ)
+- **Shared library pattern:** `DataProcessing.Shared` provides base classes, entities, and utilities across all services
+- **Multi-layer per service:** Controllers → Services → Repositories → MongoDB (each service follows consistent structure)
+- **Correlation ID tracing:** All messages and requests include CorrelationId for cross-service request tracing
+- **Distributed caching:** Hazelcast caches file content and archive data between processing stages
 
 ## Layers
 
-**API Layer (Frontend):**
-- Purpose: User interface for data source management, schema validation, metrics configuration, and monitoring
-- Location: `src/Frontend/src/`
-- Contains: React pages, components, services (API clients), hooks, i18n configuration
-- Depends on: Backend REST APIs (DataSourceManagement primary, MetricsConfiguration, InvalidRecords, etc.)
-- Used by: End users via HTTP/HTTPS
-
-**REST API Layer (Services):**
-- Purpose: Request handling and HTTP routing
+**API Layer (Controllers):**
+- Purpose: REST API endpoints for frontend and external integrations
 - Location: `src/Services/[ServiceName]/Controllers/`
-- Contains: ASP.NET Core controllers with route attributes, request validation
-- Pattern: Each service has one or more controllers (e.g., `DataSourceController`, `CategoriesController`, `SchemaController`)
-- Depends on: Service layer for business logic
-- Response format: `ApiResponse<T>` wrapper with correlation ID, success flag, error details
+- Contains: ASP.NET Core controllers (e.g., `DataSourceController.cs`, `SchemaController.cs`)
+- Depends on: Service layer interfaces, DTO models
+- Used by: React frontend, external API consumers
+- Pattern: Controllers delegate to services, return `ApiResponse<T>` wrappers with metadata
 
-**Business Logic Layer (Services):**
-- Purpose: Core domain logic, validation, orchestration
+**Service Layer (Business Logic):**
+- Purpose: Core business logic, orchestration, validation
 - Location: `src/Services/[ServiceName]/Services/`
-- Contains: Service implementations with interfaces (e.g., `IDataSourceService`, `IValidationService`)
-- Pattern: Constructor injection of repository, logger, metrics, publish endpoint
-- Depends on: Data access layer, shared configuration, event publishing
-- Error handling: Try-catch with Hebrew localized error responses via `HebrewErrorResponseFactory`
+- Contains: IService interfaces and Service implementations
+- Depends on: Repository layer, shared utilities (connectors, converters), message publisher
+- Used by: Controllers, consumers, other services (via IRequestClient)
+- Pattern: Services are scoped, injected via constructor, perform atomic operations
 
-**Data Access Layer (Repositories):**
-- Purpose: MongoDB interaction and persistence
+**Repository Layer (Data Access):**
+- Purpose: MongoDB data access using MongoDB.Entities ORM
 - Location: `src/Services/[ServiceName]/Repositories/`
-- Contains: Repository implementations inheriting from MongoDB.Entities base
-- Pattern: Async methods return entities or null; supports query, insert, update, delete operations
-- Depends on: MongoDB.Entities ORM, correlation ID tracking
-- Features: Soft-delete support (IsDeleted flag), optimistic concurrency (Version field)
+- Contains: IRepository interfaces and Repository implementations
+- Depends on: DB.InitAsync() setup, entities
+- Used by: Services for CRUD operations
+- Pattern: Generic CRUD + custom queries, returns entities with soft-delete filtering
 
-**Shared Infrastructure Layer:**
-- Purpose: Cross-cutting concerns and reusable utilities
+**Message Consumer Layer:**
+- Purpose: Event subscription and async message processing
+- Location: `src/Services/[ServiceName]/Consumers/`
+- Contains: Classes implementing `IConsumer<T>` from MassTransit
+- Depends on: `DataProcessingConsumerBase<T>` for correlation ID tracking and error handling
+- Used by: MassTransit event bus automatically
+- Pattern: Inherits from base class, overrides `ProcessMessage()`, metrics/logging via base class
+
+**Shared Library (Cross-Service):**
+- Purpose: Reusable abstractions, base classes, and utilities
 - Location: `src/Services/Shared/`
 - Contains:
-  - `Configuration/`: DI setup (Database, MassTransit, OpenTelemetry, Logging, Hazelcast)
-  - `Connectors/`: Data source connectors (Local, FTP, SFTP, Kafka, HTTP, AdminServer) - factory pattern
-  - `Converters/`: Format converters (CSV, JSON, XML, Excel)
-  - `Entities/`: Base entity classes and domain models
-  - `Messages/`: Event contracts (12+ event types) implementing `IDataProcessingMessage`
-  - `Consumers/`: `DataProcessingConsumerBase<T>` for Kafka message handling
-  - `Monitoring/`: `BusinessMetrics` for counters, histograms, gauges
-  - `Middleware/`: Authentication, correlation ID, logging middleware
-- Used by: All services via dependency injection
+  - `Configuration/` - DI setup (Database, MassTransit, OpenTelemetry, Health checks, Hazelcast)
+  - `Connectors/` - Data source connector implementations (Local, FTP, SFTP, Kafka, HTTP, S3)
+  - `Converters/` - Format conversion (CSV↔JSON, XML↔JSON, Excel↔JSON)
+  - `Entities/` - Shared MongoDB entities (DataProcessingBaseEntity, DataSourceCategory, etc.)
+  - `Messages/` - Event contracts for MassTransit (FileDiscoveredEvent, ValidationRequestEvent, etc.)
+  - `Consumers/` - DataProcessingConsumerBase<T> with auto-logging, metrics, retry logic
+  - `Monitoring/` - BusinessMetrics, DataProcessingMetrics for OpenTelemetry
+  - `Middleware/` - CorrelationIdMiddleware, error handling
+- Used by: All services for DI configuration and base implementations
 
-**Event Bus Layer (MassTransit):**
-- Purpose: Asynchronous inter-service communication
-- Transport: RabbitMQ (synchronous) + Kafka (async topics)
-- Topics:
-  - `dataprocessing.scheduling.filepolling` - SchedulingService → FileDiscoveryService
-  - `dataprocessing.filesreceiver.validationrequest` - FileDiscoveryService → ValidationService
-  - `dataprocessing.validation.completed` - ValidationService → OutputService
-  - `dataprocessing.global.processingfailed` - Any service (error dead-letter topic)
-- Pattern: Consumers inherit from `DataProcessingConsumerBase<T>`, override `ProcessMessage()`
-- Correlation: Automatic propagation via `CorrelationId` on all messages
-
-**Data Storage Layer:**
-- MongoDB: Database name `ezplatform`, connection via `ConnectionStrings__DefaultConnection`
-- Hazelcast: Distributed cache for file content and validation results (TTL: 5 minutes)
-- Indices: Auto-created for Name (unique), SupplierName, IsActive, CreatedAt fields
+**Frontend Layer (React):**
+- Purpose: User interface for platform
+- Location: `src/Frontend/src/`
+- Contains: React components, pages, API client services
+- Depends on: React Query for server-state management, Ant Design for UI, i18next for i18n
+- Used by: End users via browser
+- Pattern: Pages (route components) → Components (reusable UI) → Services (API clients)
 
 ## Data Flow
 
-**Ingest Pipeline:**
+**File Processing Pipeline:**
 
-1. User creates/enables DataSource in UI → API call to DataSourceManagement (POST /api/v1/datasources)
-2. DataSourceManagement validates, stores in MongoDB, publishes `FilePollingEvent`
-3. SchedulingService creates Quartz.NET job based on schedule
-4. At scheduled time, job emits `FilePollingEvent` → Kafka topic
-5. FileDiscoveryService consumes event, connects to data source (FTP/Local/HTTP/etc.)
-6. Discovers files matching pattern, reads content → stores in Hazelcast cache
-7. Publishes `ValidationRequestEvent` → Kafka
-8. ValidationService consumes, validates against schema using Corvus.Json.Validator
-9. Valid records → OutputService consumes `ValidationCompletedEvent` → writes to destination (Folder, Kafka, etc.)
-10. Invalid records → InvalidRecordsService for management and review
+1. **FileDiscoveryService** → Discovers files matching pattern on data source
+   - Reads data source config from MongoDB
+   - Uses connector to list/access files
+   - Publishes `FileDiscoveredEvent` for each file
 
-**Error Handling Flow:**
+2. **FileProcessorService** consumes `FileDiscoveredEvent`
+   - Reads file content via connector
+   - Converts to JSON (uses converter based on file type)
+   - Stores JSON in Hazelcast cache (key: file-content:{guid})
+   - Publishes `ValidationRequestEvent` with cache key reference
 
-- Any step fails → catch block publishes `FileProcessingFailedEvent` to dead-letter topic
-- Service logs with correlation ID, increments failure metric
-- Error response to client includes: correlation ID, error code, Hebrew localized message, HTTP status
+3. **ValidationService** consumes `ValidationRequestEvent`
+   - Retrieves JSON from Hazelcast cache
+   - Validates against schema (Corvus.Json.Validator - JSON Schema 2020-12)
+   - Separates valid and invalid records
+   - Stores `DataProcessingValidationResult` in MongoDB
+   - Publishes `ValidationCompletedEvent`
+
+4. **OutputService** consumes `ValidationCompletedEvent`
+   - Queries validation results from MongoDB
+   - Reconstructs data to original format (if needed)
+   - Outputs to configured destinations:
+     - Folder (local filesystem or network)
+     - Kafka topic
+     - SFTP server
+     - HTTP endpoint
+     - S3 bucket
+     - FTP server
+   - Publishes completion event
+
+**Request-Response for Configuration:**
+
+1. Frontend calls **DataSourceManagementService** API endpoints
+   - `GET /api/v1/datasources` - List data sources (paginated)
+   - `POST /api/v1/datasources` - Create data source
+   - `PUT /api/v1/datasources/{id}` - Update data source
+   - Also handles schema management, category management, server management
+
+2. Frontend calls **MetricsConfigurationService** API endpoints
+   - `GET /api/v1/metrics` - List metrics
+   - `POST /api/v1/metrics` - Create metric with PromQL
+   - Supports alert rule definition
+
+3. Frontend calls **InvalidRecordsService** API endpoints
+   - `GET /api/v1/invalid-records` - List invalid records (paginated)
+   - Allows filtering by data source, pipeline stage
 
 **State Management:**
 
-- Request state: Correlation ID passed through all services (headers, message context)
-- Entity state: MongoDB with soft-delete (IsDeleted flag), version field for concurrency
-- Cache state: Hazelcast TTL-based eviction, invalidated on source updates
-- UI state: React Query caching with hierarchical query keys (see `queryKeys.ts`)
+- **Correlation ID Propagation:**
+  - Generated on API request or by publishing service
+  - Included in all event messages
+  - Extracted in consumers and logged
+  - Used for distributed tracing via OpenTelemetry
+
+- **Hazelcast Cache Layers:**
+  - `file-content:{guid}` - Raw JSON from FileProcessor (TTL: 5 min)
+  - `valid-records:{guid}` - Validated records (TTL: 5 min)
+  - Archive cache (`.ArchiveCacheService`) - Extracted archives
+
+- **MongoDB Collections:**
+  - `dataprocessingsources` - Data sources (with unique index on Name)
+  - `dataprocessingdataSourceCategory` - Categories
+  - `dataprocessingdataSourceAdminServer` - Server credentials
+  - `dataprocessingvalidationresults` - Validation run results
+  - `dataprocessinginvalidrecords` - Invalid record entries
+  - `dataprocessingschema` - JSON schemas
+  - `outputconfigurations` - Output destination configs
+  - All documents have soft-delete flag, version, and correlation ID
 
 ## Key Abstractions
 
-**Data Source:**
-- Purpose: Represents external data provider (FTP, Local, HTTP, Kafka, AdminServer)
-- Files: `Entities/DataProcessingDataSource.cs`, controllers/services in DataSourceManagementService
-- Pattern: Store connection metadata (host, port, credentials via Vault), schedule, destination config
-- Connector factory pattern: `IConnectorFactory` creates `IDataSourceConnector` implementations
+**IDataSourceConnector:**
+- Purpose: Plugin interface for different file sources
+- Examples: `src/Services/Shared/Connectors/LocalFileConnector.cs`, `FtpConnector.cs`, `HttpApiConnector.cs`, `S3Connector.cs`
+- Pattern: Implement `ReadFileAsync()`, `ListFilesAsync()`, `TestConnectionAsync()`, `GetFileMetadataAsync()`
+- Used by: FileDiscoveryService (list files), FileProcessorService (read files)
 
-**Connector:**
-- Purpose: Abstraction over different data source protocols
-- Examples: `FtpConnector`, `LocalConnector`, `SftpConnector`, `KafkaConnector`, `HttpConnector`
-- Located: `Shared/Connectors/` implementations
-- Pattern: Each connector implements `IDataSourceConnector` with connection test and file read methods
+**IDataProcessingMessage:**
+- Purpose: Message contract for all events
+- Definition: `src/Services/Shared/Messages/IDataProcessingMessage.cs`
+- Properties: CorrelationId, Timestamp, PublishedBy, MessageVersion
+- Implementations: `FileDiscoveredEvent`, `ValidationRequestEvent`, `ValidationCompletedEvent`, etc.
 
-**Schema:**
-- Purpose: JSON Schema validation rules for records
-- Files: `Entities/DataProcessingSchema.cs`, `DataSourceManagementService/Services/Schema/`
-- Pattern: Stored as JSON document, validated using Corvus.Json.Validator (JSON Schema 2020-12)
-- Usage: ValidationService applies schema to each record during processing
+**DataProcessingBaseEntity:**
+- Purpose: MongoDB entity base class with audit trail
+- Location: `src/Services/Shared/Entities/DataProcessingBaseEntity.cs`
+- Features: CreatedAt, UpdatedAt, IsDeleted (soft delete), CorrelationId, Version, CreatedBy, UpdatedBy
+- All domain entities extend this class
 
-**Converter:**
-- Purpose: Format transformation (CSV→JSON, JSON→XML, Excel→CSV, etc.)
-- Located: `Shared/Converters/` implementations
-- Pattern: Each format has converter implementing `IFormatConverter`
+**DataProcessingConsumerBase<T>:**
+- Purpose: Base class for MassTransit consumers with metrics/tracing
+- Location: `src/Services/Shared/Consumers/DataProcessingConsumerBase.cs`
+- Features:
+  - Correlation ID tracking via activity tags
+  - Counter metrics for processed/errored messages
+  - Histogram for processing duration
+  - Retry logic decision (ShouldRetryOnError)
+  - Message validation hooks
+- Usage: All consumers inherit and override `ProcessMessage()`
 
-**Metrics:**
-- Purpose: Business-level observability counters and histograms
-- Located: `Shared/Monitoring/BusinessMetrics.cs`
-- Metrics: records_processed, invalid_records, files_processed, jobs_completed, processing_duration, validation_latency, etc.
-- Labels: data_source, service, status, error_type, file_type, pipeline_stage, output_destination
-
-**Output Destination:**
-- Purpose: Target for processed records
-- Types: Folder (Local), Kafka (topic), HTTP (webhook)
-- Stored in: `OutputConfiguration` entity
-- Pattern: OutputService routes validated records to destination(s) based on configuration
+**ConnectorFactory:**
+- Purpose: Factory pattern for connector instantiation
+- Location: `src/Services/Shared/Connectors/ConnectorFactory.cs`
+- Pattern: DI container creates connector by type string (e.g., "local", "ftp", "sftp")
+- Resolves credentials from AdminServer entities before creating connector
 
 ## Entry Points
 
-**Frontend Entry:**
-- Location: `src/Frontend/src/index.tsx` → `App.tsx`
-- Triggers: Browser navigation to localhost:7000
+**DataSourceManagementService:**
+- Location: `src/Services/DataSourceManagementService/Program.cs`
+- Triggers: HTTP requests on port 5001
 - Responsibilities:
-  - Initialize React Query, i18n (en-US, he-IL), Ant Design
-  - Set RTL layout based on language
-  - Lazy load route components
-  - Manage splash screen, error boundary
-  - Configure API base URL
+  - CRUD for data sources
+  - Connection testing via connectors
+  - Schema management and assignment
+  - Server credential management
+  - Category management
+  - Triggers FileDiscoveryService indirectly (scheduling)
 
-**Backend Services Entry:**
-- Each service: `src/Services/[ServiceName]/Program.cs`
-- Initialization sequence:
-  1. Configuration loading (appsettings.json + environment variables)
-  2. Service registration (DI container setup)
-  3. Logging configuration (Serilog → Elasticsearch)
-  4. OpenTelemetry setup (OTLP exporter to OTEL Collector)
-  5. MongoDB connection initialization
-  6. Hazelcast connection (if cache needed)
-  7. MassTransit configuration (RabbitMQ/Kafka)
-  8. Health check endpoints (/health, /health/ready, /health/live)
-  9. Middleware pipeline (CORS, correlation ID, security headers)
-  10. Route mapping (controllers, swagger)
-  11. Graceful shutdown hooks
+**FileDiscoveryService:**
+- Location: `src/Services/FileDiscoveryService/Program.cs`
+- Triggers: Scheduled jobs via Quartz.NET (cron expressions)
+- Responsibilities:
+  - Polls data sources at scheduled intervals
+  - Lists files matching configured pattern
+  - Publishes FileDiscoveredEvent for each file
+  - Tracks processed file hashes (deduplication)
 
-**Microservices Responsibilities:**
+**FileProcessorService:**
+- Location: `src/Services/FileProcessorService/Program.cs`
+- Triggers: FileDiscoveredEvent messages from RabbitMQ
+- Responsibilities:
+  - Reads file content via connector
+  - Extracts from archives (SharpCompress)
+  - Converts to JSON via converter
+  - Caches JSON in Hazelcast
+  - Publishes ValidationRequestEvent
 
-- **DataSourceManagementService** (Port 5001): CRUD for data sources, schemas, servers, categories, connection testing
-- **ValidationService** (Port 5003): Schema validation, Corvus.Json validator integration
-- **FileProcessorService** (Port 5008): Format conversion, file processing
-- **FileDiscoveryService**: File discovery and polling (consumer pattern, no direct API)
-- **SchedulingService** (Port 5004): Quartz.NET job scheduling and management
-- **OutputService** (Port 5009): Multi-destination output (Folder, Kafka, HTTP)
-- **MetricsConfigurationService** (Port 5002): Business metrics, PromQL expressions, alert rules
-- **InvalidRecordsService** (Port 5007): Invalid record storage and management
-- **DataSourceChatService**: Optional AI assistant (consumer pattern)
+**ValidationService:**
+- Location: `src/Services/ValidationService/Program.cs`
+- Triggers: ValidationRequestEvent messages from RabbitMQ
+- Responsibilities:
+  - Retrieves cached JSON from Hazelcast
+  - Validates against assigned schema (Corvus.Json.Validator)
+  - Splits valid/invalid records
+  - Stores results in MongoDB
+  - Publishes ValidationCompletedEvent
+
+**OutputService:**
+- Location: `src/Services/OutputService/Program.cs`
+- Triggers: ValidationCompletedEvent messages from RabbitMQ
+- Responsibilities:
+  - Reconstructs data to original format
+  - Routes to multiple output destinations
+  - Handles folder, Kafka, SFTP, HTTP, S3, FTP outputs
+  - Tracks processing completion
+
+**React Frontend:**
+- Location: `src/Frontend/src/main.tsx` or similar entry
+- Triggers: User navigation and interactions
+- Responsibilities:
+  - Displays dashboards and forms
+  - Manages data sources, schemas, metrics
+  - Views validation results and invalid records
+  - Configures alerts and output destinations
+  - RTL/Hebrew language support
 
 ## Error Handling
 
-**Strategy:** Three-tier error handling with localization
-
-**Tier 1 - Service Layer:**
-```csharp
-try {
-  // Business logic
-} catch (Exception ex) {
-  _logger.LogError(ex, "...", correlationId);
-  _metrics.IncrementFailureCounter();
-  return ApiResponse<T>.Failure(
-    HebrewErrorResponseFactory.CreateDatabaseError(correlationId, ex.Message),
-    correlationId
-  );
-}
-```
-
-**Tier 2 - API Response Wrapper:**
-- `ApiResponse<T>` contains: `IsSuccess`, `Data`, `Error`
-- `ErrorResponse` contains: `ErrorCode`, `Message` (Hebrew), `Details`, `Timestamp`, `CorrelationId`
-
-**Tier 3 - Consumer Error Handling:**
-- `DataProcessingConsumerBase<T>` catches exceptions during message processing
-- Logs with correlation ID, records error metrics
-- Decision logic: retry on TimeoutException, TaskCanceledException, HttpRequestException
-- Non-retry on validation errors, not supported errors
-- Failed messages → dead-letter topic `dataprocessing.global.processingfailed`
+**Strategy:** Combination of try-catch, consumer retry logic, and dead-letter queues
 
 **Patterns:**
-- Input validation before processing (required field checks, range validation)
-- Database operation errors caught and mapped to HTTP 500 with user-friendly Hebrew message
-- Missing resource errors return 404 with "Not found" message
-- Concurrent modification conflicts use optimistic locking (Version field check)
+
+- **Service Layer:** Try-catch, log error, return `ApiResponse<T>` with error status and message
+  - Example: `src/Services/DataSourceManagementService/Services/DataSourceService.cs`
+  - Returns `(IsSuccess: false, Error: new ErrorDetails { StatusCode, Message })`
+
+- **Consumer Layer:** Use `DataProcessingConsumerBase<T>` which:
+  - Wraps `ProcessMessage()` in try-catch
+  - Calls `ShouldRetryOnError()` to decide retry
+  - Throws to trigger MassTransit retry (exponential backoff)
+  - Logs to dead-letter if max retries exceeded
+  - Example: `src/Services/FileProcessorService/Consumers/FileDiscoveredEventConsumer.cs`
+
+- **Validation Errors:** Non-retryable (ArgumentException, InvalidOperationException)
+  - Consumer logs and moves to invalid records table
+  - FileProcessingFailedEvent published for observability
+
+- **Transient Errors:** Retryable (TimeoutException, HttpRequestException, TaskCanceledException)
+  - Consumer throws to trigger MassTransit retry policy
+  - Configured with exponential backoff in MassTransit setup
+
+- **Health Checks:** `/health`, `/health/ready`, `/health/live` endpoints
+  - Monitor database connectivity, message broker, Hazelcast
+  - Kubernetes liveness/readiness probes query these
 
 ## Cross-Cutting Concerns
 
-**Logging:** Structured logging with Serilog → Elasticsearch
-- Enrichers: Service name, environment, machine name, correlation ID
-- Log levels: Information (default), Warning (framework), Error (exceptions)
-- Console output: `[HH:mm:ss LVL] Message {Properties}`
+**Logging:**
+- Framework: Serilog (structured logging)
+- Configuration: `src/Services/Shared/Configuration/LoggingConfiguration.cs`
+- Pattern: `_logger.LogInformation()` with structured properties
+- Exported to: Elasticsearch via OpenTelemetry collector (OTLP gRPC 4317)
+- Format: Includes correlation ID in all logs
 
 **Validation:**
-- Input: Controller level via DataAnnotations (Required, Range, StringLength)
-- Business: Service level custom validation (duplicate check, connection test)
-- Schema: ValidationService uses Corvus.Json.Validator for JSON Schema 2020-12
+- Request DTOs: Data annotations on request models (Required, StringLength, Range, etc.)
+  - Example: `src/Services/DataSourceManagementService/Models/Requests/CreateDataSourceRequest.cs`
+- Schema validation: Corvus.Json.Validator for JSON documents against JSON Schema 2020-12
+  - Example: `src/Services/ValidationService/Services/ValidationService.cs`
+- Message validation: `DataProcessingConsumerBase<T>` validates IDataProcessingMessage contract
 
-**Authentication:**
-- Header-based correlation ID: `X-Correlation-ID`
-- Generated if not present (Guid.NewGuid())
-- Propagated through all service calls and Kafka messages
+**Authentication & Authorization:**
+- Current: None (open API for MVP)
+- Future: Plan for adding API key or JWT support
+- CORS: Configured per environment (AllowAll in dev, Production policy in prod)
 
-**Hebrew/RTL Support:**
-- Frontend: Ant Design ConfigProvider with `direction="rtl"`, locale="he_IL"
-- Backend: `HebrewErrorResponseFactory` for localized error messages
-- Technical fields: CSS class `ltr-field` keeps regex/paths in LTR
-- Encoding: `JavaScriptEncoder.UnsafeRelaxedJsonEscaping` prevents Hebrew escaping
+**Monitoring:**
+- Metrics framework: OpenTelemetry with Prometheus exporters
+- Two-tier system:
+  - **Prometheus System** (9090): ASP.NET Core metrics, HTTP request counts, latencies
+  - **Prometheus Business** (9091): Custom business metrics (records processed, invalid records, etc.)
+- Traces: Jaeger via OTLP gRPC from OpenTelemetry Collector
+- Logs: Elasticsearch via OpenTelemetry Collector (structured Serilog output)
+- Grafana dashboards (port 3001): Visualize metrics and logs
 
-**OpenTelemetry Pipeline:**
-- Services emit to OTEL Collector (4317 gRPC, 4318 HTTP)
-- Collector routes to:
-  - Prometheus System (9090) for infrastructure metrics
-  - Prometheus Business (9091) for application metrics
-  - Elasticsearch (9200) for logs and traces
-  - Jaeger (16686) for distributed tracing
-- Correlation: `CorrelationId` tag on all activities and metrics
+**Distributed Tracing:**
+- Framework: OpenTelemetry with ActivitySource
+- Correlation ID flow:
+  1. API request includes `X-Correlation-ID` header
+  2. CorrelationIdMiddleware extracts/generates ID
+  3. All downstream calls include correlation ID
+  4. Activity spans tagged with correlation-id
+  5. Jaeger traces show end-to-end flow
+
+**Caching:**
+- Framework: Hazelcast (distributed, in-memory)
+- Strategy: Cache intermediate data between processing stages
+- Maps:
+  - `file-content` - JSON from FileProcessor (5 min TTL, 3 min idle)
+  - `valid-records` - Validated records (5 min TTL, 3 min idle)
+- Eviction: LRU when map exceeds 256MB
+- Invalidation: TTL-based (no manual invalidation needed for pipeline)
 
 ---
 
-*Architecture analysis: 2026-01-28*
+*Architecture analysis: 2026-02-02*

@@ -1,285 +1,275 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-01-28
+**Analysis Date:** 2026-02-02
 
 ## Naming Patterns
 
 **Files:**
-- Frontend components: PascalCase with `.tsx` extension (e.g., `DataTable.tsx`, `ErrorBoundary.tsx`)
-- Frontend utilities: camelCase with `.ts` extension (e.g., `schemaValidator.ts`, `validationErrorTranslator.ts`)
-- Frontend services: kebab-case with `-api-client.ts` suffix (e.g., `invalidrecords-api-client.ts`, `metrics-api-client.ts`)
-- Backend services: PascalCase with `.cs` extension (e.g., `DataSourceService.cs`, `CategoryService.cs`)
-- Backend interfaces: PascalCase with `I` prefix (e.g., `IDataSourceService.cs`, `IConnectionTestService.cs`)
-- Backend controllers: PascalCase with `Controller` suffix (e.g., `DataSourceController.cs`)
-- Test files (Backend): PascalCase with `.cs` extension (e.g., `JsonSchemaValidationTests.cs`)
-- Test files (Frontend): kebab-case with `.spec.ts` suffix (e.g., `datasource.spec.ts`, `alerts.spec.ts`)
+- C# services: `[ServiceName]Service.cs` (e.g., `DataSourceService.cs`)
+- C# interfaces: `I[Name].cs` (e.g., `IDataSourceService.cs`, `IDataSourceConnector.cs`)
+- C# consumers: `[Entity]EventConsumer.cs` (e.g., `FileDiscoveredEventConsumer.cs`)
+- C# controllers: `[EntityPlural]Controller.cs` (e.g., `DataSourceController.cs`)
+- C# models: `[Name]Request.cs`, `[Name]Response.cs` (e.g., `CreateDataSourceRequest.cs`, `ApiResponse.cs`)
+- React components: PascalCase with feature folder structure (e.g., `BasicInfoTab.tsx`, `DataSourceList.tsx`)
+- React hooks: `use[Name]Hook.ts` or custom `use[Name].ts` pattern
+- API clients: `[entity]-api-client.ts` (e.g., `connection-test-api-client.ts`, `categories-api-client.ts`)
+- Test files: `[feature].spec.ts` for E2E tests (e.g., `datasource.spec.ts`, `metrics.spec.ts`)
 
-**Functions:**
-- Frontend: camelCase (e.g., `handleTableChange`, `unreverseRTLPattern`, `fixRTLPatterns`)
-- Backend public methods: PascalCase (e.g., `GetByIdAsync`, `GetPagedAsync`, `CreateAsync`)
-- Backend private methods: camelCase (e.g., `_validateInput`, `_enrichMetrics`)
-- Event handlers: camelCase with `handle` prefix (e.g., `handlePaginationChange`, `handleSort`)
-- Async operations: end with `Async` suffix (e.g., `GetByIdAsync`, `CreateDatasourceAsync`)
+**Functions (C#):**
+- Public methods: PascalCase async suffix (e.g., `GetByIdAsync`, `CreateAsync`, `ProcessMessageAsync`)
+- Private methods: PascalCase (e.g., `ValidateInput`, `MapToEntity`)
+- Service methods always return `Task<T>` for async operations
+- Async operations use `Async` suffix convention strictly
+
+**Functions (TypeScript/React):**
+- React components: PascalCase (e.g., `BasicInfoTab`, `DataSourceForm`)
+- Custom hooks: `use` prefix in camelCase (e.g., `useDataSources`, `useQuery`)
+- API functions: camelCase (e.g., `testKafkaConnection`, `getAllCategories`)
+- Event handlers: `handle[Event]` pattern (e.g., `handleSplashFinish`, `handleSave`)
+- Internal functions: camelCase (e.g., `mapDataSource`, `validateForm`)
 
 **Variables:**
-- Frontend: camelCase (e.g., `isHebrew`, `uniqueId`, `testMessage`)
-- Backend: camelCase (e.g., `correlationId`, `dataSource`, `errorResponse`)
-- Constants: UPPER_SNAKE_CASE (e.g., `API_BASE_URL`, `DEFAULT_TIMEOUT`)
-- React state setters: `set` prefix followed by camelCase (e.g., `setLoading`, `setError`)
+- C# properties: PascalCase (e.g., `Name`, `CorrelationId`, `IsSuccess`)
+- C# private fields: `_camelCase` with underscore prefix (e.g., `_logger`, `_repository`, `_meter`)
+- TypeScript interfaces: PascalCase (e.g., `DataSource`, `ApiResponse<T>`, `OutputConfiguration`)
+- TypeScript constants: UPPER_SNAKE_CASE (e.g., `API_BASE_URL`)
+- React state/props: camelCase (e.g., `isLoading`, `categories`, `form`)
 
 **Types:**
-- Backend interfaces: `I` prefix (e.g., `IDataSourceService`, `IConnectionTestService`)
-- Backend records/models: PascalCase suffix with type (e.g., `DataSourceRequest`, `ApiResponse<T>`)
-- Frontend interfaces: PascalCase (e.g., `PaginationConfig`, `DataTableProps<T>`)
-- Frontend type aliases: PascalCase (e.g., `ValidationResult`, `ValidationError`)
-- Generics: Single letter uppercase (e.g., `<T>`, `<TResponse>`)
-
-**Namespaces/Modules:**
-- Backend: `DataProcessing.[ServiceArea]` (e.g., `DataProcessing.DataSourceManagement`, `DataProcessing.Validation`)
-- Backend test namespaces: `DataProcessing.[ServiceArea].Tests` (e.g., `DataProcessing.Validation.Tests`)
-- Frontend: directory-based organization with barrel files (e.g., `src/services/`, `src/components/`)
+- C# enums: PascalCase (e.g., `SortDirection`, `ConnectorType`)
+- C# generic types: `T`, `TRequest`, `TResponse` for constraints
+- TypeScript interfaces: `I` prefix not required (e.g., `DataSource`, not `IDataSource`)
+- TypeScript unions: PascalCase with `|` (e.g., `'CSV' | 'Excel' | 'JSON' | 'XML'`)
+- TypeScript optional properties: `prop?` suffix (e.g., `description?: string`)
 
 ## Code Style
 
 **Formatting:**
-- Frontend: Vite + React with TypeScript 5.9.3
-- Backend: .NET 10.0 with C# latest features
-- Line width: No strict enforced limit (observed: varies 80-120 chars)
-- Indentation: 2 spaces (Frontend), 4 spaces (Backend)
-- Semicolons: Required in TypeScript (explicit)
+- Languages: C# 10+ (ASP.NET Core), TypeScript 5+, React 19
+- No explicit formatter specified; follows conventions from codebase
+- C# uses default .NET naming conventions (PascalCase properties, camelCase parameters)
+- TypeScript uses standard camelCase/PascalCase split
 
 **Linting:**
-- Frontend: ESLint with react-app config
-  - Config: `eslintConfig` in `package.json` extends `react-app` and `react-app/jest`
-  - Command: `npm run lint` and `npm run lint:fix`
-  - File patterns: `.ts`, `.tsx` files
-- Backend: No explicit linter configured; relies on C# conventions and code review
+- Frontend: ESLint with `eslint-config-react-app` and `react-app/jest` preset
+- Configuration: `package.json` eslintConfig section (src/Frontend/package.json lines 49-53)
+- Run: `npm run lint` or `npm run lint:fix`
+- No `.eslintrc` file in root; using inline config
 
-**EditorConfig:**
-- TypeScript strict mode enabled: `"strict": true` in `tsconfig.json`
-- No fallthrough cases: `"noFallthroughCasesInSwitch": true`
-- Resolve JSON modules: Enabled for importing JSON configs
+**Build configuration:**
+- TypeScript strict mode enabled: `"strict": true` in `tsconfig.json` (line 17)
+- No `allowImplicitAny`; all types must be explicit
+- Module resolution: `bundler` with ESNext modules
 
 ## Import Organization
 
-**Order (Frontend TypeScript):**
-1. External libraries/packages (React, Ant Design, utilities)
-2. Internal services (API clients, utilities)
-3. Internal components
-4. Local utilities/types
-5. Styles (CSS imports)
+**Order (C#):**
+1. System namespaces (`using System;`, `using System.Diagnostics;`)
+2. Third-party namespaces (`using MongoDB.Entities;`, `using MassTransit;`)
+3. Custom DataProcessing namespaces (`using DataProcessing.Shared.*;`)
+4. Blank line separator
 
-**Example pattern from `src/Frontend/src/components/shared/DataTable.tsx`:**
-```typescript
-import React from 'react';
-import { Table, Space, Empty } from 'antd';
-import type { ColumnType, TablePaginationConfig, SorterResult, FilterValue } from 'antd/es/table/interface';
-import { useTranslation } from 'react-i18next';
-// ... local utilities follow
-```
-
-**Path Aliases:**
-- Frontend: Configured via `vite-tsconfig-paths` plugin
-- Relative imports: Used consistently (`../services`, `../../utils`)
-
-**Order (Backend C#):**
-1. System namespaces
-2. Microsoft namespaces
-3. External package namespaces
-4. DataProcessing namespaces (organized by layer)
-
-**Example pattern from `DataSourceService.cs`:**
+Example from `DataSourceService.cs` (lines 1-12):
 ```csharp
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using DataProcessing.Shared.Entities;
+using DataProcessing.Shared.Monitoring;
+using DataProcessing.Shared.Messages;
 using DataProcessing.DataSourceManagement.Models.Requests;
-using DataProcessing.DataSourceManagement.Repositories;
-// ... more specific imports follow
 ```
+
+**Order (TypeScript):**
+1. React/library imports (`import React from 'react'`)
+2. Third-party UI/utility imports (`import { Form, Input, Select } from 'antd'`)
+3. Custom imports (`import { getAllCategories } from '../../../services/'`)
+4. Blank line separator
+
+Example from `BasicInfoTab.tsx` (lines 1-9):
+```typescript
+import React from 'react';
+import { Form, Input, Select, Switch, InputNumber, Row, Col, Alert, Spin } from 'antd';
+import { FormInstance } from 'antd/es/form';
+import { useQuery } from '@tanstack/react-query';
+import { getAllCategories } from '../../../services/categories-api-client';
+```
+
+**Path Aliases:**
+- No path aliases configured in frontend `tsconfig.json`
+- Use relative paths: `../../../services/` for navigation
+- Vite handles path resolution via `vite-tsconfig-paths` plugin
 
 ## Error Handling
 
-**Frontend Patterns:**
-- Try-catch blocks with user-friendly error messages
-- Error boundary component wraps UI sections: `<ErrorBoundary>`
-- API response validation with `isSuccess` flag
-- Error state managed in React hooks or component state
-- Hebrew error message translation via `i18next`
+**Patterns (C#):**
+- Service methods return `ApiResponse<T>` wrapper (see `src/Services/DataSourceManagementService/Models/Responses/ApiResponse.cs`)
+- Success/failure indicated by `IsSuccess` property (line 30)
+- Errors wrapped in `ErrorDetail` object with code, message, status code
+- Hebrew error messages via `HebrewErrorResponseFactory` (line 78 in `DataSourceService.cs`)
+- Logging includes correlation ID for tracing: `_logger.LogError(ex, "message {CorrelationId}", correlationId)`
+- Controller methods return `StatusCode(result.Error!.StatusCode, ErrorResponse.Create(...))`
 
-**Example from `invalidrecords-api-client.ts`:**
-```typescript
-try {
-  const response = await fetch(url, { ...options });
-  const data = await response.json();
-  // validation and error handling
-} catch (error) {
-  // Handle error
-}
-```
-
-**Backend Patterns:**
-- Service methods return `ApiResponse<T>` wrapper with `IsSuccess` flag
-- Try-catch blocks with structured logging and correlation ID
-- Custom error factories: `HebrewErrorResponseFactory` for user messages
-- Activity tracing with correlation ID propagation
-- Metric counters for failure tracking
-
-**Example from `DataSourceService.cs`:**
+**Pattern (C# Exception Handling):**
 ```csharp
-try {
-  // Business logic
-} catch (Exception ex) {
-  _logger.LogError(ex, "Error message with context. CorrelationId: {CorrelationId}", correlationId);
-  var errorResponse = HebrewErrorResponseFactory.CreateDatabaseError(correlationId, ex.Message);
-  return ApiResponse<T>.Failure(errorResponse.Error, correlationId);
+try
+{
+    var result = await _repository.GetByIdAsync(id);
+    if (result == null)
+    {
+        var errorResponse = HebrewErrorResponseFactory.CreateNotFoundError(correlationId, "data_source", id);
+        return ApiResponse<T>.Failure(errorResponse.Error, correlationId);
+    }
+    return ApiResponse<T>.Success(result, correlationId);
+}
+catch (Exception ex)
+{
+    _logger.LogError(ex, "Error message {CorrelationId}", correlationId);
+    var errorResponse = HebrewErrorResponseFactory.CreateDatabaseError(correlationId, ex.Message);
+    return ApiResponse<T>.Failure(errorResponse.Error, correlationId);
 }
 ```
+
+**Patterns (TypeScript/React):**
+- API client functions use try-catch with axios error handling (line 49-75 in `connection-test-api-client.ts`)
+- Return error details in same response object as success: `{ success: false, message: string, errorDetails?: string }`
+- Components handle async data with `useQuery` from React Query (TanStack)
+- Error display via Ant Design `Alert` component (see `BasicInfoTab.tsx` lines 68-74)
+- Form validation via Ant Design Form rules: `{ required: true, message: 'error text' }`
+
+**Validation Patterns:**
+- Input validation in Form rules with `min`, `max`, `required` (lines 30-34 in `BasicInfoTab.tsx`)
+- C# service validation returns `CreateValidationError` before processing
+- Correlation ID validation: check not empty/null before processing
 
 ## Logging
 
-**Framework:**
-- Frontend: `console` object (console.error, console.log in error boundaries)
-- Backend: Serilog with structured logging configuration
+**Framework (C#):** `Serilog` with structured logging
+- Configuration: `src/Services/Shared/Configuration/LoggingConfiguration.cs` (lines 21-165)
+- Console sink: `[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}` format (line 74)
+- File sink: rolling daily with 30-day retention (lines 81-87)
+- Elasticsearch integration for production (lines 91-108)
+- Enrichers: CorrelationId, MachineName, Service name, Version
 
-**Patterns (Frontend):**
-- Error boundary logs to console: `console.error('ErrorBoundary caught error:', error, errorInfo)`
-- No production logging middleware; errors go to console for debugging
+**Patterns:**
+- Information level: successful operations (lines 59, 70)
+- Warning level: expected failures, e.g., resource not found (lines 54, 65)
+- Error level: unexpected exceptions with full context (line 77)
+- Structured logging with named parameters: `{CorrelationId}`, `{Message:lj}`
 
-**Patterns (Backend - from `LoggingConfiguration.cs`):**
-- Service level: `_logger.LogInformation()`, `_logger.LogWarning()`, `_logger.LogError()`
-- Structured properties: Include `CorrelationId`, service name, timestamp
-- Log enrichment: Thread ID, machine name, environment, application version
-- Output targets: Console, file, Elasticsearch
-- Elasticsearch integration via `Elastic.Serilog.Sinks`
+**Framework (TypeScript):** `console` (no structured logger)
+- No production logging setup in frontend code
+- Comments mark debugging statements
 
-**Logging format (Serilog console output):**
-```
-[HH:mm:ss {Level:u3}] Message {Properties:j}{NewLine}{Exception}
-```
-
-**Always include:**
-- Correlation ID for request tracing
-- Operation context (method name, key parameters)
-- Error details in exception logs
+**Context Enrichment:**
+- Correlation ID passed through all methods: `correlationId` parameter
+- Activity tags for OpenTelemetry: `activity?.SetTag("correlation-id", correlationId)`
+- AsyncLocal context via `CallContext` for cross-boundary tracing
 
 ## Comments
 
 **When to Comment:**
-- Complex business logic requiring explanation
-- Non-obvious validation rules or constraints
-- Performance-critical sections with optimization rationale
-- Workarounds or temporary solutions (marked with `TODO`, `FIXME`, `HACK`)
-- RTL/Hebrew-specific handling (e.g., regex pattern reversal)
+- Explain "why" not "what" (code shows what, comments explain intent)
+- Complex algorithms or non-obvious logic
+- Workarounds for platform-specific issues
+- Integration with external systems (e.g., MongoDB connection strings)
 
-**JSDoc/TSDoc (Frontend):**
-```typescript
-/**
- * Fix RTL-corrupted regex patterns before validation
- * RTL text direction can reverse patterns like ^[0-9]{4}$ to ${4}[0-9]^
- */
-function unreverseRTLPattern(pattern: string): string { ... }
+**JSDoc/XML Documentation:**
+- C# uses XML doc comments on all public types/members (e.g., lines 5-10 in `IDataSourceConnector.cs`)
+- Triple-slash format: `/// <summary>` (lines 5-7, 10-12, etc.)
+- Include `<param>`, `<returns>`, `<response>` tags for full documentation
+- TypeScript: Inline comments, no JSDoc convention observed
 
-/**
- * Validation error with Hebrew support
- */
-export interface ValidationError {
-  field: string;
-  message: string;
-  messageHebrew: string;
-}
-```
-
-**XML Documentation (Backend):**
+**Example (C#):**
 ```csharp
 /// <summary>
-/// Gets a data source by ID with comprehensive error handling
+/// Reads a file from the data source and returns it as a stream
 /// </summary>
-public async Task<ApiResponse<DataProcessingDataSource>> GetByIdAsync(string id, string correlationId)
+/// <param name="dataSource">Data source configuration</param>
+/// <param name="filePath">Path to the specific file to read</param>
+/// <param name="cancellationToken">Cancellation token</param>
+/// <returns>Stream containing the file content</returns>
+Task<Stream> ReadFileAsync(
+    DataProcessingDataSource dataSource,
+    string filePath,
+    CancellationToken cancellationToken = default);
 ```
-
-**Not used extensively:** Avoid over-commenting obvious code. Focus on "why" not "what".
 
 ## Function Design
 
 **Size:**
-- Frontend components: 100-200 lines typical (split into smaller hooks/utilities if larger)
-- Backend services: 50-150 lines per method (extracted into helper methods for complex logic)
-- Keep functions focused on single responsibility
+- C# service methods: 20-50 lines typical (lines 43-81 in `DataSourceService.GetByIdAsync`)
+- Complex operations break into private helpers
+- Controllers delegate to services (lines 47-66 in `DataSourceController.GetById`)
 
 **Parameters:**
-- Frontend: Props objects for components (e.g., `DataTableProps<T>`)
-- Backend: Dependency injection via constructor; method parameters for inputs
-- Correlation ID always passed as last parameter in service methods
-- Use object destructuring for multiple parameters: `{ page, size, search }`
+- C#: explicit parameters, minimal null coalescing
+- Always include `CancellationToken cancellationToken = default` for async methods (lines 22-25 in `IDataSourceConnector.cs`)
+- TypeScript API functions: single request object for complex inputs (e.g., `KafkaTestRequest`)
 
 **Return Values:**
-- Frontend: React components return JSX, utilities return typed values or promises
-- Backend: Service methods return `ApiResponse<T>` wrapper
-- Always return consistent type (never mix null/empty/error representations)
-- Use discriminated unions for result types
+- C# services: always wrapped in `ApiResponse<T>` for consistency
+- C# consumers: `Task` with side effects (no return value)
+- TypeScript: Promise<T> with success/error in same object or throw on connection errors
 
-**Async Operations:**
-- Frontend: Async/await exclusively used in API clients and event handlers
-- Backend: Async/await for I/O operations (database, messaging, HTTP)
-- Always suffix async methods with `Async`
+**Observable Behavior:**
+- Methods produce side effects: logging, metrics recording, event publishing
+- Consumers record metrics counters and duration histograms (lines 88, 109 in `DataProcessingConsumerBase.cs`)
+- No pure functions for business logic; all have observable effects
 
 ## Module Design
 
-**Exports:**
-- Frontend components: Named exports (e.g., `export const DataTable = ...`)
-- Frontend utilities: Named exports for functions, default export for main utility class if present
-- Backend: Public classes/interfaces for API surface, internal classes for implementation
+**Exports (C#):**
+- Services exported as interfaces: `IDataSourceService` (lines 20-26 in `DataSourceService.cs`)
+- Controllers register routes via `[Route("api/v1/[controller]")]` attribute
+- Database entities inherit from `DataProcessingBaseEntity` for consistency
+
+**Exports (TypeScript):**
+- React components: named export `export const ComponentName = (...) => { ... }`
+- API clients: named exports for each function (e.g., `export const testKafkaConnection`, line 46)
+- Types: named exports from `types.ts` files (e.g., `export interface DataSource`)
 
 **Barrel Files:**
-- Frontend: Index files re-export related components/utilities from directory
-- Example structure: `src/components/shared/index.ts` exports all shared components
-- Enables cleaner imports: `import { DataTable, ErrorBoundary } from '@/components/shared'`
+- Not explicitly used in frontend
+- Service imports are direct: `import { getAllCategories } from '../../../services/categories-api-client'`
 
-**Project Structure Patterns (Frontend):**
-- `pages/` - Route-level components
-- `components/` - Reusable UI components (organized by feature)
-- `services/` - API clients and business logic
-- `utils/` - Shared utility functions
-- `types/` - TypeScript interfaces and types
-- `i18n/` - Internationalization files
+**Module Organization:**
+- Feature-based folders: `datasource/`, `metrics/`, `schema/`
+- Shared utilities in `services/`, `utils/`, `types/`
+- Config files at root: `playwright.config.ts`, `tsconfig.json`, `vite.config.ts`
 
-**Project Structure Patterns (Backend):**
-- `Controllers/` - REST API endpoints
-- `Services/` - Business logic interfaces and implementations
-- `Repositories/` - Data access layer
-- `Models/` - Request/Response DTOs
-- `Consumers/` - MassTransit message handlers
-- `Jobs/` - Quartz.NET background jobs (if applicable)
+## Async/Await Patterns
 
-## RTL/Hebrew Specific Conventions
+**C# async (all service/consumer methods):**
+- Every async method ends with `Async` suffix
+- Always `await` on async operations
+- Use `CancellationToken` for cancellation support
+- Pattern: `async Task<T>` for methods returning value, `async Task` for side effects only
 
-**Frontend:**
-- Language detection via `i18n.language`
-- Direction set on document root: `document.documentElement.dir = isRTL ? 'rtl' : 'ltr'`
-- Ant Design direction prop: `<ConfigProvider direction={isRTL ? 'rtl' : 'ltr'}>`
-- Technical fields maintain LTR via CSS class: `className="ltr-field"`
-- Regex pattern reversal handled in `schemaValidator.ts` to counteract RTL text corruption
-- Translation keys follow hierarchical naming: `datasources.create.title`, `errors.validation.required`
+**TypeScript async:**
+- React Query `useQuery` for data fetching (lines 18-21 in `BasicInfoTab.tsx`)
+- Axios with async/await in API clients (lines 46-76 in `connection-test-api-client.ts`)
+- Error handling in try-catch blocks
 
-**Backend:**
-- Error messages in Hebrew via `HebrewErrorResponseFactory`
-- Validation error messages include both Hebrew and English versions
-- UI-facing strings handled by frontend; backend returns error codes/types
+## Naming Conventions Summary
 
-## Correlation ID Pattern
-
-**Used for:**
-- Request tracing across service boundaries
-- Logging context propagation
-- Error diagnostics and debugging
-
-**Implementation:**
-- Backend: Generated in controller, passed to all service methods
-- Frontend: Used in API client headers (if implemented)
-- Format: GUID or unique string identifier
-- Carried in Kafka messages via MassTransit context
+| Construct | Pattern | Example |
+|-----------|---------|---------|
+| C# class | PascalCase | `DataSourceService` |
+| C# interface | IPascalCase | `IDataSourceRepository` |
+| C# public method | PascalCaseAsync | `GetByIdAsync` |
+| C# private field | _camelCase | `_logger` |
+| C# property | PascalCase | `CorrelationId`, `IsSuccess` |
+| C# enum | PascalCase | `SortDirection` |
+| TypeScript interface | PascalCase | `DataSource` |
+| React component | PascalCase | `BasicInfoTab` |
+| React hook | useCamelCase | `useQuery`, `useDataSources` |
+| TypeScript function | camelCase | `getAllCategories` |
+| TypeScript constant | UPPER_SNAKE_CASE | `API_BASE_URL` |
+| TypeScript variable | camelCase | `isLoading`, `categories` |
+| File (C# service) | ServiceName.cs | `DataSourceService.cs` |
+| File (React) | ComponentName.tsx | `BasicInfoTab.tsx` |
+| File (API client) | entity-api-client.ts | `connection-test-api-client.ts` |
 
 ---
 
-*Convention analysis: 2026-01-28*
+*Convention analysis: 2026-02-02*

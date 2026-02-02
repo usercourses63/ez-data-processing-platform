@@ -1,317 +1,192 @@
 # External Integrations
 
-**Analysis Date:** 2026-01-28
+**Analysis Date:** 2026-02-02
 
 ## APIs & External Services
 
-**Data Source Connectivity:**
-- **FTP/FTPS** - FluentFTP (`src/Services/Shared/Connectors/FtpConnector.cs`)
-- **SFTP** - SSH.NET (`src/Services/Shared/Connectors/SftpConnector.cs`)
-- **Amazon S3 & S3-compatible** - AWSSDK.S3 (`src/Services/Shared/Connectors/S3Connector.cs`)
-  - Supports AWS S3, MinIO, DigitalOcean Spaces, etc.
-- **HTTP/HTTPS APIs** - Axios/HttpClient (`src/Services/Shared/Connectors/HttpApiConnector.cs`)
-- **Kafka** - Confluent.Kafka/MassTransit (`src/Services/Shared/Connectors/KafkaConnector.cs`)
-- **Local Filesystem** - System.IO (`src/Services/Shared/Connectors/LocalFileConnector.cs`)
+**File Source Protocols:**
+- Local File System - Direct filesystem access via `LocalFileConnector` (`src/Services/Shared/Connectors/LocalFileConnector.cs`)
+- FTP/FTPS - `FluentFTP` package via `FtpConnector` (`src/Services/Shared/Connectors/FtpConnector.cs`)
+  - Auth: Credentials stored in `DataProcessingDataSource.Credentials`
+- SFTP - `SSH.NET` package via `SftpConnector` (`src/Services/Shared/Connectors/SftpConnector.cs`)
+  - Auth: SSH keys and passwords supported
+- HTTP/HTTPS APIs - `HttpApiConnector` (`src/Services/Shared/Connectors/HttpApiConnector.cs`)
+  - Client: `@microsoft/signalr` 7.0.11 (frontend), HttpClient (backend)
+  - Auth: Bearer tokens, API keys, custom headers
+- Amazon S3 / S3-Compatible - `AWSSDK.S3` via `S3Connector` (`src/Services/Shared/Connectors/S3Connector.cs`)
+  - Supports: AWS S3, MinIO, DigitalOcean Spaces, Wasabi
+  - Credentials: IAM roles, access keys (environment-based or embedded)
+- Apache Kafka - `MassTransit.Kafka` via `KafkaConnector` (`src/Services/Shared/Connectors/KafkaConnector.cs`)
+  - Protocol: PLAINTEXT (cluster), EXTERNAL listener for external access
+  - Consumer groups per service
 
-**Output Destinations:**
-- **FTP Output** - FluentFTP (`src/Services/OutputService/Handlers/FtpOutputHandler.cs`)
-- **SFTP Output** - SSH.NET (`src/Services/OutputService/Handlers/SftpOutputHandler.cs`)
-- **S3 Output** - AWSSDK.S3 (`src/Services/OutputService/Handlers/S3OutputHandler.cs`)
-- **HTTP Output** - HttpClient (`src/Services/OutputService/Handlers/HttpOutputHandler.cs`)
-- **Kafka Output** - Confluent.Kafka (`src/Services/OutputService/Handlers/KafkaOutputHandler.cs`)
-- **Folder/Local Output** - System.IO (`src/Services/OutputService/Handlers/FolderOutputHandler.cs`)
-
-**Internal Service Communication:**
-- Uses Kafka for async inter-service messaging
-- Uses HTTP for synchronous REST API calls (DataSourceManagementService as primary API)
+**Web Integrations:**
+- Frontend API Gateway: Proxy to backend services at `http://localhost:5001` (DataSourceManagementService)
+- All frontend API calls use `VITE_API_URL` environment variable or default to relative paths
+- CORS: Handled via backend CORS policy (Ant Design RTL requests)
 
 ## Data Storage
 
-**Primary Database:**
-- **MongoDB** (Self-hosted, 3-node replica set)
-  - Connection: `mongodb://mongodb-0.mongodb.ez-platform.svc.cluster.local:27017,mongodb-1.mongodb.ez-platform.svc.cluster.local:27017,mongodb-2.mongodb.ez-platform.svc.cluster.local:27017/?replicaSet=rs0`
-  - Database name: `ezplatform`
-  - Client: MongoDB.Entities ORM
-  - Replica set name: `rs0`
-  - Connection via ConfigMap: `services-config.mongodb-connection`
-  - Env var: `ConnectionStrings__DefaultConnection`
+**Databases:**
+- MongoDB 8.0 (3-node replica set recommended, 1-node for dev)
+  - Connection: Environment variable `ConnectionStrings__DefaultConnection`
+  - Direct Connection: Use `?directConnection=true` to bypass replica set discovery
+  - Database Name: `ezplatform` (configurable, environment-specific naming: `data_processing_{environment}`)
+  - Client: MongoDB.Entities ORM (`src/Services/Shared/Configuration/DatabaseConfiguration.cs`)
+  - Service: `mongodb:27017` (internal) / `localhost:27017` (port-forward)
+  - Collections: `DataProcessingDataSource`, `DataProcessingValidationResult`, `DataProcessingInvalidRecord`
 
-**File Storage During Processing:**
-- **Hazelcast Distributed Cache** - In-memory storage
-  - Maps: `file-content`, `valid-records`
-  - TTL: 1 hour (configurable via `Hazelcast__CacheTTLHours`)
-  - Purpose: Store large file content outside message broker (unlimited file size)
-  - Address: `hazelcast:5701` (cluster), `localhost:5701` (host access)
-  - Cluster name: `data-processing-cluster`
+**File Storage:**
+- S3/S3-Compatible - For large file archival and backup
+- Local Filesystem - Development and testing only
+- Archive Support: SharpCompress for ZIP, RAR, 7Z extraction
 
-**Output File Storage:**
-- Multiple destination types (see Integrations section above)
-- Optional local filesystem storage via Kubernetes PVCs
-
-## Caching
-
-**Distributed Cache:**
-- **Hazelcast 5.6.0** - In-memory, distributed
-  - Heap: 2GB (4GB container limit)
-  - Two maps configured:
-    - `file-content`: Stores file data during processing pipeline
-    - `valid-records`: Caches validated records for output
-  - TTL: 1 hour (file content), configurable via ConfigMap
-  - Max size: 256MB per map (configurable)
-  - Eviction policy: LRU
-  - Connection: `services-config.hazelcast-server`
-  - Env var: `Hazelcast__Servers` = `localhost:5701`
-
-**Validation Cache:**
-- Corvus.Json.Validator caches JSON Schema compilation results
-- Hazelcast also caches file deduplication hashes
-- Deduplication TTL: 0.25 hours (testing), 4-24 hours (production)
-  - Configured via ConfigMap: `FileDiscovery__DeduplicationTTLHours`
+**Caching:**
+- Hazelcast 5.x - Distributed in-memory cache
+  - Connection: `Hazelcast__Servers` env var (default: `localhost:5701`)
+  - Maps: `file-content` (FileProcessor → ValidationService), `valid-records` (ValidationService → OutputService)
+  - TTL: 5 minutes by default, configurable via ConfigMaps
+  - Cluster Name: `data-processing-cluster`
+  - Failover: Cluster nodes automatically coordinate
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Custom authentication (not yet fully implemented in v0.1.1-rc3)
-- Services use OpenAPI/Swagger for API documentation
-- No external identity provider (AAD, Auth0, etc.) in current version
-- OWASP compliance planned for future releases
+- Custom/None - No external OAuth/OIDC currently integrated
+- Frontend: No authentication layer (assumed internal/trusted network)
+- API: No API key validation (assumed internal only)
 
-**Credential Management:**
-- Credentials stored in Kubernetes Secrets (production)
-- Secrets mounted as environment variables or files
-- S3 connector: AWS credentials via AWSSDK credential chain
-- FTP/SFTP: Credentials passed via DataSource configuration
-- No hardcoded credentials in code
-
-## Message Broker & Event Streaming
-
-**Primary Broker:**
-- **Apache Kafka** (Confluent 7.5.0)
-  - Brokers: `kafka:9092` (internal cluster)
-  - External access: `localhost:9094` (via port-forward)
-  - Dual listener architecture:
-    - INTERNAL (9092): Pod-to-pod cluster communication
-    - EXTERNAL (9094): External/localhost access
-
-**Message Transport:**
-- **MassTransit** - Distributed messaging framework
-  - Kafka rider for Kafka transport
-  - RabbitMQ fallback for some services
-  - Topic naming convention: `dataprocessing.[service].[event]`
-
-**Kafka Topics:**
-- `dataprocessing.scheduling.filepolling` - File polling trigger (Published by SchedulingService, Consumed by FilesReceiverService)
-- `dataprocessing.filesreceiver.validationrequest` - Validation request (Published by FilesReceiverService, Consumed by ValidationService)
-- `dataprocessing.validation.completed` - Validation result (Published by ValidationService, Consumed by OutputService)
-- `dataprocessing.global.processingfailed` - Error event (Published by any service, Consumed by InvalidRecordsService)
-
-**Topic Configuration:**
-- Partitions: 3
-- Replication factor: 1 (development), scalable for production
-- Auto-create if missing
-- ZooKeeper coordination: `zookeeper:2181`
-
-**Message Contract:**
-- All messages implement `IDataProcessingMessage` interface:
-  - `CorrelationId` (Guid) - Request tracing
-  - `Timestamp` (DateTime UTC) - Message ordering
-  - `PublishedBy` (string) - Source service
-  - `MessageVersion` (int) - Compatibility versioning
-
-**Fallback/Alternative:**
-- **RabbitMQ** configured as transport option in some services
-  - Not primary in current version but available via MassTransit.RabbitMQ
-  - Would listen on port 5672 if deployed
+**Credential Storage:**
+- Database-backed: Credentials encrypted in MongoDB `DataProcessingDataSource.Credentials` field
+- Environment Variables: Service credentials loaded from ConfigMaps and Secrets
+- Kubernetes Secrets: For sensitive connection strings
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- Elasticsearch - Logs and errors via Elastic.Serilog.Sinks
-- Index pattern: `dataprocessing-logs-*`
-- Correlation ID tracking for distributed error tracing
+- OpenTelemetry Collector (OTLP) - Centralized telemetry aggregation
+- Jaeger 16686 - Distributed tracing backend
+- Elasticsearch 9200 - Log and trace storage
 
-**Log Aggregation:**
-- **Elasticsearch 8.17** - Log and trace storage
-  - Address: `elasticsearch:9200` (cluster), `localhost:9200` (port-forward)
-  - Indices: `ez-logs-YYYY.MM.DD` (daily rotation)
-- **Fluent Bit** DaemonSet - Infrastructure container log collection
-- **Serilog** - Application structured logging
-  - Enriched with: CorrelationId, Environment, Thread, Timestamp
-  - Outputs to Elasticsearch and console
+**Logs:**
+- Serilog 3.x - Structured logging framework (`src/Services/Shared/Configuration/LoggingConfiguration.cs`)
+- Elasticsearch sink - Logs indexed as `dataprocessing-logs-YYYY.MM.DD`
+- Fluent Bit (optional) - DaemonSet for infrastructure container logs
+- Correlation IDs - Automatic propagation via `Serilog.Enrichers.CorrelationId`
 
-**Metrics Collection:**
-- **Prometheus (System)** - Infrastructure metrics
-  - Port: 9090
-  - Collects: ASP.NET Core, HTTP client, Runtime, Process metrics
-  - Auto-instrumentation via OpenTelemetry
-- **Prometheus (Business)** - Business KPIs
-  - Port: 9091
-  - Collects: Business metrics with `business_*` prefix
-  - Metrics: records_processed, invalid_records, files_processed, jobs_completed, etc.
-- **prometheus-net** - .NET Prometheus client
-- **OpenTelemetry** - Metrics exporter to Prometheus via OTLP
+**Metrics:**
+- Prometheus System (port 9090) - ASP.NET Core, HTTP, runtime metrics
+- Prometheus Business (port 9091) - Application-specific metrics (records processed, validation latency, etc.)
+- OpenTelemetry Collector filters:
+  - System metrics: `http.*`, `process.*`, `dotnet.*`, `runtime.*`, `aspnetcore.*`, `kestrel.*`, `system.*`, `dns.*`, `validation.*`
+  - Business metrics: `business.*` prefix
+- Dual-instance setup: Prometheus System → System metrics, Prometheus Business → Business metrics
 
-**Distributed Tracing:**
-- **Jaeger (all-in-one)** - Distributed tracing UI
-  - Port: 16686
-  - Receives traces from OpenTelemetry Collector
-- **OpenTelemetry Collector** - Telemetry aggregation
-  - OTLP gRPC receiver: 4317
-  - OTLP HTTP receiver: 4318
-  - Exports to: Jaeger, Prometheus, Elasticsearch
-- **OpenTelemetry SDK** - Instrumentation
-  - ActivitySource: `DataProcessing.Platform`
-  - Automatic ASP.NET Core, HTTP, Runtime instrumentation
-  - Custom spans via ActivitySource in services
+**Tracing:**
+- OpenTelemetry SDK - Distributed tracing instrumentation
+- Endpoint: `http://localhost:4317` (gRPC) or `http://localhost:4318` (HTTP)
+- Exporters: Jaeger (4317) + Elasticsearch (9200)
+- Sampling ratio: Configurable via `OpenTelemetry__SamplingRatio` (default: 1.0 = 100%)
+- Activity Source: `DataProcessing.Platform` v1.0.0
 
-**Health Checks:**
-- Endpoint: `/health` (primary)
-- Detailed: `/health/detailed`
-- Checks performed:
-  - MongoDB connectivity (via AspNetCore.HealthChecks.MongoDb)
-  - Kafka broker health (via AspNetCore.HealthChecks.Kafka)
-  - Elasticsearch connectivity (via AspNetCore.HealthChecks.Elasticsearch)
+**Dashboards:**
+- Grafana 3001 - Visualization dashboard (admin/admin)
+  - Infrastructure Dashboard - Pod metrics, resource usage
+  - Business Metrics Dashboard - File processing, validation metrics
+  - Data source: Prometheus System + Prometheus Business
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Kubernetes (production-ready)
-- Minikube (local development)
-- OpenCP 4.12+ compatible (OCP Compliance v0.1.1-rc3+)
-
-**Container Registry:**
-- Docker images built locally and loaded to Minikube
-- Images pinned to specific versions (no :latest)
-- Multi-stage builds for optimized image size
-
-**Deployment Orchestration:**
-- kubectl for cluster operations
-- Kubernetes manifests in `k8s/` directory
-- StatefulSets for: MongoDB, Kafka, Zookeeper, Hazelcast
-- Deployments for: Microservices, Frontend, Monitoring stack
-- Services (ClusterIP, Headless, LoadBalancer) for networking
-- ConfigMaps for centralized configuration
-- Secrets for sensitive data
-
-**CI/CD Platform:**
-- Not detected in current version
-- Scripts provided: `scripts/start-port-forwards.ps1`, `scripts/bootstrap-k8s-cluster.ps1`
-- Manual deployment via kubectl
-
-**Network:**
-- Kubernetes Services for load balancing
+- Kubernetes (Minikube for dev, must support OCP 4.12+ for production)
 - Namespace: `ez-platform`
-- Network Policies: Default deny-all (OCP compliance)
-- Explicit allow rules for service communication
+
+**Image Registry:**
+- Docker Hub (default assumed)
+- All images pinned to specific versions (no `:latest` tags)
+- Image pull policy: `IfNotPresent` (OCP requirement)
+- Non-root users in Dockerfiles (OCP requirement)
+
+**CI Pipeline:**
+- Not detected in codebase (likely external GitHub Actions or GitLab CI)
+- Deployment via kubectl apply or Helm charts
+
+**Deployment Scripts:**
+- PowerShell: `scripts/start-port-forwards.ps1` - Port forwarding for local development
+- Bash: `k8s/deploy-all.sh` - Full cluster deployment
 
 ## Environment Configuration
 
 **Required Environment Variables:**
 - `ConnectionStrings__DefaultConnection` - MongoDB connection string
-- `Kafka__Brokers` or `ConnectionStrings__Kafka` - Kafka bootstrap servers
-- `OpenTelemetry__OtlpEndpoint` - OTLP Collector endpoint
-- `Hazelcast__Servers` - Hazelcast cluster address
-- `ASPNETCORE_ENVIRONMENT` - Development/Production/Staging
-- `ASPNETCORE_URLS` - HTTP binding address and port
+- `Kafka__Brokers` - Kafka bootstrap servers (default: localhost:9094 for external, kafka:9092 for internal)
+- `OpenTelemetry__OtlpEndpoint` - OTEL Collector endpoint
+- `Hazelcast__Servers` - Hazelcast cluster nodes
 
 **Optional Environment Variables:**
-- `OpenTelemetry__EnableMetrics` - Enable metrics collection (default: true)
-- `OpenTelemetry__EnableTraces` - Enable trace collection (default: true)
-- `OpenTelemetry__EnableLogs` - Enable log collection (default: true)
+- `OpenTelemetry__EnableMetrics` - Enable metrics export (default: true)
+- `OpenTelemetry__EnableTraces` - Enable trace export (default: true)
+- `OpenTelemetry__EnableLogs` - Enable log export (default: true)
 - `OpenTelemetry__SamplingRatio` - Trace sampling ratio (default: 1.0)
-- `FileDiscovery__DeduplicationTTLHours` - File hash cache duration
+- `OpenTelemetry__EnableConsoleExporter` - Debug console output (default: false)
 
 **Secrets Location:**
-- Kubernetes Secrets (production)
-- Environment variables (local development)
-- `.env` file in project root (development)
-- User Secrets via `dotnet user-secrets` (development)
-  - Configured in: `src/Services/ValidationService/DataProcessing.Validation.csproj`
-  - User Secrets ID: `validation-service`
+- Kubernetes ConfigMaps: `k8s/configmaps/services-config.yaml`
+- Kubernetes Secrets: For passwords and API keys (not in repository)
+- Environment-specific appsettings files: Checked into repo for non-sensitive defaults
 
-## Data Source Credentials
+## Message Broker Configuration
 
-**Storage Method:**
-- MongoDB in `DataProcessingDataSource` entity
-- Encrypted at application layer (future enhancement)
-- Credentials passed to connectors at runtime
+**Kafka Topics (MassTransit conventions):**
+- `dataprocessing.scheduling.filepolling` - File polling trigger (Published by SchedulingService → FileDiscoveryService)
+  - Partitions: 3
+  - Replication Factor: 1
+  - Retention: 168 hours (7 days)
 
-**Credential Types Supported:**
-- **FTP:** Username, Password, Host, Port
-- **SFTP:** Username, Password (SSH key auth), Host, Port
-- **S3:** AWS Access Key ID, Secret Access Key, Region, Endpoint (optional)
-- **HTTP API:** API Key, Bearer Token, Basic Auth headers
-- **Kafka:** Bootstrap servers, SASL credentials (optional)
-- **Local:** File path
+- `dataprocessing.filesreceiver.validationrequest` - Validation request (Published by FileDiscoveryService → ValidationService)
+  - Partitions: 3
+  - Replication Factor: 1
 
-## File Format Support
+- `dataprocessing.validation.completed` - Validation completion (Published by ValidationService → OutputService)
+  - Partitions: 3
+  - Replication Factor: 1
 
-**Input Formats:**
-- **CSV** - CsvHelper parser, automatic detection
-- **Excel** - EPPlus library (.xlsx, .xls support)
-- **JSON** - Newtonsoft.Json parser
-- **XML** - SharpCompress/System.Xml
-- **Archives** - SharpCompress (ZIP, TAR, GZIP, BZIP2, 7Z, RAR)
+- `dataprocessing.global.processingfailed` - Error events (Published by any service → InvalidRecordsService)
+  - Partitions: 3
+  - Replication Factor: 1
 
-**Output Formats:**
-- **CSV** - CsvHelper writer
-- **JSON** - Newtonsoft.Json serializer
-- **Excel** - EPPlus writer
-- **XML** - Custom formatter
-- **Kafka** - Topic publishing via Confluent.Kafka
-- **S3/FTP/SFTP** - Stream writing to remote storage
+**Kafka Connectivity:**
+- Internal (cluster): `kafka:9092` (pod-to-pod)
+- External (localhost): `localhost:9094` (port-forward)
+- ZooKeeper: `zookeeper:2181` (internal cluster coordination)
+
+**MassTransit Configuration:**
+- Transport: Kafka with RabbitMQ fallback support
+- Message Contract: All messages inherit from `IDataProcessingMessage` with CorrelationId, Timestamp, PublishedBy, MessageVersion
+- In-Memory Bus: Local processing for development
 
 ## Webhooks & Callbacks
 
-**Incoming Webhooks:**
-- Not detected in current version
-- Kafka topics used for async event notification instead
+**Incoming:**
+- Not detected - No external webhook receivers configured
 
-**Outgoing Webhooks:**
-- Not detected in current version
-- HTTP Output Handler can POST to external endpoints
-- Event notifications via Kafka topics (`dataprocessing.global.processingfailed`, etc.)
+**Outgoing:**
+- Potential S3 notifications (not currently wired)
+- Kafka message publishing (asynchronous event driven)
 
-**SignalR Integration:**
-- Real-time signaling support via `@microsoft/signalr` (v7.0.11)
-- Frontend connection point: Not fully implemented in v0.1.1-rc3
-- Intended for: Live updates, job status, error notifications
+## API Endpoints
 
-## Third-Party APIs
+**Frontend API Clients** (`src/Frontend/src/services/`):
+- DataSource Management: `${VITE_API_URL}/api/v1/datasources`
+- Metrics: `${VITE_API_URL}/api/v1/metrics`
+- Invalid Records: `${VITE_INVALIDRECORDS_API_URL}/api/v1/invalid-records`
+- Schema: `${VITE_SCHEMA_API_URL}/api/v1/schema`
+- Dashboard: `${VITE_API_URL}/api/v1/dashboard/overview`
 
-**AWS Integration:**
-- **AWSSDK.S3** - S3 file access and storage
-- **S3Connector** - Both read (DataSource) and write (OutputHandler)
-- Credentials: Via AWS credential chain or environment variables
-- Regions: Configurable per data source
-- S3-compatible endpoints: Supported (MinIO, DigitalOcean Spaces, etc.)
-
-**Code Editor Integration:**
-- **Monaco Editor** (v0.54) - Frontend code editing
-- Used in schema builder and metrics configuration UI
-- Syntax highlighting for: JSON, JavaScript, PromQL, CRON expressions
-
-**Date/Time Utilities:**
-- **cronstrue** - CRON expression to human readable text
-- **date-fns** - Date formatting and manipulation
-- **moment.js** - Legacy date handling (kept for backward compatibility)
-
-## RTL/Internationalization Integration
-
-**i18next Integration:**
-- Multi-language support: Hebrew (he), English (en)
-- Backend namespace: `translation.json` files per language
-- Frontend auto-detection via `i18next-browser-languagedetector`
-- HTTP backend loading: `i18next-http-backend`
-- 200+ translation keys covering all business domains
-
-**Hebrew Support:**
-- Ant Design RTL: `ConfigProvider direction="rtl"`
-- Document direction: `document.documentElement.dir = 'rtl'`
-- Technical fields forced LTR: `.ltr-field` CSS class
-- Arabic numerals support
-- Categories: 10 business categories fully translated
+**Backend Health Endpoints:**
+- `/health` - Basic health check (all services)
+- `/health/detailed` - Detailed health with dependency status
 
 ---
 
-*Integration audit: 2026-01-28*
+*Integration audit: 2026-02-02*

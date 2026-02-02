@@ -1,611 +1,414 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-01-28
+**Analysis Date:** 2026-02-02
 
 ## Test Framework
 
-**Frontend Runner:**
-- Framework: Playwright 1.49.0
+**Runner:**
+- Frontend: Playwright `@playwright/test` v1.49.0
 - Config: `src/Frontend/playwright.config.ts`
-- Assertion Library: Playwright assertions (built-in)
-- Testing Library integration: `@testing-library/react` 14.1.2 (available but E2E uses Playwright)
+- Backend: Integration tests use xUnit/.NET test frameworks (project structure indicates testing via `*.Tests` projects)
 
-**Backend Runner:**
-- Framework: xUnit (NuGet package)
-- Config: `.csproj` files specify xUnit runner
-- Assertion Library: FluentAssertions (for readable assertions)
-- Integration test fixtures: Custom fixture classes with `IAsyncLifetime`
+**Assertion Library:**
+- Playwright: Native `expect()` API with TypeScript support
+- Backend: NUnit/xUnit assertions (inferred from service structure)
 
 **Run Commands:**
-
-Frontend:
 ```bash
-npm run test:e2e              # Run all E2E tests
-npm run test:e2e:headed      # Run with browser visible
-npm run test:e2e:ui          # Interactive UI mode
-npm run test:e2e:report      # View HTML report
-```
+# Frontend E2E tests - all browsers
+npm run test:e2e
 
-Backend:
-```bash
-cd tests/ValidationService.Tests
-dotnet test                   # Run unit tests
+# Watch mode with UI
+npm run test:e2e:ui
 
-cd tests/IntegrationTests
-dotnet test                   # Run integration tests with fixtures
+# Headed mode (visible browser)
+npm run test:e2e:headed
+
+# View report
+npm run test:e2e:report
 ```
 
 ## Test File Organization
 
-**Frontend Location:**
-- Base: `src/Frontend/tests/e2e/`
-- Pattern: `[feature].spec.ts`
-- Current files: `datasource.spec.ts`, `alerts.spec.ts`, `invalid-records.spec.ts`, `metrics.spec.ts`
+**Location (Frontend):**
+- Base directory: `src/Frontend/tests/e2e/`
+- Files: `datasource.spec.ts`, `invalid-records.spec.ts`, `metrics.spec.ts`, `alerts.spec.ts`
+- Path pattern: `tests/e2e/[feature].spec.ts`
 
-**Backend Unit Tests Location:**
-- `tests/ValidationService.Tests/Services/` - Validation logic tests
-  - `JsonSchemaValidationTests.cs` - Schema validation and record extraction
-  - `FieldValidationRulesTests.cs` - Field-level validation patterns
-- `tests/OutputService.Tests/Handlers/` - Output handler tests
-- `tests/Shared.Tests/Converters/` - Format converter tests
+**Naming (Frontend):**
+- Feature-based: one spec file per major feature
+- Suffix: `.spec.ts` (Playwright convention)
+- File structure: Group related tests in single spec file
 
-**Backend Integration Tests Location:**
-- Base: `tests/IntegrationTests/`
-- Organization by concern:
-  - `Alerts/` - Alert rule functionality
-  - `CachingPerformance/` - Hazelcast cache tests
-  - `DataPersistence/` - MongoDB tests
-  - `ErrorHandling/` - Error scenarios
-  - `Fixtures/` - Shared test infrastructure
-  - `Observability/` - Correlation ID, tracing
-  - `OutputHandlers/` - Output destination tests
-  - `ServiceIntegration/` - Kafka flow, health checks
+**Structure (Frontend):**
+```
+tests/
+├── e2e/
+│   ├── datasource.spec.ts
+│   ├── invalid-records.spec.ts
+│   ├── metrics.spec.ts
+│   └── alerts.spec.ts
+├── fixtures/
+└── README.md
+```
 
-**Test Naming:**
-- Frontend: Descriptive test descriptions with `test('should ...')`
-- Backend: Descriptive method names like `ExtractRecords_FromJsonArray_ReturnsAllRecords`
-- Pattern (Backend): `[Method]_[Scenario]_[Expected]`
+**Backend:**
+- Integration tests in service-specific `*.Tests` projects
+- Located alongside service code (project structure suggests `[ServiceName].Tests` folders)
+- Pattern: `src/Services/[ServiceName].Tests/`
 
 ## Test Structure
 
-**Frontend E2E Structure (Playwright):**
+**Test Suite Organization (Playwright):**
 ```typescript
-import { test, expect } from '@playwright/test';
-
+// From datasource.spec.ts (lines 9-15)
 test.describe('DataSource Management', () => {
   test.beforeEach(async ({ page }) => {
-    // Setup before each test
+    // Navigate to the data sources page
     await page.goto('/');
+    // Wait for page to load
     await page.waitForLoadState('networkidle');
   });
 
   test('should display the data sources list', async ({ page }) => {
-    // Check page title/heading (Hebrew: "ניהול מקורות נתונים")
-    await expect(page.getByText('ניהול מקורות נתונים')).toBeVisible();
-
-    // Verify table component exists
-    await expect(page.locator('.ant-table')).toBeVisible();
-  });
-
-  test('should fill out basic info tab', async ({ page }) => {
-    // Arrange: Navigate and wait
-    await page.getByRole('button', { name: /הוסף מקור נתונים חדש|הוסף/ }).click();
-    await page.waitForLoadState('networkidle');
-
-    // Act: Fill form
-    const nameInput = page.locator('input').first();
-    await nameInput.fill('Test DataSource');
-
-    // Assert: Verify
-    await expect(nameInput).toHaveValue('Test DataSource');
+    // Test implementation
   });
 });
 ```
 
 **Patterns:**
-- `test.beforeEach` for setup before each test
-- `test.describe` for grouping related tests
-- Ant Design selector patterns: `.ant-table`, `.ant-select`, `.ant-table-selection`
-- Playwright locators: `getByText()`, `getByRole()`, `locator()`, `getByLabel()`
-- Hebrew content selectors via regex: `/הוסף מקור נתונים חדש|הוסף/`
-- Waiters: `waitForLoadState('networkidle')` for network stabilization
+- `test.describe()`: Group related tests
+- `test.beforeEach()`: Setup before each test
+- `test()`: Individual test case
+- Test naming: descriptive "should" phrases (line 17, 25, 33, etc.)
 
-**Backend Unit Test Structure (xUnit + FluentAssertions):**
-```csharp
-[Fact]
-public void ExtractRecords_FromJsonArray_ReturnsAllRecords()
-{
-    // Arrange
-    var jsonData = JToken.Parse("""
-    [
-        { "name": "John", "age": 30 },
-        { "name": "Jane", "age": 25 }
-    ]
-    """);
+**Setup/Teardown:**
+- `beforeEach`: Navigate to page, wait for load state (lines 10-15)
+- `afterEach`: Implicit cleanup via browser context isolation
+- No explicit teardown in provided examples; Playwright handles cleanup
 
-    // Act
-    var records = ExtractRecordsFromJson(jsonData);
+**Assertion Pattern:**
+```typescript
+// Role-based locators (recommended)
+await expect(page.getByRole('button', { name: /submit/i })).toBeVisible();
 
-    // Assert
-    records.Should().HaveCount(2);
-    records[0]["name"]?.ToString().Should().Be("John");
-    records[1]["name"]?.ToString().Should().Be("Jane");
-}
+// Test ID locators
+await expect(page.getByTestId('datasource-filter')).toBeTruthy();
 
-[Theory]
-[InlineData("TXN-20251201-000001", true)]
-[InlineData("INVALID-ID", false)]
-public void TransactionIdField_WithPattern_ValidatesCorrectly(string transactionId, bool expectedValid)
-{
-    // Arrange: Schema and record setup
-    var schema = JSchema.Parse("""...""");
-    var record = JObject.Parse($$"""{ "TransactionId": "{{transactionId}}" }""");
-
-    // Act
-    var isValid = record.IsValid(schema);
-
-    // Assert
-    isValid.Should().Be(expectedValid);
-}
+// Text-based locators
+await expect(page.getByText('ניהול מקורות נתונים')).toBeVisible();
 ```
-
-**Patterns:**
-- `[Fact]` for single-case tests
-- `[Theory]` with `[InlineData]` for parameterized tests
-- AAA pattern: Arrange, Act, Assert (explicit comments)
-- FluentAssertions for readable assertions: `.Should().Be()`, `.Should().Contain()`, `.Should().HaveCount()`
-- Triple-quoted strings for JSON fixtures
-- String interpolation with `$$` for inline data
-
-**Backend Integration Test Structure (xUnit + Fixtures):**
-```csharp
-[Collection("Integration")]
-public class KafkaFlowTests : IClassFixture<KafkaFixture>, IAsyncLifetime
-{
-    private readonly KafkaFixture _kafka;
-    private IConsumer<string, string>? _consumer;
-
-    public KafkaFlowTests(KafkaFixture kafka)
-    {
-        _kafka = kafka;
-    }
-
-    public async Task InitializeAsync()
-    {
-        // Verify service availability
-        var isAvailable = await _kafka.IsKafkaAvailableAsync();
-        if (!isAvailable) throw new InvalidOperationException("Service not available");
-    }
-
-    public Task DisposeAsync()
-    {
-        _consumer?.Close();
-        _consumer?.Dispose();
-        return Task.CompletedTask;
-    }
-
-    [Fact]
-    [Trait("Category", "INT-001")]
-    public async Task FileDiscovery_PublishesFileDiscoveredMessage_ToKafka()
-    {
-        // Arrange
-        var topic = TestConfiguration.KafkaTopics.FileDiscovered;
-        _consumer = _kafka.CreateConsumer(topic);
-
-        // Act
-        await _kafka.ProduceAsync(topic, uniqueId, JsonSerializer.Serialize(testMessage));
-
-        // Assert
-        var result = await ConsumeByKeyAsync(_consumer, uniqueId, TimeSpan.FromSeconds(10));
-        result.Should().NotBeNull();
-    }
-}
-```
-
-**Patterns:**
-- `[Collection("Integration")]` to group integration tests
-- `IClassFixture<T>` for dependency injection
-- `IAsyncLifetime` for async setup/teardown
-- `InitializeAsync()` to verify service availability (check port-forwarding)
-- `DisposeAsync()` for cleanup
-- `[Trait]` for test categorization (e.g., `INT-001`, `INT-002`)
-- Configuration via `TestConfiguration` class with environment variable overrides
 
 ## Mocking
 
-**Framework:**
-- Frontend: Playwright mocking via `page.route()` (implicit, not used in current tests)
-- Backend: No mocking framework; uses test fixtures with real services
+**Framework:** Playwright does not use Jest/Vitest mocks
+- **Network interception:** `page.waitForResponse()` for monitoring API calls
+- **Local storage:** Via `page.context().storageState()`
+- **Test data fixtures:** Fixture files in `tests/fixtures/` (referenced in lines 254, 264)
 
-**Patterns (Backend - Real Dependencies):**
-- Integration tests use real MongoDB, Kafka, Hazelcast, and HTTP clients
-- Fixtures provide connection setup: `MongoDbFixture`, `KafkaFixture`, `HazelcastFixture`
-- Services tested against actual infrastructure (K8s port-forwarded)
-- Test configuration: `TestConfiguration.cs` provides connection strings and timeouts
+**Patterns (Network Mocking):**
+```typescript
+// Wait for API response
+await page.waitForResponse(resp => resp.url().includes('/api/data'));
 
-**Fixture Classes (Backend Integration):**
+// Monitor requests
+page.on('request', req => requests.push(req.url()));
 
-Location: `tests/IntegrationTests/Fixtures/`
+// Wait for network idle
+await page.waitForLoadState('networkidle');
+```
 
-Files:
-- `ApiClientFixture.cs` - HTTP client for API testing
-- `KafkaFixture.cs` - Kafka producer/consumer setup
-- `MongoDbFixture.cs` - MongoDB connection management
-- `HazelcastFixture.cs` - Hazelcast cache setup
+**Test Data Fixtures:**
+```typescript
+// From README.md lines 254-270
+export const testDataSource = {
+  name: 'E2E Test Source',
+  description: 'Created by automated tests',
+  type: 'local-file',
+  path: '/data/test',
+  format: 'csv'
+};
+
+test('should create datasource', async ({ page }) => {
+  await page.getByLabel(/name/i).fill(testDataSource.name);
+});
+```
 
 **What to Mock:**
-- External services when unavailable (handled via fixture availability checks)
-- Hard-to-reproduce scenarios (e.g., network failures)
+- API responses: intercept with `page.waitForResponse()`
+- External services: test against real services in staging (recommended per README)
+- Network conditions: via Playwright device emulation
 
 **What NOT to Mock:**
-- Database operations (use real MongoDB in tests)
-- Message broker operations (use real Kafka)
-- Cache operations (use real Hazelcast)
-- HTTP calls to other services (use real API clients with port-forwarded endpoints)
-
-**Rationale:** E2E-first approach (60% focus) requires testing real interactions.
+- UI interactions (always simulate real user clicks)
+- Form validation (always test actual form behavior)
+- Navigation (always verify URL changes)
 
 ## Fixtures and Factories
 
-**Test Data (Backend):**
+**Test Data:**
+- Location: `tests/fixtures/` directory (implicit, referenced in README lines 254-261)
+- Pattern: Object literals with test data constants
+- Reusability: Import fixtures in multiple test files
 
-Location: Inline in test methods using triple-quoted JSON
-
-Example from `JsonSchemaValidationTests.cs`:
-```csharp
-var jsonData = JToken.Parse("""
-[
-    { "name": "John", "age": 30 },
-    { "name": "Jane", "age": 25 }
-]
-""");
+**Example Structure (from README):**
+```typescript
+// fixtures/datasources.ts
+export const testDataSource = {
+  name: 'E2E Test Source',
+  description: 'Created by automated tests',
+  type: 'local-file',
+  path: '/data/test',
+  format: 'csv'
+};
 ```
 
-**Test Data Files (Frontend E2E):**
-
-Location: `test-data/` directory in repo
-- `E2E-001/` - Basic pipeline test data
-- `E2E-003/` - Invalid records handling data
-- `E2E-004/` - Multi-destination output data
-- `E2E-005/` - Scheduled polling data
-- `E2E-006/` - Error recovery data
-
-Configuration: `TestConfiguration.cs` defines paths:
-```csharp
-public static string E2E001DataPath => Path.Combine(TestDataBasePath, "E2E-001");
-```
-
-**Fixtures (Backend Integration):**
-
-Fixture Classes in `tests/IntegrationTests/Fixtures/`:
-- `ApiClientFixture` - Methods: `CreateDatasourceAsync()`, `GetDatasourceAsync()`, `GetInvalidRecordsAsync()`
-- `KafkaFixture` - Methods: `CreateConsumer()`, `ProduceAsync()`, `IsKafkaAvailableAsync()`
-- `MongoDbFixture` - MongoDB connection and database access
-- `HazelcastFixture` - Cache operations for caching tests
-
-Initialization:
-```csharp
-public class KafkaFlowTests : IClassFixture<KafkaFixture>, IAsyncLifetime
-{
-    public async Task InitializeAsync()
-    {
-        var isAvailable = await _kafka.IsKafkaAvailableAsync();
-        if (!isAvailable)
-            throw new InvalidOperationException("Kafka unavailable - check port-forwarding");
-    }
-}
+**Cleanup Pattern:**
+```typescript
+// From README lines 274-277
+test.afterEach(async ({ page }) => {
+  // Clean up test data via API
+  await page.request.delete('/api/datasources?name=E2E*');
+});
 ```
 
 ## Coverage
 
-**Requirements:**
-- Frontend E2E: 6 scenarios (all passing as of v0.1.1-rc3)
-  1. E2E-001: Basic pipeline (FileDiscovery → Validation → Output)
-  2. E2E-002: Large file processing (100+ records)
-  3. E2E-003: Invalid records handling
-  4. E2E-004: Multi-destination output (Folder + Kafka)
-  5. E2E-005: Scheduled polling verification
-  6. E2E-006: Error recovery & retry logic
+**Requirements:** No coverage target enforced
+- Playwright tests are E2E, not unit tests
+- Coverage metrics not tracked in visible config
+- Focus on critical user journeys (6 main E2E scenarios per CLAUDE.md)
 
-- Backend:
-  - Integration tests: 83 tests (all passing)
-  - Unit tests: 25 tests (critical logic only)
-
-**Target distribution (E2E-first):**
-```
-E2E Tests (60%) ← Primary focus
-Integration Tests (25%) ← Critical paths
-Unit Tests (15%) ← Critical logic
-```
-
-**Known Coverage Gaps:**
-- Multiple file formats (XML, Excel, JSON) - Only CSV fully tested
-- High load testing (10,000+ records) - Max tested: 100 records
-- Multi-destination scaling (4+ destinations) - Only 2 destinations tested
-
-**View Coverage (Frontend):**
-```bash
-# No explicit coverage tool configured
-# E2E tests are manually validated via Playwright reports
-npm run test:e2e:report
-```
-
-**View Coverage (Backend):**
-```bash
-# No explicit coverage reporting; tests run via xUnit
-dotnet test --verbosity detailed
-```
+**View Coverage:**
+- HTML report: `npm run test:e2e:report`
+- JSON output: configured to `test-results/results.json` (playwright.config.ts line 26)
 
 ## Test Types
 
-**Frontend E2E Tests (Playwright):**
-- Scope: Full user workflows from UI interaction to backend
-- Approach: Browser automation with Playwright
-- Location: `src/Frontend/tests/e2e/`
-- Configuration: `src/Frontend/playwright.config.ts`
-- Browsers tested: Chromium, Firefox, WebKit + mobile viewports
-- Assertion: Playwright built-in assertions and locators
+**Unit Tests:**
+- Not explicitly configured in frontend
+- Backend services likely have unit tests in `*.Tests` projects
+- For this analysis, focus is on E2E and integration
 
-Example: `datasource.spec.ts` - Tests DataSource CRUD operations
-```typescript
-test('should configure connection settings', async ({ page }) => {
-  // Navigate to create form
-  await page.getByRole('button', { name: /הוסף/ }).click();
+**Integration Tests (Frontend E2E):**
+- Scope: Full user workflows across multiple pages
+- Approach: Test actual browser navigation, form submission, API calls
+- Examples: datasource.spec.ts tests full CRUD flow with multiple tabs
 
-  // Select connection type
-  const typeSelect = page.locator('.ant-select').first();
-  await typeSelect.click();
-  const localOption = page.getByRole('option', { name: /local|מקומי/i });
-  await localOption.click();
+**E2E Tests (Playwright):**
+- Framework: `@playwright/test`
+- Configuration: `playwright.config.ts` (7 test projects for cross-browser testing)
+- Test matrix:
+  - Chromium (Desktop)
+  - Firefox (Desktop)
+  - Safari (Desktop)
+  - Chrome Mobile (Pixel 5)
+  - Safari Mobile (iPhone 12)
 
-  // Fill path and verify
-  const pathInput = page.locator('input[type="text"]').first();
-  await pathInput.fill('/data/input');
-});
-```
-
-**Backend Integration Tests (xUnit):**
-- Scope: Service-to-service communication, database operations, message flows
-- Approach: Real service instances connected via port-forwarding
-- Location: `tests/IntegrationTests/`
-- Categories (via `[Trait]`):
-  - INT-001: FileDiscovery → FileProcessor flow
-  - INT-002: FileProcessor → ValidationService flow
-  - INT-003: ValidationService → OutputService flow
-  - INT-004: Kafka message format validation
-  - DA-01 to DA-04: Database persistence tests
-  - CA-01, CA-02: Hazelcast caching tests
-
-Example: `KafkaFlowTests.cs` - Tests Kafka message flow
-```csharp
-[Fact]
-[Trait("Category", "INT-001")]
-public async Task FileDiscovery_PublishesFileDiscoveredMessage_ToKafka()
-{
-    var topic = TestConfiguration.KafkaTopics.FileDiscovered;
-    _consumer = _kafka.CreateConsumer(topic);
-
-    var testMessage = new {
-        DatasourceId = uniqueId,
-        FilePath = "/data/test/sample.csv",
-        FileSize = 1024L
-    };
-
-    await _kafka.ProduceAsync(topic, uniqueId, JsonSerializer.Serialize(testMessage));
-    var result = await ConsumeByKeyAsync(_consumer, uniqueId, TimeSpan.FromSeconds(10));
-    result.Should().NotBeNull();
-}
-```
-
-**Backend Unit Tests (xUnit):**
-- Scope: Business logic in isolation (validation rules, data extraction)
-- Approach: Direct function calls with test data, no external dependencies
-- Location: `tests/ValidationService.Tests/Services/`
-- Files:
-  - `JsonSchemaValidationTests.cs` - Schema validation, record extraction
-  - `FieldValidationRulesTests.cs` - Field-level validation patterns
-
-Example: `FieldValidationRulesTests.cs` - Tests transaction ID validation
-```csharp
-[Theory]
-[InlineData("TXN-20251201-000001", true)]
-[InlineData("INVALID-ID", false)]
-public void TransactionIdField_WithPattern_ValidatesCorrectly(string transactionId, bool expectedValid)
-{
-    var schema = JSchema.Parse("""
-    {
-        "type": "object",
-        "properties": {
-            "TransactionId": { "type": "string", "pattern": "^TXN-[0-9]{8}-[0-9]{6}$" }
-        }
-    }
-    """);
-
-    var record = JObject.Parse($$"""{ "TransactionId": "{{transactionId}}" }""");
-    var isValid = record.IsValid(schema);
-    isValid.Should().Be(expectedValid);
-}
-```
+**6 Main E2E Scenarios (from CLAUDE.md):**
+1. **E2E-001:** Basic pipeline (FileDiscovery → Validation → Output)
+2. **E2E-002:** Large file processing (100+ records)
+3. **E2E-003:** Invalid records handling
+4. **E2E-004:** Multi-destination output (Folder + Kafka)
+5. **E2E-005:** Scheduled polling verification
+6. **E2E-006:** Error recovery & retry logic
 
 ## Common Patterns
 
-**Async Testing (Frontend Playwright):**
+**Async Testing:**
 ```typescript
-test('should load data asynchronously', async ({ page }) => {
-  await page.goto('/');
+// From datasource.spec.ts lines 25-31
+test('should navigate to create new data source', async ({ page }) => {
+  await page.getByRole('button', { name: /הוסף מקור נתונים חדש|הוסף/ }).click();
+  await expect(page).toHaveURL(/create|new/);
+});
 
-  // Wait for network to settle
+// With network wait
+await page.waitForResponse(resp => resp.url().includes('/api/'));
+```
+
+**Waiting Strategies (from README lines 139-152):**
+```typescript
+// Wait for element visibility
+await expect(page.getByText(/loaded/i)).toBeVisible({ timeout: 30000 });
+
+// Wait for navigation
+await page.waitForURL(/\/details/);
+
+// Wait for API response
+await page.waitForResponse(resp => resp.url().includes('/api/data'));
+
+// Wait for network idle
+await page.waitForLoadState('networkidle');
+```
+
+**Locator Best Practices:**
+
+1. **Role-based (most accessible):**
+```typescript
+// From README lines 120-125
+await page.getByRole('button', { name: /submit/i });
+await page.getByRole('heading', { name: /title/i });
+await page.getByRole('tab', { name: /settings/i });
+```
+
+2. **Test IDs (complex components):**
+```typescript
+// From README lines 128-130
+await page.getByTestId('datasource-filter');
+await page.locator('[data-testid="metric-type-select"]');
+```
+
+3. **Text-based with regex (flexible):**
+```typescript
+// From README lines 133-136
+await page.getByText(/create|add|new/i);
+await page.getByLabel(/name/i);
+```
+
+**Playwright Configuration (playwright.config.ts):**
+- Parallel execution: `fullyParallel: true` (line 12)
+- Retries on CI: `retries: process.env.CI ? 2 : 0` (line 18)
+- Single worker on CI: `workers: process.env.CI ? 1 : undefined` (line 21)
+- Global timeout: 60 seconds per test (line 52)
+- Action timeout: 10 seconds (line 45)
+- Navigation timeout: 30 seconds (line 48)
+- Expect timeout: 10 seconds (line 56)
+
+**Video/Screenshots Configuration (playwright.config.ts lines 35-42):**
+```typescript
+trace: 'on-first-retry',        // Trace on first retry
+screenshot: 'only-on-failure',  // Screenshots on failure
+video: 'on-first-retry',        // Video on first retry
+```
+
+## Error Testing
+
+**Pattern (E2E approach):**
+```typescript
+// From datasource.spec.ts - testing error states
+test('should handle validation errors', async ({ page }) => {
+  // Submit form without required fields
+  await page.getByRole('button', { name: /save|submit/i }).click();
+
+  // Verify error message displayed
+  await expect(page.getByText(/required|error/i)).toBeVisible();
+});
+```
+
+**Error Scenarios (from test structure):**
+- Invalid connection configuration (connection test failures)
+- Missing required fields (form validation)
+- Duplicate data source names (API validation)
+- Invalid JSON schemas (schema validation)
+- Network timeouts (connection test edge cases)
+
+**Debugging Failed Tests (from README lines 196-213):**
+
+1. **Trace Viewer:**
+```bash
+npx playwright test --trace on
+npx playwright show-trace test-results/*/trace.zip
+```
+
+2. **Debug Mode:**
+```bash
+npx playwright test --debug
+npx playwright test --debug-on-fail
+```
+
+3. **Screenshots/Videos:**
+- Configured in `playwright.config.ts`
+- Output: `test-results/` directory
+
+## Test Environment Configuration
+
+**Base URL:**
+```typescript
+// playwright.config.ts line 33
+baseURL: process.env.BASE_URL || 'http://localhost:3000'
+```
+
+**Environment Overrides (from README lines 78-92):**
+```bash
+# Local development (default)
+npx playwright test
+
+# Staging environment
+BASE_URL=https://staging.ez-platform.com npx playwright test
+
+# Production (read-only tests)
+BASE_URL=https://ez-platform.com npx playwright test --grep @smoke
+```
+
+**CI/CD Integration (from README lines 157-194):**
+- GitHub Actions matrix testing
+- Install dependencies: `npm ci`
+- Install browsers: `npx playwright install --with-deps`
+- Run tests with CI flag: `CI=true npx playwright test`
+- Upload artifacts on failure
+
+## Performance Testing Patterns
+
+**Page Load Performance (from README lines 225-233):**
+```typescript
+test('should load dashboard quickly', async ({ page }) => {
+  const startTime = Date.now();
+  await page.goto('/metrics/dashboard');
+  await page.waitForSelector('.recharts-wrapper');
+  const loadTime = Date.now() - startTime;
+
+  expect(loadTime).toBeLessThan(5000); // 5 seconds max
+});
+```
+
+**Network Request Optimization (from README lines 237-247):**
+```typescript
+test('should not make excessive API calls', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', req => requests.push(req.url()));
+
+  await page.goto('/');
   await page.waitForLoadState('networkidle');
 
-  // Wait for specific element
-  await expect(page.locator('.ant-table')).toBeVisible();
-
-  // Wait with timeout
-  const element = page.locator('button', { hasText: 'Save' });
-  await element.click({ timeout: 10000 });
+  const apiCalls = requests.filter(r => r.includes('/api/'));
+  expect(apiCalls.length).toBeLessThan(20);
 });
 ```
 
-**Async Testing (Backend xUnit):**
-```csharp
-[Fact]
-public async Task ProcessAsync_WithValidInput_ReturnsSuccess()
-{
-    // Arrange
-    var input = new ProcessRequest { /* ... */ };
+## Test Data Management
 
-    // Act
-    var result = await _service.ProcessAsync(input);
+**Fixture Pattern:**
+- Location: `tests/fixtures/` directory
+- Import in test files: `import { testDataSource } from '../fixtures/datasources'`
+- Reuse across multiple test files
+- Constants for consistent data
 
-    // Assert
-    result.Should().NotBeNull();
-    result.IsSuccess.Should().BeTrue();
-}
-```
-
-**Error Testing (Frontend Playwright):**
+**Cleanup Strategy:**
 ```typescript
-test('should display error message on API failure', async ({ page }) => {
-  // Navigate to trigger error condition
-  await page.goto('/datasource/invalid-id');
-
-  // Verify error display
-  await expect(page.getByText(/error|خطأ/i)).toBeVisible();
-
-  // Verify recovery button
-  await page.getByRole('button', { name: /retry|أعد/ }).click();
+test.afterEach(async ({ page }) => {
+  // Delete test data via API
+  await page.request.delete('/api/datasources?name=E2E*');
 });
 ```
 
-**Error Testing (Backend xUnit):**
-```csharp
-[Fact]
-public async Task GetById_WithInvalidId_ReturnsNotFoundError()
-{
-    // Act
-    var result = await _service.GetByIdAsync("invalid-id", correlationId);
+## Current Test Coverage Status
 
-    // Assert
-    result.IsSuccess.Should().BeFalse();
-    result.Error?.StatusCode.Should().Be(404);
-    result.Error?.Message.Should().Contain("not found");
-}
-```
+**E2E Tests (All Passing):**
+- 6 main scenarios (per CLAUDE.md)
+- 4 test files implemented: datasource.spec.ts, invalid-records.spec.ts, metrics.spec.ts, alerts.spec.ts
+- Cross-browser testing: Chromium, Firefox, Safari, Mobile Chrome, Mobile Safari
 
-**Page Object Model (Frontend Playwright - Optional pattern):**
-```typescript
-// Not explicitly used in current tests, but available approach:
-export class DataSourcePage {
-  constructor(private page: Page) {}
+**Known Test Gaps (per CLAUDE.md):**
+- Multiple file formats: Only CSV fully tested (XML, Excel, JSON not covered)
+- High load testing: Max tested 100 records (10,000+ not tested)
+- Multi-destination scaling: Only 2 destinations tested (4+ not tested)
 
-  async navigateTo() {
-    await this.page.goto('/datasources');
-  }
-
-  async fillBasicInfo(name: string, description: string) {
-    await this.page.locator('input').first().fill(name);
-    await this.page.locator('textarea').first().fill(description);
-  }
-}
-
-// Usage in test:
-const dataSourcePage = new DataSourcePage(page);
-await dataSourcePage.navigateTo();
-await dataSourcePage.fillBasicInfo('Test', 'Description');
-```
-
-## Test Configuration
-
-**Frontend (Playwright config - `src/Frontend/playwright.config.ts`):**
-- Test directory: `./tests/e2e`
-- Base URL: `http://localhost:3000` (configurable via `BASE_URL` env var)
-- Timeout: 60000ms per test
-- Action timeout: 10000ms
-- Navigation timeout: 30000ms
-- Retries on CI: 2, local: 0
-- Workers: Parallel on local, serial on CI
-- Screenshots: On failure only
-- Videos: On first retry
-- Traces: On first retry
-- Reporters: HTML, JSON, list format
-
-**Backend (TestConfiguration.cs - `tests/IntegrationTests/TestConfiguration.cs`):**
-- MongoDB connection: `mongodb://localhost:27017/?directConnection=true` with replica set bypass
-- Kafka servers: `localhost:9094` (external listener for port-forwarding)
-- Hazelcast address: `localhost:5701`
-- Service URLs: Port-forwarded endpoints (5001-5009)
-- Kafka topics: Defined as constants
-- Test data paths: Configurable via `TEST_DATA_PATH` env var
-- Timeouts: 30s default, 60s for Kafka, 2min for pipeline processing
-
-**Environment Variables (Integration Tests):**
-```
-KAFKA_BOOTSTRAP_SERVERS=localhost:9094
-MONGODB_CONNECTION_STRING=mongodb://localhost:27017/?directConnection=true
-MONGODB_DATABASE=ez_platform
-HAZELCAST_ADDRESS=localhost:5701
-DATASOURCE_MGMT_URL=http://localhost:5001
-VALIDATION_URL=http://localhost:5003
-OUTPUT_URL=http://localhost:5009
-INVALIDRECORDS_URL=http://localhost:5007
-TEST_DATA_PATH=C:\Users\UserC\source\repos\EZ\test-data
-```
-
-## Running Tests Locally
-
-**Prerequisites:**
-- Frontend: Port 3000 or 3002 available (dev server)
-- Backend: Port-forwarded K8s services (see `start-port-forwards.ps1`)
-- Backend: MongoDB, Kafka, Hazelcast running in K8s
-
-**Frontend E2E (Playwright):**
-```bash
-cd src/Frontend
-
-# Install dependencies
-npm install
-
-# Run all tests
-npm run test:e2e
-
-# Run with UI
-npm run test:e2e:ui
-
-# Run headed (visible browser)
-npm run test:e2e:headed
-
-# View results
-npm run test:e2e:report
-```
-
-**Backend Integration Tests:**
-```bash
-# Start port-forwarding (PowerShell)
-powershell.exe -ExecutionPolicy Bypass -File "scripts/start-port-forwards.ps1"
-
-# Run integration tests
-cd tests/IntegrationTests
-dotnet test
-
-# Run specific category
-dotnet test --filter "Category=INT-001"
-
-# Verbose output
-dotnet test --verbosity detailed
-```
-
-**Backend Unit Tests:**
-```bash
-cd tests/ValidationService.Tests
-dotnet test
-
-cd tests/OutputService.Tests
-dotnet test
-
-cd tests/Shared.Tests
-dotnet test
-```
+**Test Readiness:**
+- Hebrew UI support verified (lines 19, 27, 71, etc. in datasource.spec.ts)
+- RTL layout testing via Ant Design components
+- Mobile viewports included in test matrix
 
 ---
 
-*Testing analysis: 2026-01-28*
+*Testing analysis: 2026-02-02*

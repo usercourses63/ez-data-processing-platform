@@ -1,259 +1,150 @@
 # Technology Stack
 
-**Analysis Date:** 2026-01-28
+**Analysis Date:** 2026-02-02
 
 ## Languages
 
 **Primary:**
-- C# (.NET 10.0) - Backend microservices
-- TypeScript 5 - Frontend and type safety
-- JavaScript - Frontend utilities
+- C# (.NET 10.0) - Backend microservices and shared libraries
+- TypeScript 5.9.3 - Frontend application
+- YAML - Kubernetes manifests and configuration
 
 **Secondary:**
-- YAML - Kubernetes manifests and configuration
-- JSON - Configuration, seeds, and data
+- JavaScript/JSX - React component configuration
+- PowerShell - Infrastructure scripting
 
 ## Runtime
 
 **Environment:**
-- .NET 10.0 (via `global.json` - SDK version 10.0.100)
-- Node.js (frontend, via npm)
-- OpenJDK (Kafka, Zookeeper, Hazelcast, Elasticsearch via Docker)
+- .NET Runtime 10.0.100
+- Node.js - Frontend development and build
 
 **Package Manager:**
-- NuGet - Backend dependencies (centralized in `Directory.Packages.props`)
-- npm - Frontend dependencies
-- Lockfile: `package-lock.json` present for frontend
+- NuGet - .NET packages (referenced in .csproj files)
+- npm - JavaScript packages
+- Lockfile: package-lock.json (present)
 
 ## Frameworks
 
 **Core Backend:**
-- ASP.NET Core Web API (.NET 10.0) - All microservices use this framework
-- Located in `src/Services/[ServiceName]/Program.cs` for dependency injection
+- ASP.NET Core Web API - REST API framework for microservices
+- MassTransit 8.x - Message bus and event publishing
+- MassTransit.Kafka - Kafka transport for MassTransit
+- MongoDB.Entities - ORM for MongoDB data access
 
-**Core Frontend:**
-- React 19 - UI framework
-- React Router 6 - Client-side routing
-- React Query (TanStack) - Server state management (`@tanstack/react-query@^5.90.2`)
-
-**Build/Dev Tools:**
-- Vite 5 - Frontend build tool (configured for React with TypeScript)
-- React Scripts 5 - Development server
-- Docker & Docker Compose - Local development containerization
-- Kubernetes (Minikube) - Production deployment
+**Frontend:**
+- React 19.0.0 - UI framework
+- Ant Design 5.10.0 - RTL-enabled component library
+- TanStack React Query 5.90.2 - Data fetching and state management
+- Vite 5.4.21 - Build tool and dev server
+- React Router v6.15.0 - Routing
 
 **Testing:**
-- Playwright 1.49 - E2E testing
-- Testing Library (Jest) - React component testing
-- dotnet test - Backend unit/integration testing
+- Playwright 1.49.0 - E2E testing (frontend)
+- xUnit - Integration and unit tests (.NET)
 
-**ORM/Data:**
-- MongoDB.Entities - .NET ORM for MongoDB (all services use this)
-
-**Job Scheduling:**
-- Quartz.NET - Distributed job scheduling (in SchedulingService and FileDiscoveryService)
-
-**Validation:**
-- Corvus.Json.Validator - JSON Schema 2020-12 validation (ValidationService)
-- AJV 8.17 - Frontend JSON Schema validation
-
-**Format Handling:**
-- CsvHelper - CSV parsing and generation
-- EPPlus - Excel file processing
-- Newtonsoft.Json / System.Text.Json - JSON serialization
-- SharpCompress - Archive support (ZIP, TAR, etc.)
-
-**Messaging:**
-- MassTransit - Distributed messaging framework
-- MassTransit.Kafka - Kafka transport for MassTransit
-- MassTransit.RabbitMQ - RabbitMQ transport (used in DataSourceManagementService, FileProcessorService, ValidationService)
-- Confluent.Kafka - Direct Kafka client (OutputService for KafkaOutputHandler)
+**Build/Dev:**
+- React Scripts 5.0.1 - Create React App build tools
+- Vite with React plugin 4.7.0 - Modern build tooling
+- TypeScript 5.9.3 - Type safety
+- ESLint 8.48.0 - Code linting
+- Prettier - Code formatting (via react-app config)
 
 ## Key Dependencies
 
-**Critical Infrastructure:**
-- MongoDB.Entities - Data persistence across all services
-- Hazelcast.Net - Distributed in-memory cache (5 minutes TTL for file content)
-- MassTransit + Kafka - Event-driven architecture
-- Polly - Retry policies and resilience patterns
+**Critical Backend:**
+- CsvHelper - CSV parsing and writing
+- EPPlus - Excel file manipulation
+- FluentFTP - FTP/FTPS protocol support
+- SSH.NET - SFTP protocol support
+- AWSSDK.S3 - Amazon S3 and S3-compatible storage (MinIO, DigitalOcean Spaces)
+- SharpCompress - Archive format support (ZIP, RAR, 7Z, etc.)
+- KubernetesClient - Direct Kubernetes API interaction
+- Hazelcast.Net 5.x - Distributed in-memory cache
+- Polly - Resilience and transient fault handling
 
-**File I/O & Connectivity:**
-- FluentFTP - FTP/FTPS file access
-- SSH.NET - SFTP file access
-- AWSSDK.S3 - Amazon S3 and S3-compatible storage
-- KubernetesClient - Kubernetes API interactions
+**Critical Frontend:**
+- axios 1.5.0 - HTTP client
+- i18next 23.5.1 - Internationalization (Hebrew/English)
+- i18next-browser-languagedetector - Auto language detection
+- i18next-http-backend - Translation file loading
+- react-i18next 13.2.2 - React i18n integration
+- @monaco-editor/react 4.7.0 - Code editor for schema/regex
+- vanilla-jsoneditor 3.10.0 - JSON editor
+- recharts 2.8.0 - Chart rendering
+- date-fns 4.1.0 - Date utilities
+- lodash 4.17.21 - Utility functions
+- cronstrue 3.9.0 - Cron expression parsing
+- ajv 8.17.1 - JSON Schema validation
 
-**Monitoring & Observability:**
-- OpenTelemetry (Core) - Distributed tracing framework
-- OpenTelemetry.Instrumentation.AspNetCore - HTTP instrumentation
-- OpenTelemetry.Instrumentation.Http - HTTP client tracing
-- OpenTelemetry.Instrumentation.Runtime - Runtime metrics
-- OpenTelemetry.Instrumentation.Process - Process metrics
-- OpenTelemetry.Exporter.OpenTelemetryProtocol - OTLP exporter (gRPC to OTEL Collector)
-- prometheus-net - Prometheus client (System and Business metrics)
-- prometheus-net.AspNetCore - ASP.NET Core instrumentation for Prometheus
-- Serilog - Structured logging
-- Serilog.AspNetCore - ASP.NET Core integration
-- Elastic.Serilog.Sinks - Elasticsearch sink
-- Serilog.Enrichers.CorrelationId - Distributed tracing correlation
+**Infrastructure:**
+- prometheus-net 1.x - Prometheus metrics export
+- OpenTelemetry SDK + exporters - Distributed tracing
+  - OpenTelemetry.Exporter.OpenTelemetryProtocol - OTLP/gRPC export
+  - OpenTelemetry.Instrumentation.AspNetCore
+  - OpenTelemetry.Instrumentation.Http
+  - OpenTelemetry.Instrumentation.Runtime
+  - OpenTelemetry.Instrumentation.Process
+- Serilog 3.x - Structured logging
+- Serilog.AspNetCore - ASP.NET Core logging integration
+- Elastic.Serilog.Sinks - Elasticsearch sink for Serilog
+- Serilog.Enrichers.* - Correlation ID, environment, thread enrichers
+- Swashbuckle.AspNetCore - OpenAPI/Swagger documentation
 
 **Health Checks:**
-- AspNetCore.HealthChecks.MongoDb - MongoDB connectivity checks
-- AspNetCore.HealthChecks.Kafka - Kafka connectivity checks
-- AspNetCore.HealthChecks.Elasticsearch - Elasticsearch connectivity checks
+- AspNetCore.HealthChecks.MongoDb - MongoDB readiness probe
+- AspNetCore.HealthChecks.Kafka - Kafka broker connectivity check
+- AspNetCore.HealthChecks.Elasticsearch - Elasticsearch health monitoring
 - Microsoft.Extensions.Diagnostics.HealthChecks - Base health check framework
-
-**Frontend Utilities:**
-- Ant Design 5.10 - UI component library (RTL-enabled for Hebrew)
-- Axios 1.5 - HTTP client
-- i18next 23.5 - Internationalization (Hebrew/English)
-- i18next-browser-languagedetector - Auto language detection
-- i18next-http-backend - Load translations from backend
-- react-i18next - React binding for i18next
-- Monaco Editor 0.54 - Code editor component
-- Recharts 2.8 - Chart and graph visualization
-- Lodash 4.17 - Utility library
-- date-fns 4.1 - Date manipulation
-- moment 2.29 - Legacy date formatting
-- cronstrue 3.9 - CRON expression to human-readable text
-- randexp 0.5 - Random regex-based data generation
-- vanilla-jsoneditor 3.10 - JSON editor component
-- react-markdown 10.1 - Markdown rendering in React
-
-**Frontend API Integration:**
-- @microsoft/signalr - WebSocket signaling (7.0.11)
-- @monaco-editor/react - React wrapper for Monaco Editor
-- jsonjoy-builder - JSON schema builder
 
 ## Configuration
 
-**Environment Variables (Required):**
-- `ConnectionStrings__DefaultConnection` - MongoDB connection string with replica set
-- `Kafka__Brokers` or `ConnectionStrings__Kafka` - Kafka bootstrap servers (defaults to `localhost:9092` in development)
-- `OpenTelemetry__OtlpEndpoint` - OTLP Collector endpoint (defaults to `http://localhost:4317`)
-- `Hazelcast__Servers` - Hazelcast cluster endpoint (defaults to `localhost:5701`)
-- `ASPNETCORE_ENVIRONMENT` - `Development`, `Production` (set in Dockerfile)
-- `ASPNETCORE_URLS` - HTTP binding (set per service port in Dockerfile)
+**Environment:**
+- appsettings.json - Development defaults
+- appsettings.Development.json - Development overrides
+- appsettings.Production.json - Production settings
+- Kubernetes ConfigMaps (k8s/configmaps/) - Runtime configuration
+- Environment variables - Service connection strings and secrets
 
-**Backend Configuration Files:**
-- `appsettings.json` - Base configuration per service
-- `appsettings.Development.json` - Development environment overrides
-- `appsettings.Production.json` - Production environment overrides
-- Located in `src/Services/[ServiceName]/` for each microservice
+**Build:**
+- global.json - .NET SDK version pinning (10.0.100)
+- tsconfig.json - TypeScript compilation settings
+- vite.config.ts - Frontend build configuration
+- playwright.config.ts - E2E test configuration
 
-**Frontend Configuration:**
-- `.env` files (checked in `.planning/codebase/.env`)
-- API proxy: `proxy: "http://localhost:5001"` in `package.json`
-- Environment detection via `i18next-browser-languagedetector`
-
-**Build Configuration:**
-- `Directory.Build.props` - Centralized .NET project defaults
-- `Directory.Packages.props` - Centralized NuGet package versions
-- `vite.config.ts` (implicit via package.json scripts)
-- `tsconfig.json` - TypeScript configuration
-- `.eslintrc` - ESLint configuration (extends react-app)
-- `playwright.config.ts` - E2E test configuration
-
-## Container & Orchestration
-
-**Containerization:**
-- Docker multi-stage builds (all microservices)
-- Base image: `mcr.microsoft.com/dotnet/sdk:10.0` (build stage)
-- Runtime image: `mcr.microsoft.com/dotnet/aspnet:10.0` (production)
-- Non-root user (UID 1000) for OCP compliance
-- Read-only root filesystem support
-
-**Orchestration:**
-- Kubernetes (production) via kubectl
-- Minikube (local development)
-- Namespace: `ez-platform`
-- Node.js container for frontend development
-
-## Infrastructure Services (Kubernetes/Docker)
-
-**Data Storage:**
-- MongoDB 8.0 - 3-node replica set (StatefulSet)
-  - Storage: 20Gi per node
-  - Resource requests: 1000m CPU, 2Gi memory
-  - Headless service: `mongodb.ez-platform.svc.cluster.local:27017`
-
-**Message Broker:**
-- Kafka (Confluent 7.5.0) - 1 node (scalable)
-  - Internal listener: `:9092` (cluster communication)
-  - External listener: `:9094` (localhost/port-forward access)
-  - Storage: 10Gi
-  - Resource requests: 1000m CPU, 2Gi memory
-- Zookeeper (Confluent 7.5.0) - 1 node for Kafka coordination
-  - Storage: 5Gi
-  - Resource requests: 250m CPU, 512Mi memory
-
-**Distributed Cache:**
-- Hazelcast 5.6.0 - 1 node (via Docker/K8s)
-  - Heap: 2GB (4GB container limit)
-  - Port: 5701
-  - Cluster name: `data-processing-cluster`
-  - TTL: 1 hour default
-
-**Observability Stack:**
-- Prometheus (System) 9090 - Infrastructure metrics
-- Prometheus (Business) 9091 - Business KPIs
-- Elasticsearch 8.17 - Logs and trace storage (9200, 9300)
-- Grafana 11.x - Dashboard and query layer (3001)
-- Jaeger (all-in-one) - Distributed tracing UI (16686)
-- OpenTelemetry Collector - Telemetry aggregation (4317 gRPC, 4318 HTTP)
-
-**Logging Infrastructure:**
-- Fluent Bit DaemonSet - Container log aggregation
-- Elasticsearch indices: `ez-logs-YYYY.MM.DD`
-
-**Documentation:**
-- Docusaurus - Documentation website (8080 port)
-
-## Service Ports
-
-**Backend Services:**
-- DataSourceManagementService: 5001
-- MetricsConfigurationService: 5002
-- ValidationService: 5003
-- SchedulingService: 5004
-- InvalidRecordsService: 5007
-- FileProcessorService: 5008
-- OutputService: 5009
-
-**Frontend:**
-- React development: 7000 (Vite dev server)
-- React production: 8080
-
-**Infrastructure:**
-- MongoDB: 27017
-- Kafka (internal): 9092
-- Kafka (external): 9094
-- Zookeeper: 2181
-- Hazelcast: 5701
-- Prometheus (System): 9090
-- Prometheus (Business): 9091
-- Elasticsearch: 9200, 9300
-- Grafana: 3000 (host) → 3001 (localhost)
-- Jaeger: 16686
-- OTEL Collector: 4317 (gRPC), 4318 (HTTP)
+**Key Configuration Values:**
+- `ConnectionStrings__DefaultConnection` - MongoDB connection (required)
+- `Kafka__Brokers` - Kafka bootstrap servers (required)
+- `OpenTelemetry__OtlpEndpoint` - OTEL Collector endpoint (default: http://localhost:4317)
+- `Hazelcast__Servers` - Hazelcast cluster nodes (default: localhost:5701)
+- Environment prefixes: `dataprocessing.[service].[topic]` for Kafka topics
 
 ## Platform Requirements
 
 **Development:**
 - .NET 10.0 SDK
-- Node.js LTS (for npm/frontend)
-- Docker Desktop or Docker Engine
-- Kubernetes (Minikube recommended)
+- Node.js 18+ (for frontend)
+- Docker (for containerized dependencies)
+- Minikube or Kubernetes cluster
 - kubectl CLI
-- PowerShell (for Windows scripts)
 
 **Production:**
 - Kubernetes 1.24+ (OCP 4.12+ compatible)
-- Container runtime (containerd, CRI-O, or Docker)
-- Persistent volumes (20Gi for MongoDB, 10Gi for Kafka, 5Gi for Zookeeper)
-- Network policies support
-- Security Context Constraints (SCC) support for non-root pods
+- Docker container runtime
+- 3-node MongoDB replica set
+- 1+ node Kafka cluster
+- Elasticsearch 8.x
+- Prometheus (dual instances: system and business)
+- Grafana 10.x
+- OpenTelemetry Collector
+- Hazelcast cluster (optional, for distributed caching)
+
+**Network:**
+- Service mesh optional (no Istio enforced currently)
+- All services use non-privileged ports (>1024)
+- Internal pod-to-pod communication on internal ports
+- External access via port-forward or ingress
 
 ---
 
-*Stack analysis: 2026-01-28*
+*Stack analysis: 2026-02-02*

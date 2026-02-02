@@ -1,229 +1,290 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-01-28
+**Analysis Date:** 2026-02-02
 
 ## Tech Debt
 
-**Connection Testing Stub Implementation:**
-- Issue: `TestConnectionAsync()` in `DataSourceManagementService/Services/DataSourceService.cs` (line 617) returns hardcoded success without actual connection validation
-- Files: `src/Services/DataSourceManagementService/Services/DataSourceService.cs` (lines 616-630)
-- Impact: Users receive false positive connection status. Invalid credentials/unreachable hosts are not detected until actual data processing fails
-- Fix approach: Implement real connection testing by instantiating appropriate connector (`IDataSourceConnector`) and testing actual connection parameters. Add timeout and error handling for each connector type (FTP, SFTP, HTTP, Kafka, S3)
+**Connection Testing Not Implemented:**
+- Issue: DataSourceService returns hardcoded success response without actual connection validation
+- Files: `src/Services/DataSourceManagementService/Services/DataSourceService.cs:617`
+- Impact: Users cannot verify data source connectivity before scheduling; failed connections may only be discovered during processing
+- Fix approach: Implement actual connector-based connection testing (FTP, SFTP, HTTP, S3, Kafka) with configurable timeouts; catch and report specific connection errors
 
-**Missing Event Publishing in Output Service:**
-- Issue: `ValidationCompletedEventConsumer.Consume()` has TODO comment for publishing `OutputCompletedEvent`
-- Files: `src/Services/OutputService/Consumers/ValidationCompletedEventConsumer.cs` (line 221)
-- Impact: Downstream monitoring and alerting systems cannot track output completion. No event-based notifications available for output failures
-- Fix approach: Implement and publish `OutputCompletedEvent` containing output destination details, success/failure status, and processed record count
+**Alert Triggered Event Not Published:**
+- Issue: When alert thresholds are exceeded, no downstream event is published for notification/integration
+- Files: `src/Services/ValidationService/Consumers/ValidationRequestEventConsumer.cs:454`
+- Impact: Alert evaluations run but have no effect; notifications cannot be sent; monitoring system is incomplete
+- Fix approach: Publish `AlertTriggeredEvent` with alert details, metric value, severity, and data source context for downstream consumers
 
-**Alert Triggered Event Stub:**
-- Issue: `ValidationRequestEventConsumer` has TODO for publishing `AlertTriggeredEvent` when validation triggers alerts
-- Files: `src/Services/ValidationService/Consumers/ValidationRequestEventConsumer.cs` (line 454)
-- Impact: Alert system cannot react to validation failures in real-time. Only metrics available post-processing
-- Fix approach: Publish `AlertTriggeredEvent` containing alert rule ID, triggered condition, and affected records
+**Output Completed Event Not Published:**
+- Issue: Output service processes validation results but does not emit completion event
+- Files: `src/Services/OutputService/Consumers/ValidationCompletedEventConsumer.cs:221`
+- Impact: No visibility into output completion; monitoring dashboards cannot track end-to-end completion; no trigger for post-processing steps
+- Fix approach: Publish `OutputCompletedEvent` with record counts, output destinations, processing duration, and correlation ID
 
-**Metrics Configuration Cache Limitation:**
-- Issue: `VisualFormulaBuilder.tsx` uses mock fields with TODO to fetch actual schema fields from API
-- Files: `src/Frontend/src/components/metrics/VisualFormulaBuilder.tsx` (line 126)
-- Impact: Formula builder cannot adapt to actual data source schema. Users must manually verify field names exist
-- Fix approach: Implement API call to `GET /api/v1/schemas/{schemaId}/fields` and dynamically populate field selector
-
-**Missing Error Tracking Integration:**
-- Issue: `ErrorBoundary.tsx` has TODO for sending errors to external tracking service (Sentry, etc.)
-- Files: `src/Frontend/src/components/shared/ErrorBoundary.tsx` (line 42)
-- Impact: Frontend errors silently fail without visibility. Production issues undetected until user reports
-- Fix approach: Integrate Sentry or similar error tracking service. Send error context including correlation ID for linking to backend logs
+**Alert Notifications Not Integrated:**
+- Issue: Alert evaluation service has TODO comment indicating NotificationService integration is not implemented
+- Files: `src/Services/MetricsConfigurationService/Services/Alerts/AlertEvaluationService.cs:85`
+- Impact: Alerts are evaluated but never sent to users; no email, Slack, or webhook notifications
+- Fix approach: Implement NotificationService consumer; integrate with email/Slack/webhook providers; add notification preferences to AlertRule entity
 
 ## Known Bugs
 
-**Browser Cache Invalidation (RESOLVED):**
-- Symptoms: Browser displaying v0.1.15 UI despite pod serving v0.2.0 code with archive settings
-- Files: `src/Frontend/nginx.conf`, `src/Frontend/src/components/datasource/tabs/ConnectionTab.tsx`
-- Trigger: Browser cache retained old JavaScript bundles; hard refresh required
-- Workaround: Ctrl+Shift+R hard refresh or use incognito window. Also resolved by updating nginx.conf with proper Cache-Control headers in v0.2.0 release
-- Status: FIXED - nginx cache control headers added, Vite hash-based filenames prevent recurrence
+**Browser Cache Issue (Resolved - v0.2.0):**
+- Symptoms: Old v0.1.15 UI appears despite v0.2.0 code deployed; archive settings and server selection not visible
+- Files: `src/Frontend/nginx.conf`, `k8s/deployments/frontend.yaml`
+- Trigger: Browser caches static assets aggressively; pod restart or deployment update doesn't clear client-side cache
+- Workaround: Hard refresh (Ctrl+Shift+R), clear browser cache, or use incognito window
+- Status: FIXED - nginx.conf now includes proper Cache-Control headers; HTML always fresh, assets cached 7 days with ETag validation
+- Documentation: `docs/troubleshooting/v0.2.0-browser-cache-issue.md`
 
 ## Security Considerations
 
-**Elasticsearch Security Disabled (Development Only):**
-- Risk: Elasticsearch deployed with `xpack.security.enabled=false`. No authentication or encryption for log access
-- Files: `docker-compose.development.yml` (line 127), `k8s/infrastructure/elasticsearch.yaml`
-- Current mitigation: Development environment only. Minikube runs on localhost without external exposure
-- Recommendations: Before production deployment, enable X-Pack security with username/password authentication. Use TLS for cluster communication. Consider network policies restricting Elasticsearch access
+**Credential Handling in Kubernetes:**
+- Risk: Server credentials (passwords, API keys, SSH keys) stored in Kubernetes Secrets; requires RBAC access to secrets API
+- Files: `src/Services/Shared/Services/KubernetesCredentialResolver.cs`, `src/Services/Shared/Services/ICredentialResolver.cs`
+- Current mitigation: Resolver checks for Forbidden (403) responses and logs RBAC permission issues; credentials never logged (uses redacted ToString()); connections use secrets, not environment variables
+- Recommendations:
+  - Verify RBAC policies restrict secret read access to service accounts only
+  - Consider secret encryption at rest in etcd (enable `--encryption-provider-config` on API server)
+  - Add audit logging for secret access
+  - Implement secret rotation policy (30-90 day rotation)
 
-**Grafana Hardcoded Credentials:**
-- Risk: Grafana admin credentials hardcoded in Kubernetes deployment manifests (admin/admin)
-- Files: `k8s/deployments/grafana.yaml`, Grafana provisioning files
-- Current mitigation: Only accessible through kubectl port-forward from localhost
-- Recommendations: Use Kubernetes Secrets for credential storage. Implement RBAC for Grafana access. Change default credentials immediately in production
+**Hazelcast Distributed Cache Authorization:**
+- Risk: Hazelcast cluster stores cached file content in memory; no built-in authentication in current configuration
+- Files: `src/Services/Shared/Configuration/HazelcastConfiguration.cs:71-95`
+- Current mitigation: Hazelcast runs in isolated K8s cluster with network policies
+- Recommendations:
+  - Enable Hazelcast authentication (`Identity` and `Credentials` in HazelcastOptions)
+  - Implement network policy to restrict Hazelcast port 5701 to service pods only
+  - Consider enabling TLS for inter-node communication (`Networking.SSL` config)
+  - Monitor cache evictions for unusual patterns
 
-**MongoDB Direct Connection Bypass:**
-- Risk: Connection strings support `directConnection=true` parameter which bypasses replica set routing and authentication
-- Files: References in `DatabaseConfiguration.cs`, documented in CLAUDE.md
-- Current mitigation: Replica set authentication enforced by MongoDB server-side
-- Recommendations: Document secure connection string format. Prevent `directConnection` in production. Implement connection string validation. Ensure MongoDB replica set authentication is mandatory
-
-**Missing Input Validation on File Paths:**
-- Risk: File path parameters in connectors (Local, FTP, SFTP) not validated for directory traversal attacks
-- Files: `src/Services/Shared/Connectors/LocalFileConnector.cs`, `FtpConnector.cs`, `SftpConnector.cs`
-- Current mitigation: Filesystem permissions restrict access, but no explicit path validation
-- Recommendations: Implement path normalization and whitelist validation. Reject paths containing `..` or absolute paths outside configured root directories
+**Broad Exception Catching:**
+- Risk: Many services catch generic `Exception` type, potentially masking programming errors or security issues
+- Files: 30+ files including DataSourceService.cs, ServerService.cs, all connector classes
+- Current mitigation: Logged exceptions include context and correlation IDs
+- Recommendations: Catch specific exception types (OperationException, TimeoutException, etc.) rather than broad Exception; only catch Exception at service boundaries for fallback behavior
 
 ## Performance Bottlenecks
 
-**Large File Processing Memory Pressure:**
-- Problem: Files loaded entirely into memory during processing. 10,000+ record CSV files (~1.4MB) held in memory simultaneously
-- Files: `src/Services/FileProcessorService/Consumers/FileDiscoveredEventConsumer.cs`, converters in `src/Services/Shared/Converters/`
-- Cause: Entire file content cached in Hazelcast before validation. No streaming processing implemented
-- Improvement path: Implement streaming JSON/CSV parsing. Process records in batches (100-1000 records). Remove Hazelcast caching for large files; use direct stream passthrough instead. Add memory monitoring and circuit breaker for files >10MB
+**ReadAllBytes for Large Files:**
+- Problem: LocalFileConnector loads entire file into memory with `File.ReadAllBytesAsync()`
+- Files: `src/Services/Shared/Connectors/LocalFileConnector.cs:272`
+- Cause: No streaming API; works for typical files but breaks for files >1GB
+- Current limit: CLAUDE.md states max tested file size is 100 records (roughly 10-50KB); no large file testing
+- Improvement path: Implement streaming read via `FileStream` and chunked processing; modify IDataSourceConnector to return Stream instead of byte array; update converters to handle streaming input
 
-**Hazelcast Cache TTL Mismatch:**
-- Problem: Cache TTL set to 5 minutes but large file processing may exceed this duration
-- Files: `k8s/infrastructure/hazelcast.yaml`, `src/Services/Shared/Configuration/HazelcastConfiguration.cs`
-- Cause: Fixed TTL doesn't account for variable processing times. Long-running validations cause cache eviction mid-process
-- Improvement path: Implement dynamic TTL based on file size (base + size*factor). Monitor cache hit rates. Add logging for eviction events. Consider persistent storage for large files instead of cache
+**File.ReadAllText for Resource Files:**
+- Problem: Error response factory loads JSON resource files entirely into memory
+- Files: `src/Services/DataSourceManagementService/Infrastructure/HebrewErrorResponseFactory.cs:208`
+- Cause: Small resource files but inefficient pattern; could fail if file not found after retry
+- Improvement path: Load resource files once at startup; cache in static field; use embedded resources instead of filesystem reads
 
-**Query Pagination Default Size:**
-- Problem: Default page size for data source listing not specified. Could load thousands of records unnecessarily
-- Files: `src/Services/DataSourceManagementService/Models/Queries/DataSourceQuery.cs`
-- Cause: No size limit enforced; potential for large result sets
-- Improvement path: Set default page size to 20-50. Enforce maximum page size of 100. Add query performance monitoring
+**Kafka Consumer Timeout Fixed Value:**
+- Problem: Kafka connector uses hardcoded 5-second timeout for message consumption
+- Files: `src/Services/Shared/Connectors/KafkaConnector.cs:97`
+- Cause: No configuration option; breaks for slow networks or large messages
+- Improvement path: Make timeout configurable via ConnectorConfiguration or AdminServer properties; add per-message timeout settings
+
+**Hazelcast Cache Query Without Index:**
+- Problem: Hazelcast cache operations may not be optimized for query performance
+- Files: `src/Services/Shared/Configuration/HazelcastConfiguration.cs`
+- Cause: No secondary indexes configured; full scans on cached data
+- Improvement path: Add indexes on frequently queried cache keys; use `Hazelcast.Predicates` for efficient filtering; benchmark cache hit rates
 
 ## Fragile Areas
 
-**Consumer Message Ordering Not Guaranteed:**
-- Files: All consumer classes in `src/Services/*/Consumers/`
-- Why fragile: Consumers process messages independently without ordering guarantees. FileProcessingFailedEvent and ValidationCompletedEvent could process out-of-sequence
-- Safe modification: Before modifying consumer logic, verify message ordering assumptions. Add sequence numbers to events. Implement saga pattern for multi-step processes that require ordering
-- Test coverage: Consumer integration tests exist but do not verify ordering scenarios
+**Distributed Lock Implementation (DataSource Processing):**
+- Files: `src/Services/Shared/Entities/DataProcessingDataSource.cs:221-261`
+- Why fragile:
+  - Stateless lock based on entity properties (IsCurrentlyProcessing, ProcessingStartedAt, ProcessingPodId)
+  - No atomic compare-and-swap; race condition possible if two services acquire lock simultaneously
+  - Timeout of 5 minutes assumes graceful shutdown; orphaned locks if pod is killed (though SIGTERM hooks help)
+  - No lock owner validation; any service can release any lock
+- Safe modification:
+  - Always use within transaction with MongoDB's optimistic concurrency (Version field)
+  - Call `MarkAsModified()` after lock operations
+  - Verify ProcessingPodId before releasing lock from another pod
+  - Consider upgrading to MongoDB native distributed lock library
+- Test coverage: Gaps - no unit tests for concurrent lock acquisition; only E2E scenarios test this indirectly
 
-**Validation Result Cache Eviction Race Condition:**
-- Files: `src/Services/ValidationService/Consumers/ValidationRequestEventConsumer.cs` (lines 275-285)
-- Why fragile: Code retrieves file content from Hazelcast cache but cache TTL can expire during validation. Race condition between cache check and retrieval
-- Safe modification: Add cache existence check before retrieval. Implement retry logic with exponential backoff. Log cache misses
-- Test coverage: No integration test covers cache eviction during long validation runs
+**Validation Rule Expression Evaluation:**
+- Files: `src/Services/MetricsConfigurationService/Services/Alerts/AlertEvaluationService.cs:109-200`
+- Why fragile:
+  - Uses simple string replacement for variable substitution; "false positive" if variable name is substring of another
+  - No expression parser; evaluates via hardcoded comparison operators; cannot handle complex expressions (AND, OR, NOT)
+  - Unsubstituted variables left in expression; may evaluate incorrectly if substitution fails silently
+  - No timeout on expression evaluation; malformed expression could hang
+- Safe modification:
+  - Use proper expression parser library (e.g., NLua, Sprache, or custom JSON-based format)
+  - Add validation that all variables in expression are defined before evaluation
+  - Implement expression timeout (100ms max)
+  - Add unit tests for edge cases: variable names that are substrings, missing variables, malformed operators
+- Test coverage: Only tested with simple > < >= <= operators; no AND/OR, no variable edge cases
 
-**Archive Processing without Nested Validation:**
-- Files: `src/Services/FileProcessorService/Consumers/FileDiscoveredEventConsumer.cs` (lines 390-410)
-- Why fragile: Nested archive extraction assumes all nested files are valid. No recursive schema validation. Corrupted nested files cause extraction to fail without granular error reporting
-- Safe modification: Add per-entry validation during extraction. Implement separate consumer for nested archives. Add archive integrity checking before processing
-- Test coverage: Integration tests only verify happy path with valid archives. No tests for corrupted or malicious archive formats
+**Kafka Message Offset Management:**
+- Files: `src/Services/Shared/Connectors/KafkaConnector.cs:40-116`
+- Why fragile:
+  - Manual offset management with `EnableAutoCommit: false` but no explicit commit calls
+  - Consumer group rebalancing not handled; may lose or duplicate messages
+  - No offset reset strategy if specified partition doesn't exist
+  - Consumer not closed properly if exception occurs mid-consumption
+- Safe modification:
+  - Implement using statement for consumer lifecycle
+  - Add explicit offset commit after processing; handle commit failures
+  - Handle rebalancing with `OnAssign` and `OnRevoke` callbacks
+  - Add offset reset configuration to AdminServer/ConnectorConfiguration
+- Test coverage: Only tested with single message consumption; no high-volume, no rebalancing scenarios
 
-**Schema Update During Active Processing:**
-- Files: `src/Services/DataSourceManagementService/Services/Schema/SchemaService.cs`, `ValidationService`
-- Why fragile: Schema can be updated while validation is in-flight using old schema. No version locking
-- Safe modification: Implement schema versioning. Lock schema during active processing. Add schema version to ValidationRequestEvent
-- Test coverage: No test for concurrent schema update during validation
+**Archive Extraction with Path Traversal Risk:**
+- Files: `src/Services/Shared/Services/SharpCompressArchiveService.cs`, `src/Services/Shared/Connectors/LocalFileConnector.cs`
+- Why fragile:
+  - Extracts archive contents to filesystem; path traversal in archive could escape extraction directory
+  - No validation of extracted file paths; "../../etc/passwd" could be written outside intended directory
+  - Archive password stored in plain text in entity; no encryption
+- Safe modification:
+  - Validate all extracted paths are within target directory using `Path.GetFullPath()` checks
+  - Reject any paths containing ".."
+  - Store archive password encrypted in database; decrypt only during extraction
+  - Add unit tests for malicious archive paths
+  - Consider extracting to temporary directory and validating before move to final destination
+- Test coverage: Only happy path tested (valid archives); no security tests for path traversal
 
 ## Scaling Limits
 
-**Hazelcast Cluster Single Node in Production:**
-- Current capacity: 256MB per map (hardcoded in config)
-- Limit: Single node cluster has no redundancy. Node failure loses all cache. No data replication
-- Scaling path: Configure Hazelcast cluster with 2-3 nodes. Enable data replication (backup count=1). Monitor memory usage. Implement LRU eviction with monitoring
+**In-Memory Hazelcast Cache Fixed Size:**
+- Current capacity: 256MB per map (file-content, valid-records)
+- Limit: Breaks when cache size exceeds 256MB; LRU eviction may thrash frequently
+- Trigger: Processing >50 large files (>5MB each) concurrently
+- Scaling path:
+  - Increase `max-size` in HazelcastConfiguration based on available pod memory
+  - Implement TTL-based eviction instead of size-based (current: 300s); tune based on processing pipeline latency
+  - Monitor cache hit/miss rates; if hit rate < 80%, increase size
+  - Consider Redis cluster instead of Hazelcast for higher capacity (scales to terabytes)
 
-**Kafka Consumer Group Lag:**
-- Current capacity: Not monitored. No lag alerting configured
-- Limit: Unknown lag threshold could cause message queue overflow. Consumer lag not visible in Grafana
-- Scaling path: Add Kafka lag metrics to Prometheus. Configure alerts at 1000+ lag threshold. Implement consumer parallelization (increase partitions/consumer count). Add lag monitoring dashboard
+**MongoDB Connection Pool:**
+- Current capacity: MongoDB.Entities default pool size (not explicitly configured)
+- Limit: K8s environment with multiple service replicas; pool exhaustion when concurrency > pool size
+- Trigger: >10 concurrent file processing operations across services
+- Scaling path:
+  - Make MongoDB.Entities pool size configurable; set per-service based on expected concurrency
+  - Monitor `mongodb_client_sessions_active` metric
+  - Implement connection pool monitoring in health checks
+  - Consider connection multiplexing if pool exhaustion occurs
 
-**MongoDB Replica Set without Sharding:**
-- Current capacity: Single replica set limited to node storage capacity
-- Limit: No horizontal sharding for > 100GB datasets. Write scaling limited to single primary
-- Scaling path: Plan MongoDB sharding by `correlationId` or `dataSourceId`. Monitor collection sizes. Implement data archiving for old records
+**File Discovery Polling Scale:**
+- Current capacity: Single FilePollingEventConsumer processes one schedule trigger at a time
+- Limit: If discovery takes >schedule interval (e.g., hourly), polling falls behind
+- Trigger: Data source with 10,000+ files; discovery takes 65 minutes but poll frequency is hourly
+- Scaling path:
+  - Implement parallel file discovery with concurrent batch processing
+  - Add `MaxConcurrentDiscoveries` setting to SchedulingService
+  - Consider event-driven discovery (watch for file system changes) instead of polling
 
-**Frontend Component Tree Depth:**
-- Current capacity: Deeply nested tab and modal structures (10+ levels)
-- Limit: Re-renders cascade through entire tree. Performance degrades with 50+ data sources
-- Scaling path: Implement React.memo for list components. Extract state to context. Add lazy loading for tabs. Monitor render performance with React DevTools Profiler
+**Validation Service Message Queue:**
+- Current capacity: Hazelcast cache holds validation results; in-memory queue for pending validations
+- Limit: Message broker (Kafka/RabbitMQ) memory fills if validation service becomes slow
+- Trigger: Validation latency increases to >30 seconds per file; upstream FileProcessor produces faster than Validation consumes
+- Scaling path:
+  - Add dead-letter queue for messages that fail validation (already in MassTransit config)
+  - Implement consumer rate limiting with backpressure
+  - Monitor message broker queue depth; alert if >1000 pending messages
+  - Scale ValidationService replicas based on queue depth
 
 ## Dependencies at Risk
 
-**Newtonsoft.Json Version Compatibility:**
-- Risk: `Newtonsoft.Json` used in multiple services alongside `System.Text.Json`. Version conflicts possible during upstream updates
-- Impact: JSON serialization inconsistencies. Different date formatting between services
-- Migration plan: Standardize on `System.Text.Json` across all services. Update converters to use new API. Plan migration service-by-service with integration tests
+**Corvus.Json.Validator (JSON Schema 2020-12):**
+- Risk: Relatively new JSON Schema validator; limited adoption compared to Newtonsoft.Json
+- Impact: May have undiscovered bugs in edge cases; security vulnerabilities may take longer to be reported
+- Migration plan: Test comprehensive schema validation suite; have fallback to Newtonsoft.JsonSchema if issues arise; pin version to stable releases only
 
-**Ant Design 5.x RTL Stability:**
-- Risk: RTL support in Ant Design 5.x marked as experimental. Minor version updates could break Hebrew layout
-- Impact: Hebrew UI misalignment, field order issues, text direction bugs
-- Migration plan: Pin Ant Design to exact version (5.10.0). Test all updates in staging. Maintain fallback non-RTL version. Monitor Ant Design issues for RTL regressions
+**SharpCompress (Archive Library):**
+- Risk: Actively maintained but smaller community; security issues may be slow to patch
+- Impact: Archive extraction vulnerabilities could expose production data
+- Migration plan: Monitor security advisories; upgrade promptly; consider DotNetZip alternative if vulnerabilities emerge
 
-**MongoDB.Entities ORM Soft Delete Behavior:**
-- Risk: Soft delete via `IsDeleted` flag not enforced at ORM level. Query filters must include `!IsDeleted` everywhere
-- Impact: Queries returning deleted records. Data corruption possible if filters omitted
-- Migration plan: Create repository base class enforcing soft delete filters. Add query analyzer to detect missing filters. Consider hard migration to entity versioning
+**MongoDB.Entities ORM:**
+- Risk: Abstracts MongoDB driver; bugs in LINQ translation could silently produce wrong queries
+- Impact: Data access logic may not work as expected; optimistic concurrency using Version field relies on correct implementation
+- Migration plan: Extensive integration testing of queries; consider switching to native MongoDB driver for critical paths; validate generated queries in debug mode
 
-**Corvus.Json.Validator License Compliance:**
-- Risk: Corvus.Json.Validator open source license requires review before production use
-- Impact: Potential licensing issue in commercial deployments
-- Migration plan: Audit license compatibility. Consider alternative validators (Newtonsoft.JsonSchema, NJsonSchema). Document licensing in deployment docs
+**Hazelcast.Net Client (Latest Version Not Pinned):**
+- Risk: No explicit version pinned in .csproj; auto-updates to latest
+- Impact: Breaking changes in minor version could break cache operations without notice
+- Migration plan: Pin Hazelcast.Net to specific version; test new versions before upgrading; review changelog for breaking changes
 
 ## Missing Critical Features
 
-**Retry Logic for Output Destinations:**
-- Problem: Failed output to one destination causes entire batch to be marked failed. No per-destination retry
-- Blocks: Partial output scenarios (3/4 destinations succeeded). No graceful degradation
-- Solution: Implement per-destination retry policy. Track destination-level success/failure separately. Publish partial output event
+**Connection Validation:**
+- Problem: No real connection testing; users cannot verify settings before scheduling
+- Blocks: Users discover connection errors only after files fail processing; cannot test FTP/SFTP credentials without running full pipeline
+- Priority: HIGH - Affects user experience and delays troubleshooting
 
-**Schema Evolution/Versioning:**
-- Problem: Changing schema immediately breaks existing data processing. No version tracking
-- Blocks: Safe schema updates without downtime. Cannot support multiple schema versions simultaneously
-- Solution: Implement schema versioning with version field in documents. Add schema migration utilities. Support version negotiation between services
+**Alert Notifications:**
+- Problem: Alerts evaluate but have no effect; no way to notify users of issues
+- Blocks: Monitoring setup is incomplete; cannot integrate with PagerDuty, Slack, email, etc.
+- Priority: HIGH - Core monitoring feature missing
 
-**Data Masking for PII:**
-- Problem: No built-in PII detection or masking. Raw sensitive data stored in logs and cache
-- Blocks: GDPR/privacy compliance. Cannot redact PII from error messages
-- Solution: Implement data classification schema. Add masking rules for sensitive fields. Audit logging for PII access
+**Output Event Publishing:**
+- Problem: No confirmation when output completes; downstream systems cannot react
+- Blocks: Cannot trigger post-processing workflows; monitoring cannot track end-to-end pipeline
+- Priority: MEDIUM - Affects observability and integration
 
-**Audit Trail for Data Changes:**
-- Problem: No audit log for schema/datasource modifications. Cannot track who changed what when
-- Blocks: Compliance requirements. Cannot investigate data quality issues
-- Solution: Implement audit entity model. Log all CRUD operations with user/timestamp. Create audit API endpoint
+**Unit Test Coverage for Backend:**
+- Problem: No .Tests projects found for backend services; integration tests only
+- Blocks: Cannot verify business logic in isolation; changes to core logic are risky
+- Priority: MEDIUM - Reduces confidence in refactoring
 
-**Circuit Breaker Pattern:**
-- Problem: No circuit breaker for external service calls (HTTP API Connector, S3, SFTP). Cascading failures possible
-- Blocks: Resilience against failing external services. Retry storms
-- Solution: Implement Polly resilience library. Add circuit breaker to each connector. Configure exponential backoff
+**XML and JSON Format Support in Validation:**
+- Problem: Only CSV and Excel fully tested in validation pipeline
+- Blocks: Users cannot process XML or JSON files reliably
+- Priority: MEDIUM - Limits data format support
 
 ## Test Coverage Gaps
 
-**Connection Connector Type Coverage:**
-- What's not tested: SFTP, S3, HTTP API, Kafka connectors only have unit stubs. No real integration tests
-- Files: `src/Services/Shared/Connectors/SftpConnector.cs`, `S3Connector.cs`, `HttpApiConnector.cs`, `KafkaConnector.cs`
-- Risk: Connection failures in production undetected. Credential rotation incompletely tested
-- Priority: HIGH - Blocks operational reliability
+**Multiple File Format Validation:**
+- What's not tested: XML, JSON, Parquet file validation; only CSV and Excel tested
+- Files: `src/Services/ValidationService/Consumers/ValidationRequestEventConsumer.cs`, `src/Services/Shared/Converters/`
+- Risk: Format-specific validation bugs (XML namespace issues, JSON nested arrays, Parquet column type mismatches) could fail silently in production
+- Priority: HIGH - Affects 2/5 supported formats
 
-**Format Converter Edge Cases:**
-- What's not tested: Empty files, single-record files, special characters in values (quotes, newlines, null bytes), BOM handling in XML/CSV
-- Files: `src/Services/Shared/Converters/*.cs`
-- Risk: Data corruption in edge cases. Silent truncation or format errors
-- Priority: MEDIUM - Blocks data quality verification
+**High Load Testing:**
+- What's not tested: Files with >100 records; concurrent processing of >2 files; cache behavior under load
+- Files: All service consumers
+- Risk: Memory leaks, deadlocks, or performance degradation only discovered in production under load
+- Priority: HIGH - Production deployment without load testing is risky
 
-**Multi-Format Archive Processing:**
-- What's not tested: TAR, RAR, 7Z archives. Only ZIP tested. Mixed format archives (ZIP containing TAR)
-- Files: `src/Services/FileProcessorService/Consumers/FileDiscoveredEventConsumer.cs` (archive extraction logic)
-- Risk: Archive format support claims unsupported in production
-- Priority: MEDIUM - Blocks feature advertised in product
+**Multi-Destination Output Scaling:**
+- What's not tested: Output to >2 destinations from single file; distribution across Kafka, S3, HTTP, Folder simultaneously
+- Files: `src/Services/OutputService/Consumers/ValidationCompletedEventConsumer.cs`
+- Risk: Race conditions, cascading failures, or partial output if one destination fails
+- Priority: MEDIUM - Feature works for 2 destinations but may break with 3+
 
-**Frontend Component Accessibility (a11y):**
-- What's not tested: Screen reader compatibility, keyboard navigation, color contrast ratios
-- Files: All React components in `src/Frontend/src/components/`
-- Risk: Non-compliant with accessibility standards. Unusable for visually impaired users
-- Priority: LOW but IMPORTANT - Compliance risk
+**Error Recovery and Retry Logic:**
+- What's not tested: Message broker connectivity loss during processing; database unavailable during transaction; partial file writes recovery
+- Files: All services' error handling
+- Risk: Unclean state, orphaned locks, or data corruption if infrastructure fails mid-operation
+- Priority: MEDIUM - E2E-006 tests basic recovery but not infrastructure failure scenarios
 
-**Error Recovery Scenarios:**
-- What's not tested: Network timeout recovery, partial file uploads, pod restart during processing
-- Files: `src/Services/*/Consumers/*.cs`, `src/Frontend/src/services/`
-- Risk: Silent failures or inconsistent state recovery
-- Priority: HIGH - Blocks production reliability
+**Hazelcast Cache Failover:**
+- What's not tested: Hazelcast pod crash during processing; cache loss; reconnection behavior
+- Files: `src/Services/Shared/Configuration/HazelcastConfiguration.cs`, cache usage in consumers
+- Risk: If Hazelcast goes down, file content and validation results are lost; services may hang waiting for cache responses
+- Priority: MEDIUM - Single point of failure
 
-**Hebrew Localization Edge Cases:**
-- What's not tested: RTL text mixing (Hebrew + English code), long text truncation in Hebrew, date format localization
-- Files: `src/Frontend/src/locales/he/translation.json`, RTL layout components
-- Risk: UI breaks for Hebrew users in certain scenarios. Unlocalized strings may appear in Hebrew UI
-- Priority: MEDIUM - Blocks full localization support
+**Archive Extraction Edge Cases:**
+- What's not tested: Malicious archives with path traversal, nested archives, password-protected archives with wrong password, corrupted archives
+- Files: `src/Services/Shared/Services/SharpCompressArchiveService.cs`
+- Risk: Security vulnerability (path traversal) or service crash if archive is malformed
+- Priority: HIGH - Security-relevant
+
+**Credential Resolution Failures:**
+- What's not tested: Missing Kubernetes secret, RBAC permission denied, secret format invalid
+- Files: `src/Services/Shared/Services/KubernetesCredentialResolver.cs`, credential resolution in connectors
+- Risk: Services fail to start or hang if credential resolution is broken; user sees unclear error message
+- Priority: MEDIUM - Affects operational reliability
 
 ---
 
-*Concerns audit: 2026-01-28*
+*Concerns audit: 2026-02-02*
