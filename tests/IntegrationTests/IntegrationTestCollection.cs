@@ -1,6 +1,6 @@
 // IntegrationTestCollection.cs - xUnit Test Collection Definition
 // EZ Platform Integration Tests
-// Version: 1.1
+// Version: 1.2
 // Date: February 2, 2026
 
 using DataProcessing.IntegrationTests.Fixtures;
@@ -9,22 +9,38 @@ using Xunit;
 namespace DataProcessing.IntegrationTests;
 
 /// <summary>
-/// Defines the "Integration" test collection for managing shared test context
-/// All integration tests use this collection to ensure proper fixture lifecycle
+/// Defines the "Integration" test collection for managing shared test context.
+/// All integration tests use this collection to ensure proper fixture lifecycle.
+///
+/// Fixtures included:
+/// - IntegrationTestContext: Common infrastructure availability checks
+/// - FileSimulatorFixture: File-simulator connectivity for protocol tests
+/// - KafkaFixture: Kafka broker connectivity
+/// - MongoDbFixture: MongoDB connectivity
+/// - HazelcastFixture: Hazelcast cache connectivity
+/// - ApiClientFixture: REST API client for service integration
 /// </summary>
 [CollectionDefinition("Integration")]
 public class IntegrationTestCollection :
     ICollectionFixture<IntegrationTestContext>,
-    ICollectionFixture<FileSimulatorFixture>
+    ICollectionFixture<FileSimulatorFixture>,
+    ICollectionFixture<KafkaFixture>,
+    ICollectionFixture<MongoDbFixture>,
+    ICollectionFixture<HazelcastFixture>,
+    ICollectionFixture<ApiClientFixture>
 {
     // This class has no code, and is never created.
     // Its purpose is to be the place to apply [CollectionDefinition]
     // and all the ICollectionFixture<> interfaces.
+    //
+    // Fixtures are shared across all tests in the "Integration" collection,
+    // ensuring consistent setup/teardown and resource sharing.
 }
 
 /// <summary>
-/// Shared context for all integration tests
-/// Provides common setup and teardown for the test collection
+/// Shared context for all integration tests.
+/// Provides common setup and teardown for the test collection.
+/// Checks availability of infrastructure services at collection initialization.
 /// </summary>
 public class IntegrationTestContext : IAsyncLifetime
 {
