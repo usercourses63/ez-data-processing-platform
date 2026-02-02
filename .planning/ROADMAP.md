@@ -152,11 +152,11 @@ Plans:
   2. Session logs moved to /docs/archive/sessions/ with index
   3. Obsolete/redundant documentation deleted from main docs/ tree
   4. Remaining docs tagged with last-verified date
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: Documentation inventory and categorization
-- [ ] 07-02: Archive session logs and delete obsolete docs
+- [ ] 07-01-PLAN.md - Documentation inventory and categorization (PowerShell inventory, batch categorization, reports)
+- [ ] 07-02-PLAN.md - Archive session logs and delete obsolete docs (git mv operations, YAML frontmatter, index update)
 
 ### Phase 8: Documentation Consolidation
 **Goal**: GSD becomes single source of truth, all guides consolidated
@@ -228,7 +228,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 4. Format & Pipeline Testing | 0/3 | Not started | - |
 | 5. CI/CD Foundation | 0/3 | Not started | - |
 | 6. Deployment Automation | 0/4 | Not started | - |
-| 7. Documentation Audit & Archive | 0/2 | Not started | - |
+| 7. Documentation Audit & Archive | 0/2 | Planned | - |
 | 8. Documentation Consolidation | 0/3 | Not started | - |
 | 9. Frontend Development Workflow | 0/4 | Not started | - |
 | 10. Feature Completion | 0/3 | Not started | - |
