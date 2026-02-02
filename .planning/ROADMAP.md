@@ -14,7 +14,7 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 - [x] **Phase 2: NAS/NFS Architecture Implementation** - Implement NAS device entity and K8s PV/PVC dynamic mounting via .NET 10 API
 - [x] **Phase 3: Protocol Test Coverage** - Verify all 8 protocols work correctly against file-simulator (including NFS via NAS devices)
 - [x] **Phase 4: Format & Pipeline Testing** - Validate format conversions and end-to-end pipeline paths
-- [ ] **Phase 5: CI/CD Foundation** - Automated builds, pipeline quality gates, version injection, and Docusaurus build
+- [x] **Phase 5: CI/CD Foundation** - Automated builds, pipeline quality gates, version injection, and Docusaurus build
 - [ ] **Phase 6: Deployment Automation** - Helm packaging, OCP deployment, Docusaurus portal deployment, documentation workflow
 - [x] **Phase 7: Documentation Audit & Archive** - Audit 270+ docs, archive session logs, delete obsolete
 - [ ] **Phase 8: Documentation Consolidation** - GSD as single source of truth, guides consolidated
@@ -118,9 +118,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md - Parallel Docker build script with version injection to all Dockerfiles
-- [ ] 05-02-PLAN.md - GitHub Actions CI workflow with build, test, docker jobs
-- [ ] 05-03-PLAN.md - Docusaurus Dockerfile and CI integration
+- [x] 05-01-PLAN.md - Parallel Docker build script with version injection to all Dockerfiles
+- [x] 05-02-PLAN.md - GitHub Actions CI workflow with build, test, docker jobs
+- [x] 05-03-PLAN.md - Docusaurus Dockerfile and CI integration
 
 ### Phase 6: Deployment Automation
 **Goal**: One-command deployment to OCP with automated validation, rollback, and Docusaurus portal deployment
@@ -226,7 +226,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 2. NAS/NFS Architecture Implementation | 6/6 | Complete | 2026-02-02 |
 | 3. Protocol Test Coverage | 4/4 | Complete | 2026-02-02 |
 | 4. Format & Pipeline Testing | 3/3 | Complete | 2026-02-02 |
-| 5. CI/CD Foundation | 0/3 | Planned | - |
+| 5. CI/CD Foundation | 3/3 | Complete | 2026-02-02 |
 | 6. Deployment Automation | 0/4 | Not started | - |
 | 7. Documentation Audit & Archive | 2/2 | Complete | 2026-02-02 |
 | 8. Documentation Consolidation | 0/3 | Not started | - |

@@ -23,22 +23,22 @@
 - [x] **TEST-02**: All 8 file protocols (FTP, SFTP, S3, SMB, NFS->NAS, HTTP, Kafka, Local) tested against file-simulator
 - [x] **TEST-03**: All format conversions (CSV, JSON, XML, Excel) verified bidirectionally
 - [ ] **TEST-04**: File-simulator integrated as primary test environment for all file I/O
-- [ ] **TEST-05**: Test suite runs in CI/CD pipeline as quality gate
+- [x] **TEST-05**: Test suite runs in CI/CD pipeline as quality gate
 - [ ] **TEST-06**: All existing E2E tests (6/6) validated against file-simulator
 - [x] **TEST-07**: Load testing validated (100-1000 files) with file-simulator
 - [x] **TEST-08**: Test documentation generated and maintained by GSD
 
 ### CD Pipeline Automation (Milestone 2)
 
-- [ ] **CD-01**: One-command build process for all Docker images (9 services + frontend)
+- [x] **CD-01**: One-command build process for all Docker images (9 services + frontend)
 - [ ] **CD-02**: Automated Helm chart packaging with version management
-- [ ] **CD-03**: CI/CD pipeline (GitHub Actions) builds on every commit
+- [x] **CD-03**: CI/CD pipeline (GitHub Actions) builds on every commit
 - [ ] **CD-04**: Automated deployment to OCP offline environment
 - [ ] **CD-05**: Deployment validation tests run automatically post-deploy
 - [ ] **CD-06**: Rollback procedure automated and tested
-- [ ] **CD-07**: Version injection in CI/CD (frontend version.ts, Docusaurus config, Docker tags)
-- [ ] **CD-08**: Build date/time and git commit SHA injected into frontend build
-- [ ] **CD-09**: Docusaurus portal build integrated in CI/CD pipeline
+- [x] **CD-07**: Version injection in CI/CD (frontend version.ts, Docusaurus config, Docker tags)
+- [x] **CD-08**: Build date/time and git commit SHA injected into frontend build
+- [x] **CD-09**: Docusaurus portal build integrated in CI/CD pipeline
 - [ ] **CD-10**: Documentation portal deployed as K8s service with Ingress at /docs
 - [ ] **CD-11**: Documentation update process before each release (GSD -> Docusaurus markdown)
 
@@ -123,19 +123,19 @@
 | TEST-02 | Phase 3 | Pending |
 | TEST-03 | Phase 4 | Complete |
 | TEST-04 | Phase 1 | Complete |
-| TEST-05 | Phase 5 | Pending |
+| TEST-05 | Phase 5 | Complete |
 | TEST-06 | Phase 1 | Complete |
 | TEST-07 | Phase 4 | Complete |
 | TEST-08 | Phase 4 | Complete |
-| CD-01 | Phase 5 | Pending |
+| CD-01 | Phase 5 | Complete |
 | CD-02 | Phase 6 | Pending |
-| CD-03 | Phase 5 | Pending |
+| CD-03 | Phase 5 | Complete |
 | CD-04 | Phase 6 | Pending |
 | CD-05 | Phase 6 | Pending |
 | CD-06 | Phase 6 | Pending |
-| CD-07 | Phase 5 | Pending |
-| CD-08 | Phase 5 | Pending |
-| CD-09 | Phase 5 | Pending |
+| CD-07 | Phase 5 | Complete |
+| CD-08 | Phase 5 | Complete |
+| CD-09 | Phase 5 | Complete |
 | CD-10 | Phase 6 | Pending |
 | CD-11 | Phase 6 | Pending |
 | DOC-01 | Phase 7 | Complete |
