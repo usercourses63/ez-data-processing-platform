@@ -21,7 +21,7 @@ public class ConnectorFactory : IConnectorFactory
     {
         ["local"] = typeof(LocalFileConnector),
         ["folder"] = typeof(LocalFileConnector),  // Alias for local
-        ["nfs"] = typeof(LocalFileConnector),     // NFS uses local filesystem (mounted PV)
+        ["nfs"] = typeof(NfsConnector),           // NFS via K8s PVC mounts
         ["ftp"] = typeof(FtpConnector),
         ["sftp"] = typeof(SftpConnector),
         ["http"] = typeof(HttpApiConnector),
@@ -139,6 +139,7 @@ public static class ConnectorFactoryExtensions
 
         // Register all connectors as Singleton
         services.AddSingleton<LocalFileConnector>();
+        services.AddSingleton<NfsConnector>();      // NFS via K8s PVC mounts
         services.AddSingleton<FtpConnector>();
         services.AddSingleton<SftpConnector>();
         services.AddSingleton<HttpApiConnector>();  // Uses IHttpClientFactory internally
