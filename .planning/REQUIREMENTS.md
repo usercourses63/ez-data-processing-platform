@@ -7,10 +7,20 @@
 
 ## v1 Requirements
 
-### Testing Foundation (Milestone 1 - CRITICAL)
+### NAS/NFS Architecture (Milestone 1A - v0.2.0 Foundation)
+
+- [ ] **NAS-01**: NAS device entity created with connection configuration (host, share, credentials)
+- [ ] **NAS-02**: PersistentVolume creation via .NET 10 Kubernetes API (dynamic provisioning)
+- [ ] **NAS-03**: PersistentVolumeClaim creation and binding verification
+- [ ] **NAS-04**: Volume mounting to pods at runtime via K8s API
+- [ ] **NAS-05**: NFS protocol acts as connector to NAS devices (not standalone server)
+- [ ] **NAS-06**: AdminServer supports NAS device configuration in UI
+- [ ] **NAS-07**: NAS devices tested against file-simulator NAS simulation
+
+### Testing Foundation (Milestone 1B - CRITICAL)
 
 - [ ] **TEST-01**: Every critical pipeline path has automated integration tests
-- [ ] **TEST-02**: All 8 file protocols (FTP, SFTP, S3, SMB, NFS, HTTP, Kafka, Local) tested against file-simulator
+- [ ] **TEST-02**: All 8 file protocols (FTP, SFTP, S3, SMB, NFS→NAS, HTTP, Kafka, Local) tested against file-simulator
 - [ ] **TEST-03**: All format conversions (CSV, JSON, XML, Excel) verified bidirectionally
 - [ ] **TEST-04**: File-simulator integrated as primary test environment for all file I/O
 - [ ] **TEST-05**: Test suite runs in CI/CD pipeline as quality gate
@@ -92,17 +102,40 @@
 
 ## Traceability
 
-<!-- Populated during roadmap creation -->
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (To be mapped by roadmapper) | | |
+| TEST-01 | Phase 3 | Pending |
+| TEST-02 | Phase 2 | Pending |
+| TEST-03 | Phase 3 | Pending |
+| TEST-04 | Phase 1 | Pending |
+| TEST-05 | Phase 4 | Pending |
+| TEST-06 | Phase 1 | Pending |
+| TEST-07 | Phase 3 | Pending |
+| TEST-08 | Phase 3 | Pending |
+| CD-01 | Phase 4 | Pending |
+| CD-02 | Phase 5 | Pending |
+| CD-03 | Phase 4 | Pending |
+| CD-04 | Phase 5 | Pending |
+| CD-05 | Phase 5 | Pending |
+| CD-06 | Phase 5 | Pending |
+| DOC-01 | Phase 6 | Pending |
+| DOC-02 | Phase 6 | Pending |
+| DOC-03 | Phase 6 | Pending |
+| DOC-04 | Phase 7 | Pending |
+| DOC-05 | Phase 7 | Pending |
+| FE-01 | Phase 8 | Pending |
+| FE-02 | Phase 8 | Pending |
+| FE-03 | Phase 8 | Pending |
+| FE-04 | Phase 8 | Pending |
+| FEAT-01 | Phase 9 | Pending |
+| FEAT-02 | Phase 9 | Pending |
+| FEAT-03 | Phase 9 | Pending |
 
 **Coverage:**
-- v1 requirements: 27 total
-- Mapped to phases: (pending roadmap)
-- Unmapped: (pending roadmap)
+- v1 requirements: 34 total (27 original + 7 NAS/NFS)
+- Mapped to phases: 34
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-02 after initialization*
+*Last updated: 2026-02-02 after roadmap creation*
