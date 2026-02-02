@@ -144,11 +144,11 @@ Plans:
 - [ ] 06-04: Docusaurus portal deployment and documentation workflow
 
 ### Phase 7: Documentation Audit & Archive
-**Goal**: All 270+ existing documents audited, categorized, and obsolete content archived/deleted
+**Goal**: All 401 existing documents (excluding .planning/) audited, categorized, and obsolete content archived/deleted
 **Depends on**: Phase 1 (can run in parallel with Phases 2-6)
 **Requirements**: DOC-01, DOC-02, DOC-03
 **Success Criteria** (what must be TRUE):
-  1. Complete inventory of all 270+ docs with categorization (keep/archive/delete)
+  1. Complete inventory of all 401 docs (excluding .planning/) with categorization (keep/archive/delete)
   2. Session logs moved to /docs/archive/sessions/ with index
   3. Obsolete/redundant documentation deleted from main docs/ tree
   4. Remaining docs tagged with last-verified date
