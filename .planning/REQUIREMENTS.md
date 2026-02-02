@@ -40,7 +40,7 @@
 - [ ] **CD-08**: Build date/time and git commit SHA injected into frontend build
 - [ ] **CD-09**: Docusaurus portal build integrated in CI/CD pipeline
 - [ ] **CD-10**: Documentation portal deployed as K8s service with Ingress at /docs
-- [ ] **CD-11**: Documentation update process before each release (GSD → Docusaurus markdown)
+- [ ] **CD-11**: Documentation update process before each release (GSD -> Docusaurus markdown)
 
 ### Documentation Consolidation (Milestone 3)
 
@@ -133,6 +133,11 @@
 | CD-04 | Phase 6 | Pending |
 | CD-05 | Phase 6 | Pending |
 | CD-06 | Phase 6 | Pending |
+| CD-07 | Phase 5 | Pending |
+| CD-08 | Phase 5 | Pending |
+| CD-09 | Phase 5 | Pending |
+| CD-10 | Phase 6 | Pending |
+| CD-11 | Phase 6 | Pending |
 | DOC-01 | Phase 7 | Pending |
 | DOC-02 | Phase 7 | Pending |
 | DOC-03 | Phase 7 | Pending |
@@ -142,15 +147,18 @@
 | FE-02 | Phase 9 | Pending |
 | FE-03 | Phase 9 | Pending |
 | FE-04 | Phase 9 | Pending |
+| FE-05 | Phase 9 | Pending |
+| FE-06 | Phase 9 | Pending |
+| FE-07 | Phase 9 | Pending |
 | FEAT-01 | Phase 10 | Pending |
 | FEAT-02 | Phase 10 | Pending |
 | FEAT-03 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 45 total (34 + 5 CD/Portal + 3 Frontend/Portal + 3 Docusaurus)
-- Mapped to phases: (pending roadmap update)
-- Unmapped: (pending roadmap update)
+- v1 requirements: 45 total
+- Mapped to phases: 45
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-02 after roadmap revision (Phase 2 NAS/NFS inserted)*
+*Last updated: 2026-02-02 (Docusaurus portal integration requirements added and mapped)*
