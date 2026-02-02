@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Files flow reliably from any source through validation to any destination, with complete visibility and traceability
-**Current focus:** Phase 3 - Protocol Test Coverage (Plan 2 of 4 complete)
+**Current focus:** Phase 3 - Protocol Test Coverage (Plan 3 of 4 complete)
 
 ## Current Position
 
 Phase: 3 of 10 (Protocol Test Coverage)
-Plan: 2 of 4 in current phase (COMPLETE)
+Plan: 3 of 4 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-02 -- Completed 03-02-PLAN.md (S3 and SMB Connector Tests)
+Last activity: 2026-02-02 -- Completed 03-03-PLAN.md (NFS and Kafka Connector Tests)
 
-Progress: [######----] 60%
+Progress: [#######---] 65%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 5.9 min
-- Total execution time: 1.18 hours
+- Total plans completed: 13
+- Average duration: 5.7 min
+- Total execution time: 1.23 hours
 
 **By Phase:**
 
@@ -29,12 +29,12 @@ Progress: [######----] 60%
 |-------|-------|-------|----------|
 | 01-file-simulator | 2 | 11 min | 5.5 min |
 | 02-nas-nfs-architecture | 6 | 32 min | 5.3 min |
-| 03-protocol-test-coverage | 2 | 14 min | 7.0 min |
+| 03-protocol-test-coverage | 3 | 18 min | 6.0 min |
 | 07-documentation-audit | 2 | 15 min | 7.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-06 (10 min), 07-01 (6 min), 07-02 (9 min), 03-01 (6 min), 03-02 (8 min)
-- Trend: Consistent ~6-10 min/plan
+- Last 5 plans: 07-01 (6 min), 07-02 (9 min), 03-01 (6 min), 03-02 (8 min), 03-03 (4 min)
+- Trend: Consistent ~4-9 min/plan
 
 *Updated after each plan completion*
 
@@ -64,6 +64,8 @@ Recent decisions affecting current work:
 - [07-02]: YAML frontmatter with last-verified date for doc freshness tracking
 - [03-01]: Use xunit.SkippableFact for graceful test skipping when file-simulator unavailable
 - [03-02]: SMBLibrary 1.5.5.1 for SMB 2/3 support; SMB tests skip without tunnel
+- [03-03]: NFS tests use NFS_MOUNT_PATH env var to detect K8s pod context
+- [03-03]: Kafka tests use IDataSourceConnector via KafkaFixture (not AdminServer)
 
 ### Pending Todos
 
@@ -73,13 +75,14 @@ None.
 
 - Phase 3 tests skip when file-simulator unavailable (expected behavior, not a blocker)
 - SMB tests require minikube tunnel for port 445 access (documented skip message)
+- NFS tests skip when NFS_MOUNT_PATH not set (expected - requires K8s pod context)
 - RBAC manifests applied to cluster (Phase 2 complete, verified working)
 
 ## Session Continuity
 
-Last session: 2026-02-02T13:43:38Z
-Stopped at: Completed 03-02-PLAN.md (S3 and SMB Connector Tests)
-Resume file: None - ready for 03-03-PLAN.md
+Last session: 2026-02-02T13:51:18Z
+Stopped at: Completed 03-03-PLAN.md (NFS and Kafka Connector Tests)
+Resume file: None - ready for 03-04-PLAN.md
 
 ## Phase 1 Summary
 
@@ -121,11 +124,11 @@ Phase 2 (NAS/NFS Architecture) is COMPLETE (all 6 plans):
 
 ## Phase 3 Summary (In Progress)
 
-Phase 3 (Protocol Test Coverage) - 2 of 4 plans complete:
+Phase 3 (Protocol Test Coverage) - 3 of 4 plans complete:
 - Plan 03-01: FTP/SFTP/HTTP Test Foundation (COMPLETE)
 - Plan 03-02: S3/SMB Connector Tests (COMPLETE)
-- Plan 03-03: WebDAV and NFS tests (PENDING)
-- Plan 03-04: Kafka and Local connector tests (PENDING)
+- Plan 03-03: NFS/Kafka Connector Tests (COMPLETE)
+- Plan 03-04: Local connector tests (PENDING)
 
 **Key Artifacts (03-01):**
 - `tests/IntegrationTests/Fixtures/FileSimulatorFixture.cs` - Shared test fixture
@@ -138,11 +141,15 @@ Phase 3 (Protocol Test Coverage) - 2 of 4 plans complete:
 - `tests/IntegrationTests/Connectors/S3ConnectorTests.cs` - 3 S3/MinIO tests
 - `tests/IntegrationTests/Connectors/SmbConnectorTests.cs` - 3 SMB tests
 
+**Key Artifacts (03-03):**
+- `tests/IntegrationTests/Connectors/NfsConnectorTests.cs` - 6 NFS tests (K8s pod context)
+- `tests/IntegrationTests/Connectors/KafkaConnectorTests.cs` - 6 Kafka tests
+
 **Test State:**
-- 14 tests created (8 from 03-01, 6 from 03-02)
-- All tests skip gracefully when file-simulator unavailable
-- SMB tests skip with tunnel requirement message when port 445 unavailable
-- Pattern established: IClassFixture<FileSimulatorFixture> + SkippableFact
+- 26 protocol tests created (8 + 6 + 12)
+- NFS tests skip without NFS_MOUNT_PATH env var (K8s pod required)
+- Kafka tests pass with broker available via port-forward
+- Pattern: SkippableFact + env var detection for platform-specific tests
 
 ## Phase 7 Summary (COMPLETE)
 
@@ -169,4 +176,4 @@ Phase 7 (Documentation Audit & Archive) is COMPLETE (all 2 plans):
 - Archived: 141 files in docs/archive/ with git history preserved
 
 **Next Phase:**
-- Continue Phase 3: Protocol Test Coverage (03-03 through 03-04)
+- Continue Phase 3: Protocol Test Coverage (03-04 - final plan)

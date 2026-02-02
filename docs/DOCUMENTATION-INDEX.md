@@ -134,7 +134,6 @@ Test documentation:
 
 - [File Simulator Setup](./testing/file-simulator-setup.md) - Test environment configuration
 - [E2E Gap Analysis](./testing/E2E-GAP-ANALYSIS-REPORT.md) - E2E test coverage gaps
-- [E2E Error Recovery Plan](./testing/E2E-006-ERROR-RECOVERY-PLAN.md) - Error recovery testing
 - [Stress Test 1000 Files](./testing/STRESS-TEST-1000-FILES-REPORT.md) - Performance testing
 - [Hazelcast TTL Configuration](./testing/HAZELCAST-TTL-CONFIGURATION.md) - Cache configuration
 
