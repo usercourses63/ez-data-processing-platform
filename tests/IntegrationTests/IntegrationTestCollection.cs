@@ -1,8 +1,9 @@
 // IntegrationTestCollection.cs - xUnit Test Collection Definition
 // EZ Platform Integration Tests
-// Version: 1.0
-// Date: December 17, 2025
+// Version: 1.1
+// Date: February 2, 2026
 
+using DataProcessing.IntegrationTests.Fixtures;
 using Xunit;
 
 namespace DataProcessing.IntegrationTests;
@@ -12,7 +13,9 @@ namespace DataProcessing.IntegrationTests;
 /// All integration tests use this collection to ensure proper fixture lifecycle
 /// </summary>
 [CollectionDefinition("Integration")]
-public class IntegrationTestCollection : ICollectionFixture<IntegrationTestContext>
+public class IntegrationTestCollection :
+    ICollectionFixture<IntegrationTestContext>,
+    ICollectionFixture<FileSimulatorFixture>
 {
     // This class has no code, and is never created.
     // Its purpose is to be the place to apply [CollectionDefinition]

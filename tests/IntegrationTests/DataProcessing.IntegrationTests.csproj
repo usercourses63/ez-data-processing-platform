@@ -24,6 +24,11 @@
     <PackageReference Include="Confluent.Kafka" />
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="Polly" />
+    <PackageReference Include="xunit.SkippableFact" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Services\Shared\DataProcessing.Shared.csproj" />
   </ItemGroup>
 
 </Project>
