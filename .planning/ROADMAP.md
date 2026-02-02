@@ -16,7 +16,7 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 - [ ] **Phase 4: Format & Pipeline Testing** - Validate format conversions and end-to-end pipeline paths
 - [ ] **Phase 5: CI/CD Foundation** - Automated builds, pipeline quality gates, version injection, and Docusaurus build
 - [ ] **Phase 6: Deployment Automation** - Helm packaging, OCP deployment, Docusaurus portal deployment, documentation workflow
-- [ ] **Phase 7: Documentation Audit & Archive** - Audit 270+ docs, archive session logs, delete obsolete
+- [x] **Phase 7: Documentation Audit & Archive** - Audit 270+ docs, archive session logs, delete obsolete
 - [ ] **Phase 8: Documentation Consolidation** - GSD as single source of truth, guides consolidated
 - [ ] **Phase 9: Frontend Development Workflow** - Design tooling, testing strategy, Docusaurus portal integration
 - [ ] **Phase 10: Feature Completion** - v0.2.0 External File Access, AdminServer, Archive settings, NAS validation
@@ -155,8 +155,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md - Documentation inventory and categorization (PowerShell inventory, batch categorization, reports)
-- [ ] 07-02-PLAN.md - Archive session logs and delete obsolete docs (git mv operations, YAML frontmatter, index update)
+- [x] 07-01-PLAN.md - Documentation inventory and categorization (PowerShell inventory, batch categorization, reports)
+- [x] 07-02-PLAN.md - Archive session logs and delete obsolete docs (git mv operations, YAML frontmatter, index update)
 
 ### Phase 8: Documentation Consolidation
 **Goal**: GSD becomes single source of truth, all guides consolidated
@@ -228,7 +228,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 4. Format & Pipeline Testing | 0/3 | Not started | - |
 | 5. CI/CD Foundation | 0/3 | Not started | - |
 | 6. Deployment Automation | 0/4 | Not started | - |
-| 7. Documentation Audit & Archive | 0/2 | Planned | - |
+| 7. Documentation Audit & Archive | 2/2 | Complete | 2026-02-02 |
 | 8. Documentation Consolidation | 0/3 | Not started | - |
 | 9. Frontend Development Workflow | 0/4 | Not started | - |
 | 10. Feature Completion | 0/3 | Not started | - |
