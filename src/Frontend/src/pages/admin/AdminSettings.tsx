@@ -1,10 +1,11 @@
 import React from 'react';
 import { Card, Tabs, Typography } from 'antd';
-import { SettingOutlined, TagsOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
+import { SettingOutlined, TagsOutlined, DownloadOutlined, UploadOutlined, HddOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import CategoryManagementTab from './tabs/CategoryManagementTab';
 import InputServersTab from './tabs/InputServersTab';
 import OutputServersTab from './tabs/OutputServersTab';
+import NasDevicesTab from './tabs/NasDevicesTab';
 import './AdminSettings.css';
 
 const { Title } = Typography;
@@ -42,6 +43,16 @@ const AdminSettings: React.FC = () => {
         </span>
       ),
       children: <OutputServersTab />,
+    },
+    {
+      key: 'nasDevices',
+      label: (
+        <span>
+          <HddOutlined />
+          {t('admin.tabs.nasDevices') || 'התקני NAS'}
+        </span>
+      ),
+      children: <NasDevicesTab />,
     },
   ];
 
