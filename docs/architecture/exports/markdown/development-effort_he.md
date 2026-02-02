@@ -7,7 +7,7 @@ _פלטפורמת EZ לעיבוד נתונים_
 
 - [כל הדיאגרמות ←](./index.md)
 - [סקירת ארכיטקטורה ←](./architecture-overview.md)
-- [English Version](./../development-effort.md)
+- [English Version](./development-effort.md)
 
 
 ---

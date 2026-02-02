@@ -568,7 +568,7 @@ timeout = 60  # Seconds
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
 - [Prometheus Documentation](https://prometheus.io/docs/)
 - [Grafana HTTP API](https://grafana.com/docs/grafana/latest/http_api/)
-- [EZ Platform Architecture](./planning/FINAL-CORRECTED-ARCHITECTURE.md)
+- [EZ Platform Architecture](./archive/planning/FINAL-CORRECTED-ARCHITECTURE.md)
 
 ---
 

@@ -7,7 +7,7 @@ _EZ Data Processing Platform_
 
 - [← All Diagrams](./index.md)
 - [← Architecture Overview](./architecture-overview.md)
-- [עברית Hebrew Version](./he/development-effort.md)
+- [Hebrew Version](./development-effort_he.md)
 
 
 ---

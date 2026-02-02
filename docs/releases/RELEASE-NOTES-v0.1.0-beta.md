@@ -272,7 +272,7 @@ None (initial release)
 - **Admin Guide**: [ADMIN-GUIDE.md](../admin/ADMIN-GUIDE.md)
 - **User Guide (Hebrew)**: [USER-GUIDE-HE.md](../user-guide/USER-GUIDE-HE.md)
 - **Project Standards**: [PROJECT_STANDARDS.md](../PROJECT_STANDARDS.md)
-- **MVP Deployment Plan**: [MVP-DEPLOYMENT-PLAN.md](../planning/Phase-MVP-Deployment/MVP-DEPLOYMENT-PLAN.md)
+- **MVP Deployment Plan**: [MVP-DEPLOYMENT-PLAN.md](../archive/planning/Phase-MVP-Deployment/MVP-DEPLOYMENT-PLAN.md)
 
 ---
 
