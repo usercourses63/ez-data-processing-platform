@@ -1,0 +1,112 @@
+# CI Pipeline for EZ Platform
+# Triggers on push to main and PRs targeting main
+# Multi-job pipeline: build -> test -> docker
+#
+# Requirements addressed:
+# - TEST-05: Test quality gates in CI pipeline
+# - CD-03: GitHub Actions workflow on push/PR to main
+# - CD-07: SemVer+Build# version injection
+# - CD-08: Commit SHA injection
+
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  SEMANTIC_VERSION: '0.2.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run unit tests (Shared.Tests)
+        run: |
+          dotnet test tests/Shared.Tests \
+            --no-restore \
+            --logger trx \
+            --results-directory TestResults/Shared \
+            --verbosity normal
+
+      - name: Run integration tests (non-infrastructure)
+        run: |
+          dotnet test tests/IntegrationTests \
+            --filter "TestCategory!=Infrastructure" \
+            --no-restore \
+            --logger trx \
+            --results-directory TestResults/Integration \
+            --verbosity normal
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_number }}
+          path: TestResults/**/*.trx
+          retention-days: 30
+
+  docker:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Calculate version
+        id: version
+        run: |
+          echo "VERSION=v${{ env.SEMANTIC_VERSION }}.${{ github.run_number }}" >> $GITHUB_OUTPUT
+          echo "COMMIT_SHA=${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Build Docker images
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+          COMMIT_SHA: ${{ steps.version.outputs.COMMIT_SHA }}
+        run: |
+          pwsh -File scripts/build-all-images.ps1
+
+      # Placeholder for push - will be enabled when registry is configured
+      - name: Docker build summary
+        run: |
+          echo "## Docker Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ steps.version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit SHA: ${{ steps.version.outputs.SHORT_SHA }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Images built: 9 services" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Image push disabled until container registry configured." >> $GITHUB_STEP_SUMMARY
