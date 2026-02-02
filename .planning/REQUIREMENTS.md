@@ -20,7 +20,7 @@
 ### Testing Foundation (Milestone 1B - CRITICAL)
 
 - [ ] **TEST-01**: Every critical pipeline path has automated integration tests
-- [ ] **TEST-02**: All 8 file protocols (FTP, SFTP, S3, SMB, NFS→NAS, HTTP, Kafka, Local) tested against file-simulator
+- [ ] **TEST-02**: All 8 file protocols (FTP, SFTP, S3, SMB, NFS->NAS, HTTP, Kafka, Local) tested against file-simulator
 - [ ] **TEST-03**: All format conversions (CSV, JSON, XML, Excel) verified bidirectionally
 - [ ] **TEST-04**: File-simulator integrated as primary test environment for all file I/O
 - [ ] **TEST-05**: Test suite runs in CI/CD pipeline as quality gate
@@ -30,12 +30,17 @@
 
 ### CD Pipeline Automation (Milestone 2)
 
-- [ ] **CD-01**: One-command build process for all Docker images
+- [ ] **CD-01**: One-command build process for all Docker images (9 services + frontend)
 - [ ] **CD-02**: Automated Helm chart packaging with version management
 - [ ] **CD-03**: CI/CD pipeline (GitHub Actions) builds on every commit
 - [ ] **CD-04**: Automated deployment to OCP offline environment
 - [ ] **CD-05**: Deployment validation tests run automatically post-deploy
 - [ ] **CD-06**: Rollback procedure automated and tested
+- [ ] **CD-07**: Version injection in CI/CD (frontend version.ts, Docusaurus config, Docker tags)
+- [ ] **CD-08**: Build date/time and git commit SHA injected into frontend build
+- [ ] **CD-09**: Docusaurus portal build integrated in CI/CD pipeline
+- [ ] **CD-10**: Documentation portal deployed as K8s service with Ingress at /docs
+- [ ] **CD-11**: Documentation update process before each release (GSD → Docusaurus markdown)
 
 ### Documentation Consolidation (Milestone 3)
 
@@ -51,6 +56,9 @@
 - [ ] **FE-02**: Frontend testing strategy (component tests, E2E with Playwright)
 - [ ] **FE-03**: Frontend/backend change coordination process
 - [ ] **FE-04**: React 19 best practices and patterns documented
+- [ ] **FE-05**: Docusaurus portal integrated with frontend (dual approach: inline user guide + portal link)
+- [ ] **FE-06**: Documentation link environment-aware (localhost dev, /docs in production)
+- [ ] **FE-07**: Hebrew user guide displays correctly in Docusaurus (RTL, right-justified)
 
 ### Feature Development (Milestone 5)
 
@@ -104,38 +112,45 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Phase 3 | Pending |
-| TEST-02 | Phase 2 | Pending |
-| TEST-03 | Phase 3 | Pending |
+| NAS-01 | Phase 2 | Pending |
+| NAS-02 | Phase 2 | Pending |
+| NAS-03 | Phase 2 | Pending |
+| NAS-04 | Phase 2 | Pending |
+| NAS-05 | Phase 2 | Pending |
+| NAS-06 | Phase 2 | Pending |
+| NAS-07 | Phase 2 | Pending |
+| TEST-01 | Phase 4 | Pending |
+| TEST-02 | Phase 3 | Pending |
+| TEST-03 | Phase 4 | Pending |
 | TEST-04 | Phase 1 | Pending |
-| TEST-05 | Phase 4 | Pending |
+| TEST-05 | Phase 5 | Pending |
 | TEST-06 | Phase 1 | Pending |
-| TEST-07 | Phase 3 | Pending |
-| TEST-08 | Phase 3 | Pending |
-| CD-01 | Phase 4 | Pending |
-| CD-02 | Phase 5 | Pending |
-| CD-03 | Phase 4 | Pending |
-| CD-04 | Phase 5 | Pending |
-| CD-05 | Phase 5 | Pending |
-| CD-06 | Phase 5 | Pending |
-| DOC-01 | Phase 6 | Pending |
-| DOC-02 | Phase 6 | Pending |
-| DOC-03 | Phase 6 | Pending |
-| DOC-04 | Phase 7 | Pending |
-| DOC-05 | Phase 7 | Pending |
-| FE-01 | Phase 8 | Pending |
-| FE-02 | Phase 8 | Pending |
-| FE-03 | Phase 8 | Pending |
-| FE-04 | Phase 8 | Pending |
-| FEAT-01 | Phase 9 | Pending |
-| FEAT-02 | Phase 9 | Pending |
-| FEAT-03 | Phase 9 | Pending |
+| TEST-07 | Phase 4 | Pending |
+| TEST-08 | Phase 4 | Pending |
+| CD-01 | Phase 5 | Pending |
+| CD-02 | Phase 6 | Pending |
+| CD-03 | Phase 5 | Pending |
+| CD-04 | Phase 6 | Pending |
+| CD-05 | Phase 6 | Pending |
+| CD-06 | Phase 6 | Pending |
+| DOC-01 | Phase 7 | Pending |
+| DOC-02 | Phase 7 | Pending |
+| DOC-03 | Phase 7 | Pending |
+| DOC-04 | Phase 8 | Pending |
+| DOC-05 | Phase 8 | Pending |
+| FE-01 | Phase 9 | Pending |
+| FE-02 | Phase 9 | Pending |
+| FE-03 | Phase 9 | Pending |
+| FE-04 | Phase 9 | Pending |
+| FEAT-01 | Phase 10 | Pending |
+| FEAT-02 | Phase 10 | Pending |
+| FEAT-03 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 34 total (27 original + 7 NAS/NFS)
-- Mapped to phases: 34
-- Unmapped: 0
+- v1 requirements: 45 total (34 + 5 CD/Portal + 3 Frontend/Portal + 3 Docusaurus)
+- Mapped to phases: (pending roadmap update)
+- Unmapped: (pending roadmap update)
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-02 after roadmap creation*
+*Last updated: 2026-02-02 after roadmap revision (Phase 2 NAS/NFS inserted)*
