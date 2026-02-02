@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Observability Stack
 _Metrics • Traces • Logs | Full OpenTelemetry Integration_
 

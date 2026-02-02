@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Executive Summary - Development Effort
 _EZ Data Processing Platform_
 

@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform Architecture
 _Data Processing & Validation Platform | 9 Microservices | Event-Driven_
 

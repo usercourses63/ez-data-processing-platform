@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Architecture Diagrams
 
 Exported architecture diagrams for the EZ Platform.

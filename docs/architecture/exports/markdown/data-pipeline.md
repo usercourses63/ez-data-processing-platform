@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Data Processing Pipeline
 _End-to-End Flow: Source Files → Processing → Multi-Destination Output_
 

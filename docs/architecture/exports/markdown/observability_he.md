@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # מערך ניטור וצפייה
 _מדדים • מעקבים • לוגים | שילוב OpenTelemetry מלא_
 
