@@ -24,6 +24,7 @@ public class ConnectorFactory : IConnectorFactory
         ["nfs"] = typeof(NfsConnector),           // NFS via K8s PVC mounts
         ["ftp"] = typeof(FtpConnector),
         ["sftp"] = typeof(SftpConnector),
+        ["smb"] = typeof(SmbConnector),           // SMB via SMBLibrary (port 445)
         ["http"] = typeof(HttpApiConnector),
         ["https"] = typeof(HttpApiConnector),
         ["kafka"] = typeof(KafkaConnector),
@@ -142,6 +143,7 @@ public static class ConnectorFactoryExtensions
         services.AddSingleton<NfsConnector>();      // NFS via K8s PVC mounts
         services.AddSingleton<FtpConnector>();
         services.AddSingleton<SftpConnector>();
+        services.AddSingleton<SmbConnector>();      // SMB via SMBLibrary (port 445)
         services.AddSingleton<HttpApiConnector>();  // Uses IHttpClientFactory internally
         services.AddSingleton<KafkaConnector>();
         services.AddSingleton<S3Connector>();

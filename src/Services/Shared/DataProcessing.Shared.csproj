@@ -11,6 +11,7 @@
     <PackageReference Include="EPPlus" />
     <PackageReference Include="FluentFTP" />
     <PackageReference Include="MongoDB.Entities" />
+    <PackageReference Include="SMBLibrary" />
     <PackageReference Include="SSH.NET" />
     <PackageReference Include="System.ComponentModel.Annotations" />
 
