@@ -1,6 +1,7 @@
 # DataSourceManagementService - Kubernetes Deployment
 # Week 2: Day 2
 # Replicas: 2 (API service, moderate scaling)
+# Updated: Phase 02-06 - Added NAS device management RBAC
 
 apiVersion: apps/v1
 kind: Deployment
@@ -11,6 +12,7 @@ metadata:
     app: datasource-management
     component: api
     tier: backend
+    nas-management: "enabled"
 spec:
   replicas: 1
   selector:
@@ -28,6 +30,8 @@ spec:
         component: api
         tier: backend
     spec:
+      # ServiceAccount with RBAC permissions for NAS device PV/PVC management
+      serviceAccountName: nas-device-manager
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -58,6 +62,11 @@ spec:
             configMapKeyRef:
               name: services-config
               key: mongodb-connection
+        # Kubernetes configuration for NAS device management
+        - name: Kubernetes__Namespace
+          value: "ez-platform"
+        - name: Kubernetes__Context
+          value: "minikube"  # Ignored in-cluster, useful for local dev
         resources:
           requests:
             cpu: "500m"
