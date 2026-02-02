@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Files flow reliably from any source through validation to any destination, with complete visibility and traceability
-**Current focus:** Phase 3 - Protocol Test Coverage (COMPLETE)
+**Current focus:** Phase 4 - Format & Pipeline Testing (IN PROGRESS)
 
 ## Current Position
 
-Phase: 3 of 10 (Protocol Test Coverage)
-Plan: 4 of 4 in current phase (COMPLETE)
-Status: Phase complete
-Last activity: 2026-02-02 -- Completed 03-04-PLAN.md (Local Connector Tests and Documentation)
+Phase: 4 of 10 (Format & Pipeline Testing)
+Plan: 1 of 3 in current phase (COMPLETE)
+Status: In progress
+Last activity: 2026-02-02 -- Completed 04-01-PLAN.md (Bidirectional Format Testing)
 
-Progress: [########--] 80%
+Progress: [#########-] 85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 5.6 min
-- Total execution time: 1.31 hours
+- Total execution time: 1.4 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [########--] 80%
 | 01-file-simulator | 2 | 11 min | 5.5 min |
 | 02-nas-nfs-architecture | 6 | 32 min | 5.3 min |
 | 03-protocol-test-coverage | 4 | 21 min | 5.3 min |
+| 04-format-pipeline-testing | 1 | 6 min | 6.0 min |
 | 07-documentation-audit | 2 | 15 min | 7.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-02 (9 min), 03-01 (6 min), 03-02 (8 min), 03-03 (4 min), 03-04 (3 min)
+- Last 5 plans: 03-02 (8 min), 03-03 (4 min), 03-04 (3 min), 07-02 (9 min), 04-01 (6 min)
 - Trend: Consistent ~3-9 min/plan
 
 *Updated after each plan completion*
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [03-03]: NFS tests use NFS_MOUNT_PATH env var to detect K8s pod context
 - [03-03]: Kafka tests use IDataSourceConnector via KafkaFixture (not AdminServer)
 - [03-04]: Local tests use temp directory, OCP-Incompatible trait for local-only tests
+- [04-01]: Deterministic test data for round-trip comparisons (not random)
+- [04-01]: Compare parsed records, not raw strings, for CSV round-trips
+- [04-01]: XmlToJsonConverter returns numbers for numeric values (tests updated)
 
 ### Pending Todos
 
@@ -81,9 +85,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-02T13:51:30Z
-Stopped at: Completed 03-04-PLAN.md (Local Connector Tests and Documentation)
-Resume file: None - Phase 3 complete, ready for next phase
+Last session: 2026-02-02T14:50:00Z
+Stopped at: Completed 04-01-PLAN.md (Bidirectional Format Testing)
+Resume file: None - ready for 04-02-PLAN.md
 
 ## Phase 1 Summary
 
@@ -159,6 +163,24 @@ Phase 3 (Protocol Test Coverage) is COMPLETE (all 4 plans):
 - Local tests marked OCP-Incompatible (reference implementation only)
 - Pattern: SkippableFact + env var detection for platform-specific tests
 
+## Phase 4 Summary (IN PROGRESS)
+
+Phase 4 (Format & Pipeline Testing) is IN PROGRESS:
+- Plan 04-01: Bidirectional Format Testing (COMPLETE)
+- Plan 04-02: Pipeline Path Testing (PENDING)
+- Plan 04-03: Error Recovery Testing (PENDING)
+
+**Key Artifacts (04-01):**
+- `tests/Shared.Tests/TestData/TestDataFactory.cs` - Test data generators for all formats
+- `tests/Shared.Tests/Converters/BidirectionalFormatTests.cs` - 14 round-trip tests
+- Extended edge case tests in CsvToJsonConverterTests.cs, XmlToJsonConverterTests.cs, ExcelToJsonConverterTests.cs
+
+**Test State:**
+- 63 total tests in Shared.Tests (all passing)
+- 14 bidirectional format tests (CSV, XML, Excel, JSON round-trips)
+- 9 new edge case tests (Hebrew, CDATA, formulas, multi-sheet, etc.)
+- Test filtering: `--filter "Category=BidirectionalFormat"`, `--filter "Format=CSV"`, etc.
+
 ## Phase 7 Summary (COMPLETE)
 
 Phase 7 (Documentation Audit & Archive) is COMPLETE (all 2 plans):
@@ -190,7 +212,8 @@ Phase 7 (Documentation Audit & Archive) is COMPLETE (all 2 plans):
 | 01 | File-Simulator Integration | 2/2 | COMPLETE |
 | 02 | NAS/NFS Architecture | 6/6 | COMPLETE |
 | 03 | Protocol Test Coverage | 4/4 | COMPLETE |
+| 04 | Format & Pipeline Testing | 1/3 | IN PROGRESS |
 | 07 | Documentation Audit & Archive | 2/2 | COMPLETE |
 
-**Next Phase:**
-Ready to proceed to Phase 4: Format & Pipeline Testing (format conversions and E2E pipeline paths).
+**Next Plan:**
+Ready to proceed to 04-02-PLAN.md: Pipeline Path Testing (E2E pipeline flow tests).
