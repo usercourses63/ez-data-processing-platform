@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Files flow reliably from any source through validation to any destination, with complete visibility and traceability
-**Current focus:** Phase 1 Complete - Phase 2 NAS/NFS Architecture ready to start
+**Current focus:** Phase 2 NAS/NFS Architecture - Plan 01 complete
 
 ## Current Position
 
-Phase: 1 of 10 (File-Simulator Integration) - COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-02 -- Completed 01-02-PLAN.md (Setup Documentation and Regression Verification)
+Phase: 2 of 10 (NAS/NFS Architecture)
+Plan: 1 of 5 in current phase
+Status: In progress
+Last activity: 2026-02-02 -- Completed 02-01-PLAN.md (NasDevice Entity and K8s RBAC)
 
-Progress: [##--------] 10%
+Progress: [###-------] 15%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 5.5 min
-- Total execution time: 0.18 hours
+- Total plans completed: 3
+- Average duration: 5.3 min
+- Total execution time: 0.27 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-file-simulator | 2 | 11 min | 5.5 min |
+| 02-nas-nfs-architecture | 1 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 01-02 (8 min)
-- Trend: Establishing baseline
+- Last 5 plans: 01-01 (3 min), 01-02 (8 min), 02-01 (5 min)
+- Trend: Consistent ~5 min/plan
 
 *Updated after each plan completion*
 
@@ -56,6 +57,9 @@ Recent decisions affecting current work:
 - [01-01]: Use optional: true on configMapRef for environment-agnostic deployments
 - [01-02]: User approved checkpoint based on automated verification (script + frontend status icons)
 - [01-02]: Protocol integration testing confirmed deferred to Phase 3
+- [02-01]: Computed K8s resource names (PvName, PvcName, MountPath) from NasDevice.Name
+- [02-01]: RBAC split: ClusterRole for PV (cluster-scoped), Role for PVC/Deployment (namespace-scoped)
+- [02-01]: Default NFS mount options: nfsvers=3, tcp, hard, intr (stability)
 
 ### Pending Todos
 
@@ -64,13 +68,13 @@ None.
 ### Blockers/Concerns
 
 - Phase 3 requires file-simulator cluster deployed (Phase 1 ConfigMap wiring complete)
-- NAS device K8s API access requires appropriate RBAC permissions (Phase 2 concern)
+- RBAC manifests must be applied to cluster before testing NasResourceService (02-02)
 
 ## Session Continuity
 
-Last session: 2026-02-02T10:19:00Z
-Stopped at: Completed Phase 1 (File-Simulator Integration)
-Resume file: Phase 2 ready - .planning/phases/02-nas-nfs-architecture/
+Last session: 2026-02-02T13:05:00Z
+Stopped at: Completed 02-01-PLAN.md (NasDevice Entity and K8s RBAC)
+Resume file: .planning/phases/02-nas-nfs-architecture/02-02-PLAN.md
 
 ## Phase 1 Summary
 
@@ -83,6 +87,17 @@ Phase 1 (File-Simulator Integration) is complete:
 - `scripts/verify-file-simulator.ps1` - Cross-cluster connectivity verification
 - `docs/testing/file-simulator-setup.md` - Comprehensive setup guide
 
+## Phase 2 Progress
+
+Phase 2 (NAS/NFS Architecture) in progress:
+- Plan 02-01: NasDevice entity, RBAC manifests (COMPLETE)
+
+**Key Artifacts:**
+- `src/Services/Shared/Entities/NasDevice.cs` - NAS device configuration entity
+- `k8s/rbac/nas-device-rbac.yaml` - RBAC for K8s PV/PVC management
+
 **Next Steps:**
-- Phase 2: NAS/NFS Architecture (can start immediately, no dependencies)
-- Phase 3: Protocol Test Coverage (requires file-simulator cluster deployed)
+- Plan 02-02: KubernetesClient integration and NasResourceService
+- Plan 02-03: NFS connector implementation
+- Plan 02-04: NAS device API endpoints
+- Plan 02-05: Frontend UI for NAS device management
