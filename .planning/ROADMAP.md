@@ -115,12 +115,12 @@ Plans:
   6. Version is injected into frontend version.ts during build (semantic version + build date + commit SHA)
   7. Version is injected into Docusaurus docusaurus.config.js during build
   8. Docusaurus portal builds successfully in CI pipeline (release-package/docs-docusaurus)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: Docker build consolidation
-- [ ] 05-02: GitHub Actions CI pipeline
-- [ ] 05-03: Version management and Docusaurus build
+- [ ] 05-01-PLAN.md - Parallel Docker build script with version injection to all Dockerfiles
+- [ ] 05-02-PLAN.md - GitHub Actions CI workflow with build, test, docker jobs
+- [ ] 05-03-PLAN.md - Docusaurus Dockerfile and CI integration
 
 ### Phase 6: Deployment Automation
 **Goal**: One-command deployment to OCP with automated validation, rollback, and Docusaurus portal deployment
@@ -226,7 +226,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 2. NAS/NFS Architecture Implementation | 6/6 | Complete | 2026-02-02 |
 | 3. Protocol Test Coverage | 4/4 | Complete | 2026-02-02 |
 | 4. Format & Pipeline Testing | 3/3 | Complete | 2026-02-02 |
-| 5. CI/CD Foundation | 0/3 | Not started | - |
+| 5. CI/CD Foundation | 0/3 | Planned | - |
 | 6. Deployment Automation | 0/4 | Not started | - |
 | 7. Documentation Audit & Archive | 2/2 | Complete | 2026-02-02 |
 | 8. Documentation Consolidation | 0/3 | Not started | - |
@@ -242,5 +242,6 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 *Phase 2 planned: 2026-02-02 (6 plans in 5 waves)*
 *Phase 3 planned: 2026-02-02 (4 plans in 2 waves)*
 *Phase 4 planned: 2026-02-02 (3 plans in 3 waves)*
+*Phase 5 planned: 2026-02-02 (3 plans in 3 waves)*
 *Depth: Comprehensive (10 phases)*
 *Total requirements: 45 | Mapped: 45*
