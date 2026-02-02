@@ -30,7 +30,8 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    // Default to port 7000 for K8s port-forwarded frontend, fallback to 3000 for local dev
+    baseURL: process.env.BASE_URL || 'http://localhost:7000',
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -83,10 +84,12 @@ export default defineConfig({
   ],
 
   // Run local dev server before starting the tests
-  webServer: {
+  // Disabled by default - K8s port-forward on 7000 is typically active
+  // Set RUN_WEBSERVER=true to start local dev server instead
+  webServer: process.env.RUN_WEBSERVER ? {
     command: 'npm start',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3002',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
-  },
+  } : undefined,
 });
