@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Schema-DataSource Relationship Analysis
 
 ## Context

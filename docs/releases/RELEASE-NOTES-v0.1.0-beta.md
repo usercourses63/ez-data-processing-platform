@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform - Release Notes v0.1.0-beta
 
 **Release Date:** December 29, 2025

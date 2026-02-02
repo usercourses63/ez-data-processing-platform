@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # E2E Test Gap Analysis Report
 
 **Generated:** December 15, 2025

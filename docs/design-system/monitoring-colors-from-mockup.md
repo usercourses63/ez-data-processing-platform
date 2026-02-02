@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform Monitoring Dashboard - Color System from Mockup
 
 **Source:** `docs/mockups/k8s-microservices-dashboard.html`

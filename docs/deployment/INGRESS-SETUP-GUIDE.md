@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform - Ingress Setup Guide (Production-Ready)
 
 **Version:** 1.0

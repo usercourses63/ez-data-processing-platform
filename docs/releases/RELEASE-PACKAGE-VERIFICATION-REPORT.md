@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform Release Package Verification Report
 **Date:** January 8, 2026
 **Scope:** v0.1.1-RC2 Incremental Package Verification

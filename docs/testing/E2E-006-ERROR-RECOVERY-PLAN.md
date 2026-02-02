@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # E2E-006: Error Recovery & Retry Logic Test Plan
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform v0.1.1-rc2 Release Completion Report
 
 **Date:** 2026-01-08

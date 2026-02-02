@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # OpenShift OCP Compliance Report - EZ Platform Frontend
 **Date:** January 12, 2026
 **Version:** v0.1.1-rc2+

@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Cron Helper & Data Source Forms Enhancement - Implementation Summary
 
 ## Overview

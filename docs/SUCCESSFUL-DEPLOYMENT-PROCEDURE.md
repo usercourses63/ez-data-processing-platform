@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform - Successful Deployment Procedure
 
 **Date:** January 28, 2026

@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Stress Test Report: 10,000 Files (GAP-2)
 
 **Date:** December 29, 2025

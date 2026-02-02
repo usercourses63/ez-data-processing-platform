@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Frontend Port Forwarding Fix
 
 **Date:** January 13, 2026

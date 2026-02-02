@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # CRUD Verification Test Results
 
 **Date:** November 5, 2025  

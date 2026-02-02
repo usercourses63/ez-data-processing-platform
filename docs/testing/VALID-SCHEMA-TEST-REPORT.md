@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Valid Schema Test Report
 
 **Date:** December 29, 2025 (Session 35)

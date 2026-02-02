@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform Documentation
 
 Welcome to EZ Platform v0.1.0-beta documentation.

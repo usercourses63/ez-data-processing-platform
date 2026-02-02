@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 <div dir="rtl" lang="he">
 
 # מדריך למשתמש - EZ Platform גרסה 0.1.0-beta
