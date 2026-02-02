@@ -95,12 +95,12 @@ Plans:
   5. Pipeline integration tests cover: discovery -> processing -> validation -> output
   6. Load tests demonstrate 100-1000 file throughput via file-simulator
   7. Test documentation generated and committed to .planning/
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: Format conversion tests (CSV, JSON, XML, Excel)
-- [ ] 04-02: Pipeline integration tests
-- [ ] 04-03: Load testing and documentation
+- [ ] 04-01-PLAN.md - Format conversion tests (bidirectional round-trip for CSV, JSON, XML, Excel)
+- [ ] 04-02-PLAN.md - Pipeline integration tests (discovery -> processing -> validation -> output)
+- [ ] 04-03-PLAN.md - Load testing (100-1000 files) and documentation
 
 ### Phase 5: CI/CD Foundation
 **Goal**: Every commit triggers automated builds with test quality gates, version injection, and Docusaurus build
@@ -163,11 +163,11 @@ Plans:
 **Depends on**: Phase 7
 **Requirements**: DOC-04, DOC-05
 **Success Criteria** (what must be TRUE):
-  1. ✅ .planning/ contains all active project planning documentation
-  2. ✅ Architecture guide consolidated from scattered sources into coherent document
-  3. ✅ Deployment guide consolidated with current OCP procedures
-  4. ✅ Testing guide documents test strategy, running tests, and coverage
-  5. ✅ No planning/execution docs exist outside .planning/ structure
+  1. .planning/ contains all active project planning documentation
+  2. Architecture guide consolidated from scattered sources into coherent document
+  3. Deployment guide consolidated with current OCP procedures
+  4. Testing guide documents test strategy, running tests, and coverage
+  5. No planning/execution docs exist outside .planning/ structure
 **Plans**: 3 plans
 
 Plans:
@@ -225,7 +225,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 1. File-Simulator Integration | 2/2 | Complete | 2026-02-02 |
 | 2. NAS/NFS Architecture Implementation | 6/6 | Complete | 2026-02-02 |
 | 3. Protocol Test Coverage | 4/4 | Complete | 2026-02-02 |
-| 4. Format & Pipeline Testing | 0/3 | Not started | - |
+| 4. Format & Pipeline Testing | 0/3 | Planned | - |
 | 5. CI/CD Foundation | 0/3 | Not started | - |
 | 6. Deployment Automation | 0/4 | Not started | - |
 | 7. Documentation Audit & Archive | 2/2 | Complete | 2026-02-02 |
@@ -241,5 +241,6 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 *Phase 1 revised: 2026-02-02 (narrowed scope to infrastructure + connectivity; protocol tests deferred to Phase 3)*
 *Phase 2 planned: 2026-02-02 (6 plans in 5 waves)*
 *Phase 3 planned: 2026-02-02 (4 plans in 2 waves)*
+*Phase 4 planned: 2026-02-02 (3 plans in 3 waves)*
 *Depth: Comprehensive (10 phases)*
 *Total requirements: 45 | Mapped: 45*
