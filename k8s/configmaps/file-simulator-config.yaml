@@ -2,6 +2,9 @@
 # v0.2.0: External File Access Support
 # Development configuration for file-simulator endpoints
 # For use with Minikube development environment
+#
+# NOTE: {{FILE_SIMULATOR_IP}} is a placeholder replaced at runtime by
+# scripts/verify-file-simulator.ps1 with the actual Minikube IP.
 
 apiVersion: v1
 kind: ConfigMap
@@ -19,39 +22,46 @@ data:
   # These settings configure connections to file-simulator
   # which provides FTP, SFTP, S3, NFS services for development
 
-  # FTP Configuration
-  FileAccess__Ftp__Host: "172.23.17.71"
+  # FTP Configuration - NodePort 30021
+  FileAccess__Ftp__Host: "{{FILE_SIMULATOR_IP}}"
   FileAccess__Ftp__Port: "30021"
   FileAccess__Ftp__Username: "ftpuser"
   FileAccess__Ftp__Password: "ftppass123"
   FileAccess__Ftp__UsePassiveMode: "true"
   FileAccess__Ftp__UseSsl: "false"
 
-  # SFTP Configuration
-  FileAccess__Sftp__Host: "172.23.17.71"
+  # SFTP Configuration - NodePort 30022
+  FileAccess__Sftp__Host: "{{FILE_SIMULATOR_IP}}"
   FileAccess__Sftp__Port: "30022"
   FileAccess__Sftp__Username: "sftpuser"
   FileAccess__Sftp__Password: "sftppass123"
 
-  # S3/MinIO Configuration
-  FileAccess__S3__Endpoint: "http://172.23.17.71:30900"
+  # S3/MinIO Configuration - NodePort 30900
+  FileAccess__S3__Endpoint: "http://{{FILE_SIMULATOR_IP}}:30900"
   FileAccess__S3__AccessKey: "minioadmin"
   FileAccess__S3__SecretKey: "minioadmin123"
   FileAccess__S3__Region: "us-east-1"
   FileAccess__S3__UsePathStyle: "true"
   FileAccess__S3__DefaultBucket: "ez-data"
 
-  # HTTP/WebDAV Configuration
-  FileAccess__Http__BaseUrl: "http://172.23.17.71:30088"
+  # HTTP/WebDAV Configuration - NodePort 30088/30089
+  FileAccess__Http__BaseUrl: "http://{{FILE_SIMULATOR_IP}}:30088"
+  FileAccess__WebDav__BaseUrl: "http://{{FILE_SIMULATOR_IP}}:30089"
   FileAccess__Http__Username: "httpuser"
   FileAccess__Http__Password: "httppass123"
   FileAccess__Http__AuthType: "basic"
 
-  # NFS Configuration (requires NFS PV mount)
+  # NFS Configuration (via NAS devices) - NodePorts 32150-32156
+  FileAccess__Nfs__InputServer1: "{{FILE_SIMULATOR_IP}}:32150"
+  FileAccess__Nfs__InputServer2: "{{FILE_SIMULATOR_IP}}:32151"
+  FileAccess__Nfs__OutputServer1: "{{FILE_SIMULATOR_IP}}:32154"
   FileAccess__Nfs__MountPath: "/mnt/nfs-data"
-  FileAccess__Nfs__Server: "172.23.17.71"
+  FileAccess__Nfs__Server: "{{FILE_SIMULATOR_IP}}"
   FileAccess__Nfs__Port: "32149"
   FileAccess__Nfs__ExportPath: "/"
+
+  # Feature flag: Enable file-simulator integration
+  FileSimulator__Enabled: "true"
 
   # ========================================
   # Archive Processing Settings
