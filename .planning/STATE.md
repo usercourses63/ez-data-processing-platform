@@ -64,6 +64,10 @@ Recent decisions affecting current work:
 - [02-02]: Register IKubernetes as alias to k8s.Kubernetes for flexible DI
 - [02-02]: StorageClassName intentionally null (not empty string) for static binding
 - [02-02]: Label selector binding: nas-device label for PVC-to-PV matching
+- [02-03]: REST route follows naming convention: api/v1/nasdevices
+- [02-03]: entity.SaveAsync(cancellation: ct) pattern from ServerService
+- [02-03]: Connection test verifies K8s PVC binding status as NFS connectivity proxy
+- [02-03]: Provision endpoint with optional request body and sensible defaults
 - [02-04]: NfsConnector as separate class from LocalFileConnector for NFS-specific logging
 - [02-04]: Mount-not-ready handled gracefully (return empty list, not throw)
 
@@ -98,7 +102,7 @@ Phase 1 (File-Simulator Integration) is complete:
 Phase 2 (NAS/NFS Architecture) in progress:
 - Plan 02-01: NasDevice entity, RBAC manifests (COMPLETE)
 - Plan 02-02: KubernetesClient integration, NasResourceService (COMPLETE)
-- Plan 02-03: (Status TBD - verify plan file)
+- Plan 02-03: NAS device REST API, INasDeviceService (COMPLETE)
 - Plan 02-04: NfsConnector implementation (COMPLETE)
 
 **Key Artifacts:**
@@ -108,6 +112,9 @@ Phase 2 (NAS/NFS Architecture) in progress:
 - `src/Services/Shared/Services/INasResourceService.cs` - PV/PVC operations interface
 - `src/Services/Shared/Services/NasResourceService.cs` - Full implementation
 - `src/Services/Shared/Connectors/NfsConnector.cs` - NFS connector for K8s PVC mounts
+- `src/Services/DataSourceManagementService/Controllers/NasDevicesController.cs` - NAS device REST API
+- `src/Services/DataSourceManagementService/Services/INasDeviceService.cs` - Service interface
+- `src/Services/DataSourceManagementService/Services/NasDeviceService.cs` - Service implementation
 
 **Next Steps:**
 - Plan 02-05: Frontend UI for NAS device management
