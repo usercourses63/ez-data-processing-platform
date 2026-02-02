@@ -79,6 +79,12 @@ public class FileSimulatorFixture : IAsyncLifetime
         /// HTTP Basic Auth credentials
         /// </summary>
         public static readonly (string User, string Password) Http = ("httpuser", "httppass123");
+
+        /// <summary>
+        /// SMB/Samba credentials
+        /// Note: SMB requires port 445 via minikube tunnel, not NodePort
+        /// </summary>
+        public static readonly (string User, string Password) Smb = ("smbuser", "smbpass123");
     }
 
     // ========== Lifecycle ==========
