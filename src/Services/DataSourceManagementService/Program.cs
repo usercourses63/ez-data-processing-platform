@@ -106,6 +106,10 @@ services.AddScoped<ICategoryService, CategoryService>();
 services.AddConnectorFactory();  // Includes HttpClient registration for HttpApiConnector
 services.AddScoped<IServerService, ServerService>();
 
+// Register Kubernetes client and NAS device service (v0.2.0: NAS/NFS Architecture)
+services.AddKubernetesClient(configuration);
+services.AddScoped<INasDeviceService, NasDeviceService>();
+
 // Register schema management services
 services.AddScoped<DataProcessing.DataSourceManagement.Repositories.Schema.ISchemaRepository,
     DataProcessing.DataSourceManagement.Repositories.Schema.SchemaRepository>();
