@@ -49,18 +49,16 @@ public class PipelineFixture : IAsyncLifetime
     // ========== Constructor ==========
 
     /// <summary>
-    /// Creates a new PipelineFixture with injected dependencies
+    /// Creates a new PipelineFixture with internal fixture instances.
+    /// xUnit collection fixtures cannot inject other fixtures via constructor,
+    /// so we create our own instances.
     /// </summary>
-    public PipelineFixture(
-        KafkaFixture kafka,
-        HazelcastFixture hazelcast,
-        MongoDbFixture mongodb,
-        FileSimulatorFixture fileSimulator)
+    public PipelineFixture()
     {
-        _kafka = kafka;
-        _hazelcast = hazelcast;
-        _mongodb = mongodb;
-        _fileSimulator = fileSimulator;
+        _kafka = new KafkaFixture();
+        _hazelcast = new HazelcastFixture();
+        _mongodb = new MongoDbFixture();
+        _fileSimulator = new FileSimulatorFixture();
     }
 
     // ========== Lifecycle ==========
@@ -70,6 +68,9 @@ public class PipelineFixture : IAsyncLifetime
     /// </summary>
     public async Task InitializeAsync()
     {
+        // Initialize FileSimulatorFixture (it implements IAsyncLifetime)
+        await _fileSimulator.InitializeAsync();
+
         // Check all dependencies
         var kafkaOk = _kafka.IsKafkaAvailable();
         var hazelcastOk = await _hazelcast.IsHazelcastAvailableAsync();
@@ -99,7 +100,7 @@ public class PipelineFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Cleans up test data source
+    /// Cleans up test data source and disposes resources
     /// </summary>
     public async Task DisposeAsync()
     {
@@ -107,6 +108,12 @@ public class PipelineFixture : IAsyncLifetime
         {
             await CleanupTestDataSourceAsync(TestDataSourceId);
         }
+
+        // Dispose owned resources
+        _kafka.Dispose();
+        _hazelcast.Dispose();
+        _mongodb.Dispose();
+        await _fileSimulator.DisposeAsync();
     }
 
     // ========== Test Data Source Management ==========
