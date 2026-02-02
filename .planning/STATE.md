@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Files flow reliably from any source through validation to any destination, with complete visibility and traceability
-**Current focus:** Phase 2 NAS/NFS Architecture - Plan 01 complete
+**Current focus:** Phase 2 NAS/NFS Architecture - Plan 02 complete
 
 ## Current Position
 
 Phase: 2 of 10 (NAS/NFS Architecture)
-Plan: 1 of 5 in current phase
+Plan: 2 of 5 in current phase
 Status: In progress
-Last activity: 2026-02-02 -- Completed 02-01-PLAN.md (NasDevice Entity and K8s RBAC)
+Last activity: 2026-02-02 -- Completed 02-02-PLAN.md (KubernetesClient and NasResourceService)
 
-Progress: [###-------] 15%
+Progress: [####------] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 5.3 min
-- Total execution time: 0.27 hours
+- Total plans completed: 4
+- Average duration: 5.0 min
+- Total execution time: 0.33 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-file-simulator | 2 | 11 min | 5.5 min |
-| 02-nas-nfs-architecture | 1 | 5 min | 5 min |
+| 02-nas-nfs-architecture | 2 | 9 min | 4.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 01-02 (8 min), 02-01 (5 min)
+- Last 5 plans: 01-01 (3 min), 01-02 (8 min), 02-01 (5 min), 02-02 (4 min)
 - Trend: Consistent ~5 min/plan
 
 *Updated after each plan completion*
@@ -60,6 +60,10 @@ Recent decisions affecting current work:
 - [02-01]: Computed K8s resource names (PvName, PvcName, MountPath) from NasDevice.Name
 - [02-01]: RBAC split: ClusterRole for PV (cluster-scoped), Role for PVC/Deployment (namespace-scoped)
 - [02-01]: Default NFS mount options: nfsvers=3, tcp, hard, intr (stability)
+- [02-02]: Use k8s.Kubernetes fully qualified type to avoid namespace conflicts
+- [02-02]: Register IKubernetes as alias to k8s.Kubernetes for flexible DI
+- [02-02]: StorageClassName intentionally null (not empty string) for static binding
+- [02-02]: Label selector binding: nas-device label for PVC-to-PV matching
 
 ### Pending Todos
 
@@ -68,13 +72,13 @@ None.
 ### Blockers/Concerns
 
 - Phase 3 requires file-simulator cluster deployed (Phase 1 ConfigMap wiring complete)
-- RBAC manifests must be applied to cluster before testing NasResourceService (02-02)
+- RBAC manifests must be applied to cluster before testing NasResourceService
 
 ## Session Continuity
 
-Last session: 2026-02-02T13:05:00Z
-Stopped at: Completed 02-01-PLAN.md (NasDevice Entity and K8s RBAC)
-Resume file: .planning/phases/02-nas-nfs-architecture/02-02-PLAN.md
+Last session: 2026-02-02T13:24:00Z
+Stopped at: Completed 02-02-PLAN.md (KubernetesClient and NasResourceService)
+Resume file: .planning/phases/02-nas-nfs-architecture/02-03-PLAN.md
 
 ## Phase 1 Summary
 
@@ -91,13 +95,16 @@ Phase 1 (File-Simulator Integration) is complete:
 
 Phase 2 (NAS/NFS Architecture) in progress:
 - Plan 02-01: NasDevice entity, RBAC manifests (COMPLETE)
+- Plan 02-02: KubernetesClient integration, NasResourceService (COMPLETE)
 
 **Key Artifacts:**
 - `src/Services/Shared/Entities/NasDevice.cs` - NAS device configuration entity
 - `k8s/rbac/nas-device-rbac.yaml` - RBAC for K8s PV/PVC management
+- `src/Services/Shared/Configuration/KubernetesConfiguration.cs` - K8s client DI setup
+- `src/Services/Shared/Services/INasResourceService.cs` - PV/PVC operations interface
+- `src/Services/Shared/Services/NasResourceService.cs` - Full implementation
 
 **Next Steps:**
-- Plan 02-02: KubernetesClient integration and NasResourceService
 - Plan 02-03: NFS connector implementation
 - Plan 02-04: NAS device API endpoints
 - Plan 02-05: Frontend UI for NAS device management
