@@ -10,7 +10,7 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 - Integer phases (1, 2, 3, ...): Planned milestone work
 - Decimal phases (e.g., 2.1): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: File-Simulator Integration** - Establish file-simulator as primary test environment for all protocols
+- [ ] **Phase 1: File-Simulator Integration** - Establish file-simulator infrastructure and connectivity verification
 - [ ] **Phase 2: NAS/NFS Architecture Implementation** - Implement NAS device entity and K8s PV/PVC dynamic mounting via .NET 10 API
 - [ ] **Phase 3: Protocol Test Coverage** - Verify all 8 protocols work correctly against file-simulator (including NFS via NAS devices)
 - [ ] **Phase 4: Format & Pipeline Testing** - Validate format conversions and end-to-end pipeline paths
@@ -24,19 +24,20 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 ## Phase Details
 
 ### Phase 1: File-Simulator Integration
-**Goal**: File-simulator becomes the authoritative test environment for all file I/O operations
+**Goal**: File-simulator infrastructure integrated and connectivity verified
 **Depends on**: Nothing (first phase)
 **Requirements**: TEST-04, TEST-06
 **Success Criteria** (what must be TRUE):
   1. File-simulator is accessible from EZ Platform test environment (cross-cluster communication verified)
   2. EZ Platform ConfigMaps point to file-simulator endpoints for FTP, SFTP, S3, SMB, NFS, HTTP
-  3. All 6 existing E2E tests pass when configured to use file-simulator instead of local/mock sources
+  3. Existing E2E tests still pass (no regressions from infrastructure changes)
   4. Test setup documentation exists explaining how to configure file-simulator connection
+**Note**: Actual protocol integration testing (verifying connectors work via file-simulator) is deferred to Phase 3.
 **Plans**: 2 plans
 
 Plans:
 - [ ] 01-01-PLAN.md - Infrastructure setup: ConfigMap, deployment updates, verification script
-- [ ] 01-02-PLAN.md - E2E validation and documentation
+- [ ] 01-02-PLAN.md - Documentation and no-regression verification
 
 ### Phase 2: NAS/NFS Architecture Implementation
 **Goal**: NAS devices can be configured and dynamically mounted to pods via Kubernetes API
@@ -235,5 +236,6 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 *Roadmap revised: 2026-02-02 (added Phase 2 NAS/NFS Architecture)*
 *Roadmap revised: 2026-02-02 (added Docusaurus portal integration requirements)*
 *Phase 1 planned: 2026-02-02 (2 plans in 2 waves)*
+*Phase 1 revised: 2026-02-02 (narrowed scope to infrastructure + connectivity; protocol tests deferred to Phase 3)*
 *Depth: Comprehensive (10 phases)*
 *Total requirements: 45 | Mapped: 45*
