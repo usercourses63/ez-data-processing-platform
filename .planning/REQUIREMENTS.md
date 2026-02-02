@@ -47,8 +47,8 @@
 - [ ] **DOC-01**: All 270+ existing docs audited and categorized
 - [ ] **DOC-02**: Session logs archived to /docs/archive/sessions/
 - [ ] **DOC-03**: Obsolete/redundant docs deleted
-- [ ] **DOC-04**: GSD becomes single source of truth for all planning/execution docs
-- [ ] **DOC-05**: Architecture/deployment/testing guides consolidated into GSD structure
+- [x] **DOC-04**: GSD becomes single source of truth for all planning/execution docs
+- [x] **DOC-05**: Architecture/deployment/testing guides consolidated into GSD structure
 
 ### Frontend Development Workflow (Milestone 4)
 
@@ -141,8 +141,8 @@
 | DOC-01 | Phase 7 | Complete |
 | DOC-02 | Phase 7 | Complete |
 | DOC-03 | Phase 7 | Complete |
-| DOC-04 | Phase 8 | Pending |
-| DOC-05 | Phase 8 | Pending |
+| DOC-04 | Phase 8 | Complete |
+| DOC-05 | Phase 8 | Complete |
 | FE-01 | Phase 9 | Pending |
 | FE-02 | Phase 9 | Pending |
 | FE-03 | Phase 9 | Pending |
