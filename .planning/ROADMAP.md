@@ -32,11 +32,11 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
   2. EZ Platform ConfigMaps point to file-simulator endpoints for FTP, SFTP, S3, SMB, NFS, HTTP
   3. All 6 existing E2E tests pass when configured to use file-simulator instead of local/mock sources
   4. Test setup documentation exists explaining how to configure file-simulator connection
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: File-simulator connectivity and configuration
-- [ ] 01-02: E2E test migration to file-simulator
+- [ ] 01-01-PLAN.md - Infrastructure setup: ConfigMap, deployment updates, verification script
+- [ ] 01-02-PLAN.md - E2E validation and documentation
 
 ### Phase 2: NAS/NFS Architecture Implementation
 **Goal**: NAS devices can be configured and dynamically mounted to pods via Kubernetes API
@@ -219,7 +219,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. File-Simulator Integration | 0/2 | Not started | - |
+| 1. File-Simulator Integration | 0/2 | Planned | - |
 | 2. NAS/NFS Architecture Implementation | 0/4 | Not started | - |
 | 3. Protocol Test Coverage | 0/4 | Not started | - |
 | 4. Format & Pipeline Testing | 0/3 | Not started | - |
@@ -234,5 +234,6 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 *Roadmap created: 2026-02-02*
 *Roadmap revised: 2026-02-02 (added Phase 2 NAS/NFS Architecture)*
 *Roadmap revised: 2026-02-02 (added Docusaurus portal integration requirements)*
+*Phase 1 planned: 2026-02-02 (2 plans in 2 waves)*
 *Depth: Comprehensive (10 phases)*
 *Total requirements: 45 | Mapped: 45*
