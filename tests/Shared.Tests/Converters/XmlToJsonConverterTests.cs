@@ -1,7 +1,7 @@
 // XmlToJsonConverterTests.cs - Unit Tests for XmlToJsonConverter
 // UNIT-004: XML Format Converter Tests
-// Version: 1.0
-// Date: December 17, 2025
+// Version: 1.1
+// Date: February 2, 2026
 
 using System.Text;
 using DataProcessing.Shared.Converters;
@@ -60,7 +60,8 @@ public class XmlToJsonConverterTests
         result.Should().NotBeNullOrEmpty();
         var jsonObj = JsonSerializer.Deserialize<JsonElement>(result);
         jsonObj.GetProperty("Name").GetString().Should().Be("John");
-        jsonObj.GetProperty("Age").GetString().Should().Be("30");
+        // XmlToJsonConverter converts numeric values to numbers
+        jsonObj.GetProperty("Age").GetInt32().Should().Be(30);
     }
 
     [Fact]
@@ -291,7 +292,93 @@ public class XmlToJsonConverterTests
 
         var firstTxn = transactions[0];
         firstTxn.GetProperty("TransactionId").GetString().Should().Be("TXN-20251201-000001");
-        firstTxn.GetProperty("Amount").GetString().Should().Be("1500.50");
+        // Amount is converted to decimal by XmlToJsonConverter
+        firstTxn.GetProperty("Amount").GetDecimal().Should().Be(1500.50m);
+    }
+
+    #endregion
+
+    #region Edge Case Tests (Phase 04-01)
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "XML")]
+    public async Task ConvertToJsonAsync_WithNamespaces_StripsNamespaces()
+    {
+        // Arrange - XML with xmlns declarations
+        var xml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<Root xmlns=""http://example.com/schema"" xmlns:custom=""http://example.com/custom"">
+    <Item>Value1</Item>
+    <custom:Item>Value2</custom:Item>
+</Root>";
+        using var stream = CreateStream(xml);
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert - Namespaces are stripped during conversion (local names preserved)
+        var jsonObj = JsonSerializer.Deserialize<JsonElement>(result);
+        jsonObj.Should().NotBeNull();
+
+        // Items should be accessible by local name (namespace stripped)
+        jsonObj.GetProperty("Item").ValueKind.Should().Be(JsonValueKind.Array,
+            because: "both namespaced and non-namespaced Item elements should be combined");
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "XML")]
+    public async Task ConvertToJsonAsync_WithCDATA_PreservesContent()
+    {
+        // Arrange - XML with CDATA sections
+        var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+            "<Data>" +
+            "<Script><![CDATA[function test() { return x < 10 && y > 5; }]]></Script>" +
+            "<Content><![CDATA[Special chars: <>&]]></Content>" +
+            "</Data>";
+        using var stream = CreateStream(xml);
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert - CDATA content is preserved in JSON
+        var jsonObj = JsonSerializer.Deserialize<JsonElement>(result);
+        jsonObj.Should().NotBeNull();
+
+        var scriptContent = jsonObj.GetProperty("Script").GetString();
+        scriptContent.Should().Contain("function test()");
+        scriptContent.Should().Contain("x < 10");
+
+        var content = jsonObj.GetProperty("Content").GetString();
+        content.Should().Contain("<>&");
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "XML")]
+    public async Task ConvertToJsonAsync_WithAttributes_IgnoresAttributes()
+    {
+        // Arrange - XML with attributes on elements
+        // Note: Current implementation ignores attributes, converting only element content
+        var xml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<Product id=""123"" category=""electronics"">
+    <Name lang=""en"">Widget</Name>
+    <Price currency=""USD"">99.99</Price>
+</Product>";
+        using var stream = CreateStream(xml);
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert - Element content is preserved (attributes are ignored by design)
+        var jsonObj = JsonSerializer.Deserialize<JsonElement>(result);
+        jsonObj.Should().NotBeNull();
+
+        // Document behavior: XmlToJsonConverter extracts element values only
+        // Attributes (id, category, lang, currency) are not in output
+        jsonObj.GetProperty("Name").GetString().Should().Be("Widget");
+        // Price is converted to decimal type by XmlToJsonConverter
+        jsonObj.GetProperty("Price").GetDecimal().Should().Be(99.99m);
     }
 
     #endregion
