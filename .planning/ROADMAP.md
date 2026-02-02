@@ -10,7 +10,7 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 - Integer phases (1, 2, 3, ...): Planned milestone work
 - Decimal phases (e.g., 2.1): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: File-Simulator Integration** - Establish file-simulator infrastructure and connectivity verification
+- [x] **Phase 1: File-Simulator Integration** - Establish file-simulator infrastructure and connectivity verification
 - [ ] **Phase 2: NAS/NFS Architecture Implementation** - Implement NAS device entity and K8s PV/PVC dynamic mounting via .NET 10 API
 - [ ] **Phase 3: Protocol Test Coverage** - Verify all 8 protocols work correctly against file-simulator (including NFS via NAS devices)
 - [ ] **Phase 4: Format & Pipeline Testing** - Validate format conversions and end-to-end pipeline paths
@@ -36,8 +36,8 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md - Infrastructure setup: ConfigMap, deployment updates, verification script
-- [ ] 01-02-PLAN.md - Documentation and no-regression verification
+- [x] 01-01-PLAN.md - Infrastructure setup: ConfigMap, deployment updates, verification script
+- [x] 01-02-PLAN.md - Documentation and no-regression verification
 
 ### Phase 2: NAS/NFS Architecture Implementation
 **Goal**: NAS devices can be configured and dynamically mounted to pods via Kubernetes API
@@ -52,13 +52,15 @@ Plans:
   5. NFS protocol connector routes through NAS device configuration (not standalone NFS server)
   6. AdminServer UI supports NAS device CRUD operations
   7. NAS device creation/mounting tested against file-simulator NAS simulation
-**Plans**: TBD
+**Plans**: 6 plans
 
 Plans:
-- [ ] 02-01: NAS device entity and repository
-- [ ] 02-02: K8s PV/PVC dynamic provisioning via .NET 10 API
-- [ ] 02-03: NFS connector integration with NAS devices
-- [ ] 02-04: AdminServer NAS device management UI
+- [ ] 02-01-PLAN.md - NAS device entity and RBAC manifests
+- [ ] 02-02-PLAN.md - Kubernetes client DI and NasResourceService for PV/PVC operations
+- [ ] 02-03-PLAN.md - NasDevicesController REST API and business logic service
+- [ ] 02-04-PLAN.md - NFS connector integration with NAS device mount paths
+- [ ] 02-05-PLAN.md - Frontend NasDevicesTab UI and API client
+- [ ] 02-06-PLAN.md - Integration testing and deployment configuration
 
 ### Phase 3: Protocol Test Coverage
 **Goal**: Every file protocol has verified integration tests against file-simulator
@@ -220,8 +222,8 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. File-Simulator Integration | 2/2 | ✓ Complete | 2026-02-02 |
-| 2. NAS/NFS Architecture Implementation | 0/4 | Not started | - |
+| 1. File-Simulator Integration | 2/2 | Complete | 2026-02-02 |
+| 2. NAS/NFS Architecture Implementation | 0/6 | Planned | - |
 | 3. Protocol Test Coverage | 0/4 | Not started | - |
 | 4. Format & Pipeline Testing | 0/3 | Not started | - |
 | 5. CI/CD Foundation | 0/3 | Not started | - |
@@ -237,5 +239,6 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 *Roadmap revised: 2026-02-02 (added Docusaurus portal integration requirements)*
 *Phase 1 planned: 2026-02-02 (2 plans in 2 waves)*
 *Phase 1 revised: 2026-02-02 (narrowed scope to infrastructure + connectivity; protocol tests deferred to Phase 3)*
+*Phase 2 planned: 2026-02-02 (6 plans in 5 waves)*
 *Depth: Comprehensive (10 phases)*
 *Total requirements: 45 | Mapped: 45*
