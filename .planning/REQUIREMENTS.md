@@ -112,13 +112,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAS-01 | Phase 2 | Pending |
-| NAS-02 | Phase 2 | Pending |
-| NAS-03 | Phase 2 | Pending |
-| NAS-04 | Phase 2 | Pending |
-| NAS-05 | Phase 2 | Pending |
-| NAS-06 | Phase 2 | Pending |
-| NAS-07 | Phase 2 | Pending |
+| NAS-01 | Phase 2 | Complete |
+| NAS-02 | Phase 2 | Complete |
+| NAS-03 | Phase 2 | Complete |
+| NAS-04 | Phase 2 | Complete |
+| NAS-05 | Phase 2 | Complete |
+| NAS-06 | Phase 2 | Complete |
+| NAS-07 | Phase 2 | Complete |
 | TEST-01 | Phase 4 | Pending |
 | TEST-02 | Phase 3 | Pending |
 | TEST-03 | Phase 4 | Pending |
