@@ -9,16 +9,26 @@ status: current
 
 ---
 
+## Consolidated Guides (Primary)
+
+| Guide | Description |
+|-------|-------------|
+| **[Architecture Guide](./architecture/ARCHITECTURE.md)** | System architecture, operations, development patterns, design decisions |
+| **[Deployment Guide](./deployment/DEPLOYMENT.md)** | Kubernetes deployment, configuration, scaling, OCP compliance |
+| **[Testing Guide](./testing/TESTING.md)** | E2E-first strategy, running tests, patterns, coverage |
+
+---
+
 ## Quick Reference
 
 | Document | Location | Status | Purpose |
 |----------|----------|--------|---------|
 | **README** | `../README.md` | Current | Project entry point |
 | **CLAUDE.md** | `../CLAUDE.md` | Current | AI assistant configuration |
+| **Architecture Guide** | `architecture/ARCHITECTURE.md` | Current | Consolidated architecture documentation |
+| **Deployment Guide** | `deployment/DEPLOYMENT.md` | Current | Consolidated deployment documentation |
+| **Testing Guide** | `testing/TESTING.md` | Current | Consolidated testing documentation |
 | **Product Requirements** | `data_processing_prd.md` | Reference | Original requirements specification |
-| **Project Standards** | `PROJECT_STANDARDS.md` | Reference | Development standards and patterns |
-| **Architecture** | `architecture/` | Reference | System diagrams and specifications |
-| **Testing** | `testing/` | Reference | Test plans and reports |
 | **Archive** | `archive/` | Archive | Historical documentation |
 
 ---
@@ -120,33 +130,32 @@ Release documentation:
 
 ## Deployment
 
-Deployment guides:
+**Primary:** [Deployment Guide](./deployment/DEPLOYMENT.md) - Consolidated deployment documentation
 
-- [Deployment Plan (Single Replica)](./deployment/DEPLOYMENT-PLAN-SINGLE-REPLICA.md) - Single replica setup
-- [Deployment Status v0.1.1-rc1](./deployment/DEPLOYMENT-v0.1.1-rc1-STATUS.md) - Deployment status
-- [Ingress Setup Guide](./deployment/INGRESS-SETUP-GUIDE.md) - Kubernetes ingress configuration
+Reference documentation:
+- [Deployment Plan (Single Replica)](./deployment/DEPLOYMENT-PLAN-SINGLE-REPLICA.md) - Detailed single replica setup
+- [Installation Guide](./installation/INSTALLATION-GUIDE.md) - Step-by-step installation
 
 ---
 
 ## Testing
 
-Test documentation:
+**Primary:** [Testing Guide](./testing/TESTING.md) - Consolidated testing documentation
 
+Reference documentation:
+- [E2E Gap Analysis](./testing/E2E-GAP-ANALYSIS-REPORT.md) - E2E test coverage analysis
 - [File Simulator Setup](./testing/file-simulator-setup.md) - Test environment configuration
-- [E2E Gap Analysis](./testing/E2E-GAP-ANALYSIS-REPORT.md) - E2E test coverage gaps
-- [Stress Test 1000 Files](./testing/STRESS-TEST-1000-FILES-REPORT.md) - Performance testing
 - [Hazelcast TTL Configuration](./testing/HAZELCAST-TTL-CONFIGURATION.md) - Cache configuration
 
 ---
 
 ## Architecture
 
-Architecture documentation:
+**Primary:** [Architecture Guide](./architecture/ARCHITECTURE.md) - Consolidated architecture documentation
 
-- [System Architecture](./architecture/SYSTEM-ARCHITECTURE.md) - System design
-- [Pipeline Flow](./architecture/corrected-pipeline-flow.md) - Data pipeline diagrams
-- [Architecture Exports](./architecture/exports/) - PDF, Markdown, SVG exports
-  - [Architecture Diagrams Index](./architecture/exports/markdown/index.md) - All exported diagrams
+Reference documentation:
+- [System Architecture](./architecture/SYSTEM-ARCHITECTURE.md) - Detailed system design
+- [Project Standards](./PROJECT_STANDARDS.md) - Development standards
 
 ---
 

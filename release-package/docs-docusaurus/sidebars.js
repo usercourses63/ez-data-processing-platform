@@ -42,8 +42,18 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Architecture',
+      label: 'Guides',
       collapsed: false,
+      items: [
+        'architecture/ARCHITECTURE',      // Consolidated architecture guide
+        'deployment/DEPLOYMENT',          // Consolidated deployment guide
+        'testing/TESTING',                // Consolidated testing guide
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Architecture (Legacy)',
+      collapsed: true,
       items: [
         'architecture/system-architecture',
         'architecture/he/system-architecture-he',
@@ -51,8 +61,8 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Deployment',
-      collapsed: false,
+      label: 'Deployment (Legacy)',
+      collapsed: true,
       items: [
         'deployment/deployment-plan',
         'deployment/deployment-success-summary',
