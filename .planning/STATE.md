@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 1 of 10 (File-Simulator Integration)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-02-02 -- Roadmap revised (added Docusaurus portal integration requirements)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-02 -- Completed 01-01-PLAN.md (File-Simulator ConfigMap Wiring)
 
-Progress: [----------] 0%
+Progress: [#---------] 5%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 3 min
+- Total execution time: 0.05 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-file-simulator | 1 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: (none)
-- Trend: Not established
+- Last 5 plans: 01-01 (3 min)
+- Trend: Not established (need more data)
 
 *Updated after each plan completion*
 
@@ -51,19 +51,22 @@ Recent decisions affecting current work:
 - [Rev-2]: Docusaurus portal integration added to CI/CD (Phase 5), Deployment (Phase 6), Frontend (Phase 9)
 - [Rev-2]: Version injection includes frontend version.ts, Docusaurus config, and Docker tags
 - [Rev-2]: Documentation portal deployed at /docs path in K8s Ingress
+- [01-01]: Use {{FILE_SIMULATOR_IP}} placeholder in ConfigMap for version control compatibility
+- [01-01]: Apply ConfigMap via temp file resolution rather than in-place modification
+- [01-01]: Use optional: true on configMapRef for environment-agnostic deployments
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- File-simulator connectivity from EZ Platform cluster not yet verified
-- Cross-cluster communication (Minikube profiles) may require NodePort configuration
+- File-simulator cluster needs to be deployed before connectivity can be verified
+- Cross-cluster communication (Minikube profiles) uses NodePort configuration (implemented)
 - NAS device K8s API access requires appropriate RBAC permissions
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Roadmap revised (Docusaurus portal integration), ready to plan Phase 1 (or Phase 2 in parallel)
-Resume file: None
+Last session: 2026-02-02T10:04:31Z
+Stopped at: Completed 01-01-PLAN.md (File-Simulator ConfigMap Wiring)
+Resume file: .planning/phases/01-file-simulator-integration/01-02-PLAN.md
