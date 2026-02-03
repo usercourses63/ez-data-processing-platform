@@ -6,14 +6,18 @@ const darkCodeTheme = require('prism-react-renderer').themes.dracula;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'EZ Platform v0.1.1-rc1',
+  title: 'EZ Platform v0.2.0',
   tagline: 'Data Processing Platform - Official Documentation',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://your-domain.com',
+  url: process.env.DOCS_URL || 'https://ez-platform.example.com',
   // Set the /<baseUrl>/ pathname under which your site is served
-  baseUrl: '/',
+  // Deployed at /docs path in both K8s Ingress and OCP Route
+  baseUrl: '/docs/',
+
+  // Trailing slash configuration for consistent routing
+  trailingSlash: false,
 
   // GitHub pages deployment config
   organizationName: 'your-org',
@@ -108,15 +112,15 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/docs/installation',
+                to: '/installation',
               },
               {
                 label: 'Admin Guide',
-                to: '/docs/admin',
+                to: '/admin',
               },
               {
                 label: 'Architecture',
-                to: '/docs/architecture/system-architecture',
+                to: '/architecture/system-architecture',
               },
             ],
           },
@@ -125,15 +129,15 @@ const config = {
             items: [
               {
                 label: 'Release Notes',
-                to: '/docs/release-notes',
+                to: '/release-notes',
               },
               {
                 label: 'Changelog',
-                to: '/docs/changelog',
+                to: '/changelog',
               },
               {
                 label: 'Deployment Guide',
-                to: '/docs/deployment/deployment-plan',
+                to: '/deployment/deployment-plan',
               },
             ],
           },
