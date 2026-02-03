@@ -61,16 +61,17 @@ const sidebars = {
         'development/react19-patterns',
       ],
     },
-    {
-      type: 'category',
-      label: 'Guides',
-      collapsed: false,
-      items: [
-        'architecture/ARCHITECTURE',      // Consolidated architecture guide
-        'deployment/DEPLOYMENT',          // Consolidated deployment guide
-        'testing/TESTING',                // Consolidated testing guide
-      ],
-    },
+    // NOTE: Consolidated guides planned for future release
+    // {
+    //   type: 'category',
+    //   label: 'Guides',
+    //   collapsed: false,
+    //   items: [
+    //     'architecture/ARCHITECTURE',
+    //     'deployment/DEPLOYMENT',
+    //     'testing/TESTING',
+    //   ],
+    // },
     {
       type: 'category',
       label: 'Architecture (Legacy)',
