@@ -53,6 +53,16 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Development',
+      collapsed: false,
+      items: [
+        'development/index',
+        'development/api-coordination',
+        'development/react19-patterns',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Guides',
       collapsed: false,
       items: [
