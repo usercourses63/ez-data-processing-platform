@@ -52,13 +52,13 @@
 
 ### Frontend Development Workflow (Milestone 4)
 
-- [ ] **FE-01**: Frontend design tooling established (component library, design system)
-- [ ] **FE-02**: Frontend testing strategy (component tests, E2E with Playwright)
-- [ ] **FE-03**: Frontend/backend change coordination process
-- [ ] **FE-04**: React 19 best practices and patterns documented
-- [ ] **FE-05**: Docusaurus portal integrated with frontend (dual approach: inline user guide + portal link)
-- [ ] **FE-06**: Documentation link environment-aware (localhost dev, /docs in production)
-- [ ] **FE-07**: Hebrew user guide displays correctly in Docusaurus (RTL, right-justified)
+- [x] **FE-01**: Frontend design tooling established (component library, design system)
+- [x] **FE-02**: Frontend testing strategy (component tests, E2E with Playwright)
+- [x] **FE-03**: Frontend/backend change coordination process
+- [x] **FE-04**: React 19 best practices and patterns documented
+- [x] **FE-05**: Docusaurus portal integrated with frontend (dual approach: inline user guide + portal link)
+- [x] **FE-06**: Documentation link environment-aware (localhost dev, /docs in production)
+- [x] **FE-07**: Hebrew user guide displays correctly in Docusaurus (RTL, right-justified)
 
 ### Feature Development (Milestone 5)
 
@@ -143,13 +143,13 @@
 | DOC-03 | Phase 7 | Complete |
 | DOC-04 | Phase 8 | Complete |
 | DOC-05 | Phase 8 | Complete |
-| FE-01 | Phase 9 | Pending |
-| FE-02 | Phase 9 | Pending |
-| FE-03 | Phase 9 | Pending |
-| FE-04 | Phase 9 | Pending |
-| FE-05 | Phase 9 | Pending |
-| FE-06 | Phase 9 | Pending |
-| FE-07 | Phase 9 | Pending |
+| FE-01 | Phase 9 | Complete |
+| FE-02 | Phase 9 | Complete |
+| FE-03 | Phase 9 | Complete |
+| FE-04 | Phase 9 | Complete |
+| FE-05 | Phase 9 | Complete |
+| FE-06 | Phase 9 | Complete |
+| FE-07 | Phase 9 | Complete |
 | FEAT-01 | Phase 10 | Pending |
 | FEAT-02 | Phase 10 | Pending |
 | FEAT-03 | Phase 10 | Pending |
