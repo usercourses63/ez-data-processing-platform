@@ -15,7 +15,7 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 - [x] **Phase 3: Protocol Test Coverage** - Verify all 8 protocols work correctly against file-simulator (including NFS via NAS devices)
 - [x] **Phase 4: Format & Pipeline Testing** - Validate format conversions and end-to-end pipeline paths
 - [x] **Phase 5: CI/CD Foundation** - Automated builds, pipeline quality gates, version injection, and Docusaurus build
-- [ ] **Phase 6: Deployment Automation** - Helm packaging, OCP deployment, Docusaurus portal deployment, documentation workflow
+- [x] **Phase 6: Deployment Automation** - Helm packaging, OCP deployment, Docusaurus portal deployment, documentation workflow
 - [x] **Phase 7: Documentation Audit & Archive** - Audit 270+ docs, archive session logs, delete obsolete
 - [x] **Phase 8: Documentation Consolidation** - GSD as single source of truth, guides consolidated
 - [ ] **Phase 9: Frontend Development Workflow** - Design tooling, testing strategy, Docusaurus portal integration
@@ -138,10 +138,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 06-01-PLAN.md - Helm chart versioning (v0.2.0), smoke test hooks, environment values files
-- [ ] 06-02-PLAN.md - Image export script, database init hook, OCP deployment documentation
-- [ ] 06-03-PLAN.md - Rollback procedures and smoke test execution guide
-- [ ] 06-04-PLAN.md - Docusaurus /docs path routing and documentation workflow
+- [x] 06-01-PLAN.md - Helm chart versioning (v0.2.0), smoke test hooks, environment values files
+- [x] 06-02-PLAN.md - Image export script, database init hook, OCP deployment documentation
+- [x] 06-03-PLAN.md - Rollback procedures and smoke test execution guide
+- [x] 06-04-PLAN.md - Docusaurus /docs path routing and documentation workflow
 
 ### Phase 7: Documentation Audit & Archive
 **Goal**: All 401 existing documents (excluding .planning/) audited, categorized, and obsolete content archived/deleted
@@ -188,13 +188,13 @@ Plans:
   6. Frontend integrates with Docusaurus portal (dual approach: inline user guide + Help button linking to /docs)
   7. Documentation link is environment-aware (localhost:3000 in dev, /docs in production via config)
   8. Hebrew user guide in Docusaurus displays correctly (RTL layout, right-justified text verified)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 09-01: Component library and design system
-- [ ] 09-02: Playwright E2E test expansion
-- [ ] 09-03: Coordination process and React 19 patterns
-- [ ] 09-04: Docusaurus portal frontend integration
+- [ ] 09-01-PLAN.md — Component library documentation in Docusaurus MDX (FE-01)
+- [ ] 09-02-PLAN.md — Playwright E2E tests for schema management and RTL visual regression (FE-02, FE-05)
+- [ ] 09-03-PLAN.md — API coordination process and React 19 patterns documentation (FE-03, FE-04)
+- [ ] 09-04-PLAN.md — Help button Docusaurus portal integration (FE-06, FE-07)
 
 ### Phase 10: Feature Completion
 **Goal**: v0.2.0 feature work completed with documentation and tests, NAS/NFS architecture validated production-ready
@@ -230,7 +230,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 6. Deployment Automation | 4/4 | Complete | 2026-02-03 |
 | 7. Documentation Audit & Archive | 2/2 | Complete | 2026-02-02 |
 | 8. Documentation Consolidation | 3/3 | Complete | 2026-02-02 |
-| 9. Frontend Development Workflow | 0/4 | Not started | - |
+| 9. Frontend Development Workflow | 0/4 | Planned | - |
 | 10. Feature Completion | 0/3 | Not started | - |
 
 ---
@@ -244,5 +244,6 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 *Phase 4 planned: 2026-02-02 (3 plans in 3 waves)*
 *Phase 5 planned: 2026-02-02 (3 plans in 3 waves)*
 *Phase 6 planned: 2026-02-03 (4 plans in 2 waves)*
+*Phase 9 planned: 2026-02-03 (4 plans in 2 waves)*
 *Depth: Comprehensive (10 phases)*
 *Total requirements: 45 | Mapped: 45*
