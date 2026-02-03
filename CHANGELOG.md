@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-02-03
+
+### Added
+
+#### NAS Device Management
+- **NAS Device CRUD**: Configure NAS devices via Admin UI with name, host, export path, and role
+- **Automatic Provisioning**: Kubernetes PV/PVC creation when device is provisioned
+- **Connection Testing**: Verify NAS accessibility through Test Connection button
+- **Device Roles**: Input (blue), Output (green), Backup (orange), Both (purple) color coding
+- **Mount Status**: Real-time indication of PVC mount state in UI
+
+#### Archive Extraction Support
+- **Multi-Format Archives**: Support for ZIP, TAR.GZ, RAR, 7Z archive formats
+- **Extraction Patterns**: Filter files within archives using glob patterns (e.g., *.csv)
+- **Password Protection**: Support for password-protected archives
+- **Nested Archives**: Configurable extraction of archives within archives
+- **Security Controls**: Max file size, entry count, and depth limits (zip bomb protection)
+
+#### Protocol Test Coverage
+- **FTP/SFTP/HTTP Tests**: 8 connector tests with file-simulator integration
+- **S3/SMB Tests**: 6 tests for object storage and network share protocols
+- **NFS/Kafka Tests**: 12 tests covering streaming and mount-based access
+- **Local Tests**: 6 tests with OCP-Incompatible trait for reference
+
+#### CI/CD Automation
+- **Docker Build Script**: Parallel builds with version injection (scripts/build-all-images.ps1)
+- **GitHub Actions Pipeline**: Multi-job CI with build, test, docker stages
+- **Helm Charts v0.2.0**: Both standard and OCP-compatible charts updated
+- **Smoke Tests**: helm test hook validates all 10 services
+
+#### Documentation
+- **Docusaurus Portal**: Complete documentation portal with /docs routing
+- **Component Documentation**: React component guides (DataSource forms, Schema editor, NAS devices)
+- **Development Guides**: API coordination, React 19 patterns
+- **Hebrew User Guide**: Updated with NAS and archive sections (user-guide-he.mdx)
+
+#### E2E Test Coverage
+- **NAS Device Tests**: CRUD, provisioning, connection testing, visual regression
+- **AdminServer Tests**: Server CRUD, bulk operations, server-datasource linking
+- **Archive Tests**: Settings UI, protocol coverage for all 5 protocols
+- **Visual Regression**: RTL baselines for new UI components
+
+### Changed
+- **Connection Tab**: Uses server-based configuration for all protocols
+- **NFS Protocol**: Renamed to NAS in UI (NFS is implementation detail)
+- **Archive Extraction**: Centralized in FileProcessor service (connectors just fetch bytes)
+- **Helm Charts**: Version 0.2.0 with environment overlays (values-dev.yaml, values-prod.yaml)
+- **Docusaurus**: baseUrl changed to '/docs/' for path-based deployment
+
+### Deprecated
+- **AdditionalConfiguration**: Use FileServerId instead for server-based datasources
+
+### Removed
+- **Standalone NFS Protocol**: NFS option removed from connection dropdown (use NAS instead)
+
+### Security
+- **Archive Security Settings**: Max file size, max entry count, max depth limits
+- **RBAC Manifests**: Kubernetes PV/PVC operations scoped to ez-platform namespace
+- **OCP Security Contexts**: Non-root users, read-only root filesystem, dropped capabilities
+
+### Fixed
+- **NFS Mount Path**: Dynamic computation for PVC-based mounts
+- **Archive Extraction**: Proper security controls prevent zip bomb attacks
+
+---
+
 ## [0.1.1-rc3] - 2026-01-12
 
 ### Fixed
@@ -123,7 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v0.2.0
+### Planned for v0.3.0
 - User authentication and authorization
 - Multi-tenancy support
 - Advanced scheduling options
@@ -132,4 +198,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-**For detailed release notes:** See [docs/releases/RELEASE-NOTES-v0.1.0-beta.md](docs/releases/RELEASE-NOTES-v0.1.0-beta.md)
+**For detailed release notes:** See [release-package/docs-docusaurus/docs/release-notes.md](release-package/docs-docusaurus/docs/release-notes.md)
