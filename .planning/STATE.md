@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 9 of 10 (Frontend Development Workflow)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-02-03 -- Completed 09-03-PLAN.md (Development Guides Documentation)
+Plan: 4 of 4 in current phase
+Status: Phase complete
+Last activity: 2026-02-03 -- Completed 09-04-PLAN.md (Help/Docs Portal Integration)
 
-Progress: [############################-] 88% (8.75 of 10 phases)
+Progress: [#############################] 90% (9 of 10 phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28
+- Total plans completed: 29
 - Average duration: 4.9 min
-- Total execution time: 2.38 hours
+- Total execution time: 2.48 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [############################-] 88% (8.75 of 10 phases)
 | 05-cicd-foundation | 3 | 9 min | 3.0 min |
 | 06-deployment-automation | 4 | 14 min | 3.5 min |
 | 07-documentation-audit | 2 | 15 min | 7.5 min |
-| 09-frontend-development | 3 | 14 min | 4.7 min |
+| 09-frontend-development | 4 | 20 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-04 (4 min), 09-01 (6 min), 09-02 (4 min), 09-03 (4 min)
-- Trend: Consistent ~4-5 min/plan
+- Last 5 plans: 09-01 (6 min), 09-02 (4 min), 09-03 (4 min), 09-04 (6 min)
+- Trend: Consistent ~5 min/plan
 
 *Updated after each plan completion*
 
@@ -101,14 +101,17 @@ Recent decisions affecting current work:
 - [09-03]: 2-release deprecation period for breaking API changes
 - [09-03]: React Query preferred over useActionState for data fetching
 - [09-03]: .ltr-field CSS class for technical content in RTL mode
+- [09-04]: Runtime URL detection for docs (localhost:3000/docs in dev, /docs in prod)
+- [09-04]: MDX format for Hebrew user guide (better RTL component support than MD)
+- [09-04]: Technical content kept LTR in RTL documents for readability
 
 ### Pending Todos
 
-1. **Update Hebrew user guide and release docs for Docusaurus** (docs)
-   - Hebrew RTL user guide must reflect all frontend changes
-   - Release documentation needs updating for v0.2.0
+1. **Release documentation needs updating for v0.2.0** (docs)
+   - Release notes and changelog for v0.2.0
    - Package everything in Docusaurus portal
-   - Target: After Phase 9-10 completion, before v0.2.0 release
+   - Target: Phase 10, before v0.2.0 release
+   - Note: Hebrew user guide already updated (09-04)
 
 ### Blockers/Concerns
 
@@ -122,9 +125,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T07:43:00Z
-Stopped at: Completed 09-03-PLAN.md (Development Guides Documentation)
-Resume file: None - continue with 09-04-PLAN.md
+Last session: 2026-02-03T07:45:38Z
+Stopped at: Completed 09-04-PLAN.md (Help/Docs Portal Integration)
+Resume file: None - Phase 9 complete, continue with Phase 10
 
 ## Phase 1 Summary
 
@@ -328,13 +331,13 @@ Phase 6 (Deployment Automation) is COMPLETE (all 4 plans):
 - Rollback: `helm rollback` with `--history-max 3` retention
 - Docs routing: /docs path on both K8s Ingress and OCP Route
 
-## Phase 9 Summary (IN PROGRESS)
+## Phase 9 Summary (COMPLETE)
 
-Phase 9 (Frontend Development Workflow) is IN PROGRESS (3 of 4 plans):
+Phase 9 (Frontend Development Workflow) is COMPLETE (all 4 plans):
 - Plan 09-01: Component Documentation (COMPLETE)
 - Plan 09-02: E2E Test Expansion (COMPLETE)
 - Plan 09-03: Development Guides Documentation (COMPLETE)
-- Plan 09-04: Frontend Validation (PENDING)
+- Plan 09-04: Help/Docs Portal Integration (COMPLETE)
 
 **Key Artifacts (09-01):**
 - `release-package/docs-docusaurus/docs/components/index.md` - Component library landing page (157 lines)
@@ -356,15 +359,23 @@ Phase 9 (Frontend Development Workflow) is IN PROGRESS (3 of 4 plans):
 - `release-package/docs-docusaurus/docs/development/react19-patterns.md` - React 19 patterns guide (584 lines)
 - `release-package/docs-docusaurus/sidebars.js` - Updated with Development category
 
+**Key Artifacts (09-04):**
+- `src/Frontend/src/utils/docs-url.ts` - Runtime environment detection for docs URLs (89 lines)
+- `src/Frontend/src/components/layout/AppHeader.tsx` - Help button with portal link
+- `src/Frontend/tests/e2e/help-integration.spec.ts` - Help integration E2E tests (249 lines)
+- `release-package/docs-docusaurus/docs/user-guide-he.mdx` - Hebrew user guide with RTL layout (813 lines)
+
 **Test State:**
 - Schema management: 20+ test cases (CRUD, filters, templates, RTL)
 - RTL visual regression: Document-level assertions, component screenshots
+- Help integration: Button visibility, new tab, URL detection, RTL/LTR modes
 - Visual regression baselines: Created on first test run
 - Threshold: 30% pixel difference for dynamic content
 
 **Documentation State:**
 - API coordination: Contract-first, versioning, checklist, pitfalls
 - React 19 patterns: Suspense, hooks, React Query, RTL, anti-patterns
+- Hebrew user guide: Updated to v0.2.0 with NAS/NFS section, RTL MDX layout
 
 ## Completed Phases
 
@@ -377,7 +388,7 @@ Phase 9 (Frontend Development Workflow) is IN PROGRESS (3 of 4 plans):
 | 05 | CI/CD Foundation | 3/3 | COMPLETE |
 | 06 | Deployment Automation | 4/4 | COMPLETE |
 | 07 | Documentation Audit & Archive | 2/2 | COMPLETE |
-| 09 | Frontend Development Workflow | 2/4 | IN PROGRESS |
+| 09 | Frontend Development Workflow | 4/4 | COMPLETE |
 
 **Next:**
-Continue with Phase 9 plans 03-04, then Phase 10: Release & Polish.
+Continue with Phase 10: Release & Polish.
