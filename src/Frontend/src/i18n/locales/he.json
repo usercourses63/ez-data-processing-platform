@@ -466,6 +466,9 @@
       "validation": "כללי אימות",
       "notifications": "הגדרות התראות"
     },
+    "protocols": {
+      "nas": "NAS - אחסון רשת"
+    },
     "fields": {
       "name": "שם מקור הנתונים",
       "supplier": "ספק",
@@ -485,6 +488,8 @@
       "connectionType": "סוג פרוטוקול",
       "configMode": "אופן הגדרה",
       "inputServer": "שרת קלט",
+      "nasDevice": "התקן NAS",
+      "nasSubPath": "נתיב משנה בתוך הייצוא",
       "s3Bucket": "Bucket / Prefix",
       "kafkaTopic": "Topic",
       "kafkaConsumerGroup": "Consumer Group",
@@ -496,10 +501,30 @@
     },
     "sections": {
       "serverSelection": "בחירת שרת",
+      "nasDeviceSelection": "בחירת התקן NAS",
       "pathSettings": "הגדרות נתיב",
+      "nasPathSettings": "הגדרות נתיב NAS",
       "httpSettings": "הגדרות HTTP",
       "kafkaSettings": "הגדרות Kafka",
       "archiveSettings": "הגדרות ארכיון"
+    },
+    "nasNotMounted": "לא מחובר",
+    "nasProvisioning": "מתקין...",
+    "noNasDevices": "אין התקני NAS זמינים",
+    "noNasDevicesFound": "לא נמצאו התקני NAS",
+    "loadingNasDevices": "טוען התקני NAS...",
+    "selectNasDevice": "בחר התקן NAS...",
+    "devicesAvailable": "התקנים זמינים",
+    "nasDeviceSelected": "התקן NAS נבחר",
+    "nasMountPath": "נתיב Mount",
+    "computedMountPath": "נתיב Mount מלא",
+    "tooltips": {
+      "nasDevice": "בחר התקן NAS שהוגדר על ידי מנהל המערכת",
+      "nasSubPath": "נתיב יחסי בתוך נתיב הייצוא של ה-NAS",
+      "archiveType": "בחר את סוג הארכיון או השאר על אוטומטי לזיהוי לפי סיומת הקובץ",
+      "archivePassword": "סיסמה לפתיחת ארכיונים מוגנים (אופציונלי)",
+      "extractionPattern": "תבנית לסינון קבצים בתוך הארכיון. דוגמה: *.csv לחילוץ רק קבצי CSV",
+      "processNestedArchives": "אם מופעל, יעבד גם ארכיונים הנמצאים בתוך ארכיונים אחרים"
     },
     "archive": {
       "description": "הגדר כיצד לטפל בקבצי ארכיון דחוסים (ZIP, TAR.GZ, RAR, 7Z)",
@@ -512,14 +537,9 @@
         "7z": "7-Zip (.7z)"
       }
     },
-    "tooltips": {
-      "archiveType": "בחר את סוג הארכיון או השאר על אוטומטי לזיהוי לפי סיומת הקובץ",
-      "archivePassword": "סיסמה לפתיחת ארכיונים מוגנים (אופציונלי)",
-      "extractionPattern": "תבנית לסינון קבצים בתוך הארכיון. דוגמה: *.csv לחילוץ רק קבצי CSV",
-      "processNestedArchives": "אם מופעל, יעבד גם ארכיונים הנמצאים בתוך ארכיונים אחרים"
-    },
     "errors": {
       "serverRequired": "חובה לבחור שרת",
+      "nasDeviceRequired": "חובה לבחור התקן NAS",
       "invalidExtractionPattern": "תבנית חילוץ לא תקינה. דוגמאות: *.csv, data_*.json, *.*"
     },
     "noServersForProtocol": "אין שרתי {{protocol}} זמינים",

@@ -3,17 +3,18 @@
  * v0.2.0: Server-based configuration ONLY (no manual mode)
  *
  * Flow:
- * 1. Select connection protocol (FTP, SFTP, HTTP, Kafka, S3, NFS)
+ * 1. Select connection protocol (FTP, SFTP, HTTP, Kafka, S3, NAS)
  * 2. Select from compatible servers (configured by admin)
  * 3. Enter applicative settings (path, pattern, topic, etc.)
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Form, Input, Select, Button, Space, Alert, Row, Col, Tag, Divider, Typography } from 'antd';
 import { FormInstance } from 'antd/es/form';
-import { ApiOutlined, FileOutlined, CheckCircleOutlined, CloseCircleOutlined, CloudServerOutlined, DatabaseOutlined, WarningOutlined } from '@ant-design/icons';
+import { ApiOutlined, FileOutlined, CheckCircleOutlined, CloseCircleOutlined, CloudServerOutlined, DatabaseOutlined, WarningOutlined, HddOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { KAFKA_OFFSET_RESET } from '../shared/constants';
 import { getInputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
+import { getNasDevices, nasDeviceQueryKeys, NasDevice } from '../../../services/nas-devices-api-client';
 import { ArchiveSettingsSection } from './sections/ArchiveSettingsSection';
 
 const { Option } = Select;
@@ -34,18 +35,18 @@ const serverTypeIcons: Record<string, React.ReactNode> = {
   sftp: <ApiOutlined />,
   s3: <CloudServerOutlined />,
   http: <ApiOutlined />,
-  nfs: <FileOutlined />,
+  nas: <HddOutlined />,
   kafka: <DatabaseOutlined />,
 };
 
-// Protocol to server type mapping
+// Protocol to server type mapping (NAS replaces NFS - NFS is internal to NAS)
 const protocolToServerType: Record<string, string> = {
   'FTP': 'ftp',
   'SFTP': 'sftp',
   'HTTP': 'http',
   'Kafka': 'kafka',
   'S3': 's3',
-  'NFS': 'nfs',
+  'NAS': 'nas',
 };
 
 export const ConnectionTab: React.FC<ConnectionTabProps> = ({
@@ -56,19 +57,28 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   connectionTestResult,
   onTestConnection
 }) => {
-  // Fetch available input servers
+  // Fetch available input servers (for non-NAS protocols)
   const { data: inputServers = [], isLoading: loadingServers } = useQuery({
     queryKey: serverQueryKeys.list('input'),
     queryFn: getInputServers,
+    enabled: connectionType !== 'NAS',
+  });
+
+  // Fetch NAS devices (for NAS protocol)
+  const { data: nasDevices = [], isLoading: loadingNasDevices } = useQuery({
+    queryKey: nasDeviceQueryKeys.list(),
+    queryFn: () => getNasDevices(),
+    enabled: connectionType === 'NAS',
   });
 
   // Watch form fields
   const inputServerId = Form.useWatch('inputServerId', form);
+  const nasDeviceId = Form.useWatch('nasDeviceId', form);
   const isArchiveSource = Form.useWatch('isArchiveSource', form);
 
-  // Filter servers based on selected protocol
+  // Filter servers based on selected protocol (for non-NAS protocols)
   const compatibleServers = useMemo(() => {
-    if (!connectionType) return [];
+    if (!connectionType || connectionType === 'NAS') return [];
     const serverType = protocolToServerType[connectionType]?.toLowerCase();
     if (!serverType) return [];
 
@@ -78,17 +88,56 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
     );
   }, [connectionType, inputServers]);
 
-  // Get selected server details
+  // Get selected server details (for non-NAS protocols)
   const selectedServer = useMemo(() => {
-    if (!inputServerId) return null;
+    if (!inputServerId || connectionType === 'NAS') return null;
     return inputServers.find((s: AdminServer) => s.ID === inputServerId) || null;
-  }, [inputServerId, inputServers]);
+  }, [inputServerId, inputServers, connectionType]);
+
+  // Filter NAS devices - show mounted devices as enabled, unmounted as disabled
+  const availableNasDevices = useMemo(() => {
+    if (connectionType !== 'NAS') return [];
+    // Filter devices that can be input sources (Input or Both roles)
+    return nasDevices.filter((device: NasDevice) =>
+      device.Role === 'Input' || device.Role === 'Both'
+    );
+  }, [connectionType, nasDevices]);
+
+  // Get selected NAS device details
+  const selectedNasDevice = useMemo(() => {
+    if (!nasDeviceId || connectionType !== 'NAS') return null;
+    return nasDevices.find((d: NasDevice) => d.ID === nasDeviceId) || null;
+  }, [nasDeviceId, nasDevices, connectionType]);
+
+  // Check if NAS device is mounted (provisioned)
+  const isNasDeviceMounted = (device: NasDevice): boolean => {
+    return device.IsPvCreated && device.IsPvcBound;
+  };
 
   // Check if servers are available for the selected protocol
-  const hasCompatibleServers = compatibleServers.length > 0;
+  const hasCompatibleServers = connectionType === 'NAS'
+    ? availableNasDevices.length > 0
+    : compatibleServers.length > 0;
 
   // Effective connection type (normalized to lowercase)
   const effectiveConnectionType = connectionType?.toLowerCase();
+
+  // Clear dependent fields when protocol changes
+  useEffect(() => {
+    if (connectionType !== 'NAS') {
+      // Clear NAS-specific fields when switching away from NAS
+      form.setFieldsValue({
+        nasDeviceId: undefined,
+        nasExportPath: undefined,
+        nasSubPath: undefined,
+      });
+    } else {
+      // Clear server-specific fields when switching to NAS
+      form.setFieldsValue({
+        inputServerId: undefined,
+      });
+    }
+  }, [connectionType, form]);
 
   return (
     <>
@@ -149,28 +198,39 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
               S3 - Object Storage (MinIO)
             </Space>
           </Option>
-          <Option value="NFS">
+          <Option value="NAS">
             <Space>
-              <FileOutlined />
-              NFS - Network File System
+              <HddOutlined />
+              {t('datasources.protocols.nas') || 'NAS - Network Attached Storage'}
             </Space>
           </Option>
         </Select>
       </Form.Item>
 
-      {/* Step 2: Server Selection - Only show after protocol selected */}
+      {/* Step 2: Server/Device Selection - Only show after protocol selected */}
       {connectionType && (
         <>
-          <Divider>{t('datasources.sections.serverSelection') || 'בחירת שרת'}</Divider>
+          <Divider>
+            {connectionType === 'NAS'
+              ? (t('datasources.sections.nasDeviceSelection') || 'בחירת התקן NAS')
+              : (t('datasources.sections.serverSelection') || 'בחירת שרת')
+            }
+          </Divider>
 
           {!hasCompatibleServers ? (
             <Alert
-              message={`אין שרתי ${connectionType} זמינים`}
+              message={connectionType === 'NAS'
+                ? (t('datasources.noNasDevices') || 'אין התקני NAS זמינים')
+                : `אין שרתי ${connectionType} זמינים`
+              }
               description={
                 <Space direction="vertical" size="small">
                   <Text>{t('datasources.noServersHint') || 'פנה למנהל המערכת להוספת שרת מתאים'}</Text>
                   <Text type="secondary">
-                    {t('navigation.adminSettings') || 'הגדרות מערכת'} → {t('admin.tabs.inputServers') || 'שרתי קלט'}
+                    {t('navigation.adminSettings') || 'הגדרות מערכת'} → {connectionType === 'NAS'
+                      ? (t('admin.tabs.nasDevices') || 'התקני NAS')
+                      : (t('admin.tabs.inputServers') || 'שרתי קלט')
+                    }
                   </Text>
                 </Space>
               }
@@ -188,7 +248,77 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                 </Button>
               }
             />
+          ) : connectionType === 'NAS' ? (
+            /* NAS Device Selection */
+            <Form.Item
+              name="nasDeviceId"
+              label={
+                <Space>
+                  <HddOutlined />
+                  {t('datasources.fields.nasDevice') || 'התקן NAS'}
+                  <Tag color="blue">
+                    {availableNasDevices.filter(d => isNasDeviceMounted(d)).length} {t('datasources.devicesAvailable') || 'התקנים זמינים'}
+                  </Tag>
+                </Space>
+              }
+              rules={[
+                {
+                  required: true,
+                  message: t('datasources.errors.nasDeviceRequired') || 'חובה לבחור התקן NAS'
+                }
+              ]}
+              tooltip={t('datasources.tooltips.nasDevice') || 'בחר התקן NAS שהוגדר על ידי מנהל המערכת'}
+            >
+              <Select
+                placeholder={
+                  loadingNasDevices
+                    ? (t('datasources.loadingNasDevices') || 'טוען התקני NAS...')
+                    : (t('datasources.selectNasDevice') || 'בחר התקן NAS...')
+                }
+                loading={loadingNasDevices}
+                disabled={loadingNasDevices}
+                allowClear
+                showSearch
+                optionFilterProp="children"
+                notFoundContent={
+                  loadingNasDevices ? (
+                    <Space>
+                      <span role="status" aria-live="polite">
+                        {t('datasources.loadingNasDevices') || 'טוען התקני NAS...'}
+                      </span>
+                    </Space>
+                  ) : (
+                    t('datasources.noNasDevicesFound') || 'לא נמצאו התקני NAS'
+                  )
+                }
+              >
+                {availableNasDevices.map((device: NasDevice) => {
+                  const isMounted = isNasDeviceMounted(device);
+                  return (
+                    <Option
+                      key={device.ID}
+                      value={device.ID}
+                      disabled={!isMounted}
+                    >
+                      <Space>
+                        <HddOutlined style={{ color: isMounted ? '#52c41a' : '#faad14' }} />
+                        {device.Name}
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          ({device.Host}:{device.Port})
+                        </Text>
+                        {!isMounted && (
+                          <Tag color="warning" style={{ marginLeft: 8 }}>
+                            {t('datasources.nasNotMounted') || 'לא מחובר'}
+                          </Tag>
+                        )}
+                      </Space>
+                    </Option>
+                  );
+                })}
+              </Select>
+            </Form.Item>
           ) : (
+            /* Standard Server Selection (non-NAS protocols) */
             <Form.Item
               name="inputServerId"
               label={
@@ -246,8 +376,8 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
             </Form.Item>
           )}
 
-          {/* Show server info when selected */}
-          {selectedServer && (
+          {/* Show server info when selected (non-NAS) */}
+          {selectedServer && connectionType !== 'NAS' && (
             <Alert
               message={`שרת נבחר: ${selectedServer.Name}`}
               description={
@@ -263,14 +393,88 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
               style={{ marginBottom: 16 }}
             />
           )}
+
+          {/* Show NAS device info when selected */}
+          {selectedNasDevice && connectionType === 'NAS' && (
+            <Alert
+              message={`${t('datasources.nasDeviceSelected') || 'התקן NAS נבחר'}: ${selectedNasDevice.Name}`}
+              description={
+                <Space direction="vertical" size={0}>
+                  <Text>{t('admin.nas.fields.host') || 'שרת'}: {selectedNasDevice.Host}:{selectedNasDevice.Port}</Text>
+                  <Text>{t('admin.nas.fields.exportPath') || 'נתיב ייצוא'}: {selectedNasDevice.ExportPath}</Text>
+                  <Text>
+                    {t('datasources.nasMountPath') || 'נתיב Mount'}:{' '}
+                    <Text code className="ltr-field">/mnt/nfs/{selectedNasDevice.Name.toLowerCase().replace(/\s+/g, '-')}{selectedNasDevice.ExportPath}</Text>
+                  </Text>
+                  {selectedNasDevice.Description && <Text type="secondary">{selectedNasDevice.Description}</Text>}
+                </Space>
+              }
+              type="success"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+          )}
         </>
       )}
 
-      {/* Step 3: Applicative Fields - Only show when server selected */}
-      {selectedServer && (
+      {/* Step 3: Applicative Fields - Only show when server/device selected */}
+      {(selectedServer || selectedNasDevice) && (
         <>
-          {/* ========== FILE-BASED PROTOCOLS (Local, FTP, SFTP, S3, NFS) ========== */}
-          {effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && (
+          {/* ========== NAS PROTOCOL - Path within export ========== */}
+          {effectiveConnectionType === 'nas' && selectedNasDevice && (
+            <>
+              <Divider>{t('datasources.sections.nasPathSettings') || 'הגדרות נתיב NAS'}</Divider>
+
+              <Form.Item
+                name="nasSubPath"
+                label={t('datasources.fields.nasSubPath') || 'נתיב משנה בתוך הייצוא'}
+                tooltip={t('datasources.tooltips.nasSubPath') || 'נתיב יחסי בתוך נתיב הייצוא של ה-NAS'}
+                rules={[{ required: false }]}
+              >
+                <Input
+                  className="ltr-field"
+                  placeholder="/sales/daily/"
+                  addonBefore={
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      {selectedNasDevice.ExportPath}
+                    </Text>
+                  }
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="filePattern"
+                label={t('datasources.fields.filePattern') || 'תבנית קובץ (File Pattern)'}
+                initialValue="*.*"
+                rules={[
+                  { required: true, message: t('errors.required') },
+                  {
+                    pattern: /^(\*\.[\w]+|\*\.\*|[\w-]+_\*\.[\w]+|[\w-]+\.[\w]+)$/,
+                    message: 'תבנית לא תקינה. דוגמאות: *.csv, *.*, data_*.xml'
+                  }
+                ]}
+                tooltip="תבנית לסינון קבצים. דוגמאות: *.csv (כל קבצי CSV), *.* (כל הקבצים)"
+              >
+                <Input className="ltr-field" placeholder="*.csv, *.json, data_*.xml, *.*" />
+              </Form.Item>
+
+              {/* Display computed full mount path */}
+              <Alert
+                message={t('datasources.computedMountPath') || 'נתיב Mount מלא'}
+                description={
+                  <Text code className="ltr-field">
+                    /mnt/nfs/{selectedNasDevice.Name.toLowerCase().replace(/\s+/g, '-')}{selectedNasDevice.ExportPath}
+                    {form.getFieldValue('nasSubPath') || ''}
+                  </Text>
+                }
+                type="info"
+                style={{ marginBottom: 16 }}
+              />
+            </>
+          )}
+
+          {/* ========== FILE-BASED PROTOCOLS (FTP, SFTP, S3) - NOT NAS ========== */}
+          {effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && effectiveConnectionType !== 'nas' && (
             <>
               <Divider>{t('datasources.sections.pathSettings') || 'הגדרות נתיב'}</Divider>
 
@@ -371,8 +575,8 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
         </>
       )}
 
-      {/* Archive Settings - Only for file-based protocols (not Kafka/HTTP) */}
-      {selectedServer && effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && (
+      {/* Archive Settings - Only for file-based protocols (not Kafka/HTTP), including NAS */}
+      {(selectedServer || selectedNasDevice) && effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && (
         <ArchiveSettingsSection
           form={form}
           t={t}
@@ -388,18 +592,18 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
             icon={<ApiOutlined />}
             onClick={onTestConnection}
             loading={testingConnection}
-            disabled={!selectedServer}
+            disabled={!selectedServer && !selectedNasDevice}
           >
-            בדוק חיבור
+            {t('datasources.form.testConnection') || 'בדוק חיבור'}
           </Button>
           {connectionTestResult === 'success' && (
             <Tag icon={<CheckCircleOutlined />} color="success">
-              חיבור הצליח
+              {t('datasources.form.connectionSuccess') || 'חיבור הצליח'}
             </Tag>
           )}
           {connectionTestResult === 'failed' && (
             <Tag icon={<CloseCircleOutlined />} color="error">
-              חיבור נכשל
+              {t('datasources.form.connectionFailed') || 'חיבור נכשל'}
             </Tag>
           )}
         </Space>

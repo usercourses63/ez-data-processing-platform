@@ -47,6 +47,9 @@
       "validation": "Validation Rules",
       "notifications": "Notification Settings"
     },
+    "protocols": {
+      "nas": "NAS - Network Attached Storage"
+    },
     "fields": {
       "name": "Data Source Name",
       "supplierName": "Supplier Name",
@@ -59,6 +62,8 @@
       "createdAt": "Created Date",
       "updatedAt": "Updated Date",
       "inputServer": "Input Server",
+      "nasDevice": "NAS Device",
+      "nasSubPath": "Sub-path within export",
       "archiveType": "Archive Type",
       "archivePassword": "Archive Password",
       "extractionPattern": "Extraction Pattern",
@@ -66,8 +71,28 @@
     },
     "sections": {
       "serverSelection": "Server Selection",
+      "nasDeviceSelection": "NAS Device Selection",
       "pathSettings": "Path Settings",
+      "nasPathSettings": "NAS Path Settings",
       "archiveSettings": "Archive Settings"
+    },
+    "nasNotMounted": "Not mounted",
+    "nasProvisioning": "Provisioning...",
+    "noNasDevices": "No NAS devices available",
+    "noNasDevicesFound": "No NAS devices found",
+    "loadingNasDevices": "Loading NAS devices...",
+    "selectNasDevice": "Select NAS device...",
+    "devicesAvailable": "devices available",
+    "nasDeviceSelected": "NAS device selected",
+    "nasMountPath": "Mount Path",
+    "computedMountPath": "Computed Mount Path",
+    "tooltips": {
+      "nasDevice": "Select a NAS device configured by system administrator",
+      "nasSubPath": "Relative path within the NAS export path",
+      "archiveType": "Select archive type or leave on auto to detect by file extension",
+      "archivePassword": "Password for protected archives (optional)",
+      "extractionPattern": "Pattern to filter files inside the archive. Example: *.csv to extract only CSV files",
+      "processNestedArchives": "If enabled, will also process archives found inside other archives"
     },
     "archive": {
       "description": "Configure how to handle compressed archive files (ZIP, TAR.GZ, RAR, 7Z)",
@@ -80,14 +105,9 @@
         "7z": "7-Zip (.7z)"
       }
     },
-    "tooltips": {
-      "archiveType": "Select archive type or leave on auto to detect by file extension",
-      "archivePassword": "Password for protected archives (optional)",
-      "extractionPattern": "Pattern to filter files inside the archive. Example: *.csv to extract only CSV files",
-      "processNestedArchives": "If enabled, will also process archives found inside other archives"
-    },
     "errors": {
       "serverRequired": "Server selection is required",
+      "nasDeviceRequired": "NAS device selection is required",
       "invalidExtractionPattern": "Invalid extraction pattern. Examples: *.csv, data_*.json, *.*"
     },
     "noServersForProtocol": "No {{protocol}} servers available",

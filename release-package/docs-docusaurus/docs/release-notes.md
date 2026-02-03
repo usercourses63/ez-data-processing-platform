@@ -135,10 +135,10 @@ kubectl auth can-i create persistentvolumes --as=system:serviceaccount:ez-platfo
 
 | Metric | Target | Notes |
 |--------|--------|-------|
-| File processing | <1s per 100-record file | Standard file sizes |
-| NAS mount time | <5s | Initial PVC bind |
-| Cache hit rate | >95% | Hazelcast efficiency |
-| P99 API latency | <500ms | End-user experience |
+| File processing | &lt;1s per 100-record file | Standard file sizes |
+| NAS mount time | &lt;5s | Initial PVC bind |
+| Cache hit rate | &gt;95% | Hazelcast efficiency |
+| P99 API latency | &lt;500ms | End-user experience |
 
 ---
 
