@@ -200,6 +200,176 @@ EZ Platform is a microservices-based data processing platform that provides:
 
 ---
 
+## NAS/NFS Storage Architecture
+
+### Overview
+
+EZ Platform v0.2.0 introduces dynamic NAS device management, enabling administrators to configure Network Attached Storage devices that are automatically provisioned as Kubernetes PersistentVolumes.
+
+Key capabilities:
+- **Dynamic PV/PVC creation** via Kubernetes API
+- **NFS protocol** for network file access
+- **Role-based device assignment** (Input/Output/Both/Backup)
+- **Real-time mount status monitoring**
+- **Connection testing** before provisioning
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         NAS DEVICE ARCHITECTURE                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  ┌──────────────┐           ┌──────────────────────┐           ┌──────────────┐
+  │   Admin UI   │           │    DataSource        │           │   K8s API    │
+  │   (React)    │──────────►│    Management        │──────────►│   Server     │
+  │              │   REST    │    Service (5001)    │   K8s     │              │
+  └──────────────┘   API     └──────────────────────┘   Client  └──────────────┘
+         │                            │                              │
+         │ CRUD                       │ Provision                    │ Create
+         │ Operations                 │ Request                      │ PV/PVC
+         ▼                            ▼                              ▼
+  ┌──────────────┐           ┌──────────────────────┐           ┌──────────────┐
+  │   MongoDB    │           │   NasResource        │           │  NFS Mount   │
+  │  (NasDevice) │           │   Service            │           │  in Pods     │
+  └──────────────┘           └──────────────────────┘           └──────────────┘
+         │                                                            │
+         │                    ┌──────────────────────┐                │
+         └───────────────────►│   File Processing    │◄───────────────┘
+                              │   Services           │
+                              │   (Discovery,        │
+                              │    Processor)        │
+                              └──────────────────────┘
+```
+
+### NasDevice Entity
+
+The `NasDevice` entity stores NAS device configuration and provisioning status:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| Name | string | Display name for the NAS device |
+| Host | string | NFS server hostname or IP address |
+| Port | int | NFS server port (default: 2049) |
+| ExportPath | string | NFS export path (e.g., `/exports/data`) |
+| Role | enum | Input, Output, Both, or Backup |
+| StorageCapacity | string | Storage size (e.g., "100Gi") |
+| AccessMode | string | ReadWriteOnce, ReadOnlyMany, ReadWriteMany |
+| MountOptions | List&lt;string&gt; | NFS mount options (nfsvers, tcp, hard, intr) |
+| IsPvCreated | bool | PersistentVolume created in K8s |
+| IsPvcBound | bool | PersistentVolumeClaim bound to PV |
+| IsActive | bool | Device enabled for use |
+
+**Computed Properties:**
+- `PvName`: `{name-lowercase}-pv`
+- `PvcName`: `{name-lowercase}-pvc`
+- `MountPath`: `/mnt/{name-lowercase}`
+- `IsProvisioned`: `IsPvCreated && IsPvcBound`
+- `CanBeInput`: Role is Input or Both
+- `CanBeOutput`: Role is Output or Both
+
+### Device Roles
+
+| Role | Color | Input | Output | Use Case |
+|------|-------|-------|--------|----------|
+| **Input** | Blue | Yes | No | Source files for processing |
+| **Output** | Green | No | Yes | Processed file destination |
+| **Backup** | Orange | No | Yes | Archive/backup storage |
+| **Both** | Purple | Yes | Yes | General purpose storage |
+
+### Provisioning Workflow
+
+1. **Admin creates NasDevice** via UI or API (saved to MongoDB)
+2. **Admin clicks "Provision"** button in UI
+3. **NasResourceService creates PersistentVolume**:
+   ```yaml
+   apiVersion: v1
+   kind: PersistentVolume
+   metadata:
+     name: nfs-pv-{deviceName}
+   spec:
+     capacity:
+       storage: {storageCapacity}
+     accessModes:
+       - {accessMode}
+     nfs:
+       server: {host}
+       path: {exportPath}
+     mountOptions:
+       - nfsvers=3
+       - tcp
+       - hard
+       - intr
+   ```
+4. **NasResourceService creates PersistentVolumeClaim**:
+   ```yaml
+   apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata:
+     name: nfs-pvc-{deviceName}
+     namespace: ez-platform
+   spec:
+     accessModes:
+       - {accessMode}
+     resources:
+       requests:
+         storage: {storageCapacity}
+     volumeName: nfs-pv-{deviceName}
+   ```
+5. **Status updated** in MongoDB: `IsPvCreated=true`, `IsPvcBound=true`
+6. **File processing pods** can now mount the PVC at `/mnt/{deviceName}`
+
+### RBAC Requirements
+
+The DataSourceManagement service requires Kubernetes RBAC permissions to manage PV/PVC resources:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nas-device-manager
+rules:
+- apiGroups: [""]
+  resources: ["persistentvolumes"]
+  verbs: ["create", "get", "list", "delete", "watch"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["create", "get", "list", "delete", "watch"]
+```
+
+**Applied via:** `k8s/rbac/nas-device-rbac.yaml`
+
+### NAS Device API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/nasdevices` | List all NAS devices |
+| GET | `/api/v1/nasdevices/{id}` | Get NAS device by ID |
+| POST | `/api/v1/nasdevices` | Create new NAS device |
+| PUT | `/api/v1/nasdevices/{id}` | Update NAS device |
+| DELETE | `/api/v1/nasdevices/{id}` | Delete NAS device |
+| POST | `/api/v1/nasdevices/{id}/provision` | Provision K8s resources |
+| POST | `/api/v1/nasdevices/{id}/deprovision` | Remove K8s resources |
+| POST | `/api/v1/nasdevices/{id}/test` | Test NFS connection |
+
+### Using NAS in Data Sources
+
+When creating a data source with NAS protocol:
+
+1. Select **NAS** as the connection type
+2. Choose a provisioned NAS device from the dropdown
+3. Specify a **relative path** within the NAS export
+4. The system computes the full mount path: `{MountPath}/{relativePath}`
+
+**Example:**
+- NAS Device: "Production-NAS-01" with ExportPath `/exports/data`
+- Relative Path: `sales/2026`
+- Full Path in Pod: `/mnt/production-nas-01/sales/2026`
+
+**See also:** [Administrator Guide](/admin) for NAS device management procedures.
+
+---
+
 ## End-to-End Data Pipeline
 
 ```
@@ -436,4 +606,4 @@ EZ Platform is a microservices-based data processing platform that provides:
 
 ---
 
-*Generated: December 25, 2025 | EZ Platform v1.0 | 92% Complete*
+*Generated: February 3, 2026 | EZ Platform v0.2.0 | Production Ready*
