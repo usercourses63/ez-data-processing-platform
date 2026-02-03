@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Files flow reliably from any source through validation to any destination, with complete visibility and traceability
-**Current focus:** Phase 6 - Deployment Automation (NEXT)
+**Current focus:** Phase 6 - Deployment Automation (IN PROGRESS)
 
 ## Current Position
 
 Phase: 6 of 10 (Deployment Automation)
-Plan: 0 of 4 in current phase (NOT STARTED)
-Status: Ready to plan
-Last activity: 2026-02-02 -- Completed Phase 5 (CI/CD Foundation)
+Plan: 1 of 4 in current phase (COMPLETE)
+Status: In progress
+Last activity: 2026-02-03 -- Completed 06-01 Helm Chart Version Alignment
 
-Progress: [##########] 100%
+Progress: [######################----] 85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
-- Average duration: 5.4 min
-- Total execution time: 2.0 hours
+- Total plans completed: 23
+- Average duration: 5.2 min
+- Total execution time: 2.1 hours
 
 **By Phase:**
 
@@ -32,10 +32,11 @@ Progress: [##########] 100%
 | 03-protocol-test-coverage | 4 | 21 min | 5.3 min |
 | 04-format-pipeline-testing | 3 | 26 min | 8.7 min |
 | 05-cicd-foundation | 3 | 9 min | 3.0 min |
+| 06-deployment-automation | 1 | 3 min | 3.0 min |
 | 07-documentation-audit | 2 | 15 min | 7.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (8 min), 04-03 (12 min), 05-01 (3 min), 05-02 (3 min), 05-03 (3 min)
+- Last 5 plans: 04-03 (12 min), 05-01 (3 min), 05-02 (3 min), 05-03 (3 min), 06-01 (3 min)
 - Trend: Consistent ~3-12 min/plan
 
 *Updated after each plan completion*
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [05-02]: Docker job uses refs/heads/main conditional (not just 'main')
 - [05-03]: Version injection via sed in Docusaurus.Dockerfile (Pattern 3 from research)
 - [05-03]: Docusaurus adds 10th service to build script (9 backend/frontend + docs)
+- [06-01]: Chart version 0.2.0 matches appVersion v0.2.0 for version alignment
+- [06-01]: Smoke test: 60s wait + 3 retries with 10s intervals for service stabilization
+- [06-01]: curlimages/curl:8.5.0 for smoke test (OCP-compatible, non-root)
 
 ### Pending Todos
 
@@ -104,9 +108,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-02T18:00:00Z
-Stopped at: Completed Phase 5 (CI/CD Foundation)
-Resume file: None - ready for Phase 6
+Last session: 2026-02-03T06:03:00Z
+Stopped at: Completed 06-01-PLAN.md (Helm Chart Version Alignment)
+Resume file: None - ready for 06-02
 
 ## Phase 1 Summary
 
@@ -274,6 +278,30 @@ Phase 7 (Documentation Audit & Archive) is COMPLETE (all 2 plans):
 - Active docs: 261 files with YAML frontmatter (last-verified: 2026-02-02)
 - Archived: 141 files in docs/archive/ with git history preserved
 
+## Phase 6 Summary (IN PROGRESS)
+
+Phase 6 (Deployment Automation) is IN PROGRESS (1/4 plans):
+- Plan 06-01: Helm Chart Version Alignment (COMPLETE)
+- Plan 06-02: Deployment Validation (NEXT)
+- Plan 06-03: Rollback & Health Verification (PENDING)
+- Plan 06-04: ArgoCD GitOps Foundation (PENDING)
+
+**Key Artifacts (06-01):**
+- `helm/ez-platform/Chart.yaml` - Updated to v0.2.0
+- `release-package/helm/ez-platform-ocp/Chart.yaml` - Updated to v0.2.0
+- `helm/ez-platform/templates/tests/smoke-test.yaml` - Helm test hook for 10 services
+- `release-package/helm/ez-platform-ocp/templates/tests/smoke-test.yaml` - OCP test hook
+- `helm/ez-platform/values-dev.yaml` - Dev environment overrides
+- `helm/ez-platform/values-prod.yaml` - Prod environment overrides
+- `release-package/helm/ez-platform-ocp/values-dev.yaml` - OCP dev overrides
+- `release-package/helm/ez-platform-ocp/values-prod.yaml` - OCP prod overrides
+
+**Chart State:**
+- Both charts at version 0.2.0, appVersion v0.2.0
+- All 10 services have v0.2.0 default image tags
+- Smoke test: `helm test <release>` verifies all services
+- Environment overlays: `-f values-dev.yaml` or `-f values-prod.yaml`
+
 ## Completed Phases
 
 | Phase | Name | Plans | Status |
@@ -283,7 +311,8 @@ Phase 7 (Documentation Audit & Archive) is COMPLETE (all 2 plans):
 | 03 | Protocol Test Coverage | 4/4 | COMPLETE |
 | 04 | Format & Pipeline Testing | 3/3 | COMPLETE |
 | 05 | CI/CD Foundation | 3/3 | COMPLETE |
+| 06 | Deployment Automation | 1/4 | IN PROGRESS |
 | 07 | Documentation Audit & Archive | 2/2 | COMPLETE |
 
-**Next Phase:**
-Ready to proceed to Phase 6: Deployment Automation.
+**Next:**
+Ready to proceed to 06-02: Deployment Validation.
