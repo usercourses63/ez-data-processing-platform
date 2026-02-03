@@ -1,0 +1,44 @@
+<svg width="600" height="500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect x="10" y="10" width="580" height="480" fill="white" stroke="#d9d9d9" rx="8"/>
+  <text x="300" y="40" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">ConnectionTab - LTR Mode</text>
+
+  <!-- Info alert -->
+  <rect x="30" y="60" width="540" height="50" fill="#e6f7ff" stroke="#91d5ff" rx="4"/>
+  <text x="50" y="85" font-family="Arial" font-size="12" fill="#1890ff">Connection Settings</text>
+  <text x="50" y="100" font-family="Arial" font-size="10" fill="#666">Select protocol type and server configured by admin</text>
+
+  <!-- Protocol dropdown -->
+  <text x="30" y="140" font-family="Arial" font-size="12" fill="#666">Protocol Type *</text>
+  <rect x="30" y="150" width="540" height="32" fill="white" stroke="#d9d9d9" rx="4"/>
+  <text x="50" y="170" font-family="Arial" font-size="11" fill="#333">FTP - File Transfer Protocol</text>
+
+  <!-- Server selection section -->
+  <line x1="30" y1="210" x2="570" y2="210" stroke="#f0f0f0" stroke-width="1"/>
+  <text x="300" y="205" text-anchor="middle" font-family="Arial" font-size="11" fill="#999">Server Selection</text>
+
+  <!-- Server dropdown -->
+  <text x="30" y="240" font-family="Arial" font-size="12" fill="#666">Input Server * (3 available)</text>
+  <rect x="30" y="250" width="540" height="32" fill="white" stroke="#d9d9d9" rx="4"/>
+
+  <!-- Selected server info -->
+  <rect x="30" y="300" width="540" height="60" fill="#f6ffed" stroke="#b7eb8f" rx="4"/>
+  <text x="50" y="325" font-family="Arial" font-size="11" fill="#52c41a">Selected: Production FTP Server</text>
+  <text x="50" y="345" font-family="Arial" font-size="10" fill="#666">ftp.company.com:21 | Base: /data</text>
+
+  <!-- Path settings -->
+  <line x1="30" y1="385" x2="570" y2="385" stroke="#f0f0f0" stroke-width="1"/>
+  <text x="300" y="380" text-anchor="middle" font-family="Arial" font-size="11" fill="#999">Path Settings</text>
+
+  <!-- File path -->
+  <text x="30" y="410" font-family="Arial" font-size="12" fill="#666">Path *</text>
+  <rect x="30" y="420" width="260" height="32" fill="white" stroke="#d9d9d9" rx="4"/>
+  <text x="45" y="440" font-family="monospace" font-size="10" fill="#666">/sales/monthly/</text>
+
+  <!-- File pattern -->
+  <text x="310" y="410" font-family="Arial" font-size="12" fill="#666">File Pattern *</text>
+  <rect x="310" y="420" width="260" height="32" fill="white" stroke="#d9d9d9" rx="4"/>
+  <text x="325" y="440" font-family="monospace" font-size="10" fill="#666">*.csv</text>
+
+  <text x="300" y="490" text-anchor="middle" font-family="Arial" font-size="10" fill="#999">Placeholder - Replace with actual screenshot</text>
+</svg>

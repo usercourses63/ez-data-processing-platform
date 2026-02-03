@@ -1,0 +1,32 @@
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect x="10" y="10" width="580" height="380" fill="white" stroke="#d9d9d9" rx="8"/>
+  <text x="300" y="40" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">BasicInfoTab - RTL Mode (Hebrew)</text>
+
+  <!-- Name field (RTL) -->
+  <text x="560" y="80" text-anchor="end" font-family="Arial" font-size="12" fill="#666">* שם מקור הנתונים</text>
+  <rect x="310" y="90" width="250" height="32" fill="white" stroke="#d9d9d9" rx="4"/>
+
+  <!-- Supplier field (RTL) -->
+  <text x="280" y="80" text-anchor="end" font-family="Arial" font-size="12" fill="#666">* שם הספק</text>
+  <rect x="30" y="90" width="250" height="32" fill="white" stroke="#d9d9d9" rx="4"/>
+
+  <!-- Category dropdown (RTL) -->
+  <text x="560" y="150" text-anchor="end" font-family="Arial" font-size="12" fill="#666">* קטגוריה</text>
+  <rect x="310" y="160" width="250" height="32" fill="white" stroke="#d9d9d9" rx="4"/>
+
+  <!-- Retention field (RTL) -->
+  <text x="280" y="150" text-anchor="end" font-family="Arial" font-size="12" fill="#666">תקופת שמירה (ימים)</text>
+  <rect x="30" y="160" width="250" height="32" fill="white" stroke="#d9d9d9" rx="4"/>
+
+  <!-- Description (RTL) -->
+  <text x="560" y="220" text-anchor="end" font-family="Arial" font-size="12" fill="#666">תיאור</text>
+  <rect x="30" y="230" width="530" height="80" fill="white" stroke="#d9d9d9" rx="4"/>
+
+  <!-- Active toggle (RTL) -->
+  <text x="560" y="340" text-anchor="end" font-family="Arial" font-size="12" fill="#666">סטטוס</text>
+  <rect x="510" y="350" width="50" height="24" fill="#1890ff" rx="12"/>
+  <circle cx="523" cy="362" r="10" fill="white"/>
+
+  <text x="300" y="390" text-anchor="middle" font-family="Arial" font-size="10" fill="#999">Placeholder - Replace with actual screenshot</text>
+</svg>

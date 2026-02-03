@@ -4,9 +4,9 @@
  - render a sidebar for each doc of that group
  - provide next/previous navigation
 
- The sidebars can be generated from the filesystem, or explicitly defined here.
+ * The sidebars can be generated from the filesystem, or explicitly defined here.
 
- Create as many sidebars as you want.
+ * Create as many sidebars as you want.
  */
 
 // @ts-check
@@ -38,6 +38,17 @@ const sidebars = {
       collapsed: false,
       items: [
         'user-guide-he',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Components',
+      collapsed: false,
+      items: [
+        'components/index',
+        'components/datasource-forms',
+        'components/schema-editor',
+        'components/nas-devices',
       ],
     },
     {
