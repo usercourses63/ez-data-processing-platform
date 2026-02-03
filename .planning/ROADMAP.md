@@ -194,7 +194,7 @@ Plans:
 - [ ] 09-01-PLAN.md — Component library documentation in Docusaurus MDX (FE-01)
 - [ ] 09-02-PLAN.md — Playwright E2E tests for schema management and RTL visual regression (FE-02, FE-05)
 - [ ] 09-03-PLAN.md — API coordination process and React 19 patterns documentation (FE-03, FE-04)
-- [ ] 09-04-PLAN.md — Help button Docusaurus portal integration (FE-06, FE-07)
+- [ ] 09-04-PLAN.md — Help button integration + Hebrew user guide (FE-05, FE-06, FE-07)
 
 ### Phase 10: Feature Completion
 **Goal**: v0.2.0 feature work completed with documentation and tests, NAS/NFS architecture validated production-ready
