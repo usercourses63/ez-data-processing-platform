@@ -11,6 +11,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-02-03
+
+### Added
+
+#### NAS Device Management
+- NasDevice entity with role-based classification (Input/Output/Both/Backup)
+- NasDevicesController with full CRUD and provisioning endpoints
+- NasResourceService for dynamic Kubernetes PV/PVC creation
+- NfsConnector for NFS protocol file operations
+- Frontend NasDevicesTab for device management UI
+- RBAC manifests for Kubernetes API access (`k8s/rbac/nas-device-rbac.yaml`)
+- Connection testing and mount status monitoring
+
+#### Protocol Testing
+- FileSimulatorFixture for unified protocol testing
+- FTP connector tests (3 tests)
+- SFTP connector tests (3 tests)
+- HTTP API connector tests (2 tests)
+- S3/MinIO connector tests (3 tests)
+- SMB connector tests (3 tests via SMBLibrary)
+- NFS connector tests (6 tests, K8s pod context)
+- Kafka connector tests (6 tests)
+- Local file connector tests (6 tests, OCP-Incompatible trait)
+
+#### CI/CD Infrastructure
+- GitHub Actions multi-job pipeline (build, test, docker)
+- Parallel Docker build script (`scripts/build-all-images.ps1`)
+- Version injection for all services (VERSION, COMMIT_SHA)
+- Docusaurus Docker build with version injection
+- Helm charts updated to v0.2.0 with smoke test hooks
+
+#### Documentation
+- NAS/NFS architecture section in system-architecture.md
+- Component documentation (datasource-forms, schema-editor, nas-devices)
+- Development guides (API coordination, React 19 patterns)
+- Hebrew user guide updated with NAS/archive sections
+- Help button integration with docs portal
+
+#### Testing
+- E2E schema management tests (20+ test cases)
+- RTL visual regression tests with 30% threshold
+- Help integration E2E tests
+- Bidirectional format tests (14 round-trip tests)
+- Pipeline flow tests (7 E2E, 10 format-specific)
+- Load tests (10/100/1000 file volumes)
+
+### Changed
+- Connection tab requires NAS device selection for NFS protocol
+- NFS protocol renamed to NAS in UI dropdown
+- Helm chart version aligned: Chart.yaml 0.2.0, appVersion v0.2.0
+- Docusaurus baseUrl changed to `/docs/` for path-based routing
+- Ingress rules updated with /docs path before / catch-all
+
+### Deprecated
+- `AdditionalConfiguration` field on DataSource (use `FileServerId` or `NasDeviceId` instead)
+
+### Removed
+- Standalone NFS protocol option (use NAS device instead)
+- Direct NFS path entry in Connection tab
+
+### Security
+- RBAC for Kubernetes PV/PVC operations
+- OCP-compatible security contexts on all pods
+- Non-root container execution
+
+### Documentation
+- docs/testing/protocol-test-guide.md - Protocol test documentation
+- docs/testing/format-pipeline-test-guide.md - Format and pipeline testing
+- docs/deployment/rollback-procedures.md - Rollback runbook
+- docs/deployment/smoke-test-guide.md - Smoke test guide
+- docs/deployment/documentation-workflow.md - GSD to Docusaurus sync
+
+---
+
 ## [0.1.1-rc1] - 2026-01-01
 
 ### Added
@@ -115,13 +189,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v0.2.0
+### Planned for v0.3.0
 - User authentication and authorization
 - Multi-tenancy support
+- Archive extraction E2E validation (ZIP, TAR.GZ, RAR, 7Z)
 - Advanced scheduling options
 - Performance optimizations
 - Production security hardening (MongoDB auth, Elasticsearch security)
 
 ---
 
-**For detailed release notes:** See [docs/releases/RELEASE-NOTES-v0.1.0-beta.md](docs/releases/RELEASE-NOTES-v0.1.0-beta.md)
+**For detailed release notes:** See [Release Notes](/release-notes)

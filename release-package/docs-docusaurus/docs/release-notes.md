@@ -6,6 +6,142 @@ sidebar_position: 2
 
 ---
 
+## v0.2.0 - External File Access (February 2026)
+
+**Status:** Production Release
+**Type:** Feature Release - External File Access & NAS Support
+
+### Highlights
+
+This major release introduces **External File Access** capabilities with NAS device management, comprehensive protocol testing, and full CI/CD automation.
+
+### New Features
+
+#### NAS Device Management
+
+- **Dynamic NAS provisioning**: Configure NAS devices via Admin UI with automatic Kubernetes PV/PVC creation
+- **Role-based devices**: Assign Input, Output, Both, or Backup roles to NAS devices with color-coded indicators
+- **Mount status monitoring**: Real-time display of PV/PVC provisioning status
+- **Connection testing**: Verify NAS connectivity before provisioning
+- **NFS protocol support**: Full NFS v3 support with configurable mount options
+
+#### Enhanced Protocol Support
+
+- **Comprehensive protocol testing**: FTP, SFTP, HTTP, S3, SMB, NFS, Kafka, Local connectors
+- **File-simulator integration**: Unified testing environment for all protocols
+- **Graceful test skipping**: Tests skip cleanly when dependencies unavailable
+
+#### CI/CD Automation
+
+- **GitHub Actions pipeline**: Multi-job CI with build, test, and Docker stages
+- **Parallel Docker builds**: All 10 services built with version injection
+- **Helm chart updates**: Charts at v0.2.0 with smoke test hooks
+- **Docusaurus documentation portal**: Deployed at `/docs` path
+
+#### Documentation Portal
+
+- **Docusaurus 3.x**: Full documentation portal with search
+- **Component documentation**: Detailed guides for all UI components
+- **Development guides**: API coordination, React 19 patterns
+- **Hebrew user guide**: Native Hebrew documentation with RTL support
+
+### API Changes
+
+#### New Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/nasdevices` | GET | List NAS devices |
+| `/api/v1/nasdevices` | POST | Create NAS device |
+| `/api/v1/nasdevices/{id}` | GET | Get NAS device by ID |
+| `/api/v1/nasdevices/{id}` | PUT | Update NAS device |
+| `/api/v1/nasdevices/{id}` | DELETE | Delete NAS device |
+| `/api/v1/nasdevices/{id}/provision` | POST | Provision K8s resources |
+| `/api/v1/nasdevices/{id}/deprovision` | POST | Remove K8s resources |
+| `/api/v1/nasdevices/{id}/test` | POST | Test NFS connection |
+
+#### Changed Endpoints
+
+- `POST /api/v1/datasources` - Now accepts `nasDeviceId` for NAS protocol connections
+
+### Configuration Changes
+
+#### Helm Values
+
+```yaml
+# New in values.yaml
+datasource-management:
+  rbac:
+    enabled: true  # Enable NAS device RBAC (default: true)
+```
+
+#### RBAC Requirements
+
+NAS device management requires Kubernetes RBAC permissions:
+- `persistentvolumes`: create, get, list, delete, watch
+- `persistentvolumeclaims`: create, get, list, delete, watch
+
+Applied via: `k8s/rbac/nas-device-rbac.yaml`
+
+### Breaking Changes
+
+- **NFS protocol removed from connection dropdown**: Use NAS device selection instead
+- Direct NFS path entry no longer supported; configure NAS devices in Admin settings
+
+### Migration Guide
+
+#### From v0.1.1-rc3
+
+**Step 1: Backup existing data**
+```bash
+kubectl exec -it mongodb-0 -n ez-platform -- mongodump --db=ezplatform --out=/tmp/backup
+```
+
+**Step 2: Apply RBAC for NAS management**
+```bash
+kubectl apply -f k8s/rbac/nas-device-rbac.yaml
+```
+
+**Step 3: Helm upgrade**
+```bash
+helm upgrade ez-platform ./helm/ez-platform -f values.yaml
+```
+
+**Step 4: Migrate existing NFS data sources**
+
+For each data source using NFS:
+1. Create a NAS device in **Admin > NAS Devices** with the same NFS server/path
+2. Click "Provision" to create PV/PVC
+3. Edit the data source, change protocol to NAS, select the device
+4. Verify connection with "Test Connection"
+
+**Step 5: Verify RBAC**
+```bash
+kubectl get clusterrolebinding nas-device-manager-binding
+kubectl auth can-i create persistentvolumes --as=system:serviceaccount:ez-platform:datasource-management
+```
+
+### Test Coverage
+
+| Category | Tests | Status |
+|----------|-------|--------|
+| Protocol connectors | 32 | All passing (skip when deps unavailable) |
+| Format converters | 63 | All passing |
+| Pipeline flows | 17 | 3 pass, 14 skip (require file-simulator) |
+| E2E tests | 6 | All passing |
+| RTL visual regression | 12 | All passing |
+
+### Performance Targets
+
+| Metric | Target | Notes |
+|--------|--------|-------|
+| File processing | <1s per 100-record file | Standard file sizes |
+| NAS mount time | <5s | Initial PVC bind |
+| Cache hit rate | >95% | Hazelcast efficiency |
+| P99 API latency | <500ms | End-user experience |
+
+---
+
 ## v0.1.1-rc2 (January 8, 2026)
 
 **Status:** Release Candidate 2
@@ -471,15 +607,16 @@ See [Troubleshooting Guide](../admin/ADMIN-GUIDE.md#troubleshooting)
 
 ## Next Release (Planned)
 
-**v0.2.0 (Estimated: Q1 2026)**
+**v0.3.0 (Estimated: Q2 2026)**
 - User authentication & authorization
 - Multi-tenancy support
+- Archive extraction validation (ZIP, TAR.GZ, RAR, 7Z)
 - Advanced scheduling options
 - Performance optimizations
 - Enhanced monitoring dashboards
-- Production-grade security hardening
 
 ---
 
-*For installation instructions, see [INSTALLATION-GUIDE.md](../installation/INSTALLATION-GUIDE.md)*
-*For user documentation, see [USER-GUIDE-HE.md](../user-guide/USER-GUIDE-HE.md)*
+*For installation instructions, see [Installation Guide](/installation)*
+*For user documentation, see [Hebrew User Guide](/user-guide-he)*
+*For administrator documentation, see [Admin Guide](/admin)*
