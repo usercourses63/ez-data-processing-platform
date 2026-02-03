@@ -17,7 +17,7 @@ This roadmap transforms a mature but under-tested brownfield system (v0.1.1-rc3)
 - [x] **Phase 5: CI/CD Foundation** - Automated builds, pipeline quality gates, version injection, and Docusaurus build
 - [ ] **Phase 6: Deployment Automation** - Helm packaging, OCP deployment, Docusaurus portal deployment, documentation workflow
 - [x] **Phase 7: Documentation Audit & Archive** - Audit 270+ docs, archive session logs, delete obsolete
-- [ ] **Phase 8: Documentation Consolidation** - GSD as single source of truth, guides consolidated
+- [x] **Phase 8: Documentation Consolidation** - GSD as single source of truth, guides consolidated
 - [ ] **Phase 9: Frontend Development Workflow** - Design tooling, testing strategy, Docusaurus portal integration
 - [ ] **Phase 10: Feature Completion** - v0.2.0 External File Access, AdminServer, Archive settings, NAS validation
 
@@ -229,7 +229,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 5. CI/CD Foundation | 3/3 | Complete | 2026-02-02 |
 | 6. Deployment Automation | 4/4 | Complete | 2026-02-03 |
 | 7. Documentation Audit & Archive | 2/2 | Complete | 2026-02-02 |
-| 8. Documentation Consolidation | 0/3 | Not started | - |
+| 8. Documentation Consolidation | 3/3 | Complete | 2026-02-02 |
 | 9. Frontend Development Workflow | 0/4 | Not started | - |
 | 10. Feature Completion | 0/3 | Not started | - |
 

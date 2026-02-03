@@ -9,13 +9,13 @@
 
 ### NAS/NFS Architecture (Milestone 1A - v0.2.0 Foundation)
 
-- [ ] **NAS-01**: NAS device entity created with connection configuration (host, share, credentials)
-- [ ] **NAS-02**: PersistentVolume creation via .NET 10 Kubernetes API (dynamic provisioning)
-- [ ] **NAS-03**: PersistentVolumeClaim creation and binding verification
-- [ ] **NAS-04**: Volume mounting to pods at runtime via K8s API
-- [ ] **NAS-05**: NFS protocol acts as connector to NAS devices (not standalone server)
-- [ ] **NAS-06**: AdminServer supports NAS device configuration in UI
-- [ ] **NAS-07**: NAS devices tested against file-simulator NAS simulation
+- [x] **NAS-01**: NAS device entity created with connection configuration (host, share, credentials)
+- [x] **NAS-02**: PersistentVolume creation via .NET 10 Kubernetes API (dynamic provisioning)
+- [x] **NAS-03**: PersistentVolumeClaim creation and binding verification
+- [x] **NAS-04**: Volume mounting to pods at runtime via K8s API
+- [x] **NAS-05**: NFS protocol acts as connector to NAS devices (not standalone server)
+- [x] **NAS-06**: AdminServer supports NAS device configuration in UI
+- [x] **NAS-07**: NAS devices tested against file-simulator NAS simulation
 
 ### Testing Foundation (Milestone 1B - CRITICAL)
 
@@ -31,22 +31,22 @@
 ### CD Pipeline Automation (Milestone 2)
 
 - [x] **CD-01**: One-command build process for all Docker images (9 services + frontend)
-- [ ] **CD-02**: Automated Helm chart packaging with version management
+- [x] **CD-02**: Automated Helm chart packaging with version management
 - [x] **CD-03**: CI/CD pipeline (GitHub Actions) builds on every commit
-- [ ] **CD-04**: Automated deployment to OCP offline environment
-- [ ] **CD-05**: Deployment validation tests run automatically post-deploy
-- [ ] **CD-06**: Rollback procedure automated and tested
+- [x] **CD-04**: Automated deployment to OCP offline environment
+- [x] **CD-05**: Deployment validation tests run automatically post-deploy
+- [x] **CD-06**: Rollback procedure automated and tested
 - [x] **CD-07**: Version injection in CI/CD (frontend version.ts, Docusaurus config, Docker tags)
 - [x] **CD-08**: Build date/time and git commit SHA injected into frontend build
 - [x] **CD-09**: Docusaurus portal build integrated in CI/CD pipeline
-- [ ] **CD-10**: Documentation portal deployed as K8s service with Ingress at /docs
-- [ ] **CD-11**: Documentation update process before each release (GSD -> Docusaurus markdown)
+- [x] **CD-10**: Documentation portal deployed as K8s service with Ingress at /docs
+- [x] **CD-11**: Documentation update process before each release (GSD -> Docusaurus markdown)
 
 ### Documentation Consolidation (Milestone 3)
 
-- [ ] **DOC-01**: All 270+ existing docs audited and categorized
-- [ ] **DOC-02**: Session logs archived to /docs/archive/sessions/
-- [ ] **DOC-03**: Obsolete/redundant docs deleted
+- [x] **DOC-01**: All 270+ existing docs audited and categorized
+- [x] **DOC-02**: Session logs archived to /docs/archive/sessions/
+- [x] **DOC-03**: Obsolete/redundant docs deleted
 - [x] **DOC-04**: GSD becomes single source of truth for all planning/execution docs
 - [x] **DOC-05**: Architecture/deployment/testing guides consolidated into GSD structure
 
@@ -128,16 +128,16 @@
 | TEST-07 | Phase 4 | Complete |
 | TEST-08 | Phase 4 | Complete |
 | CD-01 | Phase 5 | Complete |
-| CD-02 | Phase 6 | Pending |
+| CD-02 | Phase 6 | Complete |
 | CD-03 | Phase 5 | Complete |
-| CD-04 | Phase 6 | Pending |
-| CD-05 | Phase 6 | Pending |
-| CD-06 | Phase 6 | Pending |
+| CD-04 | Phase 6 | Complete |
+| CD-05 | Phase 6 | Complete |
+| CD-06 | Phase 6 | Complete |
 | CD-07 | Phase 5 | Complete |
 | CD-08 | Phase 5 | Complete |
 | CD-09 | Phase 5 | Complete |
-| CD-10 | Phase 6 | Pending |
-| CD-11 | Phase 6 | Pending |
+| CD-10 | Phase 6 | Complete |
+| CD-11 | Phase 6 | Complete |
 | DOC-01 | Phase 7 | Complete |
 | DOC-02 | Phase 7 | Complete |
 | DOC-03 | Phase 7 | Complete |
@@ -161,4 +161,4 @@
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-02 (Docusaurus portal integration requirements added and mapped)*
+*Last updated: 2026-02-03 (Phase 6, 7, 8 requirements marked complete)*
