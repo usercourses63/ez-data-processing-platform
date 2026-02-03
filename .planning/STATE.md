@@ -86,7 +86,11 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None.
+1. **Update Hebrew user guide and release docs for Docusaurus** (docs)
+   - Hebrew RTL user guide must reflect all frontend changes
+   - Release documentation needs updating for v0.2.0
+   - Package everything in Docusaurus portal
+   - Target: After Phase 9-10 completion, before v0.2.0 release
 
 ### Blockers/Concerns
 
