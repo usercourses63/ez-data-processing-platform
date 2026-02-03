@@ -1,12 +1,8 @@
-# Development environment overrides for OpenShift
-# Usage: helm install dev-ez-platform ./release-package/helm/ez-platform-ocp -f values.yaml -f values-dev.yaml
+# Development environment overrides for vanilla K8s
+# Usage: helm install dev-ez-platform ./helm/ez-platform -f values.yaml -f values-dev.yaml
 
 global:
   namespace: ez-platform-dev
-
-ocp:
-  enabled: true
-  domain: apps.dev.example.com  # Update with actual dev cluster domain
 
 # Reduced replicas for dev
 services:

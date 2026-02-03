@@ -1,0 +1,44 @@
+# Production environment overrides for vanilla K8s
+# Usage: helm install prod-ez-platform ./helm/ez-platform -f values.yaml -f values-prod.yaml
+
+global:
+  namespace: ez-platform
+
+# Production image tags
+services:
+  filediscovery:
+    image:
+      tag: v0.2.0
+  fileprocessor:
+    image:
+      tag: v0.2.0
+  validation:
+    image:
+      tag: v0.2.0
+  output:
+    image:
+      tag: v0.2.0
+  datasourceManagement:
+    image:
+      tag: v0.2.0
+  metricsConfiguration:
+    image:
+      tag: v0.2.0
+  invalidrecords:
+    image:
+      tag: v0.2.0
+  scheduling:
+    image:
+      tag: v0.2.0
+  frontend:
+    image:
+      tag: v0.2.0
+  docs:
+    image:
+      tag: v0.2.0
+
+config:
+  environment: Production
+  logLevel: Information
+  fileDiscovery:
+    deduplicationTTLHours: "4"  # Production: 4 hours

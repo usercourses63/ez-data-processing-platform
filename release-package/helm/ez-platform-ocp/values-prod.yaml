@@ -1,0 +1,48 @@
+# Production environment overrides for OpenShift
+# Usage: helm install prod-ez-platform ./release-package/helm/ez-platform-ocp -f values.yaml -f values-prod.yaml
+
+global:
+  namespace: ez-platform
+
+ocp:
+  enabled: true
+  domain: apps.prod.example.com  # Update with actual prod cluster domain
+
+# Production image tags
+services:
+  filediscovery:
+    image:
+      tag: v0.2.0
+  fileprocessor:
+    image:
+      tag: v0.2.0
+  validation:
+    image:
+      tag: v0.2.0
+  output:
+    image:
+      tag: v0.2.0
+  datasourceManagement:
+    image:
+      tag: v0.2.0
+  metricsConfiguration:
+    image:
+      tag: v0.2.0
+  invalidrecords:
+    image:
+      tag: v0.2.0
+  scheduling:
+    image:
+      tag: v0.2.0
+  frontend:
+    image:
+      tag: v0.2.0
+  docs:
+    image:
+      tag: v0.2.0
+
+config:
+  environment: Production
+  logLevel: Information
+  fileDiscovery:
+    deduplicationTTLHours: "4"  # Production: 4 hours
