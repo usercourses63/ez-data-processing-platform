@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 6 of 10 (Deployment Automation)
-Plan: 3 of 4 in current phase (COMPLETE)
-Status: In progress
-Last activity: 2026-02-03 -- Completed 06-03 Rollback & Health Verification
+Plan: 4 of 4 in current phase (COMPLETE)
+Status: Phase complete
+Last activity: 2026-02-03 -- Completed 06-04 Docusaurus Portal Deployment
 
-Progress: [#######################---] 88%
+Progress: [########################--] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
-- Average duration: 5.1 min
-- Total execution time: 2.15 hours
+- Total plans completed: 25
+- Average duration: 5.0 min
+- Total execution time: 2.22 hours
 
 **By Phase:**
 
@@ -32,12 +32,12 @@ Progress: [#######################---] 88%
 | 03-protocol-test-coverage | 4 | 21 min | 5.3 min |
 | 04-format-pipeline-testing | 3 | 26 min | 8.7 min |
 | 05-cicd-foundation | 3 | 9 min | 3.0 min |
-| 06-deployment-automation | 2 | 6 min | 3.0 min |
+| 06-deployment-automation | 4 | 14 min | 3.5 min |
 | 07-documentation-audit | 2 | 15 min | 7.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (3 min), 05-02 (3 min), 05-03 (3 min), 06-01 (3 min), 06-03 (3 min)
-- Trend: Consistent ~3 min/plan
+- Last 5 plans: 05-02 (3 min), 05-03 (3 min), 06-01 (3 min), 06-03 (3 min), 06-04 (4 min)
+- Trend: Consistent ~3-4 min/plan
 
 *Updated after each plan completion*
 
@@ -89,6 +89,9 @@ Recent decisions affecting current work:
 - [06-01]: curlimages/curl:8.5.0 for smoke test (OCP-compatible, non-root)
 - [06-03]: Report-only smoke tests (no auto-rollback) to avoid churn from transient issues
 - [06-03]: 3 versions retained in rollback history via --history-max 3
+- [06-04]: baseUrl: '/docs/' for Docusaurus path-based deployment
+- [06-04]: Path-based routing over subdomain routing for docs (single domain)
+- [06-04]: /docs path before / catch-all in Ingress rules (order-dependent)
 
 ### Pending Todos
 
@@ -111,8 +114,8 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-03T06:10:00Z
-Stopped at: Completed 06-03-PLAN.md (Rollback & Health Verification)
-Resume file: None - ready for 06-04
+Stopped at: Completed 06-04-PLAN.md (Docusaurus Portal Deployment)
+Resume file: None - Phase 6 complete, ready for Phase 8
 
 ## Phase 1 Summary
 
@@ -280,13 +283,13 @@ Phase 7 (Documentation Audit & Archive) is COMPLETE (all 2 plans):
 - Active docs: 261 files with YAML frontmatter (last-verified: 2026-02-02)
 - Archived: 141 files in docs/archive/ with git history preserved
 
-## Phase 6 Summary (IN PROGRESS)
+## Phase 6 Summary (COMPLETE)
 
-Phase 6 (Deployment Automation) is IN PROGRESS (3/4 plans):
+Phase 6 (Deployment Automation) is COMPLETE (all 4 plans):
 - Plan 06-01: Helm Chart Version Alignment (COMPLETE)
 - Plan 06-02: Deployment Validation (SKIPPED - merged into 06-03)
 - Plan 06-03: Rollback & Health Verification (COMPLETE)
-- Plan 06-04: ArgoCD GitOps Foundation (NEXT)
+- Plan 06-04: Docusaurus Portal Deployment (COMPLETE)
 
 **Key Artifacts (06-01):**
 - `helm/ez-platform/Chart.yaml` - Updated to v0.2.0
@@ -302,12 +305,19 @@ Phase 6 (Deployment Automation) is IN PROGRESS (3/4 plans):
 - `docs/deployment/rollback-procedures.md` - Comprehensive rollback runbook (305 lines)
 - `docs/deployment/smoke-test-guide.md` - Smoke test execution guide (297 lines)
 
+**Key Artifacts (06-04):**
+- `release-package/docs-docusaurus/docusaurus.config.js` - baseUrl: '/docs/' for path routing
+- `release-package/helm/ez-platform-ocp/templates/routes/docs-route.yaml` - OCP Route with path: /docs
+- `helm/ez-platform/templates/ingress/ez-platform-ingress.yaml` - Ingress with /docs before /
+- `docs/deployment/documentation-workflow.md` - GSD to Docusaurus sync guide (398 lines)
+
 **Chart State:**
 - Both charts at version 0.2.0, appVersion v0.2.0
 - All 10 services have v0.2.0 default image tags
 - Smoke test: `helm test <release>` verifies all services
 - Environment overlays: `-f values-dev.yaml` or `-f values-prod.yaml`
 - Rollback: `helm rollback` with `--history-max 3` retention
+- Docs routing: /docs path on both K8s Ingress and OCP Route
 
 ## Completed Phases
 
@@ -318,8 +328,8 @@ Phase 6 (Deployment Automation) is IN PROGRESS (3/4 plans):
 | 03 | Protocol Test Coverage | 4/4 | COMPLETE |
 | 04 | Format & Pipeline Testing | 3/3 | COMPLETE |
 | 05 | CI/CD Foundation | 3/3 | COMPLETE |
-| 06 | Deployment Automation | 3/4 | IN PROGRESS |
+| 06 | Deployment Automation | 4/4 | COMPLETE |
 | 07 | Documentation Audit & Archive | 2/2 | COMPLETE |
 
 **Next:**
-Ready to proceed to 06-04: ArgoCD GitOps Foundation.
+Phase 6 complete. Ready to proceed to Phase 8: Observability Enhancements.
