@@ -1,0 +1,414 @@
+---
+sidebar_position: 2
+title: Data Source Forms
+description: Form tab components for data source creation and editing
+last_verified: 2026-02-03
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Data Source Form Components
+
+These components make up the multi-step form for creating and editing data sources. Each tab handles a specific aspect of data source configuration.
+
+## BasicInfoTab
+
+Basic information form tab for data source name, category, and description.
+
+### Props
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `form` | `FormInstance` | Yes | - | Ant Design form instance for value management |
+| `t` | `(key: string) => string` | Yes | - | Translation function from i18next |
+
+### Features
+
+- **Category Selection**: Fetches active categories from API via React Query
+- **Form Validation**: Required fields with min/max length constraints
+- **Hebrew Support**: All labels and messages localized
+- **Active Toggle**: Switch component for data source status
+
+### Usage
+
+```tsx
+import { Form } from 'antd';
+import { BasicInfoTab } from '@/components/datasource/tabs/BasicInfoTab';
+import { useTranslation } from 'react-i18next';
+
+const DataSourceForm: React.FC = () => {
+  const [form] = Form.useForm();
+  const { t } = useTranslation();
+
+  return (
+    <Form form={form} layout="vertical">
+      <BasicInfoTab form={form} t={t} />
+    </Form>
+  );
+};
+```
+
+### Form Fields
+
+| Field | Name | Type | Validation |
+|-------|------|------|------------|
+| Name | `name` | `string` | Required, 2-100 chars |
+| Supplier | `supplierName` | `string` | Required, 2-50 chars |
+| Category | `category` | `string` | Required |
+| Retention | `retentionDays` | `number` | Optional, 1-3650 days |
+| Description | `description` | `string` | Optional, max 500 chars |
+| Status | `isActive` | `boolean` | Default: true |
+
+### Screenshots
+
+<Tabs>
+  <TabItem value="ltr" label="LTR (English)" default>
+    <img src="/img/components/basicinfo-ltr.svg" alt="BasicInfoTab in LTR mode" />
+  </TabItem>
+  <TabItem value="rtl" label="RTL (Hebrew)">
+    <img src="/img/components/basicinfo-rtl.svg" alt="BasicInfoTab in RTL mode" />
+  </TabItem>
+</Tabs>
+
+### Do's and Don'ts
+
+:::tip Do's
+- Always wrap in an Ant Design `<Form>` with `layout="vertical"`
+- Pass the translation function from `useTranslation()`
+- Handle form submission at the parent component level
+- Show loading state when categories are fetching
+:::
+
+:::danger Don'ts
+- Don't create a new form instance inside the component
+- Don't hardcode Hebrew text - use translation keys
+- Don't bypass form validation rules
+- Don't forget to handle the "no categories" edge case
+:::
+
+---
+
+## ConnectionTab
+
+Connection settings tab for selecting protocol, server, and applicative parameters.
+
+### Props
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `form` | `FormInstance` | Yes | - | Ant Design form instance |
+| `t` | `(key: string) => string` | Yes | - | Translation function |
+| `connectionType` | `string` | Yes | - | Selected protocol (FTP, SFTP, HTTP, Kafka, S3, NFS) |
+| `testingConnection` | `boolean` | Yes | - | Whether connection test is in progress |
+| `connectionTestResult` | `'success' \| 'failed' \| null` | Yes | - | Result of last connection test |
+| `onTestConnection` | `() => void` | Yes | - | Handler for test connection button |
+
+### Features
+
+- **Protocol Selection**: FTP, SFTP, HTTP, Kafka, S3, NFS support
+- **Server-Based Configuration**: No manual mode - admin-configured servers only
+- **Dynamic Fields**: Shows different fields based on selected protocol
+- **Connection Testing**: Test button with success/failure feedback
+- **Archive Settings**: Optional archive source configuration (file-based only)
+
+### Supported Protocols
+
+| Protocol | Server Type | Applicative Fields |
+|----------|-------------|-------------------|
+| FTP | ftp | `filePath`, `filePattern` |
+| SFTP | sftp | `filePath`, `filePattern` |
+| HTTP | http | `httpEndpointPath` |
+| Kafka | kafka | `kafkaTopic`, `kafkaConsumerGroup`, `kafkaOffsetReset` |
+| S3 | s3 | `filePath` (bucket/prefix), `filePattern` |
+| NFS | nfs | `filePath`, `filePattern` |
+
+### Usage
+
+```tsx
+import { Form } from 'antd';
+import { ConnectionTab } from '@/components/datasource/tabs/ConnectionTab';
+import { useTranslation } from 'react-i18next';
+
+const DataSourceForm: React.FC = () => {
+  const [form] = Form.useForm();
+  const { t } = useTranslation();
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [testResult, setTestResult] = useState<'success' | 'failed' | null>(null);
+
+  const connectionType = Form.useWatch('connectionType', form);
+
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    try {
+      const response = await api.testConnection(form.getFieldsValue());
+      setTestResult(response.success ? 'success' : 'failed');
+    } catch {
+      setTestResult('failed');
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  return (
+    <Form form={form} layout="vertical">
+      <ConnectionTab
+        form={form}
+        t={t}
+        connectionType={connectionType}
+        testingConnection={testingConnection}
+        connectionTestResult={testResult}
+        onTestConnection={handleTestConnection}
+      />
+    </Form>
+  );
+};
+```
+
+### Form Fields
+
+**Protocol Selection:**
+| Field | Name | Type | Validation |
+|-------|------|------|------------|
+| Protocol Type | `connectionType` | `string` | Required |
+| Input Server | `inputServerId` | `string` | Required when protocol selected |
+
+**File-Based Protocols (FTP, SFTP, S3, NFS):**
+| Field | Name | Type | Validation |
+|-------|------|------|------------|
+| Path | `filePath` | `string` | Required |
+| File Pattern | `filePattern` | `string` | Required, default `*.*` |
+
+**HTTP Protocol:**
+| Field | Name | Type | Validation |
+|-------|------|------|------------|
+| Endpoint Path | `httpEndpointPath` | `string` | Required |
+
+**Kafka Protocol:**
+| Field | Name | Type | Validation |
+|-------|------|------|------------|
+| Topic | `kafkaTopic` | `string` | Required |
+| Consumer Group | `kafkaConsumerGroup` | `string` | Optional |
+| Offset Reset | `kafkaOffsetReset` | `string` | Default: `latest` |
+
+### Screenshots
+
+<Tabs>
+  <TabItem value="ltr" label="LTR (English)" default>
+    <img src="/img/components/connection-ltr.svg" alt="ConnectionTab in LTR mode" />
+  </TabItem>
+  <TabItem value="rtl" label="RTL (Hebrew)">
+    <img src="/img/components/connection-rtl.svg" alt="ConnectionTab in RTL mode" />
+  </TabItem>
+</Tabs>
+
+### RTL Considerations
+
+Technical fields like paths and file patterns use the `ltr-field` CSS class:
+
+```tsx
+<Input className="ltr-field" placeholder="/path/to/files" />
+```
+
+This ensures paths render correctly even in RTL mode:
+- `/exports/data/sales/` displays left-to-right
+- Labels and surrounding text remain RTL
+
+### Do's and Don'ts
+
+:::tip Do's
+- Use `Form.useWatch` to reactively get `connectionType` value
+- Show warning alert when no servers configured for protocol
+- Reset server selection when protocol changes
+- Use `ltr-field` class for paths, URLs, and technical identifiers
+:::
+
+:::danger Don'ts
+- Don't show file pattern fields for Kafka/HTTP protocols
+- Don't allow form submission without server selection
+- Don't hardcode server options - always fetch from API
+- Don't show archive settings for Kafka or HTTP
+:::
+
+---
+
+## SchemaTab
+
+JSON Schema configuration tab using the integrated schema builder.
+
+### Props
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `jsonSchema` | `JSONSchema` | Yes | - | Current JSON Schema object |
+| `onChange` | `(schema: JSONSchema) => void` | Yes | - | Handler when schema changes |
+
+### Features
+
+- **Schema Builder Integration**: Uses `SchemaBuilderNew` component
+- **JSON Schema 2020-12**: Full draft-2020-12 support
+- **Visual Editor**: jsonjoy-builder based editing
+- **Hebrew Support**: All UI elements localized
+- **Validation Preview**: Live schema validation
+
+### Usage
+
+```tsx
+import { useState } from 'react';
+import { SchemaTab } from '@/components/datasource/tabs/SchemaTab';
+import type { JSONSchema } from 'jsonjoy-builder';
+
+const DataSourceForm: React.FC = () => {
+  const [schema, setSchema] = useState<JSONSchema>({
+    type: 'object',
+    properties: {}
+  });
+
+  return (
+    <SchemaTab
+      jsonSchema={schema}
+      onChange={setSchema}
+    />
+  );
+};
+```
+
+### Default Schema Structure
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {},
+  "required": []
+}
+```
+
+### Integration with Form
+
+Unlike other tabs, SchemaTab manages its own state via props rather than through `FormInstance`. To integrate with form submission:
+
+```tsx
+const DataSourceForm: React.FC = () => {
+  const [form] = Form.useForm();
+  const [schema, setSchema] = useState<JSONSchema>({});
+
+  const handleSubmit = async () => {
+    const formValues = await form.validateFields();
+    const dataSource = {
+      ...formValues,
+      jsonSchema: schema // Manually include schema
+    };
+    await api.createDataSource(dataSource);
+  };
+
+  return (
+    <>
+      <Form form={form}>
+        <BasicInfoTab form={form} t={t} />
+        <ConnectionTab {...connectionProps} />
+      </Form>
+      <SchemaTab jsonSchema={schema} onChange={setSchema} />
+    </>
+  );
+};
+```
+
+### Do's and Don'ts
+
+:::tip Do's
+- Provide a default schema object to avoid undefined errors
+- Handle schema changes at parent level for form submission
+- Set minimum height (650px) for comfortable editing
+- Validate schema before form submission
+:::
+
+:::danger Don'ts
+- Don't expect schema in `form.getFieldsValue()` - it's managed separately
+- Don't pass stringified JSON - pass the parsed object
+- Don't forget to merge schema with form data on submit
+- Don't resize the editor below 500px height
+:::
+
+---
+
+## Complete Form Example
+
+Here's how all three tabs work together:
+
+```tsx
+import { useState } from 'react';
+import { Tabs, Form, Button, message } from 'antd';
+import { BasicInfoTab } from '@/components/datasource/tabs/BasicInfoTab';
+import { ConnectionTab } from '@/components/datasource/tabs/ConnectionTab';
+import { SchemaTab } from '@/components/datasource/tabs/SchemaTab';
+import { useTranslation } from 'react-i18next';
+import type { JSONSchema } from 'jsonjoy-builder';
+
+const CreateDataSourcePage: React.FC = () => {
+  const [form] = Form.useForm();
+  const { t } = useTranslation();
+  const [schema, setSchema] = useState<JSONSchema>({ type: 'object', properties: {} });
+  const [activeTab, setActiveTab] = useState('basic');
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [testResult, setTestResult] = useState<'success' | 'failed' | null>(null);
+
+  const connectionType = Form.useWatch('connectionType', form);
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const dataSource = {
+        ...values,
+        jsonSchema: JSON.stringify(schema)
+      };
+      await api.createDataSource(dataSource);
+      message.success(t('datasources.createSuccess'));
+    } catch (error) {
+      message.error(t('errors.validationFailed'));
+    }
+  };
+
+  const items = [
+    {
+      key: 'basic',
+      label: t('datasources.tabs.basicInfo'),
+      children: <BasicInfoTab form={form} t={t} />
+    },
+    {
+      key: 'connection',
+      label: t('datasources.tabs.connection'),
+      children: (
+        <ConnectionTab
+          form={form}
+          t={t}
+          connectionType={connectionType}
+          testingConnection={testingConnection}
+          connectionTestResult={testResult}
+          onTestConnection={() => handleTestConnection()}
+        />
+      )
+    },
+    {
+      key: 'schema',
+      label: t('datasources.tabs.schema'),
+      children: <SchemaTab jsonSchema={schema} onChange={setSchema} />
+    }
+  ];
+
+  return (
+    <Form form={form} layout="vertical">
+      <Tabs items={items} activeKey={activeTab} onChange={setActiveTab} />
+      <Button type="primary" onClick={handleSubmit}>
+        {t('common.save')}
+      </Button>
+    </Form>
+  );
+};
+```
+
+## See Also
+
+- [Schema Editor](schema-editor) - Full-page schema editing
+- [NAS Devices](nas-devices) - NAS device management
+- [Component Library](index) - All components overview
