@@ -208,12 +208,13 @@ Plans:
   5. AdminServer architecture documented in ARCHITECTURE.md (including NAS device entity)
   6. All protocols support archive settings (where applicable)
   7. NAS/NFS architecture validated production-ready (dynamic mounting works in OCP)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 10-01: v0.2.0 documentation completion
-- [ ] 10-02: AdminServer and NAS device E2E tests
-- [ ] 10-03: Release preparation and NAS production validation
+- [ ] 10-01-PLAN.md — Datasource-NAS integration and archive extraction backend
+- [ ] 10-02-PLAN.md — v0.2.0 documentation completion (NAS architecture, release notes, Hebrew guide)
+- [ ] 10-03-PLAN.md — AdminServer, NAS device, and archive extraction E2E tests
+- [ ] 10-04-PLAN.md — Release preparation and NAS production validation (checkpoint)
 
 ## Progress
 
