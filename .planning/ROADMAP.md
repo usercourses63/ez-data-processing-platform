@@ -135,13 +135,13 @@ Plans:
   6. Docusaurus portal deployed as K8s service in ez-platform namespace
   7. Ingress configured for /docs path routing to Docusaurus portal
   8. Documentation update process documented (GSD markdown -> Docusaurus before each release)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 06-01: Helm chart packaging and versioning
-- [ ] 06-02: OCP deployment automation
-- [ ] 06-03: Validation and rollback procedures
-- [ ] 06-04: Docusaurus portal deployment and documentation workflow
+- [ ] 06-01-PLAN.md - Helm chart versioning (v0.2.0), smoke test hooks, environment values files
+- [ ] 06-02-PLAN.md - Image export script, database init hook, OCP deployment documentation
+- [ ] 06-03-PLAN.md - Rollback procedures and smoke test execution guide
+- [ ] 06-04-PLAN.md - Docusaurus /docs path routing and documentation workflow
 
 ### Phase 7: Documentation Audit & Archive
 **Goal**: All 401 existing documents (excluding .planning/) audited, categorized, and obsolete content archived/deleted
@@ -227,7 +227,7 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 | 3. Protocol Test Coverage | 4/4 | Complete | 2026-02-02 |
 | 4. Format & Pipeline Testing | 3/3 | Complete | 2026-02-02 |
 | 5. CI/CD Foundation | 3/3 | Complete | 2026-02-02 |
-| 6. Deployment Automation | 0/4 | Not started | - |
+| 6. Deployment Automation | 0/4 | Planned | - |
 | 7. Documentation Audit & Archive | 2/2 | Complete | 2026-02-02 |
 | 8. Documentation Consolidation | 0/3 | Not started | - |
 | 9. Frontend Development Workflow | 0/4 | Not started | - |
@@ -243,5 +243,6 @@ Phases execute in numeric order. Phase 2 (NAS/NFS) can run in parallel with Phas
 *Phase 3 planned: 2026-02-02 (4 plans in 2 waves)*
 *Phase 4 planned: 2026-02-02 (3 plans in 3 waves)*
 *Phase 5 planned: 2026-02-02 (3 plans in 3 waves)*
+*Phase 6 planned: 2026-02-03 (4 plans in 2 waves)*
 *Depth: Comprehensive (10 phases)*
 *Total requirements: 45 | Mapped: 45*
