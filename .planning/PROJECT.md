@@ -84,6 +84,12 @@ Files flow reliably from any source through validation to any destination, with 
 - [ ] **FEAT-02**: NAS devices selectable in data source Connection/Output tabs with path config
 - [ ] **FEAT-03**: Archive extraction functional across all protocols
 
+#### NAS Lifecycle Management (gap analysis)
+- [ ] **NAS-08**: Auto-mount volumes to service deployments after PV/PVC provisioning
+- [ ] **NAS-09**: DataSource → NasDevice entity linking (NasDeviceId + mount path auto-population)
+- [ ] **NAS-10**: PVC binding verification before DataSource can use NAS device
+- [ ] **NAS-11**: NAS update/delete lifecycle (prevent delete if referenced, cascade cleanup)
+
 #### Observability Verification
 - [ ] **OTEL-01**: Every microservice generates logs via OTEL collector
 - [ ] **OTEL-02**: Every microservice generates traces via OTEL collector
@@ -102,6 +108,15 @@ Files flow reliably from any source through validation to any destination, with 
 #### Production Deployment
 - [ ] **PROD-01**: CI/CD deploys to production-like environment via Helm
 - [ ] **PROD-02**: All services healthy in production-like deployment
+- [ ] **PROD-03**: Frontend version display from CI/CD build pipeline
+- [ ] **PROD-04**: Local production deployment (single-pod mode for dev PC)
+- [ ] **PROD-05**: OCP resource configuration (requests/limits per pod)
+- [ ] **PROD-06**: Release-package local validation (single-replica test)
+
+#### Documentation
+- [ ] **DOC-06**: Docusaurus content updated for v0.2.0 release
+- [ ] **DOC-07**: Docusaurus container in release-package
+- [ ] **DOC-08**: Frontend help → Docusaurus integration verification
 
 #### E2E Validation
 - [ ] **E2E-01**: Full file flow test (generate input → ingest → process → output → compare)
@@ -125,7 +140,7 @@ Files flow reliably from any source through validation to any destination, with 
 
 ### Current State
 - **Version:** v0.1 shipped (2026-02-11), now working on v0.2
-- **Current Milestone:** v0.2 Production Validation & Release (21 requirements)
+- **Current Milestone:** v0.2 Production Validation & Release (34 requirements)
 - **Architecture:** 9 microservices + React frontend on Kubernetes
 - **Testing:** 32 protocol tests, 63 format tests, 17 pipeline tests, 5 load tests, Playwright E2E
 - **CI/CD:** GitHub Actions pipeline with Docker builds, Helm charts, quality gates
