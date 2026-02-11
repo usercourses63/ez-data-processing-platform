@@ -210,13 +210,45 @@ public class NasDevicesController : ControllerBase
     }
 
     /// <summary>
-    /// Delete a NAS device (soft delete)
+    /// Check if a NAS device can be deleted (no DataSources reference it)
     /// </summary>
     /// <param name="id">NAS device ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>No content</returns>
+    /// <returns>Delete eligibility status with referencing DataSources if blocked</returns>
+    [HttpGet("{id}/can-delete")]
+    [ProducesResponseType(typeof(NasDeviceDeleteCheckResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<NasDeviceDeleteCheckResult>> CanDelete(
+        string id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var device = await _nasDeviceService.GetNasDeviceByIdAsync(id, cancellationToken);
+            if (device == null)
+            {
+                return NotFound(new { message = $"התקן NAS לא נמצא: {id}" });
+            }
+
+            var result = await _nasDeviceService.CanDeleteNasDeviceAsync(id, cancellationToken);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "שגיאה בבדיקת יכולת מחיקת התקן NAS: {DeviceId}", id);
+            return StatusCode(500, new { message = "שגיאה בבדיקת יכולת מחיקה", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Delete a NAS device (soft delete). Fails if DataSources reference it.
+    /// </summary>
+    /// <param name="id">NAS device ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Success or error response</returns>
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(
         string id,
@@ -231,7 +263,13 @@ public class NasDevicesController : ControllerBase
                 return NotFound(new { message = $"התקן NAS לא נמצא: {id}" });
             }
 
-            return NoContent();
+            return Ok(new { message = "התקן NAS נמחק בהצלחה" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Referential integrity violation - cannot delete
+            _logger.LogWarning("Cannot delete NAS device {DeviceId}: {Message}", id, ex.Message);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
