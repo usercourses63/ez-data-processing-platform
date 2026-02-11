@@ -39,11 +39,11 @@
   1. Hebrew/RTL layout displays correctly (fixed columns, Badge, Collapse icons)
   2. No unwanted English translations appear in Hebrew mode
   3. Connection and Output tabs show NAS device dropdown instead of NFS protocol
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1 parallel)
 
 Plans:
-- [ ] 11-01: Fix Hebrew/RTL layout regressions (Ant Design known issues)
-- [ ] 11-02: Remove unwanted English translations and fix NAS dropdown
+- [ ] 11-01-PLAN.md — Fix Hebrew/RTL layout regressions (document direction sync, CSS fixes for Table/Badge/Collapse)
+- [ ] 11-02-PLAN.md — Replace NFS dropdown with NAS device selection in DestinationEditorModal, add translation keys
 
 ### Phase 12: NAS Lifecycle Completion
 **Goal**: Complete NAS device lifecycle with auto-mounting and cleanup
@@ -208,7 +208,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 11. Bug Fixes & UI Polish | v0.2 | 0/2 | Not started | - |
+| 11. Bug Fixes & UI Polish | v0.2 | 0/2 | Planned | - |
 | 12. NAS Lifecycle Completion | v0.2 | 0/3 | Not started | - |
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Not started | - |
 | 14. OTEL Verification | v0.2 | 0/2 | Not started | - |
@@ -223,4 +223,4 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **v0.2 Totals:** 0/28 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-02-11 after v0.2 roadmap creation*
+*Roadmap updated: 2026-02-11 after Phase 11 planning complete*
