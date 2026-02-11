@@ -119,10 +119,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FEAT-01 | Phase 13 | Pending |
 | FEAT-02 | Phase 13 | Pending |
 | FEAT-03 | Phase 13 | Pending |
-| NAS-08 | Phase 12 | Pending |
-| NAS-09 | Phase 12 | Pending |
-| NAS-10 | Phase 12 | Pending |
-| NAS-11 | Phase 12 | Pending |
+| NAS-08 | Phase 12 | Complete |
+| NAS-09 | Phase 12 | Complete |
+| NAS-10 | Phase 12 | Complete |
+| NAS-11 | Phase 12 | Complete |
 | OTEL-01 | Phase 14 | Pending |
 | OTEL-02 | Phase 14 | Pending |
 | OTEL-03 | Phase 14 | Pending |
