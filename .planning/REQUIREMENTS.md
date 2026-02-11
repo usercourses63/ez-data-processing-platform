@@ -113,46 +113,46 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUG-01 | TBD | Pending |
-| BUG-02 | TBD | Pending |
-| BUG-03 | TBD | Pending |
-| FEAT-01 | TBD | Pending |
-| FEAT-02 | TBD | Pending |
-| FEAT-03 | TBD | Pending |
-| NAS-08 | TBD | Pending |
-| NAS-09 | TBD | Pending |
-| NAS-10 | TBD | Pending |
-| NAS-11 | TBD | Pending |
-| OTEL-01 | TBD | Pending |
-| OTEL-02 | TBD | Pending |
-| OTEL-03 | TBD | Pending |
-| MON-05 | TBD | Pending |
-| MON-06 | TBD | Pending |
-| MON-07 | TBD | Pending |
-| SIM-01 | TBD | Pending |
-| SIM-02 | TBD | Pending |
-| SIM-03 | TBD | Pending |
-| PROD-01 | TBD | Pending |
-| PROD-02 | TBD | Pending |
-| PROD-03 | TBD | Pending |
-| PROD-04 | TBD | Pending |
-| PROD-05 | TBD | Pending |
-| PROD-06 | TBD | Pending |
-| DOC-06 | TBD | Pending |
-| DOC-07 | TBD | Pending |
-| DOC-08 | TBD | Pending |
-| E2E-01 | TBD | Pending |
-| E2E-02 | TBD | Pending |
-| E2E-03 | TBD | Pending |
-| E2E-04 | TBD | Pending |
-| REL-01 | TBD | Pending |
-| REL-02 | TBD | Pending |
+| BUG-01 | Phase 11 | Pending |
+| BUG-02 | Phase 11 | Pending |
+| BUG-03 | Phase 11 | Pending |
+| FEAT-01 | Phase 13 | Pending |
+| FEAT-02 | Phase 13 | Pending |
+| FEAT-03 | Phase 13 | Pending |
+| NAS-08 | Phase 12 | Pending |
+| NAS-09 | Phase 12 | Pending |
+| NAS-10 | Phase 12 | Pending |
+| NAS-11 | Phase 12 | Pending |
+| OTEL-01 | Phase 14 | Pending |
+| OTEL-02 | Phase 14 | Pending |
+| OTEL-03 | Phase 14 | Pending |
+| MON-05 | Phase 15 | Pending |
+| MON-06 | Phase 15 | Pending |
+| MON-07 | Phase 16 | Pending |
+| SIM-01 | Phase 17 | Pending |
+| SIM-02 | Phase 17 | Pending |
+| SIM-03 | Phase 17 | Pending |
+| PROD-01 | Phase 20 | Pending |
+| PROD-02 | Phase 20 | Pending |
+| PROD-03 | Phase 20 | Pending |
+| PROD-04 | Phase 20 | Pending |
+| PROD-05 | Phase 20 | Pending |
+| PROD-06 | Phase 20 | Pending |
+| DOC-06 | Phase 19 | Pending |
+| DOC-07 | Phase 19 | Pending |
+| DOC-08 | Phase 19 | Pending |
+| E2E-01 | Phase 18 | Pending |
+| E2E-02 | Phase 18 | Pending |
+| E2E-03 | Phase 18 | Pending |
+| E2E-04 | Phase 18 | Pending |
+| REL-01 | Phase 21 | Pending |
+| REL-02 | Phase 21 | Pending |
 
 **Coverage:**
 - v0.2 requirements: 34 total
-- Mapped to phases: 0
-- Unmapped: 34 (pending roadmap creation)
+- Mapped to phases: 34
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-11 after NAS lifecycle gap analysis*
+*Last updated: 2026-02-11 after v0.2 roadmap creation*

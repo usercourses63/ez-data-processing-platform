@@ -9,21 +9,21 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements for v0.2
-Last activity: 2026-02-11 — Milestone v0.2 started
+Phase: 11 of 21 (Bug Fixes & UI Polish)
+Plan: 0 of 2 in current phase
+Status: Ready to plan
+Last activity: 2026-02-11 — v0.2 roadmap created (11 phases, 28 plans)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%
+Progress: [##########░░░░░░░░░░░░░░░░░░░░░░] 32/60 plans (v0.1: 32/32, v0.2: 0/28)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
+- Total plans completed: 32 (v0.1 milestone)
 - Average duration: 4.8 min
 - Total execution time: 2.56 hours
 
-**By Phase:**
+**By Phase (v0.1):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -49,375 +49,42 @@ Progress: [░░░░░░░░░░░░░░░░░░░░░░░
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Init]: File-simulator as primary test environment for all file I/O
-- [Init]: Testing Foundation is Milestone 1 (CRITICAL) - establishes confidence
-- [Init]: GSD becomes single source of truth for all planning/execution docs
-- [Rev-1]: NAS/NFS Architecture is separate Phase 2 BEFORE protocol testing
-- [Rev-1]: NFS protocol acts as connector to NAS devices (not standalone server)
-- [Rev-1]: Phase 2 can run in parallel with Phase 1 (no dependencies)
-- [Rev-2]: Docusaurus portal integration added to CI/CD (Phase 5), Deployment (Phase 6), Frontend (Phase 9)
-- [Rev-2]: Version injection includes frontend version.ts, Docusaurus config, and Docker tags
-- [Rev-2]: Documentation portal deployed at /docs path in K8s Ingress
-- [02-05]: Role colors: Input=blue, Output=green, Backup=orange, Both=purple
-- [07-01]: KEEP/ARCHIVE/DELETE categories with archive-first policy
-- [07-01]: docs/planning/ full archive per GSD 'single source of truth'
-- [07-01]: Root file policy: only README.md, CLAUDE.md, CHANGELOG.md stay
-- [07-01]: Session logs organized by month (2025-10, 2025-11, 2025-12)
-- [02-06]: Datasource-NAS integration deferred to Phase 10 FEAT-02 (NAS dropdown in Connection tab)
-- [07-02]: Archive structure: sessions/, planning/, presentations/, operational-logs/, status-reports/
-- [07-02]: YAML frontmatter with last-verified date for doc freshness tracking
-- [03-01]: Use xunit.SkippableFact for graceful test skipping when file-simulator unavailable
-- [03-02]: SMBLibrary 1.5.5.1 for SMB 2/3 support; SMB tests skip without tunnel
-- [03-03]: NFS tests use NFS_MOUNT_PATH env var to detect K8s pod context
-- [03-03]: Kafka tests use IDataSourceConnector via KafkaFixture (not AdminServer)
-- [03-04]: Local tests use temp directory, OCP-Incompatible trait for local-only tests
-- [04-01]: Deterministic test data for round-trip comparisons (not random)
-- [04-01]: Compare parsed records, not raw strings, for CSV round-trips
-- [04-01]: XmlToJsonConverter returns numbers for numeric values (tests updated)
-- [04-02]: PipelineFixture creates internal fixture instances (xUnit DI limitation)
-- [04-03]: Batch file staging (10 files/batch) to avoid FTP connection limits
-- [04-03]: Performance baselines deferred until file-simulator available
-- [05-01]: ThrottleLimit 5 for parallel Docker builds (balance parallelism/resources)
-- [05-01]: Triple tagging: version, latest, short SHA
-- [05-01]: ARG redeclaration per Dockerfile stage (Docker multi-stage requirement)
-- [05-02]: Multi-job CI pipeline with needs: dependencies enforces quality gates
-- [05-02]: Artifact upload uses if: always() for test failure diagnosis
-- [05-02]: Docker job uses refs/heads/main conditional (not just 'main')
-- [05-03]: Version injection via sed in Docusaurus.Dockerfile (Pattern 3 from research)
-- [05-03]: Docusaurus adds 10th service to build script (9 backend/frontend + docs)
-- [06-01]: Chart version 0.2.0 matches appVersion v0.2.0 for version alignment
-- [06-01]: Smoke test: 60s wait + 3 retries with 10s intervals for service stabilization
-- [06-01]: curlimages/curl:8.5.0 for smoke test (OCP-compatible, non-root)
-- [06-03]: Report-only smoke tests (no auto-rollback) to avoid churn from transient issues
-- [06-03]: 3 versions retained in rollback history via --history-max 3
-- [06-04]: baseUrl: '/docs/' for Docusaurus path-based deployment
-- [06-04]: Path-based routing over subdomain routing for docs (single domain)
-- [06-04]: /docs path before / catch-all in Ingress rules (order-dependent)
-- [09-02]: Visual regression threshold 30% for dynamic content (timestamps, live data)
-- [09-02]: Snapshot path template organizes baselines by test file and project
-- [09-02]: RTL assertions verify document.dir, text-align, Ant Design direction
-- [09-02]: Technical content LTR verification for paths, URLs, code inputs
-- [09-03]: Contract-first API development with URL versioning (/api/v1/)
-- [09-03]: 2-release deprecation period for breaking API changes
-- [09-03]: React Query preferred over useActionState for data fetching
-- [09-03]: .ltr-field CSS class for technical content in RTL mode
-- [09-04]: Runtime URL detection for docs (localhost:3000/docs in dev, /docs in prod)
-- [09-04]: MDX format for Hebrew user guide (better RTL component support than MD)
-- [09-04]: Technical content kept LTR in RTL documents for readability
+- [v0.2-Init]: Bug fixes first (Phase 11) to establish clean foundation
+- [v0.2-Init]: NAS lifecycle (Phase 12) before feature completion (dependency)
+- [v0.2-Init]: OTEL and file-simulator phases can run parallel (no dependencies)
+- [v0.2-Init]: Docs update before production deployment (content must be current)
 
 ### Pending Todos
 
-None - all v0.2.0 feature work complete. Final validation in 10-04.
+None - starting fresh with v0.2 milestone.
 
 ### Blockers/Concerns
 
-- Phase 3 tests skip when file-simulator unavailable (expected behavior, not a blocker)
-- SMB tests require minikube tunnel for port 445 access (documented skip message)
-- NFS tests skip when NFS_MOUNT_PATH not set (expected - requires K8s pod context)
-- RBAC manifests applied to cluster (Phase 2 complete, verified working)
-- Pipeline tests require file-simulator for full E2E (14 tests skip gracefully)
-- Load tests require file-simulator (5 tests skip gracefully)
-- Performance baselines TBD when infrastructure available
+Carried from v0.1 milestone audit:
+- Hebrew/RTL layout regressions (addressed in Phase 11)
+- Unwanted English translations (addressed in Phase 11)
+- NFS->NAS dropdown fix needed (addressed in Phase 11)
+- 19 integration tests + 5 load tests skip without file-simulator (addressed in Phase 17-18)
+- Performance baselines not established (file-simulator needed)
 
 ## Session Continuity
 
-Last session: 2026-02-03T13:35:00Z
-Stopped at: Completed 10-03-PLAN.md (E2E Tests for NAS, AdminServer, Archive)
-Resume file: None - Continue with 10-04-PLAN.md (v0.2.0 Release Validation)
+Last session: 2026-02-11
+Stopped at: v0.2 roadmap created
+Resume file: None - start with `/gsd:plan-phase 11`
 
-## Phase 1 Summary
+## v0.2 Phase Summary
 
-Phase 1 (File-Simulator Integration) is complete:
-- Plan 01-01: ConfigMap with placeholder IP, deployment updates, verification script
-- Plan 01-02: Setup documentation, E2E regression verification
-
-**Key Artifacts:**
-- `k8s/configmaps/file-simulator-config.yaml` - Protocol endpoints ConfigMap
-- `scripts/verify-file-simulator.ps1` - Cross-cluster connectivity verification
-- `docs/testing/file-simulator-setup.md` - Comprehensive setup guide
-
-## Phase 2 Summary
-
-Phase 2 (NAS/NFS Architecture) is COMPLETE (all 6 plans):
-- Plan 02-01: NasDevice entity, RBAC manifests (COMPLETE)
-- Plan 02-02: KubernetesClient integration, NasResourceService (COMPLETE)
-- Plan 02-03: NAS device REST API, INasDeviceService (COMPLETE)
-- Plan 02-04: NfsConnector implementation (COMPLETE)
-- Plan 02-05: Frontend UI for NAS device management (COMPLETE)
-- Plan 02-06: Integration verification, RBAC deployment (COMPLETE)
-
-**Key Artifacts:**
-- `src/Services/Shared/Entities/NasDevice.cs` - NAS device configuration entity
-- `k8s/rbac/nas-device-rbac.yaml` - RBAC for K8s PV/PVC management
-- `src/Services/Shared/Configuration/KubernetesConfiguration.cs` - K8s client DI setup
-- `src/Services/Shared/Services/INasResourceService.cs` - PV/PVC operations interface
-- `src/Services/Shared/Services/NasResourceService.cs` - Full implementation
-- `src/Services/Shared/Connectors/NfsConnector.cs` - NFS connector for K8s PVC mounts
-- `src/Services/DataSourceManagementService/Controllers/NasDevicesController.cs` - NAS device REST API
-- `src/Frontend/src/services/nas-devices-api-client.ts` - Frontend API client
-- `src/Frontend/src/pages/admin/tabs/NasDevicesTab.tsx` - NAS device management tab
-- `scripts/verify-nas-integration.ps1` - Integration verification script
-- `k8s/deployments/datasource-management-deployment.yaml` - RBAC-enabled deployment
-
-**Deferred to Phase 10:**
-- Datasource-NAS integration (NAS in Connection tab dropdown)
-- Path-on-NAS configuration in datasource form
-
-## Phase 3 Summary (COMPLETE)
-
-Phase 3 (Protocol Test Coverage) is COMPLETE (all 4 plans):
-- Plan 03-01: FTP/SFTP/HTTP Test Foundation (COMPLETE)
-- Plan 03-02: S3/SMB Connector Tests (COMPLETE)
-- Plan 03-03: NFS/Kafka Connector Tests (COMPLETE)
-- Plan 03-04: Local Connector Tests and Documentation (COMPLETE)
-
-**Key Artifacts (03-01):**
-- `tests/IntegrationTests/Fixtures/FileSimulatorFixture.cs` - Shared test fixture
-- `tests/IntegrationTests/Connectors/FtpConnectorTests.cs` - 3 FTP tests
-- `tests/IntegrationTests/Connectors/SftpConnectorTests.cs` - 3 SFTP tests
-- `tests/IntegrationTests/Connectors/HttpApiConnectorTests.cs` - 2 HTTP tests
-
-**Key Artifacts (03-02):**
-- `src/Services/Shared/Connectors/SmbConnector.cs` - SMB protocol connector
-- `tests/IntegrationTests/Connectors/S3ConnectorTests.cs` - 3 S3/MinIO tests
-- `tests/IntegrationTests/Connectors/SmbConnectorTests.cs` - 3 SMB tests
-
-**Key Artifacts (03-03):**
-- `tests/IntegrationTests/Connectors/NfsConnectorTests.cs` - 6 NFS tests (K8s pod context)
-- `tests/IntegrationTests/Connectors/KafkaConnectorTests.cs` - 6 Kafka tests
-
-**Key Artifacts (03-04):**
-- `tests/IntegrationTests/Connectors/LocalFileConnectorTests.cs` - 6 Local tests (OCP-Incompatible)
-- `tests/IntegrationTests/IntegrationTestCollection.cs` - Updated with all fixtures
-- `docs/testing/protocol-test-guide.md` - Comprehensive protocol test documentation
-
-**Test State:**
-- 32 protocol tests across 8 connectors
-- All tests skip gracefully when dependencies unavailable
-- NFS tests skip without NFS_MOUNT_PATH env var (K8s pod required)
-- Kafka tests pass with broker available via port-forward
-- Local tests marked OCP-Incompatible (reference implementation only)
-- Pattern: SkippableFact + env var detection for platform-specific tests
-
-## Phase 4 Summary (COMPLETE)
-
-Phase 4 (Format & Pipeline Testing) is COMPLETE (all 3 plans):
-- Plan 04-01: Bidirectional Format Testing (COMPLETE)
-- Plan 04-02: Pipeline Path Testing (COMPLETE)
-- Plan 04-03: Load Testing & Documentation (COMPLETE)
-
-**Key Artifacts (04-01):**
-- `tests/Shared.Tests/TestData/TestDataFactory.cs` - Test data generators for all formats
-- `tests/Shared.Tests/Converters/BidirectionalFormatTests.cs` - 14 round-trip tests
-- Extended edge case tests in CsvToJsonConverterTests.cs, XmlToJsonConverterTests.cs, ExcelToJsonConverterTests.cs
-
-**Key Artifacts (04-02):**
-- `tests/IntegrationTests/Fixtures/PipelineFixture.cs` - Coordinated pipeline test fixture
-- `tests/IntegrationTests/Pipeline/PipelineFlowTests.cs` - 7 E2E flow tests
-- `tests/IntegrationTests/Pipeline/FormatPipelineTests.cs` - 10 format-specific pipeline tests
-
-**Key Artifacts (04-03):**
-- `tests/IntegrationTests/LoadTests/FileVolumeTests.cs` - 5 volume throughput tests (10/100/1000 files)
-- `docs/testing/format-pipeline-test-guide.md` - Comprehensive test documentation (453 lines)
-- `.planning/phases/04-format-pipeline-testing/04-TEST-RESULTS.md` - Test execution results
-
-**Test State:**
-- 63 total tests in Shared.Tests (all passing)
-- 17 pipeline tests in IntegrationTests (3 pass, 14 skip without file-simulator)
-- 5 load tests in IntegrationTests (all skip without file-simulator)
-- Total Phase 4: 85 tests (66 pass, 19 skip)
-- Test filtering: `--filter "Category=Pipeline"`, `--filter "Category=LoadTest"`, etc.
-
-## Phase 5 Summary (COMPLETE)
-
-Phase 5 (CI/CD Foundation) is COMPLETE (all 3 plans):
-- Plan 05-01: Docker Build Script & Version Injection (COMPLETE)
-- Plan 05-02: GitHub Actions CI Pipeline (COMPLETE)
-- Plan 05-03: Docusaurus Build & Version Injection (COMPLETE)
-
-**Key Artifacts (05-01):**
-- `scripts/build-all-images.ps1` - Parallel Docker build with version injection
-- `src/Frontend/src/version.ts` - Version placeholder for frontend
-- All 9 Dockerfiles updated with ARG VERSION/COMMIT_SHA and OCI labels
-
-**Build Script Features:**
-- PowerShell 7+ ForEach-Object -Parallel with ThrottleLimit 5
-- ConcurrentBag for thread-safe error tracking
-- Tags: version, latest, short SHA
-- Exit code 1 on any build failure
-
-**Key Artifacts (05-02):**
-- `.github/workflows/ci.yml` - GitHub Actions CI pipeline
-
-**CI Pipeline Features:**
-- Multi-job pipeline: build -> test -> docker
-- Test job runs Shared.Tests and IntegrationTests
-- TRX artifact upload with `if: always()` for failure diagnosis
-- Docker job only runs on refs/heads/main
-- Version: v0.2.0.{run_number}
-
-**Key Artifacts (05-03):**
-- `docker/Docusaurus.Dockerfile` - Docusaurus Docker build with version injection
-- Updated `scripts/build-all-images.ps1` to build 10 services
-- Updated `.github/workflows/ci.yml` docker summary to list Docusaurus
-
-**Docusaurus Build Features:**
-- Multi-stage: Node.js 20 Alpine build -> Nginx Alpine production
-- Version injection via sed into docusaurus.config.js title
-- OCI labels for image metadata
-- OCP-compliant: non-root user, port 8080
-
-## Phase 7 Summary (COMPLETE)
-
-Phase 7 (Documentation Audit & Archive) is COMPLETE (all 2 plans):
-- Plan 07-01: Documentation Inventory and Categorization (COMPLETE)
-- Plan 07-02: Archive Execution (COMPLETE)
-
-**Key Artifacts:**
-- `docs-inventory.csv` - 402 files categorized (KEEP: 261, ARCHIVE: 141)
-- `scripts/generate-docs-inventory.ps1` - Inventory generation script
-- `scripts/categorize-docs.ps1` - Categorization rules script
-- `docs/archive/sessions/index.md` - Session logs archive index
-- `docs/archive/sessions/2025-10/*.md` - 13 October session logs
-- `docs/archive/sessions/2025-11/*.md` - 1 November session log
-- `docs/archive/sessions/2025-12/*.md` - 26 December session logs
-- `docs/archive/planning/*.md` - 77 archived planning documents
-- `docs/releases/*.md` - 5 consolidated release artifacts
-- `docs/deployment/*.md` - 2 consolidated deployment guides
-- `docs/DOCUMENTATION-INDEX.md` - Updated with archive structure
-
-**Documentation State:**
-- Root: README.md, CLAUDE.md, CHANGELOG.md only
-- Active docs: 261 files with YAML frontmatter (last-verified: 2026-02-02)
-- Archived: 141 files in docs/archive/ with git history preserved
-
-## Phase 6 Summary (COMPLETE)
-
-Phase 6 (Deployment Automation) is COMPLETE (all 4 plans):
-- Plan 06-01: Helm Chart Version Alignment (COMPLETE)
-- Plan 06-02: Deployment Validation (SKIPPED - merged into 06-03)
-- Plan 06-03: Rollback & Health Verification (COMPLETE)
-- Plan 06-04: Docusaurus Portal Deployment (COMPLETE)
-
-**Key Artifacts (06-01):**
-- `helm/ez-platform/Chart.yaml` - Updated to v0.2.0
-- `release-package/helm/ez-platform-ocp/Chart.yaml` - Updated to v0.2.0
-- `helm/ez-platform/templates/tests/smoke-test.yaml` - Helm test hook for 10 services
-- `release-package/helm/ez-platform-ocp/templates/tests/smoke-test.yaml` - OCP test hook
-- `helm/ez-platform/values-dev.yaml` - Dev environment overrides
-- `helm/ez-platform/values-prod.yaml` - Prod environment overrides
-- `release-package/helm/ez-platform-ocp/values-dev.yaml` - OCP dev overrides
-- `release-package/helm/ez-platform-ocp/values-prod.yaml` - OCP prod overrides
-
-**Key Artifacts (06-03):**
-- `docs/deployment/rollback-procedures.md` - Comprehensive rollback runbook (305 lines)
-- `docs/deployment/smoke-test-guide.md` - Smoke test execution guide (297 lines)
-
-**Key Artifacts (06-04):**
-- `release-package/docs-docusaurus/docusaurus.config.js` - baseUrl: '/docs/' for path routing
-- `release-package/helm/ez-platform-ocp/templates/routes/docs-route.yaml` - OCP Route with path: /docs
-- `helm/ez-platform/templates/ingress/ez-platform-ingress.yaml` - Ingress with /docs before /
-- `docs/deployment/documentation-workflow.md` - GSD to Docusaurus sync guide (398 lines)
-
-**Chart State:**
-- Both charts at version 0.2.0, appVersion v0.2.0
-- All 10 services have v0.2.0 default image tags
-- Smoke test: `helm test <release>` verifies all services
-- Environment overlays: `-f values-dev.yaml` or `-f values-prod.yaml`
-- Rollback: `helm rollback` with `--history-max 3` retention
-- Docs routing: /docs path on both K8s Ingress and OCP Route
-
-## Phase 9 Summary (COMPLETE)
-
-Phase 9 (Frontend Development Workflow) is COMPLETE (all 4 plans):
-- Plan 09-01: Component Documentation (COMPLETE)
-- Plan 09-02: E2E Test Expansion (COMPLETE)
-- Plan 09-03: Development Guides Documentation (COMPLETE)
-- Plan 09-04: Help/Docs Portal Integration (COMPLETE)
-
-**Key Artifacts (09-01):**
-- `release-package/docs-docusaurus/docs/components/index.md` - Component library landing page (157 lines)
-- `release-package/docs-docusaurus/docs/components/datasource-forms.mdx` - Form tab documentation (414 lines)
-- `release-package/docs-docusaurus/docs/components/schema-editor.mdx` - Schema editing components (355 lines)
-- `release-package/docs-docusaurus/docs/components/nas-devices.mdx` - NAS management component (319 lines)
-- `release-package/docs-docusaurus/static/img/components/*.svg` - LTR/RTL comparison placeholders (8 files)
-- `release-package/docs-docusaurus/sidebars.js` - Updated with Components category
-
-**Key Artifacts (09-02):**
-- `src/Frontend/tests/e2e/schema.spec.ts` - Schema management E2E tests (420 lines)
-- `src/Frontend/tests/e2e/rtl-visual.spec.ts` - RTL visual regression tests (455 lines)
-- `src/Frontend/playwright.config.ts` - Snapshot configuration for visual regression
-- `src/Frontend/tests/e2e/datasource.spec.ts` - Updated with RTL baseline tests
-
-**Key Artifacts (09-03):**
-- `release-package/docs-docusaurus/docs/development/index.md` - Development guides landing page (96 lines)
-- `release-package/docs-docusaurus/docs/development/api-coordination.md` - API coordination process (318 lines)
-- `release-package/docs-docusaurus/docs/development/react19-patterns.md` - React 19 patterns guide (584 lines)
-- `release-package/docs-docusaurus/sidebars.js` - Updated with Development category
-
-**Key Artifacts (09-04):**
-- `src/Frontend/src/utils/docs-url.ts` - Runtime environment detection for docs URLs (89 lines)
-- `src/Frontend/src/components/layout/AppHeader.tsx` - Help button with portal link
-- `src/Frontend/tests/e2e/help-integration.spec.ts` - Help integration E2E tests (249 lines)
-- `release-package/docs-docusaurus/docs/user-guide-he.mdx` - Hebrew user guide with RTL layout (813 lines)
-
-**Test State:**
-- Schema management: 20+ test cases (CRUD, filters, templates, RTL)
-- RTL visual regression: Document-level assertions, component screenshots
-- Help integration: Button visibility, new tab, URL detection, RTL/LTR modes
-- Visual regression baselines: Created on first test run
-- Threshold: 30% pixel difference for dynamic content
-
-**Documentation State:**
-- API coordination: Contract-first, versioning, checklist, pitfalls
-- React 19 patterns: Suspense, hooks, React Query, RTL, anti-patterns
-- Hebrew user guide: Updated to v0.2.0 with NAS/NFS section, RTL MDX layout
-
-## Completed Phases
-
-| Phase | Name | Plans | Status |
-|-------|------|-------|--------|
-| 01 | File-Simulator Integration | 2/2 | COMPLETE |
-| 02 | NAS/NFS Architecture | 6/6 | COMPLETE |
-| 03 | Protocol Test Coverage | 4/4 | COMPLETE |
-| 04 | Format & Pipeline Testing | 3/3 | COMPLETE |
-| 05 | CI/CD Foundation | 3/3 | COMPLETE |
-| 06 | Deployment Automation | 4/4 | COMPLETE |
-| 07 | Documentation Audit & Archive | 2/2 | COMPLETE |
-| 09 | Frontend Development Workflow | 4/4 | COMPLETE |
-
-## Incomplete Items (Review in Next Milestone)
-
-**Carried from v0.1 milestone audit (.planning/v0.1-MILESTONE-AUDIT.md):**
-
-### Unexecuted Plan
-- **10-04-PLAN.md** (Release Preparation & NAS Production Validation) — NOT EXECUTED
-  - CHANGELOG.md update for v0.2.0
-  - NAS production validation script
-  - Release checklist documentation
-  - **Status:** v0.1 milestone complete
-
-### Unsatisfied Requirements
-- **FEAT-01:** v0.2.0 External File Access completed (docs + E2E tests) — PENDING
-- **FEAT-02:** AdminServer architecture fully integrated and tested — PENDING
-- **FEAT-03:** Archive settings functional across all protocols — PENDING
-- **TEST-04:** File-simulator integrated as primary test environment — PARTIAL (infrastructure ready, human verify)
-- **TEST-06:** All existing E2E tests validated against file-simulator — PARTIAL (needs human execution)
-
-### Missing Phase Verifications
-- Phase 02 (NAS/NFS Architecture) — no VERIFICATION.md
-- Phase 06 (Deployment Automation) — no VERIFICATION.md
-- Phase 08 (Documentation Consolidation) — no VERIFICATION.md
-- Phase 10 (Feature Completion) — no VERIFICATION.md
-
-### Known Bugs (User Reported)
-- **Hebrew/RTL not fully working** — RTL changes were not completely successful
-- **Unwanted English translations added** — translations added without being requested
-- **NFS→NAS protocol dropdown** — Connection/Output tab shows NFS but should show NAS devices from system settings NAS tab
-
-### Tech Debt
-- 4 phases missing formal VERIFICATION.md
-- Container registry push disabled in CI pipeline (placeholder)
-- Performance baselines not established (file-simulator needed)
-- 19 integration tests + 5 load tests skip without file-simulator
-- ConfigMap placeholder {{FILE_SIMULATOR_IP}} needs IP resolution per environment
+| Phase | Name | Plans | Requirements |
+|-------|------|-------|--------------|
+| 11 | Bug Fixes & UI Polish | 2 | BUG-01, BUG-02, BUG-03 |
+| 12 | NAS Lifecycle Completion | 3 | NAS-08, NAS-09, NAS-10, NAS-11 |
+| 13 | AdminServer & Feature Completion | 3 | FEAT-01, FEAT-02, FEAT-03 |
+| 14 | OTEL Verification | 2 | OTEL-01, OTEL-02, OTEL-03 |
+| 15 | Device Health Monitoring | 2 | MON-05, MON-06 |
+| 16 | SignalR Real-Time Updates | 2 | MON-07 |
+| 17 | File-Simulator Integration | 2 | SIM-01, SIM-02, SIM-03 |
+| 18 | E2E Validation | 4 | E2E-01, E2E-02, E2E-03, E2E-04 |
+| 19 | Documentation Update | 2 | DOC-06, DOC-07, DOC-08 |
+| 20 | CI/CD & Production Deployment | 4 | PROD-01..06 |
+| 21 | Release Package | 2 | REL-01, REL-02 |
