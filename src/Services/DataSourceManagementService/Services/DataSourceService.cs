@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using DataProcessing.Shared.Entities;
@@ -23,18 +24,21 @@ public class DataSourceService : IDataSourceService
     private readonly ILogger<DataSourceService> _logger;
     private readonly BusinessMetrics _metrics;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly INasDeviceService _nasDeviceService;
     private static readonly ActivitySource ActivitySource = new("DataProcessing.DataSourceManagement.Service");
 
     public DataSourceService(
         IDataSourceRepository repository,
         ILogger<DataSourceService> logger,
         BusinessMetrics metrics,
-        IPublishEndpoint publishEndpoint)
+        IPublishEndpoint publishEndpoint,
+        INasDeviceService nasDeviceService)
     {
         _repository = repository;
         _logger = logger;
         _metrics = metrics;
         _publishEndpoint = publishEndpoint;
+        _nasDeviceService = nasDeviceService;
     }
 
     /// <summary>
@@ -205,6 +209,9 @@ public class DataSourceService : IDataSourceService
             // Map request to entity
             var dataSource = MapCreateRequestToEntity(request);
 
+            // Validate NAS device and auto-populate FilePath if NasDeviceId is set
+            await ValidateAndPopulateNasDeviceAsync(dataSource);
+
             // Create the data source
             var createdDataSource = await _repository.CreateAsync(dataSource, correlationId);
 
@@ -277,6 +284,9 @@ public class DataSourceService : IDataSourceService
 
             // Map request to existing entity
             MapUpdateRequestToEntity(request, existingDataSource);
+
+            // Validate NAS device and auto-populate FilePath if NasDeviceId is set
+            await ValidateAndPopulateNasDeviceAsync(existingDataSource);
 
             // Debug logging after mapping
             var additionalConfig = existingDataSource.AdditionalConfiguration;
@@ -905,5 +915,51 @@ public class DataSourceService : IDataSourceService
 
         // Mark entity as modified to ensure MongoDB saves the changes
         entity.MarkAsModified();
+    }
+
+    /// <summary>
+    /// Validates NAS device reference and auto-populates FilePath from mount configuration.
+    /// </summary>
+    private async Task ValidateAndPopulateNasDeviceAsync(
+        DataProcessingDataSource dataSource,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrEmpty(dataSource.NasDeviceId))
+        {
+            return; // Not using NAS, no validation needed
+        }
+
+        var nasDevice = await _nasDeviceService.GetNasDeviceByIdAsync(dataSource.NasDeviceId, ct);
+
+        if (nasDevice == null)
+        {
+            throw new ValidationException($"התקן NAS לא נמצא: {dataSource.NasDeviceId}");
+        }
+
+        if (!nasDevice.IsProvisioned)
+        {
+            throw new ValidationException(
+                $"התקן NAS '{nasDevice.Name}' לא מוקצה. יש לבצע הקצאה (provision) ולהמתין ש-PVC יהיה מחובר לפני יצירת DataSource.");
+        }
+
+        if (!nasDevice.CanBeInput)
+        {
+            throw new ValidationException(
+                $"התקן NAS '{nasDevice.Name}' עם תפקיד '{nasDevice.Role}' לא יכול לשמש כמקור קלט. יש להשתמש בהתקן עם תפקיד Input או Both.");
+        }
+
+        // Compute full mount path: /mnt/{nas-name}/{export-path}/{sub-path}
+        var subPath = dataSource.NasSubPath?.TrimStart('/') ?? string.Empty;
+        var computedPath = Path.Combine(
+            nasDevice.MountPath,
+            nasDevice.ExportPath.TrimStart('/'),
+            subPath
+        ).Replace('\\', '/'); // Normalize for Linux
+
+        dataSource.FilePath = computedPath;
+
+        _logger.LogInformation(
+            "DataSource {Name} linked to NAS device {NasDevice}, computed path: {Path}",
+            dataSource.Name, nasDevice.Name, dataSource.FilePath);
     }
 }
