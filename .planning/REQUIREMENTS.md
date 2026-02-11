@@ -113,9 +113,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUG-01 | Phase 11 | Pending |
-| BUG-02 | Phase 11 | Pending |
-| BUG-03 | Phase 11 | Pending |
+| BUG-01 | Phase 11 | Complete |
+| BUG-02 | Phase 11 | Complete |
+| BUG-03 | Phase 11 | Complete |
 | FEAT-01 | Phase 13 | Pending |
 | FEAT-02 | Phase 13 | Pending |
 | FEAT-03 | Phase 13 | Pending |

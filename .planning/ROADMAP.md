@@ -17,7 +17,7 @@
 - Integer phases (11, 12, 13): Planned milestone work
 - Decimal phases (12.1, 12.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 11: Bug Fixes & UI Polish** - Fix Hebrew/RTL regressions, unwanted translations, NAS dropdown
+- [x] **Phase 11: Bug Fixes & UI Polish** - Fix Hebrew/RTL regressions, unwanted translations, NAS dropdown ✓ (2026-02-11)
 - [ ] **Phase 12: NAS Lifecycle Completion** - Auto-mount, DataSource linking, PVC verification, delete lifecycle
 - [ ] **Phase 13: AdminServer & Feature Completion** - AdminServer settings, NAS selection in forms, archive extraction
 - [ ] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices
@@ -208,7 +208,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 11. Bug Fixes & UI Polish | v0.2 | 0/2 | Planned | - |
+| 11. Bug Fixes & UI Polish | v0.2 | 2/2 | Complete | 2026-02-11 |
 | 12. NAS Lifecycle Completion | v0.2 | 0/3 | Not started | - |
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Not started | - |
 | 14. OTEL Verification | v0.2 | 0/2 | Not started | - |
@@ -220,7 +220,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 0/28 plans complete (0%)
+**v0.2 Totals:** 2/28 plans complete (7%)
 
 ---
 *Roadmap updated: 2026-02-11 after Phase 11 planning complete*
