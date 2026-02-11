@@ -54,12 +54,12 @@ Plans:
   2. DataSource entity links to NasDevice with auto-populated mount paths
   3. DataSource creation blocked if referenced NAS device PVC not bound
   4. NAS device delete prevented if referenced by DataSources; cleanup cascades on deprovision
-**Plans**: TBD
+**Plans**: 3 plans (Wave 1: 12-01, 12-02 parallel; Wave 2: 12-03)
 
 Plans:
-- [ ] 12-01: Auto-mount PV/PVC volumes based on NAS device role
-- [ ] 12-02: DataSource-NasDevice entity linking and path auto-population
-- [ ] 12-03: PVC binding verification and delete lifecycle management
+- [ ] 12-01-PLAN.md — Auto-mount PV/PVC volumes to deployments based on NAS device role (NAS-08)
+- [ ] 12-02-PLAN.md — DataSource-NasDevice entity linking with path auto-population and PVC validation (NAS-09, NAS-10)
+- [ ] 12-03-PLAN.md — Delete lifecycle management with referential integrity and cascade cleanup (NAS-11)
 
 ### Phase 13: AdminServer & Feature Completion
 **Goal**: Complete AdminServer integration and verify archive extraction
@@ -223,4 +223,4 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **v0.2 Totals:** 2/28 plans complete (7%)
 
 ---
-*Roadmap updated: 2026-02-11 after Phase 11 planning complete*
+*Roadmap updated: 2026-02-11 after Phase 12 planning complete*
