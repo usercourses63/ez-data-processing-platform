@@ -35,7 +35,7 @@ export const OutputTab: React.FC<OutputTabProps> = ({ output, onChange }) => {
     setEditingDestination({
       id: generateUUID(),
       name: '',
-      type: 'nfs',
+      type: 'NAS',
       enabled: true,
       outputFormat: null,
       includeInvalidRecords: null

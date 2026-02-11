@@ -27,11 +27,13 @@ import {
   ApiOutlined,
   GlobalOutlined,
   FileOutlined,
-  WarningOutlined
+  WarningOutlined,
+  HddOutlined
 } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import type { OutputDestination } from '../shared/types';
 import { getOutputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
+import { getNasDevices, nasDeviceQueryKeys, NasDevice } from '../../../services/nas-devices-api-client';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -59,18 +61,18 @@ const serverTypeIcons: Record<string, React.ReactNode> = {
   sftp: <ApiOutlined />,
   s3: <CloudServerOutlined />,
   http: <ApiOutlined />,
-  nfs: <FileOutlined />,
+  nas: <HddOutlined />,
   kafka: <CloudServerOutlined />,
 };
 
-// Protocol to server type mapping
+// Protocol to server type mapping (NAS replaces NFS - NFS is internal to NAS)
 const protocolToServerType: Record<string, string> = {
   'FTP': 'ftp',
   'SFTP': 'sftp',
   'HTTP': 'http',
   'Kafka': 'kafka',
   'S3': 's3',
-  'NFS': 'nfs',
+  'NAS': 'nas',
 };
 
 export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
@@ -80,20 +82,29 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
   onCancel
 }) => {
   const [form] = Form.useForm();
-  const [destinationType, setDestinationType] = useState<string>(destination?.type || 'NFS');
+  const [destinationType, setDestinationType] = useState<string>(destination?.type || 'NAS');
 
-  // Fetch available output servers
+  // Fetch available output servers (for non-NAS protocols)
   const { data: outputServers = [], isLoading: loadingServers } = useQuery({
     queryKey: serverQueryKeys.list('output'),
     queryFn: getOutputServers,
+    enabled: destinationType !== 'NAS',
+  });
+
+  // Fetch NAS devices (for NAS protocol)
+  const { data: nasDevices = [], isLoading: loadingNasDevices } = useQuery({
+    queryKey: nasDeviceQueryKeys.list(),
+    queryFn: () => getNasDevices(),
+    enabled: destinationType === 'NAS',
   });
 
   // Watch form fields
   const outputServerId = Form.useWatch('outputServerId', form);
+  const nasDeviceId = Form.useWatch('nasDeviceId', form);
 
-  // Filter servers based on selected protocol
+  // Filter servers based on selected protocol (for non-NAS protocols)
   const compatibleServers = useMemo(() => {
-    if (!destinationType) return [];
+    if (!destinationType || destinationType === 'NAS') return [];
     const serverType = protocolToServerType[destinationType]?.toLowerCase() || destinationType.toLowerCase();
 
     return outputServers.filter((server: AdminServer) =>
@@ -102,14 +113,36 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
     );
   }, [destinationType, outputServers]);
 
-  // Get selected server details
+  // Get selected server details (for non-NAS protocols)
   const selectedServer = useMemo(() => {
-    if (!outputServerId) return null;
+    if (!outputServerId || destinationType === 'NAS') return null;
     return outputServers.find((s: AdminServer) => s.ID === outputServerId) || null;
-  }, [outputServerId, outputServers]);
+  }, [outputServerId, outputServers, destinationType]);
 
-  // Check if servers are available for the selected protocol
-  const hasCompatibleServers = compatibleServers.length > 0;
+  // Filter NAS devices - show output-capable devices
+  const availableNasDevices = useMemo(() => {
+    if (destinationType !== 'NAS') return [];
+    // Filter devices that can be output destinations (Output or Both roles)
+    return nasDevices.filter((device: NasDevice) =>
+      device.Role === 'Output' || device.Role === 'Both'
+    );
+  }, [destinationType, nasDevices]);
+
+  // Get selected NAS device details
+  const selectedNasDevice = useMemo(() => {
+    if (!nasDeviceId || destinationType !== 'NAS') return null;
+    return nasDevices.find((d: NasDevice) => d.ID === nasDeviceId) || null;
+  }, [nasDeviceId, nasDevices, destinationType]);
+
+  // Check if NAS device is mounted (provisioned)
+  const isNasDeviceMounted = (device: NasDevice): boolean => {
+    return device.IsPvCreated && device.IsPvcBound;
+  };
+
+  // Check if servers/devices are available for the selected protocol
+  const hasCompatibleServers = destinationType === 'NAS'
+    ? availableNasDevices.length > 0
+    : compatibleServers.length > 0;
 
   useEffect(() => {
     if (visible && destination) {
@@ -129,15 +162,15 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
       });
       setDestinationType(destination.type);
     } else if (visible && !destination) {
-      // New destination - default to NFS
+      // New destination - default to NAS
       form.resetFields();
       form.setFieldsValue({
-        type: 'NFS',
+        type: 'NAS',
         enabled: true,
         outputFormat: null,
         includeInvalidRecords: null
       });
-      setDestinationType('NFS');
+      setDestinationType('NAS');
     }
   }, [visible, destination, form]);
 
@@ -145,9 +178,9 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
     try {
       const values = await form.validateFields();
 
-      // Validate server selection
-      if (!values.outputServerId) {
-        message.error('חובה לבחור שרת פלט');
+      // Validate server/device selection
+      if (!values.outputServerId && !values.nasDeviceId) {
+        message.error('חובה לבחור שרת פלט או התקן NAS');
         return;
       }
 
@@ -161,6 +194,7 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
         outputFormat: values.outputFormat,
         includeInvalidRecords: values.includeInvalidRecords,
         outputServerId: values.outputServerId, // v0.2.0: Server reference
+        nasDeviceId: values.nasDeviceId, // v0.2.0: NAS device reference
       };
 
       // Add type-specific applicative configuration
@@ -169,7 +203,7 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
           topic: values.kafkaTopic,
           messageKey: values.kafkaMessageKey,
         };
-      } else if (values.type === 'ftp' || values.type === 'sftp' || values.type === 'nfs') {
+      } else if (values.type === 'ftp' || values.type === 'sftp' || values.type === 'NAS') {
         updatedDestination.folderConfig = {
           path: values.path,
           fileNamePattern: values.fileNamePattern,
@@ -283,28 +317,33 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
                 S3 - Object Storage (MinIO)
               </Space>
             </Option>
-            <Option value="NFS">
+            <Option value="NAS">
               <Space>
-                <FileOutlined />
-                NFS - Network File System
+                <HddOutlined />
+                NAS - Network Attached Storage
               </Space>
             </Option>
           </Select>
         </Form.Item>
 
-        {/* Step 2: Server Selection - Only show after protocol selected */}
+        {/* Step 2: Server/Device Selection - Only show after protocol selected */}
         {destinationType && (
           <>
-            <Divider>בחירת שרת</Divider>
+            <Divider>
+              {destinationType === 'NAS' ? 'בחירת התקן NAS' : 'בחירת שרת'}
+            </Divider>
 
             {!hasCompatibleServers ? (
               <Alert
-                message={`אין שרתי ${destinationType} זמינים`}
+                message={destinationType === 'NAS'
+                  ? 'אין התקני NAS לפלט זמינים'
+                  : `אין שרתי ${destinationType} זמינים`
+                }
                 description={
                   <Space direction="vertical" size="small">
                     <Text>פנה למנהל המערכת להוספת שרת מתאים</Text>
                     <Text type="secondary">
-                      הגדרות מערכת → שרתי פלט
+                      הגדרות מערכת → {destinationType === 'NAS' ? 'התקני NAS' : 'שרתי פלט'}
                     </Text>
                   </Space>
                 }
@@ -316,13 +355,72 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
                   <Button
                     type="link"
                     size="small"
-                    onClick={() => window.open('/admin/settings?tab=output', '_blank')}
+                    onClick={() => window.open(destinationType === 'NAS' ? '/admin?tab=nasDevices' : '/admin/settings?tab=output', '_blank')}
                   >
                     עבור להגדרות מערכת
                   </Button>
                 }
               />
+            ) : destinationType === 'NAS' ? (
+              /* NAS Device Selection */
+              <Form.Item
+                name="nasDeviceId"
+                label={
+                  <Space>
+                    <HddOutlined />
+                    התקן NAS
+                    <Tag color="blue">
+                      {availableNasDevices.filter(d => isNasDeviceMounted(d)).length} התקנים זמינים
+                    </Tag>
+                  </Space>
+                }
+                rules={[
+                  {
+                    required: true,
+                    message: 'חובה לבחור התקן NAS'
+                  }
+                ]}
+                tooltip="בחר התקן NAS שהוגדר על ידי מנהל המערכת"
+              >
+                <Select
+                  placeholder={
+                    loadingNasDevices
+                      ? 'טוען התקני NAS...'
+                      : 'בחר התקן NAS לפלט...'
+                  }
+                  loading={loadingNasDevices}
+                  disabled={loadingNasDevices}
+                  allowClear
+                  showSearch
+                  optionFilterProp="children"
+                >
+                  {availableNasDevices.map((device: NasDevice) => {
+                    const isMounted = isNasDeviceMounted(device);
+                    return (
+                      <Option
+                        key={device.ID}
+                        value={device.ID}
+                        disabled={!isMounted}
+                      >
+                        <Space>
+                          <HddOutlined style={{ color: isMounted ? '#52c41a' : '#faad14' }} />
+                          {device.Name}
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            ({device.Host}:{device.Port})
+                          </Text>
+                          {!isMounted && (
+                            <Tag color="warning" style={{ marginLeft: 8 }}>
+                              לא מחובר
+                            </Tag>
+                          )}
+                        </Space>
+                      </Option>
+                    );
+                  })}
+                </Select>
+              </Form.Item>
             ) : (
+              /* Standard Server Selection (non-NAS protocols) */
               <Form.Item
                 name="outputServerId"
                 label={
@@ -369,8 +467,8 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
               </Form.Item>
             )}
 
-            {/* Show server info when selected */}
-            {selectedServer && (
+            {/* Show server info when selected (non-NAS) */}
+            {selectedServer && destinationType !== 'NAS' && (
               <Alert
                 message={`שרת נבחר: ${selectedServer.Name}`}
                 description={
@@ -386,15 +484,36 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
                 style={{ marginBottom: 16 }}
               />
             )}
+
+            {/* Show NAS device info when selected */}
+            {selectedNasDevice && destinationType === 'NAS' && (
+              <Alert
+                message={`התקן NAS נבחר: ${selectedNasDevice.Name}`}
+                description={
+                  <Space direction="vertical" size={0}>
+                    <Text>שרת: {selectedNasDevice.Host}:{selectedNasDevice.Port}</Text>
+                    <Text>נתיב ייצוא: {selectedNasDevice.ExportPath}</Text>
+                    <Text>
+                      נתיב Mount:{' '}
+                      <Text code className="ltr-field">/mnt/nfs/{selectedNasDevice.Name.toLowerCase().replace(/\s+/g, '-')}{selectedNasDevice.ExportPath}</Text>
+                    </Text>
+                    {selectedNasDevice.Description && <Text type="secondary">{selectedNasDevice.Description}</Text>}
+                  </Space>
+                }
+                type="success"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+            )}
           </>
         )}
 
-        {/* Step 3: Applicative Fields - Only show when server selected */}
-        {selectedServer && (
+        {/* Step 3: Applicative Fields - Only show when server/device selected */}
+        {(selectedServer || selectedNasDevice) && (
           <>
             <Divider>הגדרות יעד</Divider>
 
-            {/* FILE-BASED PROTOCOLS (Local, FTP, SFTP, S3, NFS) */}
+            {/* FILE-BASED PROTOCOLS (Local, FTP, SFTP, S3, NAS) */}
             {effectiveDestinationType !== 'kafka' && effectiveDestinationType !== 'http' && (
               <>
                 <Form.Item
