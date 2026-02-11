@@ -149,6 +149,24 @@ public class DataProcessingDataSource : DataProcessingBaseEntity
     [StringLength(24)]
     public string? FileServerId { get; set; }
 
+    // ========== NAS Device Reference (v0.2.0) ==========
+
+    /// <summary>
+    /// Reference to NasDevice used for NFS file access.
+    /// When set, FilePath is auto-populated from NasDevice.MountPath + ExportPath + subpath.
+    /// The NAS device must be provisioned (PVC bound) before DataSource can be created.
+    /// </summary>
+    [StringLength(24)]
+    public string? NasDeviceId { get; set; }
+
+    /// <summary>
+    /// Optional sub-path within the NAS export directory.
+    /// Combined with NasDevice.MountPath and ExportPath to compute full FilePath.
+    /// Example: "/sales/daily" appended to "/mnt/nas-device/export" = "/mnt/nas-device/export/sales/daily"
+    /// </summary>
+    [StringLength(500)]
+    public string? NasSubPath { get; set; }
+
     // ========== Archive Support Fields (v0.2.0) ==========
 
     /// <summary>
