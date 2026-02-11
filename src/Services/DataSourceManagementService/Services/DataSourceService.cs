@@ -807,7 +807,9 @@ public class DataSourceService : IDataSourceService
             LastProcessedAt = null,
             AdditionalConfiguration = additionalConfig.ElementCount > 0 ? additionalConfig : null,
             Output = request.Output ?? new DataProcessing.Shared.Entities.OutputConfiguration(),
-            ArchiveSettings = request.ArchiveSettings
+            ArchiveSettings = request.ArchiveSettings,
+            NasDeviceId = request.NasDeviceId,
+            NasSubPath = request.NasSubPath
         };
     }
 
@@ -912,6 +914,10 @@ public class DataSourceService : IDataSourceService
         {
             entity.ArchiveSettings = request.ArchiveSettings;
         }
+
+        // Map NAS device reference (v0.2.0)
+        entity.NasDeviceId = request.NasDeviceId;
+        entity.NasSubPath = request.NasSubPath;
 
         // Mark entity as modified to ensure MongoDB saves the changes
         entity.MarkAsModified();

@@ -133,4 +133,18 @@ public class UpdateDataSourceRequest
     /// Configures how archive files (ZIP, TAR.GZ, RAR, 7Z) should be handled
     /// </summary>
     public DataProcessing.Shared.Services.ArchiveSettings? ArchiveSettings { get; set; }
+
+    /// <summary>
+    /// Optional NAS device ID for NFS-based file access (v0.2.0).
+    /// When set, FilePath is auto-computed from NAS device configuration.
+    /// </summary>
+    [StringLength(24)]
+    public string? NasDeviceId { get; set; }
+
+    /// <summary>
+    /// Optional sub-path within the NAS export directory (v0.2.0).
+    /// Combined with NasDevice.MountPath and ExportPath to compute full FilePath.
+    /// </summary>
+    [StringLength(500)]
+    public string? NasSubPath { get; set; }
 }
