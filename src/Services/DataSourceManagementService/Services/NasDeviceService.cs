@@ -166,7 +166,16 @@ public class NasDeviceService : INasDeviceService
     /// <inheritdoc/>
     public async Task<bool> DeleteNasDeviceAsync(string id, CancellationToken ct = default)
     {
-        _logger.LogInformation("Deleting NAS device: {Id}", id);
+        _logger.LogInformation("Attempting to delete NAS device: {Id}", id);
+
+        // Check for referencing DataSources first
+        var deleteCheck = await CanDeleteNasDeviceAsync(id, ct);
+        if (!deleteCheck.CanDelete)
+        {
+            var dsNames = string.Join(", ", deleteCheck.ReferencingDataSources.Take(5).Select(ds => ds.Name));
+            throw new InvalidOperationException(
+                $"לא ניתן למחוק התקן NAS: מקושר ל-{deleteCheck.ReferencingDataSources.Count} מקורות נתונים: {dsNames}");
+        }
 
         var existing = await GetNasDeviceByIdAsync(id, ct);
         if (existing == null)
