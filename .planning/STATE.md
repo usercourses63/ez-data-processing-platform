@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 12 of 21 (NAS Lifecycle Completion)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-02-11 — Completed 11-02-PLAN.md (NAS Output Destination)
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-02-11 — Completed 12-01-PLAN.md (Auto-Mount to Deployments)
 
-Progress: [###########░░░░░░░░░░░░░░░░░░░░░] 34/60 plans (v0.1: 32/32, v0.2: 2/28)
+Progress: [############░░░░░░░░░░░░░░░░░░░░] 35/60 plans (v0.1: 32/32, v0.2: 3/28)
 
 ## Performance Metrics
 
@@ -37,8 +37,8 @@ Progress: [###########░░░░░░░░░░░░░░░░░░░�
 | 09-frontend-development | 4 | 20 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 10-02 (8 min), 10-03 (4 min), 11-01 (2 min), 11-02 (5 min)
-- Trend: Consistent ~5 min/plan
+- Last 5 plans: 10-03 (4 min), 11-01 (2 min), 11-02 (5 min), 12-01 (4 min)
+- Trend: Consistent ~4 min/plan
 
 *Updated after each plan completion*
 
@@ -53,6 +53,7 @@ Recent decisions affecting current work:
 - [v0.2-Init]: NAS lifecycle (Phase 12) before feature completion (dependency)
 - [v0.2-Init]: OTEL and file-simulator phases can run parallel (no dependencies)
 - [v0.2-Init]: Docs update before production deployment (content must be current)
+- [12-01]: Role mapping: Input->filediscovery+fileprocessor, Output->output, Both->all three, Backup->output
 
 ### Pending Todos
 
@@ -70,8 +71,8 @@ Carried from v0.1 milestone audit:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed Phase 11 (Bug Fixes & UI Polish) - all 2 plans done
-Resume file: Start Phase 12 with `/gsd:plan-phase 12`
+Stopped at: Completed 12-01-PLAN.md (Auto-Mount to Deployments)
+Resume file: Continue with 12-02-PLAN.md
 
 ## v0.2 Phase Summary
 
