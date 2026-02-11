@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Net;
 using MongoDB.Entities;
+using k8s.Autorest;
 using DataProcessing.DataSourceManagement.Models.Requests;
 using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Services;
@@ -283,6 +285,18 @@ public class NasDeviceService : INasDeviceService
                 }
             }
 
+            // Auto-mount to deployments after PVC binding
+            if (result.PvcBound)
+            {
+                var (mounted, failed) = await AutoMountToDeploymentsAsync(device, request.Namespace, ct);
+                result.MountedDeployments = mounted;
+                result.FailedMounts = failed;
+
+                _logger.LogInformation(
+                    "Auto-mount completed for NAS {Name}: {MountedCount} mounted, {FailedCount} failed",
+                    device.Name, mounted.Count, failed.Count);
+            }
+
             // Update device provisioning status
             device.SetProvisioningResult(
                 result.PvCreated,
@@ -426,5 +440,58 @@ public class NasDeviceService : INasDeviceService
             result.DurationMs = stopwatch.ElapsedMilliseconds;
             return result;
         }
+    }
+
+    // ========== Auto-Mount Operations ==========
+
+    /// <summary>
+    /// Auto-mount NAS volume to target deployments based on device role.
+    /// </summary>
+    private async Task<(List<string> Mounted, List<string> Failed)> AutoMountToDeploymentsAsync(
+        NasDevice device, string namespace_, CancellationToken ct)
+    {
+        var targetDeployments = GetTargetDeployments(device.Role);
+        var mounted = new List<string>();
+        var failed = new List<string>();
+
+        foreach (var deploymentName in targetDeployments)
+        {
+            try
+            {
+                await _nasResourceService.AddNasMountToDeploymentAsync(
+                    deploymentName, namespace_, device, ct);
+                mounted.Add(deploymentName);
+                _logger.LogInformation(
+                    "Auto-mounted NAS {DeviceName} to deployment {Deployment}",
+                    device.Name, deploymentName);
+            }
+            catch (HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                failed.Add($"{deploymentName}: Deployment not found");
+                _logger.LogWarning("Deployment {Deployment} not found, skipping mount", deploymentName);
+            }
+            catch (Exception ex)
+            {
+                failed.Add($"{deploymentName}: {ex.Message}");
+                _logger.LogError(ex, "Failed to mount NAS {DeviceName} to {Deployment}",
+                    device.Name, deploymentName);
+            }
+        }
+        return (mounted, failed);
+    }
+
+    /// <summary>
+    /// Get target deployment names based on NAS device role.
+    /// </summary>
+    private static List<string> GetTargetDeployments(NasDeviceRole role)
+    {
+        return role switch
+        {
+            NasDeviceRole.Input => new List<string> { "filediscovery", "fileprocessor" },
+            NasDeviceRole.Output => new List<string> { "output" },
+            NasDeviceRole.Both => new List<string> { "filediscovery", "fileprocessor", "output" },
+            NasDeviceRole.Backup => new List<string> { "output" },
+            _ => new List<string>()
+        };
     }
 }
