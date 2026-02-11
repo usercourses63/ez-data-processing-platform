@@ -346,21 +346,48 @@ public class NasDeviceService : INasDeviceService
 
         var ns = string.IsNullOrEmpty(namespace_) ? "ez-platform" : namespace_;
 
-        // Delete PVC first (must be deleted before PV)
+        // Step 1: Remove volume mounts from target deployments BEFORE deleting PVC
+        var targetDeployments = GetTargetDeployments(device.Role);
+        foreach (var deploymentName in targetDeployments)
+        {
+            try
+            {
+                await _nasResourceService.RemoveNasMountFromDeploymentAsync(
+                    deploymentName, ns, device.Name, ct);
+
+                _logger.LogInformation(
+                    "Removed NAS mount for {DeviceName} from deployment {Deployment}",
+                    device.Name, deploymentName);
+            }
+            catch (HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                _logger.LogDebug(
+                    "Deployment {Deployment} not found, skipping unmount",
+                    deploymentName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to remove NAS mount from deployment {Deployment}, continuing with deprovision",
+                    deploymentName);
+            }
+        }
+
+        // Step 2: Delete PVC (must be deleted before PV)
         var pvcDeleted = await _nasResourceService.DeletePersistentVolumeClaimAsync(device.PvcName, ns, ct);
         if (!pvcDeleted)
         {
             _logger.LogWarning("Failed to delete PVC {PvcName} for NAS device {Name}", device.PvcName, device.Name);
         }
 
-        // Delete PV
+        // Step 3: Delete PV
         var pvDeleted = await _nasResourceService.DeletePersistentVolumeAsync(device.PvName, ct);
         if (!pvDeleted)
         {
             _logger.LogWarning("Failed to delete PV {PvName} for NAS device {Name}", device.PvName, device.Name);
         }
 
-        // Update device status
+        // Step 4: Update device status
         device.IsPvCreated = !pvDeleted;
         device.IsPvcBound = !pvcDeleted;
         device.LastProvisionedAt = null;
@@ -369,8 +396,8 @@ public class NasDeviceService : INasDeviceService
         await device.SaveAsync(cancellation: ct);
 
         _logger.LogInformation(
-            "Deprovisioned K8s resources for NAS device {Name}: PV deleted={PvDeleted}, PVC deleted={PvcDeleted}",
-            device.Name, pvDeleted, pvcDeleted);
+            "Deprovisioned K8s resources for NAS device {Name}: PV deleted={PvDeleted}, PVC deleted={PvcDeleted}, mounts removed from {DeploymentCount} deployments",
+            device.Name, pvDeleted, pvcDeleted, targetDeployments.Count);
 
         return pvDeleted && pvcDeleted;
     }
