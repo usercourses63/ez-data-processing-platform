@@ -386,5 +386,38 @@ Phase 9 (Frontend Development Workflow) is COMPLETE (all 4 plans):
 | 07 | Documentation Audit & Archive | 2/2 | COMPLETE |
 | 09 | Frontend Development Workflow | 4/4 | COMPLETE |
 
-**Next:**
-Continue with Phase 10: Feature Completion (v0.2.0 External File Access, AdminServer, Archive settings, NAS validation).
+## Incomplete Items (Review in Next Milestone)
+
+**Carried from v0.1 milestone audit (.planning/v0.1-MILESTONE-AUDIT.md):**
+
+### Unexecuted Plan
+- **10-04-PLAN.md** (Release Preparation & NAS Production Validation) — NOT EXECUTED
+  - CHANGELOG.md update for v0.2.0
+  - NAS production validation script
+  - Release checklist documentation
+  - **Status:** Superseded by new milestone scope — review if still needed
+
+### Unsatisfied Requirements
+- **FEAT-01:** v0.2.0 External File Access completed (docs + E2E tests) — PENDING
+- **FEAT-02:** AdminServer architecture fully integrated and tested — PENDING
+- **FEAT-03:** Archive settings functional across all protocols — PENDING
+- **TEST-04:** File-simulator integrated as primary test environment — PARTIAL (infrastructure ready, human verify)
+- **TEST-06:** All existing E2E tests validated against file-simulator — PARTIAL (needs human execution)
+
+### Missing Phase Verifications
+- Phase 02 (NAS/NFS Architecture) — no VERIFICATION.md
+- Phase 06 (Deployment Automation) — no VERIFICATION.md
+- Phase 08 (Documentation Consolidation) — no VERIFICATION.md
+- Phase 10 (Feature Completion) — no VERIFICATION.md
+
+### Known Bugs (User Reported)
+- **Hebrew/RTL not fully working** — RTL changes were not completely successful
+- **Unwanted English translations added** — translations added without being requested
+- **NFS→NAS protocol dropdown** — Connection/Output tab shows NFS but should show NAS devices from system settings NAS tab
+
+### Tech Debt
+- 4 phases missing formal VERIFICATION.md
+- Container registry push disabled in CI pipeline (placeholder)
+- Performance baselines not established (file-simulator needed)
+- 19 integration tests + 5 load tests skip without file-simulator
+- ConfigMap placeholder {{FILE_SIMULATOR_IP}} needs IP resolution per environment
