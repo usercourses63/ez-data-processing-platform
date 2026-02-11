@@ -68,26 +68,53 @@ Files flow reliably from any source through validation to any destination, with 
 #### Frontend Workflow — v0.1
 - ✓ **FE-01..07**: Component docs, Playwright E2E, API coordination, React 19 patterns, Docusaurus portal integration, Hebrew user guide — v0.1
 
-### Active
+### Active — v0.2 Production Validation & Release
 
-<!-- Next milestone scope — to be defined by /gsd:new-milestone -->
+<!-- Current milestone scope — defined 2026-02-11 -->
 
-*Pending — run `/gsd:new-milestone` to define requirements for next milestone.*
+**Goal:** Production-validated platform with real E2E testing against file-simulator, all bugs fixed, and tagged release for OCP deployment.
 
-### Carried from v0.1 (review in next milestone)
+#### Bug Fixes (carried from v0.1)
+- [ ] **BUG-01**: Fix Hebrew/RTL layout regressions
+- [ ] **BUG-02**: Remove unwanted English translations
+- [ ] **BUG-03**: Replace NFS protocol dropdown with NAS devices from system settings
 
-- **TEST-04**: File-simulator integrated as primary test environment — PARTIAL (infrastructure ready, needs real integration)
-- **TEST-06**: All existing E2E tests validated against file-simulator — PARTIAL (needs human execution)
-- **FEAT-01**: v0.2.0 External File Access completed (docs + E2E tests)
-- **FEAT-02**: AdminServer architecture fully integrated
-- **FEAT-03**: Archive settings functional across all protocols
-- **BUG-01**: Hebrew/RTL changes not fully working
-- **BUG-02**: Unwanted English translations added
-- **BUG-03**: NFS protocol in Connection/Output tab should be replaced by NAS devices from settings
+#### Feature Completion (carried from v0.1)
+- [ ] **FEAT-01**: AdminServer settings pages complete and verified (NAS, protocols, system config)
+- [ ] **FEAT-02**: NAS devices selectable in data source Connection/Output tabs with path config
+- [ ] **FEAT-03**: Archive extraction functional across all protocols
+
+#### Observability Verification
+- [ ] **OTEL-01**: Every microservice generates logs via OTEL collector
+- [ ] **OTEL-02**: Every microservice generates traces via OTEL collector
+- [ ] **OTEL-03**: Every microservice generates metrics via OTEL collector
+
+#### System Monitoring Enhancement
+- [ ] **MON-05**: System Monitoring page reflects real current system components
+- [ ] **MON-06**: File access device health/latency/keep-alive monitoring
+- [ ] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator)
+
+#### File-Simulator Integration
+- [ ] **SIM-01**: File-simulator docs/API understood and documented
+- [ ] **SIM-02**: DemoDataGenerator reads file-simulator config via API
+- [ ] **SIM-03**: DemoDataGenerator creates matching EZ devices from simulator config
+
+#### Production Deployment
+- [ ] **PROD-01**: CI/CD deploys to production-like environment via Helm
+- [ ] **PROD-02**: All services healthy in production-like deployment
+
+#### E2E Validation
+- [ ] **E2E-01**: Full file flow test (generate input → ingest → process → output → compare)
+- [ ] **E2E-02**: Error/negative tests with intentional bad data verify filtering
+- [ ] **E2E-03**: Playwright UI verification of NAS devices, file protocols, features
+- [ ] **E2E-04**: All existing E2E tests validated against file-simulator
+
+#### Release
+- [ ] **REL-01**: Tagged GitHub release (v0.2)
+- [ ] **REL-02**: Offline Helm package for OCP deployment
 
 ### Out of Scope
 
-- **Real-time dashboard** - Grafana provides monitoring
 - **AI Assistant integration** - Deferred, not critical for reliability
 - **Advanced Notifications** - Prometheus/Grafana alerting sufficient
 - **Comprehensive unit tests** - Focus on integration/E2E
@@ -97,13 +124,15 @@ Files flow reliably from any source through validation to any destination, with 
 ## Context
 
 ### Current State
-- **Version:** v0.1 milestone shipped (2026-02-11)
+- **Version:** v0.1 shipped (2026-02-11), now working on v0.2
+- **Current Milestone:** v0.2 Production Validation & Release (21 requirements)
 - **Architecture:** 9 microservices + React frontend on Kubernetes
 - **Testing:** 32 protocol tests, 63 format tests, 17 pipeline tests, 5 load tests, Playwright E2E
 - **CI/CD:** GitHub Actions pipeline with Docker builds, Helm charts, quality gates
 - **Monitoring:** Full observability stack (Prometheus dual, Grafana, Jaeger, Elasticsearch)
 - **Documentation:** Consolidated via GSD, Docusaurus portal at /docs
 - **NAS/NFS:** Dynamic PV/PVC provisioning, NAS device management UI
+- **File-Simulator:** External test environment at C:\Users\UserC\source\repos\file-simulator-suite
 
 ### Known Issues
 - Hebrew/RTL not fully working (v0.1 regression)
@@ -140,5 +169,7 @@ Files flow reliably from any source through validation to any destination, with 
 | Integration/E2E focus over unit tests | Microservices need interaction testing | ✓ Good — comprehensive E2E coverage |
 | NAS device management via K8s API | Dynamic PV/PVC provisioning | ✓ Good — full lifecycle implemented |
 
+| SignalR for real-time monitoring | File-simulator uses it, proven pattern | — Pending |
+
 ---
-*Last updated: 2026-02-11 after v0.1 milestone*
+*Last updated: 2026-02-11 after v0.2 milestone started*
