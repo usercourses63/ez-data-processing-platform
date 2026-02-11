@@ -601,6 +601,77 @@ public class NasResourceService : INasResourceService
         }
     }
 
+    /// <inheritdoc/>
+    public async Task RestartDeploymentAsync(
+        string deploymentName,
+        string namespace_,
+        CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(deploymentName);
+        var ns = string.IsNullOrEmpty(namespace_) ? _defaultNamespace : namespace_;
+
+        var stopwatch = Stopwatch.StartNew();
+        using var activity = ActivitySource.StartActivity("RestartDeployment");
+        activity?.SetTag("nas.deployment", deploymentName);
+        activity?.SetTag("nas.namespace", ns);
+
+        try
+        {
+            _logger.LogInformation(
+                "Triggering rolling restart for deployment {DeploymentName} in namespace {Namespace}",
+                deploymentName, ns);
+
+            // Read current deployment
+            var deployment = await _k8sClient.AppsV1.ReadNamespacedDeploymentAsync(
+                deploymentName, ns, cancellationToken: ct);
+
+            // Ensure annotations dictionary exists
+            deployment.Spec.Template.Metadata ??= new V1ObjectMeta();
+            deployment.Spec.Template.Metadata.Annotations ??= new Dictionary<string, string>();
+
+            // Update restart annotation to trigger rolling restart
+            deployment.Spec.Template.Metadata.Annotations["kubectl.kubernetes.io/restartedAt"] =
+                DateTime.UtcNow.ToString("O");
+
+            // Replace deployment
+            await _k8sClient.AppsV1.ReplaceNamespacedDeploymentAsync(
+                deployment, deploymentName, ns, cancellationToken: ct);
+
+            stopwatch.Stop();
+            RecordMetrics("restart", "deployment", "success", stopwatch.Elapsed);
+
+            _logger.LogInformation(
+                "Triggered rolling restart for deployment {DeploymentName} in {DurationMs}ms",
+                deploymentName, stopwatch.ElapsedMilliseconds);
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+        {
+            stopwatch.Stop();
+            RecordMetrics("restart", "deployment", "not_found", stopwatch.Elapsed);
+
+            _logger.LogWarning(
+                "Deployment {DeploymentName} not found in namespace {Namespace}, skipping restart",
+                deploymentName, ns);
+
+            activity?.SetStatus(ActivityStatusCode.Ok);
+            // Don't throw - gracefully handle missing deployment
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            RecordMetrics("restart", "deployment", "error", stopwatch.Elapsed);
+
+            _logger.LogError(ex,
+                "Failed to restart deployment {DeploymentName} in namespace {Namespace}",
+                deploymentName, ns);
+
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
+    }
+
     // ========== Private Helper Methods ==========
 
     /// <summary>

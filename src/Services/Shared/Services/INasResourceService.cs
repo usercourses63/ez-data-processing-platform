@@ -111,4 +111,12 @@ public interface INasResourceService
     /// <param name="ct">Cancellation token</param>
     /// <returns>Updated Deployment</returns>
     Task<V1Deployment> RemoveNasMountFromDeploymentAsync(string deploymentName, string namespace_, string nasName, CancellationToken ct = default);
+
+    /// <summary>
+    /// Trigger a rolling restart of a deployment by updating the restart annotation.
+    /// </summary>
+    /// <param name="deploymentName">Deployment name</param>
+    /// <param name="namespace_">Kubernetes namespace</param>
+    /// <param name="ct">Cancellation token</param>
+    Task RestartDeploymentAsync(string deploymentName, string namespace_, CancellationToken ct = default);
 }
