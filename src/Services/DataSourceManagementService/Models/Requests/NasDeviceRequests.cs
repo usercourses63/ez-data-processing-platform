@@ -224,6 +224,16 @@ public class NasDeviceProvisionResult
     /// Duration of the provisioning operation in milliseconds
     /// </summary>
     public long DurationMs { get; set; }
+
+    /// <summary>
+    /// List of deployment names where volume was successfully mounted
+    /// </summary>
+    public List<string> MountedDeployments { get; set; } = new();
+
+    /// <summary>
+    /// List of mount failures with deployment name and error message
+    /// </summary>
+    public List<string> FailedMounts { get; set; } = new();
 }
 
 /// <summary>
