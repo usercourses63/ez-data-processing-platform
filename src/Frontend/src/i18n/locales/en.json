@@ -117,6 +117,10 @@
     "selectServerPlaceholder": "Select {{protocol}} server...",
     "noServersFound": "No servers found",
     "serversAvailable": "servers available",
+    "selectNasOutputDevice": "Select NAS output device...",
+    "noNasOutputDevices": "No NAS output devices available",
+    "nasOutputDeviceRequired": "NAS output device is required",
+    "selectServerOrNasDevice": "Select an output server or NAS device",
     "categories": {
       "financial": "Financial",
       "customers": "Customers",

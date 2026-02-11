@@ -549,6 +549,10 @@
     "selectServerPlaceholder": "בחר שרת {{protocol}}...",
     "noServersFound": "לא נמצאו שרתים",
     "serversAvailable": "שרתים זמינים",
+    "selectNasOutputDevice": "בחר התקן NAS לפלט...",
+    "noNasOutputDevices": "אין התקני NAS לפלט זמינים",
+    "nasOutputDeviceRequired": "חובה לבחור התקן NAS לפלט",
+    "selectServerOrNasDevice": "בחר שרת פלט או התקן NAS",
     "categories": {
       "financial": "פיננסי",
       "customers": "לקוחות",
