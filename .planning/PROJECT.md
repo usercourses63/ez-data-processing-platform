@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A production-grade, microservices-based data processing platform that ingests files from multiple sources (FTP, SFTP, S3, SMB, NFS, HTTP, Kafka), validates them against JSON schemas, and outputs to multiple destinations with comprehensive monitoring and Hebrew/RTL support. Built on .NET 10, React 19, Kubernetes, with Kafka, MongoDB, and full observability (Prometheus, Grafana, Jaeger, Elasticsearch).
+A production-grade, microservices-based data processing platform that ingests files from multiple sources (FTP, SFTP, S3, SMB, NFS/NAS, HTTP, Kafka), validates them against JSON schemas, and outputs to multiple destinations with comprehensive monitoring and Hebrew/RTL support. Built on .NET 10, React 19, Kubernetes, with Kafka, MongoDB, and full observability (Prometheus, Grafana, Jaeger, Elasticsearch). Includes NAS device management with dynamic K8s PV/PVC provisioning for external file access.
 
 ## Core Value
 
@@ -12,157 +12,133 @@ Files flow reliably from any source through validation to any destination, with 
 
 ### Validated
 
-<!-- Shipped and confirmed working (from v0.1.1-rc3) -->
+<!-- Shipped and confirmed working -->
 
-#### Core Processing Pipeline
-- ✓ **PIPE-01**: System discovers files from configured sources on schedule - existing
-- ✓ **PIPE-02**: System converts files (CSV, JSON, XML, Excel) to normalized format - existing
-- ✓ **PIPE-03**: System validates records against JSON schemas - existing
-- ✓ **PIPE-04**: System outputs valid records to multiple destinations - existing
-- ✓ **PIPE-05**: System captures invalid records with detailed error information - existing
+#### Core Processing Pipeline (pre-existing)
+- ✓ **PIPE-01**: System discovers files from configured sources on schedule
+- ✓ **PIPE-02**: System converts files (CSV, JSON, XML, Excel) to normalized format
+- ✓ **PIPE-03**: System validates records against JSON schemas
+- ✓ **PIPE-04**: System outputs valid records to multiple destinations
+- ✓ **PIPE-05**: System captures invalid records with detailed error information
 
-#### Data Source Management
-- ✓ **DS-01**: Users configure data sources with 7-tab UI (connection, schedule, validation, schema, etc.) - existing
-- ✓ **DS-02**: Users test connections before saving (SFTP, FTP, HTTP, Kafka) - existing
-- ✓ **DS-03**: System supports Cron-based scheduling with visual helper - existing
-- ✓ **DS-04**: System tracks data source processing statistics - existing
+#### Data Source Management (pre-existing)
+- ✓ **DS-01**: Users configure data sources with 7-tab UI
+- ✓ **DS-02**: Users test connections before saving
+- ✓ **DS-03**: System supports Cron-based scheduling with visual helper
+- ✓ **DS-04**: System tracks data source processing statistics
 
-#### Schema Management
-- ✓ **SCH-01**: Users create JSON schemas with visual builder + code editor - existing
-- ✓ **SCH-02**: Users generate example data from schemas - existing
-- ✓ **SCH-03**: Users use 6 schema templates for common patterns - existing
-- ✓ **SCH-04**: Users get regex helper with Israeli patterns - existing
+#### Schema Management (pre-existing)
+- ✓ **SCH-01..04**: Full schema management with visual builder, templates, regex helper
 
-#### Invalid Records Management
-- ✓ **INV-01**: Users view invalid records with filters (category, datasource, error type, time range) - existing
-- ✓ **INV-02**: Users edit failed fields and revalidate records - existing
-- ✓ **INV-03**: System automatically reprocesses corrected records through pipeline - existing
-- ✓ **INV-04**: Users export invalid records to JSON (UTF-8 BOM) - existing
+#### Invalid Records Management (pre-existing)
+- ✓ **INV-01..04**: Full invalid records management with filters, editing, revalidation, export
 
-#### Monitoring & Observability
-- ✓ **MON-01**: System exposes 20 business metrics (records processed, latency, errors, etc.) - existing
-- ✓ **MON-02**: System provides distributed tracing across all services via Jaeger - existing
-- ✓ **MON-03**: System aggregates logs from all services in Elasticsearch - existing
-- ✓ **MON-04**: Users create metric alerts with PromQL expressions - existing
+#### Monitoring & Observability (pre-existing)
+- ✓ **MON-01..04**: 20 business metrics, distributed tracing, log aggregation, alerts
 
-#### Deployment & Infrastructure
-- ✓ **INFRA-01**: All 9 services deploy to Kubernetes with Helm - existing
-- ✓ **INFRA-02**: System runs on MongoDB 3-node replica set - existing
-- ✓ **INFRA-03**: System uses Kafka for inter-service messaging - existing
-- ✓ **INFRA-04**: System uses Hazelcast for distributed caching (512MB, TTL-enabled) - existing
-- ✓ **INFRA-05**: All deployments are OCP-compatible (security contexts, non-root, non-privileged ports) - existing
+#### Deployment & Infrastructure (pre-existing)
+- ✓ **INFRA-01..05**: Kubernetes/Helm deployment, MongoDB, Kafka, Hazelcast, OCP-compatible
 
-#### Internationalization
-- ✓ **I18N-01**: UI supports full RTL layout for Hebrew - existing
-- ✓ **I18N-02**: UI has 200+ Hebrew translations across all components - existing
-- ✓ **I18N-03**: Technical fields (regex, PromQL, paths) remain LTR in RTL mode - existing
+#### Internationalization (pre-existing)
+- ✓ **I18N-01..03**: RTL layout, 200+ Hebrew translations, LTR technical fields
+
+#### NAS/NFS Architecture — v0.1
+- ✓ **NAS-01**: NAS device entity with connection configuration — v0.1
+- ✓ **NAS-02**: PersistentVolume creation via .NET 10 Kubernetes API — v0.1
+- ✓ **NAS-03**: PersistentVolumeClaim creation and binding — v0.1
+- ✓ **NAS-04**: Volume mounting to pods at runtime via K8s API — v0.1
+- ✓ **NAS-05**: NFS protocol acts as connector to NAS devices — v0.1
+- ✓ **NAS-06**: AdminServer supports NAS device configuration in UI — v0.1
+- ✓ **NAS-07**: NAS devices tested against file-simulator simulation — v0.1
+
+#### Testing Foundation — v0.1
+- ✓ **TEST-01**: Critical pipeline paths have automated integration tests — v0.1
+- ✓ **TEST-02**: All 8 file protocols tested against file-simulator — v0.1
+- ✓ **TEST-03**: All format conversions verified bidirectionally — v0.1
+- ✓ **TEST-05**: Test suite runs in CI/CD pipeline as quality gate — v0.1
+- ✓ **TEST-07**: Load testing validated (100-1000 files) — v0.1
+- ✓ **TEST-08**: Test documentation generated — v0.1
+
+#### CD Pipeline — v0.1
+- ✓ **CD-01..11**: Full CI/CD pipeline with Docker builds, Helm charts, GitHub Actions, version injection, Docusaurus portal — v0.1
+
+#### Documentation — v0.1
+- ✓ **DOC-01..05**: All docs audited, archived, consolidated, GSD as single source of truth — v0.1
+
+#### Frontend Workflow — v0.1
+- ✓ **FE-01..07**: Component docs, Playwright E2E, API coordination, React 19 patterns, Docusaurus portal integration, Hebrew user guide — v0.1
 
 ### Active
 
-<!-- Current scope - building toward these -->
+<!-- Next milestone scope — to be defined by /gsd:new-milestone -->
 
-#### Testing Foundation (Milestone 1 - CRITICAL)
-- [ ] **TEST-01**: Every critical pipeline path has automated integration tests
-- [ ] **TEST-02**: All 8 file protocols (FTP, SFTP, S3, SMB, NFS, HTTP, Kafka, Local) tested against file-simulator
-- [ ] **TEST-03**: All format conversions (CSV, JSON, XML, Excel) verified bidirectionally
-- [ ] **TEST-04**: File-simulator integrated as primary test environment for all file I/O
-- [ ] **TEST-05**: Test suite runs in CI/CD pipeline as quality gate
-- [ ] **TEST-06**: All existing E2E tests (6/6) validated against file-simulator
-- [ ] **TEST-07**: Load testing validated (100-1000 files) with file-simulator
-- [ ] **TEST-08**: Test documentation generated and maintained by GSD
+*Pending — run `/gsd:new-milestone` to define requirements for next milestone.*
 
-#### CD Pipeline Automation (Milestone 2)
-- [ ] **CD-01**: One-command build process for all Docker images
-- [ ] **CD-02**: Automated Helm chart packaging with version management
-- [ ] **CD-03**: CI/CD pipeline (GitHub Actions) builds on every commit
-- [ ] **CD-04**: Automated deployment to OCP offline environment
-- [ ] **CD-05**: Deployment validation tests run automatically post-deploy
-- [ ] **CD-06**: Rollback procedure automated and tested
+### Carried from v0.1 (review in next milestone)
 
-#### Documentation Consolidation (Milestone 3)
-- [ ] **DOC-01**: All 270+ existing docs audited and categorized
-- [ ] **DOC-02**: Session logs archived to /docs/archive/sessions/
-- [ ] **DOC-03**: Obsolete/redundant docs deleted
-- [ ] **DOC-04**: GSD becomes single source of truth for all planning/execution docs
-- [ ] **DOC-05**: Architecture/deployment/testing guides consolidated
-
-#### Frontend Development Workflow (Milestone 4)
-- [ ] **FE-01**: Frontend design tooling established (component library, design system)
-- [ ] **FE-02**: Frontend testing strategy (component tests, E2E with Playwright)
-- [ ] **FE-03**: Frontend/backend change coordination process
-- [ ] **FE-04**: React 19 best practices and patterns documented
-
-#### Feature Development (Milestone 5+)
-- [ ] **FEAT-01**: v0.2.0 External File Access completed (docs + E2E tests)
-- [ ] **FEAT-02**: AdminServer architecture fully integrated
-- [ ] **FEAT-03**: Archive settings functional across all protocols
+- **TEST-04**: File-simulator integrated as primary test environment — PARTIAL (infrastructure ready, needs real integration)
+- **TEST-06**: All existing E2E tests validated against file-simulator — PARTIAL (needs human execution)
+- **FEAT-01**: v0.2.0 External File Access completed (docs + E2E tests)
+- **FEAT-02**: AdminServer architecture fully integrated
+- **FEAT-03**: Archive settings functional across all protocols
+- **BUG-01**: Hebrew/RTL changes not fully working
+- **BUG-02**: Unwanted English translations added
+- **BUG-03**: NFS protocol in Connection/Output tab should be replaced by NAS devices from settings
 
 ### Out of Scope
 
-- **Real-time dashboard** - Grafana provides monitoring, no need for duplicate UI
-- **AI Assistant integration** - Deferred to Phase 2, not critical for reliability
-- **Advanced Notifications** - Alerting via Prometheus/Grafana sufficient for MVP
-- **Comprehensive unit tests** - Focus on integration/E2E, unit tests only for critical logic
-- **Multi-tenant support** - Single-tenant deployment for now
-- **Authentication/Authorization** - Trusted internal network, add later if needed
+- **Real-time dashboard** - Grafana provides monitoring
+- **AI Assistant integration** - Deferred, not critical for reliability
+- **Advanced Notifications** - Prometheus/Grafana alerting sufficient
+- **Comprehensive unit tests** - Focus on integration/E2E
+- **Multi-tenant support** - Single-tenant deployment
+- **Authentication/Authorization** - Trusted internal network
 
 ## Context
 
 ### Current State
-- **Version:** v0.1.1-rc3 in production (97% complete, Week 5 validation)
+- **Version:** v0.1 milestone shipped (2026-02-11)
 - **Architecture:** 9 microservices + React frontend on Kubernetes
-- **Testing:** 6/6 E2E scenarios passing, 83/83 integration/unit tests passing
+- **Testing:** 32 protocol tests, 63 format tests, 17 pipeline tests, 5 load tests, Playwright E2E
+- **CI/CD:** GitHub Actions pipeline with Docker builds, Helm charts, quality gates
 - **Monitoring:** Full observability stack (Prometheus dual, Grafana, Jaeger, Elasticsearch)
-- **Documentation:** 270+ markdown files (many obsolete, causing noise)
-
-### The Problem
-System was developed piecemeal over several months with extensive session-based documentation. While features work, there's insufficient confidence in reliability:
-- Tests exist but don't cover all critical paths systematically
-- Documentation is fragmented and contains obsolete information
-- Deployment process is manual and time-consuming
-- No automated quality gates prevent regressions
-
-### The Goal
-Establish production-ready confidence through:
-1. **Systematic testing** of every critical component against file-simulator
-2. **Automated CI/CD pipeline** for consistent, repeatable deployments
-3. **Consolidated documentation** managed by GSD workflow
-4. **Proven reliability** - can deploy to OCP without fear
-
-### Technical Environment
-- **Offline OCP Deployment:** Production runs in air-gapped OpenShift environment
-- **File-Simulator:** External test environment (C:\Users\UserC\source\repos\file-simulator-suite) for realistic protocol testing
-- **Development:** Minikube on Windows 11 with cross-cluster communication
-- **Hebrew Support:** Full RTL layout required for all UI components
+- **Documentation:** Consolidated via GSD, Docusaurus portal at /docs
+- **NAS/NFS:** Dynamic PV/PVC provisioning, NAS device management UI
 
 ### Known Issues
-- Docker build cache issues (fixed in Session 13 - requires `--no-cache` rebuilds)
-- Kafka dual listener required for localhost access (9092 internal, 9094 external)
-- MongoDB directConnection bypass for replica set testing
-- Hazelcast TTL configuration critical for cache cleanup (5 min TTL, 3 min idle)
-- Port-forwarding script required (18 ports) - never use individual kubectl commands
+- Hebrew/RTL not fully working (v0.1 regression)
+- Unwanted English translations added
+- NFS→NAS protocol dropdown fix needed in Connection/Output tabs
+- Many integration tests skip without file-simulator (by design)
+- Performance baselines not yet established
+- Docker build cache issues (requires `--no-cache` for certain rebuilds)
+- Kafka dual listener required for localhost access (9092/9094)
+
+### Technical Environment
+- **Offline OCP Deployment:** Production runs in air-gapped OpenShift
+- **File-Simulator:** External test environment at C:\Users\UserC\source\repos\file-simulator-suite
+- **Development:** Minikube on Windows 11
+- **Hebrew Support:** Full RTL layout required
 
 ## Constraints
 
-- **Deployment:** Must work in offline OCP environment (no internet access in production)
-- **Testing:** Must use file-simulator as primary test environment for all file I/O
-- **Internationalization:** Must maintain Hebrew/RTL support across all features
+- **Deployment:** Must work in offline OCP environment
+- **Testing:** Must use file-simulator as primary test environment
+- **Internationalization:** Must maintain Hebrew/RTL support
 - **Architecture:** Must preserve microservices architecture (9 services + frontend)
-- **Quality:** Testing foundation is non-negotiable - reliability over speed
-- **Documentation:** GSD-generated only from this point forward (archive existing 270+ docs)
-- **OCP Security:** All deployments must comply with OCP security contexts (non-root, restricted-v2 SCC)
+- **OCP Security:** Non-root, restricted-v2 SCC compliance
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Transition from Task Orchestrator to GSD | Need systematic workflow for testing, CD, and documentation consolidation | — Pending |
-| Archive ALL existing documentation | 270+ docs causing noise, GSD provides structured replacement | — Pending |
-| Testing Foundation as Milestone 1 | Can't build features reliably without confidence in existing system | — Pending |
-| File-simulator as primary test environment | Realistic OCP-like testing with all protocols (FTP, SFTP, S3, SMB, NFS) | — Pending |
-| CI/CD pipeline automation (GitHub Actions) | Manual deployment too slow and error-prone for production OCP | — Pending |
-| Integration/E2E focus over unit tests | Microservices architecture requires testing service interactions, not isolated units | — Pending |
-| Fold v0.2.0 into testing milestone | v0.2.0 E2E tests align with broader testing initiative goals | — Pending |
+| GSD as workflow engine | Systematic planning/execution for all work | ✓ Good — 10 phases, 35 plans executed |
+| Archive ALL existing documentation | 270+ docs causing noise | ✓ Good — 402 files audited, 141 archived |
+| Testing Foundation first | Can't build reliably without confidence | ✓ Good — 32 protocol + 85 format/pipeline tests |
+| File-simulator as test environment | Realistic OCP-like testing | ⚠️ Revisit — infrastructure ready but not yet connected for real E2E |
+| CI/CD pipeline (GitHub Actions) | Manual deployment too slow | ✓ Good — full pipeline with quality gates |
+| Integration/E2E focus over unit tests | Microservices need interaction testing | ✓ Good — comprehensive E2E coverage |
+| NAS device management via K8s API | Dynamic PV/PVC provisioning | ✓ Good — full lifecycle implemented |
 
 ---
-*Last updated: 2026-02-02 after initialization*
+*Last updated: 2026-02-11 after v0.1 milestone*

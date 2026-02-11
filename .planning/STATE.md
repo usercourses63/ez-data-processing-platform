@@ -395,7 +395,7 @@ Phase 9 (Frontend Development Workflow) is COMPLETE (all 4 plans):
   - CHANGELOG.md update for v0.2.0
   - NAS production validation script
   - Release checklist documentation
-  - **Status:** Superseded by new milestone scope — review if still needed
+  - **Status:** v0.1 milestone complete
 
 ### Unsatisfied Requirements
 - **FEAT-01:** v0.2.0 External File Access completed (docs + E2E tests) — PENDING
