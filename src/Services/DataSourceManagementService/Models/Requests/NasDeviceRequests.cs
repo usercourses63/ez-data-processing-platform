@@ -266,3 +266,40 @@ public class NasDeviceConnectionTestResult
     /// </summary>
     public DateTime TestedAt { get; set; } = DateTime.UtcNow;
 }
+
+/// <summary>
+/// Result of NAS device delete eligibility check
+/// </summary>
+public class NasDeviceDeleteCheckResult
+{
+    /// <summary>
+    /// Whether the NAS device can be safely deleted
+    /// </summary>
+    public bool CanDelete { get; set; } = true;
+
+    /// <summary>
+    /// Reason why deletion is blocked (Hebrew)
+    /// </summary>
+    public string? BlockingReason { get; set; }
+
+    /// <summary>
+    /// List of DataSources referencing this NAS device
+    /// </summary>
+    public List<DataSourceReference> ReferencingDataSources { get; set; } = new();
+}
+
+/// <summary>
+/// Reference to a DataSource for delete check results
+/// </summary>
+public class DataSourceReference
+{
+    /// <summary>
+    /// DataSource ID
+    /// </summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// DataSource display name
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+}

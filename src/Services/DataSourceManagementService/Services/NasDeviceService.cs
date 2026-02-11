@@ -442,6 +442,38 @@ public class NasDeviceService : INasDeviceService
         }
     }
 
+    // ========== Delete Protection ==========
+
+    /// <inheritdoc/>
+    public async Task<NasDeviceDeleteCheckResult> CanDeleteNasDeviceAsync(
+        string id,
+        CancellationToken ct = default)
+    {
+        var result = new NasDeviceDeleteCheckResult { CanDelete = true };
+
+        _logger.LogDebug("Checking if NAS device {Id} can be deleted", id);
+
+        // Check for referencing DataSources
+        var referencingDataSources = await DB.Find<DataProcessingDataSource>()
+            .Match(ds => ds.NasDeviceId == id && !ds.IsDeleted)
+            .ExecuteAsync(ct);
+
+        if (referencingDataSources.Any())
+        {
+            result.CanDelete = false;
+            result.BlockingReason = $"התקן NAS מקושר ל-{referencingDataSources.Count} מקורות נתונים";
+            result.ReferencingDataSources = referencingDataSources
+                .Select(ds => new DataSourceReference { Id = ds.ID, Name = ds.Name })
+                .ToList();
+
+            _logger.LogInformation(
+                "NAS device {Id} cannot be deleted: referenced by {Count} DataSources",
+                id, referencingDataSources.Count);
+        }
+
+        return result;
+    }
+
     // ========== Auto-Mount Operations ==========
 
     /// <summary>

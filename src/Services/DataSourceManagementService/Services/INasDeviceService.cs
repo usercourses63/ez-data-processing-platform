@@ -90,4 +90,14 @@ public interface INasDeviceService
     /// <param name="ct">Cancellation token</param>
     /// <returns>Connection test result</returns>
     Task<NasDeviceConnectionTestResult> TestConnectionAsync(string id, CancellationToken ct = default);
+
+    // ========== Delete Protection ==========
+
+    /// <summary>
+    /// Check if a NAS device can be deleted (no DataSources reference it).
+    /// </summary>
+    /// <param name="id">NAS device ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Delete check result with referencing DataSources if blocked</returns>
+    Task<NasDeviceDeleteCheckResult> CanDeleteNasDeviceAsync(string id, CancellationToken ct = default);
 }
