@@ -150,6 +150,9 @@ const DataSourceEditEnhanced: React.FC = () => {
           kafkaConsumerGroup: connectionConfig.consumerGroup,
           kafkaSecurityProtocol: connectionConfig.securityProtocol,
           kafkaOffsetReset: connectionConfig.offsetReset,
+          // NAS fields
+          nasDeviceId: connectionConfig.nasDeviceId,
+          nasSubPath: connectionConfig.nasSubPath,
           fileType: fileConfig.type || extractFileTypeFromPattern(data.Data.FilePattern) || 'CSV',
           csvDelimiter: fileConfig.delimiter || ',',
           hasHeaders: fileConfig.hasHeaders !== false,
@@ -255,7 +258,10 @@ const DataSourceEditEnhanced: React.FC = () => {
           topic: values.kafkaTopic ?? existingConfig.connectionConfig?.topic,
           consumerGroup: values.kafkaConsumerGroup ?? existingConfig.connectionConfig?.consumerGroup,
           securityProtocol: values.kafkaSecurityProtocol ?? existingConfig.connectionConfig?.securityProtocol,
-          offsetReset: values.kafkaOffsetReset ?? existingConfig.connectionConfig?.offsetReset
+          offsetReset: values.kafkaOffsetReset ?? existingConfig.connectionConfig?.offsetReset,
+          // NAS-specific fields
+          nasDeviceId: values.nasDeviceId ?? existingConfig.connectionConfig?.nasDeviceId,
+          nasSubPath: values.nasSubPath ?? existingConfig.connectionConfig?.nasSubPath
         },
         fileConfig: {
           ...(existingConfig.fileConfig || {}),

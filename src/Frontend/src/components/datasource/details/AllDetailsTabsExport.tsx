@@ -75,6 +75,18 @@ export const ConnectionDetailsTab: React.FC<{ connectionConfig: any; dataSource:
         )}
       </>
     )}
+    {connectionConfig.type === 'NAS' && (
+      <>
+        <Descriptions.Item label="התקן NAS" span={2}>
+          <Text>{connectionConfig.nasDeviceId || 'לא הוגדר'}</Text>
+        </Descriptions.Item>
+        {connectionConfig.nasSubPath && (
+          <Descriptions.Item label="נתיב משנה" span={2}>
+            <Text code>{connectionConfig.nasSubPath}</Text>
+          </Descriptions.Item>
+        )}
+      </>
+    )}
   </Descriptions>
 );
 
