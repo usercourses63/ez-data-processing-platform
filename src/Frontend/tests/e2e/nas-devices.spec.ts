@@ -401,3 +401,122 @@ test.describe('NAS Device in DataSource Connection Tab', () => {
     }
   });
 });
+
+test.describe('NAS Device in Output Tab (DestinationEditorModal)', () => {
+  // Verify EZ platform API is available
+  test.beforeAll(async ({ request }) => {
+    const response = await request.get('http://localhost:5001/api/v1/nasdevices').catch(() => null);
+    if (!response || !response.ok()) {
+      throw new Error(
+        'FATAL: EZ platform API not available at localhost:5001. ' +
+        'Ensure port-forwarding is active and NAS devices are seeded.'
+      );
+    }
+  });
+
+  // Helper: navigate to datasource create → output tab → open destination editor
+  async function openDestinationEditor(page: import('@playwright/test').Page) {
+    // Navigate to datasources list first, then click Add (same as connection tab tests)
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: /הוסף|add/i }).click();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    // Widen viewport so all 8 tabs are visible (avoids RTL overflow)
+    await page.setViewportSize({ width: 1400, height: 900 });
+    await page.waitForTimeout(500);
+
+    // Click the output tab - use dispatchEvent to trigger React's onClick handler
+    await page.evaluate(() => {
+      const tabBtn = document.querySelector('[id$="-tab-output"]') as HTMLElement;
+      if (tabBtn) {
+        tabBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      }
+    });
+    await page.waitForTimeout(2000);
+
+    // Wait for the "הוסף יעד פלט" button (output tab content with lazy loading)
+    const addBtn = page.locator('button').filter({ hasText: /הוסף יעד פלט/ });
+    await expect(addBtn).toBeVisible({ timeout: 10000 });
+    await addBtn.click();
+    await page.waitForTimeout(500);
+  }
+
+  test('should show NAS protocol option in destination editor', async ({ page }) => {
+    await openDestinationEditor(page);
+
+    // The modal should be open with protocol selector
+    const modal = page.locator('.ant-modal-content');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+
+    // The protocol select - find it inside the modal
+    const protocolSelect = modal.locator('.ant-select').first();
+    await protocolSelect.click();
+    await page.waitForTimeout(300);
+
+    // NAS should be available as protocol option
+    const nasOption = page.locator('.ant-select-item-option').filter({ hasText: 'NAS' });
+    await expect(nasOption).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should show NAS device dropdown with output devices in destination editor', async ({ page }) => {
+    await openDestinationEditor(page);
+
+    const modal = page.locator('.ant-modal-content');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+
+    // NAS should be the default type - verify NAS device section appears
+    const nasDeviceSection = modal.locator('.ant-divider').filter({ hasText: /התקן NAS/ });
+    await expect(nasDeviceSection).toBeVisible({ timeout: 5000 });
+
+    // Find the NAS device select inside the modal (not the protocol select)
+    const selects = modal.locator('.ant-select');
+    const selectCount = await selects.count();
+
+    // The NAS device select should be the second select (first is protocol)
+    let nasDeviceSelect = selects.nth(1);
+    for (let i = 1; i < selectCount; i++) {
+      const text = await selects.nth(i).textContent().catch(() => '');
+      if (text && text.includes('NAS') && text.includes('בחר')) {
+        nasDeviceSelect = selects.nth(i);
+        break;
+      }
+    }
+
+    await nasDeviceSelect.click();
+    await page.waitForTimeout(500);
+
+    // KEY FIX VERIFICATION: Should have output-eligible NAS devices (Output or Both roles)
+    // Before fix: Role was numeric but compared to strings → empty dropdown
+    // After fix: roleEnumToString correctly maps numeric Role → devices appear
+    const options = page.locator('.ant-select-item-option');
+    const optionCount = await options.count();
+    expect(optionCount).toBeGreaterThan(0);
+  });
+
+  test('should select NAS device and show details in destination editor', async ({ page }) => {
+    await openDestinationEditor(page);
+
+    const modal = page.locator('.ant-modal-content');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+
+    // Find the NAS device select (second select in modal)
+    const nasDeviceSelect = modal.locator('.ant-select').nth(1);
+    if (await nasDeviceSelect.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await nasDeviceSelect.click();
+      await page.waitForTimeout(300);
+
+      // Select first available device
+      const firstDevice = page.locator('.ant-select-item-option:not(.ant-select-item-option-disabled)').first();
+      if (await firstDevice.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await firstDevice.click();
+        await page.waitForTimeout(500);
+
+        // After selecting, a success alert should show device details
+        const deviceInfo = modal.locator('.ant-alert-success');
+        await expect(deviceInfo).toBeVisible({ timeout: 5000 });
+      }
+    }
+  });
+});
