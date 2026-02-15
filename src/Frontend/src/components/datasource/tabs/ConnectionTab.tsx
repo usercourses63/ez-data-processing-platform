@@ -103,9 +103,12 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   const availableNasDevices = useMemo(() => {
     if (connectionType !== 'NAS') return [];
     // Filter devices that can be input sources (Input or Both roles)
-    return nasDevices.filter((device: NasDevice) =>
-      device.Role === 'Input' || device.Role === 'Both'
-    );
+    // Backend returns Role as numeric enum (0=Input, 1=Output, 2=Backup, 3=Both)
+    const roleEnumToString: Record<number, string> = { 0: 'Input', 1: 'Output', 2: 'Backup', 3: 'Both' };
+    return nasDevices.filter((device: NasDevice) => {
+      const role = typeof device.Role === 'number' ? roleEnumToString[device.Role] : device.Role;
+      return role === 'Input' || role === 'Both';
+    });
   }, [connectionType, nasDevices]);
 
   // Get selected NAS device details
@@ -265,7 +268,12 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                 <Button
                   type="link"
                   size="small"
-                  onClick={() => window.open('/admin', '_blank')}
+                  onClick={() => window.open(
+                    connectionType === 'NAS'
+                      ? '/admin/settings?tab=nasDevices'
+                      : '/admin/settings?tab=inputServers',
+                    '_blank'
+                  )}
                 >
                   {t('datasources.goToAdminSettings') || 'עבור להגדרות מערכת'}
                 </Button>

@@ -378,7 +378,12 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
                   <Button
                     type="link"
                     size="small"
-                    onClick={() => window.open(destinationType === 'NAS' ? '/admin?tab=nasDevices' : '/admin/settings?tab=output', '_blank')}
+                    onClick={() => window.open(
+                      destinationType === 'NAS'
+                        ? '/admin/settings?tab=nasDevices'
+                        : '/admin/settings?tab=outputServers',
+                      '_blank'
+                    )}
                   >
                     עבור להגדרות מערכת
                   </Button>

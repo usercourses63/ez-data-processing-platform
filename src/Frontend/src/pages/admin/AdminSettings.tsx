@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Tabs, Typography } from 'antd';
 import { SettingOutlined, TagsOutlined, DownloadOutlined, UploadOutlined, HddOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import CategoryManagementTab from './tabs/CategoryManagementTab';
 import InputServersTab from './tabs/InputServersTab';
 import OutputServersTab from './tabs/OutputServersTab';
@@ -12,6 +13,12 @@ const { Title } = Typography;
 
 const AdminSettings: React.FC = () => {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'categories';
+
+  const handleTabChange = (key: string) => {
+    setSearchParams({ tab: key });
+  };
 
   const items = [
     {
@@ -64,7 +71,8 @@ const AdminSettings: React.FC = () => {
         </Title>
 
         <Tabs
-          defaultActiveKey="categories"
+          activeKey={activeTab}
+          onChange={handleTabChange}
           items={items}
           size="large"
         />

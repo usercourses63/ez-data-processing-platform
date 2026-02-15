@@ -67,7 +67,7 @@ public class ServerMappingService
             MountOptions = new List<string> { "nfsvers=3", "tcp", "hard", "intr" },
             IsPvCreated = false,
             IsPvcBound = false,
-            IsActive = server.PodReady,
+            IsActive = true,
             CreatedBy = "SimulatorSeeder",
             CorrelationId = Guid.NewGuid().ToString()
         };
@@ -119,27 +119,28 @@ public class ServerMappingService
 
     private static string ParseExportPath(string? directory, ConnectionInfoServer? connServer)
     {
-        // Try to extract path from connectionString (format: "host:port:/path")
+        // Derive suffix from directory field (e.g., C:\simulator-data\input → /input)
+        var suffix = "";
+        if (!string.IsNullOrEmpty(directory))
+        {
+            if (directory.Contains("\\input") || directory.Contains("/input")) suffix = "/input";
+            else if (directory.Contains("\\output") || directory.Contains("/output")) suffix = "/output";
+            else if (directory.Contains("\\backup") || directory.Contains("/backup")) suffix = "/backup";
+        }
+
+        // Try to extract base path from connectionString (format: "host:port:/path")
         if (connServer?.ConnectionString != null)
         {
             var parts = connServer.ConnectionString.Split(':');
             if (parts.Length >= 3)
             {
-                var path = parts[^1]; // Last segment after last ':'
-                if (path.StartsWith("/")) return path;
+                var basePath = parts[^1]; // Last segment after last ':'
+                if (basePath.StartsWith("/")) return basePath + suffix;
             }
         }
 
-        // Fall back to directory field
-        if (!string.IsNullOrEmpty(directory))
-        {
-            // Convert Windows paths to Unix export paths
-            if (directory.Contains("\\input")) return "/data/input";
-            if (directory.Contains("\\output")) return "/data/output";
-            if (directory.Contains("\\backup")) return "/data/backup";
-        }
-
-        return "/data";
+        // Fall back to directory-based path
+        return "/data" + suffix;
     }
 
     private static string? GetBasePath(string serverType, ServerDirection direction)
