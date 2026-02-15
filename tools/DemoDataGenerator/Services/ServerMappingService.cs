@@ -6,7 +6,7 @@ namespace DemoDataGenerator.Services;
 
 /// <summary>
 /// Maps file-simulator server instances to EZ platform entities (AdminServer, NasDevice).
-/// Translates protocol-specific connection info into entity-compatible configurations.
+/// Uses connection-info servers array for host/port resolution (NodePort access).
 /// </summary>
 public class ServerMappingService
 {
@@ -17,24 +17,25 @@ public class ServerMappingService
     {
         var serverType = NormalizeProtocol(server.Protocol);
         var direction = ParseDirection(server.Name);
+        var connServer = FindConnectionServer(server.Name, connInfo);
 
         var adminServer = new AdminServer
         {
             Name = server.Name,
-            Description = $"Auto-discovered from file-simulator ({server.Protocol}:{server.Port})",
+            Description = $"Auto-discovered from file-simulator ({server.Protocol}:{server.NodePort})",
             ServerType = serverType,
             Direction = direction,
-            IsActive = server.IsHealthy,
-            Host = GetHost(serverType, connInfo, server),
-            Port = GetPort(serverType, connInfo, server),
+            IsActive = server.PodReady,
+            Host = connServer?.Host ?? connInfo.Hostname ?? "file-simulator.local",
+            Port = connServer?.Port ?? server.NodePort,
             BasePath = GetBasePath(serverType, direction),
             CredentialSecretRef = GetCredentialSecretRef(serverType),
-            TypeSpecificConfig = GetTypeSpecificConfig(serverType, connInfo, server),
-            KafkaConfig = GetKafkaConfig(serverType, connInfo),
+            TypeSpecificConfig = GetTypeSpecificConfig(serverType, server, connServer),
+            KafkaConfig = GetKafkaConfig(serverType, connServer),
             ConnectionTimeoutSeconds = 30,
             RetryCount = 3,
             LastConnectionTest = DateTime.UtcNow,
-            LastConnectionSuccess = server.IsHealthy,
+            LastConnectionSuccess = server.PodReady,
             CreatedBy = "SimulatorSeeder",
             CorrelationId = Guid.NewGuid().ToString()
         };
@@ -47,16 +48,17 @@ public class ServerMappingService
     /// </summary>
     public NasDevice MapToNasDevice(SimulatorServer server, SimulatorConnectionInfo connInfo)
     {
-        var nasInfo = FindNasInfo(server, connInfo);
+        var connServer = FindConnectionServer(server.Name, connInfo);
         var role = ParseNasRole(server.Name);
+        var exportPath = ParseExportPath(server.Directory, connServer);
 
         var nasDevice = new NasDevice
         {
             Name = server.Name,
             Description = $"Auto-discovered NAS from file-simulator ({server.Protocol})",
-            Host = nasInfo?.Host ?? server.Host,
-            Port = nasInfo?.Port ?? server.Port,
-            ExportPath = nasInfo?.Path ?? "/data",
+            Host = connServer?.Host ?? connInfo.Hostname ?? "file-simulator.local",
+            Port = connServer?.Port ?? server.NodePort,
+            ExportPath = exportPath,
             Role = role,
             StorageCapacity = "10Gi",
             AccessMode = "ReadWriteMany",
@@ -64,12 +66,23 @@ public class ServerMappingService
             MountOptions = new List<string> { "nfsvers=3", "tcp", "hard", "intr" },
             IsPvCreated = false,
             IsPvcBound = false,
-            IsActive = server.IsHealthy,
+            IsActive = server.PodReady,
             CreatedBy = "SimulatorSeeder",
             CorrelationId = Guid.NewGuid().ToString()
         };
 
         return nasDevice;
+    }
+
+    /// <summary>
+    /// Find a matching server entry in the connection-info servers array
+    /// </summary>
+    private static ConnectionInfoServer? FindConnectionServer(string serverName, SimulatorConnectionInfo connInfo)
+    {
+        if (connInfo.Servers == null || connInfo.Servers.Count == 0) return null;
+
+        return connInfo.Servers.FirstOrDefault(s =>
+            s.Name.Equals(serverName, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string NormalizeProtocol(string protocol)
@@ -103,29 +116,29 @@ public class ServerMappingService
         return NasDeviceRole.Both;
     }
 
-    private static string? GetHost(string serverType, SimulatorConnectionInfo connInfo, SimulatorServer server)
+    private static string ParseExportPath(string? directory, ConnectionInfoServer? connServer)
     {
-        return serverType switch
+        // Try to extract path from connectionString (format: "host:port:/path")
+        if (connServer?.ConnectionString != null)
         {
-            "ftp" => connInfo.Ftp?.Host ?? server.Host,
-            "sftp" => connInfo.Sftp?.Host ?? server.Host,
-            "http" => connInfo.Http?.Host ?? server.Host,
-            "s3" => connInfo.S3?.Endpoint ?? server.Host,
-            "kafka" => connInfo.Kafka?.BootstrapServers ?? server.Host,
-            _ => server.Host
-        };
-    }
+            var parts = connServer.ConnectionString.Split(':');
+            if (parts.Length >= 3)
+            {
+                var path = parts[^1]; // Last segment after last ':'
+                if (path.StartsWith("/")) return path;
+            }
+        }
 
-    private static int? GetPort(string serverType, SimulatorConnectionInfo connInfo, SimulatorServer server)
-    {
-        return serverType switch
+        // Fall back to directory field
+        if (!string.IsNullOrEmpty(directory))
         {
-            "ftp" => connInfo.Ftp?.Port ?? server.Port,
-            "sftp" => connInfo.Sftp?.Port ?? server.Port,
-            "http" => connInfo.Http?.Port ?? server.Port,
-            "kafka" => connInfo.Kafka?.Port ?? server.Port,
-            _ => server.Port
-        };
+            // Convert Windows paths to Unix export paths
+            if (directory.Contains("\\input")) return "/data/input";
+            if (directory.Contains("\\output")) return "/data/output";
+            if (directory.Contains("\\backup")) return "/data/backup";
+        }
+
+        return "/data";
     }
 
     private static string? GetBasePath(string serverType, ServerDirection direction)
@@ -154,66 +167,58 @@ public class ServerMappingService
         };
     }
 
-    private static BsonDocument? GetTypeSpecificConfig(string serverType, SimulatorConnectionInfo connInfo, SimulatorServer server)
+    private static BsonDocument? GetTypeSpecificConfig(string serverType, SimulatorServer server, ConnectionInfoServer? connServer)
     {
+        var creds = connServer?.Credentials ?? server.Credentials;
+
         return serverType switch
         {
             "ftp" => new BsonDocument
             {
-                { "Username", connInfo.Ftp?.Username ?? "ftpuser" },
-                { "Password", connInfo.Ftp?.Password ?? "ftppass123" },
+                { "Username", creds?.Username ?? "ftpuser" },
+                { "Password", creds?.Password ?? "ftppass123" },
                 { "PassiveMode", true },
                 { "UseSsl", false }
             },
             "sftp" => new BsonDocument
             {
-                { "Username", connInfo.Sftp?.Username ?? "sftpuser" },
-                { "Password", connInfo.Sftp?.Password ?? "sftppass123" },
+                { "Username", creds?.Username ?? "sftpuser" },
+                { "Password", creds?.Password ?? "sftppass123" },
                 { "UseKeyAuth", false }
             },
             "s3" => new BsonDocument
             {
-                { "Endpoint", connInfo.S3?.Endpoint ?? $"http://{server.Host}:{server.Port}" },
-                { "AccessKey", connInfo.S3?.AccessKey ?? "minioadmin" },
-                { "SecretKey", connInfo.S3?.SecretKey ?? "minioadmin123" },
-                { "Region", connInfo.S3?.Region ?? "us-east-1" },
+                { "Endpoint", connServer?.ConnectionString ?? $"http://{connServer?.Host ?? "file-simulator.local"}:{connServer?.Port ?? server.NodePort}" },
+                { "AccessKey", creds?.Username ?? "minioadmin" },
+                { "SecretKey", creds?.Password ?? "minioadmin123" },
+                { "Region", "us-east-1" },
                 { "ForcePathStyle", true },
                 { "UseHttp", true },
-                { "Bucket", connInfo.S3?.InputBucket ?? "input" }
+                { "Bucket", "input" }
             },
             "http" => new BsonDocument
             {
-                { "Username", connInfo.Http?.Username ?? "httpuser" },
-                { "Password", connInfo.Http?.Password ?? "httppass123" },
+                { "Username", creds?.Username ?? "httpuser" },
+                { "Password", creds?.Password ?? "httppass123" },
                 { "AuthType", "basic" }
             },
             _ => null
         };
     }
 
-    private static KafkaServerConfig? GetKafkaConfig(string serverType, SimulatorConnectionInfo connInfo)
+    private static KafkaServerConfig? GetKafkaConfig(string serverType, ConnectionInfoServer? connServer)
     {
         if (serverType != "kafka") return null;
 
+        var host = connServer?.Host ?? "file-simulator.local";
+        var port = connServer?.Port ?? 30092;
+
         return new KafkaServerConfig
         {
-            BootstrapServers = connInfo.Kafka?.BootstrapServers ?? "kafka:9092",
+            BootstrapServers = $"{host}:{port}",
             SecurityProtocol = "PLAINTEXT",
             DefaultConsumerGroup = "dataprocessing-group",
             AcksRequired = 1
         };
-    }
-
-    private static SimulatorNasInfo? FindNasInfo(SimulatorServer server, SimulatorConnectionInfo connInfo)
-    {
-        if (connInfo.Nas == null || connInfo.Nas.Count == 0) return null;
-
-        // Try matching by server name
-        var match = connInfo.Nas.FirstOrDefault(n =>
-            server.Name.Contains(n.Name, StringComparison.OrdinalIgnoreCase) ||
-            n.Name.Contains(server.Name, StringComparison.OrdinalIgnoreCase));
-
-        // Fall back to first NAS info if no name match
-        return match ?? connInfo.Nas.FirstOrDefault();
     }
 }
