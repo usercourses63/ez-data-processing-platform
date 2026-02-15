@@ -63,12 +63,13 @@ public class SimulatorSeederService
             await TryCreateDynamic(() => _client.CreateSftpServerAsync("sftp-output", "sftpuser", "sftppass123", ct), "SFTP: sftp-output");
 
             // NAS servers — input, output, both, backup with varied export paths
-            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-input-data", "/data/input", ct), "NAS: nfs-input-data");
-            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-input-archive", "/archive/input", ct), "NAS: nfs-input-archive");
-            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-output-data", "/data/output", ct), "NAS: nfs-output-data");
-            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-output-reports", "/reports/output", ct), "NAS: nfs-output-reports");
-            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-shared", "/shared", ct), "NAS: nfs-shared");
-            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-backup", "/backup", ct), "NAS: nfs-backup");
+            // Note: file-simulator requires relative directory (no leading '/'), creates C:\simulator-data\<dir>
+            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-input-data", "input-data", ct), "NAS: nfs-input-data");
+            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-input-archive", "input-archive", ct), "NAS: nfs-input-archive");
+            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-output-data", "output-data", ct), "NAS: nfs-output-data");
+            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-output-reports", "output-reports", ct), "NAS: nfs-output-reports");
+            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-shared", "shared", ct), "NAS: nfs-shared");
+            await TryCreateDynamic(() => _client.CreateNasServerAsync("nfs-backup", "backup", ct), "NAS: nfs-backup");
         }
 
         // 4. Discover all servers
