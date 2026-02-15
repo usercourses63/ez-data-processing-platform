@@ -27,7 +27,7 @@ test.describe('AdminServer Management', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/admin');
+    await page.goto('/admin/settings');
     await page.waitForLoadState('networkidle');
 
     // Navigate to Input Servers tab (Hebrew: "שרתי קלט")
@@ -285,7 +285,7 @@ test.describe('Server-Datasource Linking', () => {
 
   test('should create datasource using admin server', async ({ page }) => {
     // First ensure we have a server - go to admin page
-    await page.goto('/admin');
+    await page.goto('/admin/settings');
     await page.waitForLoadState('networkidle');
 
     // Navigate to Input Servers tab
@@ -390,7 +390,7 @@ test.describe('Server-Datasource Linking', () => {
 
 test.describe('AdminServer RTL Visual Baseline', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/admin');
+    await page.goto('/admin/settings');
     await page.waitForLoadState('networkidle');
   });
 
