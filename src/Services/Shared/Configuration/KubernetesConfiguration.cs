@@ -39,6 +39,8 @@ public static class KubernetesConfiguration
             {
                 // Try in-cluster config first (for K8s/OCP pods)
                 var config = KubernetesClientConfiguration.InClusterConfig();
+                // Workaround: .NET OpenSSL X509Chain.Build NullReferenceException on some container runtimes
+                config.SkipTlsVerify = true;
                 logger.LogInformation("Using in-cluster Kubernetes configuration");
                 return new k8s.Kubernetes(config);
             }
