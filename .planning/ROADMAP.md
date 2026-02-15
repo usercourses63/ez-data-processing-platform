@@ -19,7 +19,7 @@
 
 - [x] **Phase 11: Bug Fixes & UI Polish** - Fix Hebrew/RTL regressions, unwanted translations, NAS dropdown ✓ (2026-02-11)
 - [x] **Phase 12: NAS Lifecycle Completion** - Auto-mount, DataSource linking, PVC verification, delete lifecycle ✓ (2026-02-11)
-- [ ] **Phase 13: AdminServer & Feature Completion** - AdminServer settings, NAS selection in forms, archive extraction
+- [ ] **Phase 13: AdminServer & Feature Completion** - File-simulator integration, NAS auto-test in forms
 - [ ] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices
 - [ ] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring
 - [ ] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page
@@ -42,8 +42,8 @@
 **Plans**: 2 plans (Wave 1 parallel)
 
 Plans:
-- [ ] 11-01-PLAN.md — Fix Hebrew/RTL layout regressions (document direction sync, CSS fixes for Table/Badge/Collapse)
-- [ ] 11-02-PLAN.md — Replace NFS dropdown with NAS device selection in DestinationEditorModal, add translation keys
+- [x] 11-01-PLAN.md — Fix Hebrew/RTL layout regressions (document direction sync, CSS fixes for Table/Badge/Collapse)
+- [x] 11-02-PLAN.md — Replace NFS dropdown with NAS device selection in DestinationEditorModal, add translation keys
 
 ### Phase 12: NAS Lifecycle Completion
 **Goal**: Complete NAS device lifecycle with auto-mounting and cleanup
@@ -57,25 +57,25 @@ Plans:
 **Plans**: 3 plans (Wave 1: 12-01, 12-02 parallel; Wave 2: 12-03)
 
 Plans:
-- [ ] 12-01-PLAN.md — Auto-mount PV/PVC volumes to deployments based on NAS device role (NAS-08)
-- [ ] 12-02-PLAN.md — DataSource-NasDevice entity linking with path auto-population and PVC validation (NAS-09, NAS-10)
-- [ ] 12-03-PLAN.md — Delete lifecycle management with referential integrity and cascade cleanup (NAS-11)
+- [x] 12-01-PLAN.md — Auto-mount PV/PVC volumes to deployments based on NAS device role (NAS-08)
+- [x] 12-02-PLAN.md — DataSource-NasDevice entity linking with path auto-population and PVC validation (NAS-09, NAS-10)
+- [x] 12-03-PLAN.md — Delete lifecycle management with referential integrity and cascade cleanup (NAS-11)
 
 ### Phase 13: AdminServer & Feature Completion
-**Goal**: Complete AdminServer integration and verify archive extraction
+**Goal**: DemoDataGenerator file-simulator integration and NAS auto-test in DataSource forms
 **Depends on**: Phase 12
 **Requirements**: FEAT-01, FEAT-02, FEAT-03
 **Success Criteria** (what must be TRUE):
-  1. AdminServer settings pages display and save real data (NAS, protocols, system config)
-  2. NAS devices selectable in DataSource Connection tab with path configuration
-  3. NAS devices selectable in DataSource Output tab with path configuration
-  4. Archive extraction works across all supported file protocols
-**Plans**: TBD
+  1. DemoDataGenerator queries file-simulator API and seeds AdminServer + NasDevice entities
+  2. NAS devices selectable in DataSource Connection tab with auto-test on selection
+  3. NAS devices selectable in DataSource Output tab with auto-test on selection
+  4. Translation keys exist for NAS auto-test messages
+**Plans**: 3 plans (Wave 1: 13-01, 13-02 parallel; Wave 2: 13-03)
 
 Plans:
-- [ ] 13-01: AdminServer settings pages verification with real data
-- [ ] 13-02: NAS device selection in DataSource forms (Connection and Output tabs)
-- [ ] 13-03: Archive extraction verification across protocols
+- [ ] 13-01-PLAN.md — File-Simulator API Client + DemoDataGenerator Integration (FEAT-01)
+- [ ] 13-02-PLAN.md — NAS Device Auto-Test in DataSource Forms (FEAT-02, FEAT-03)
+- [ ] 13-03-PLAN.md — Translation keys and end-to-end verification
 
 ### Phase 14: OTEL Verification
 **Goal**: Verify complete observability pipeline for all microservices
@@ -210,7 +210,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 |-------|-----------|----------------|--------|-----------|
 | 11. Bug Fixes & UI Polish | v0.2 | 2/2 | Complete | 2026-02-11 |
 | 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
-| 13. AdminServer & Feature Completion | v0.2 | 0/3 | Not started | - |
+| 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
 | 14. OTEL Verification | v0.2 | 0/2 | Not started | - |
 | 15. Device Health Monitoring | v0.2 | 0/2 | Not started | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
@@ -223,4 +223,4 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **v0.2 Totals:** 5/28 plans complete (18%)
 
 ---
-*Roadmap updated: 2026-02-11 after Phase 12 execution complete*
+*Roadmap updated: 2026-02-15 after Phase 13 planning complete*
