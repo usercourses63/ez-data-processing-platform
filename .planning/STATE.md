@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 Phase: 13 of 21 (AdminServer & Feature Completion) - IN PROGRESS
 Plan: 2 of 3 in current phase - COMPLETE
 Status: Executing Phase
-Last activity: 2026-02-15 — Completed 13-02-PLAN.md (NAS Device Auto-Test)
+Last activity: 2026-02-15 — Completed 13-01-PLAN.md (File-Simulator API Client + DemoDataGenerator Integration)
 
-Progress: [##############░░░░░░░░░░░░░░░░░░] 38/60 plans (v0.1: 32/32, v0.2: 6/28)
+Progress: [###############░░░░░░░░░░░░░░░░░] 39/60 plans (v0.1: 32/32, v0.2: 7/28)
 
 ## Performance Metrics
 
@@ -37,8 +37,8 @@ Progress: [##############░░░░░░░░░░░░░░░░░░]
 | 09-frontend-development | 4 | 20 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 12-01 (4 min), 12-02 (5 min), 12-03 (4 min), 13-02 (2 min)
-- Trend: Consistent ~3-4 min/plan
+- Last 5 plans: 12-02 (5 min), 12-03 (4 min), 13-02 (2 min), 13-01 (5 min)
+- Trend: Consistent ~3-5 min/plan
 
 *Updated after each plan completion*
 
@@ -57,6 +57,7 @@ Recent decisions affecting current work:
 - [12-02]: FilePath auto-computed from NAS MountPath + ExportPath + SubPath, PVC binding required before DataSource creation
 - [12-03]: Delete blocked with Hebrew error listing DataSource names; cascade unmount before PVC delete on deprovision
 - [13-02]: Used existing NasDeviceConnectionTestResult instead of creating new NasTestResult; antd message toast for auto-test feedback
+- [13-01]: Used Central Package Management (versions in Directory.Packages.props); direct HttpClient in CLI tool
 
 ### Pending Todos
 
@@ -74,7 +75,7 @@ Carried from v0.1 milestone audit:
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Completed 13-02-PLAN.md (NAS Device Auto-Test)
+Stopped at: Completed 13-01-PLAN.md (File-Simulator API Client + DemoDataGenerator Integration)
 Resume file: Continue Phase 13 with 13-03-PLAN.md
 
 ## v0.2 Phase Summary
