@@ -30,10 +30,10 @@ import {
   WarningOutlined,
   HddOutlined
 } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import type { OutputDestination } from '../shared/types';
 import { getOutputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
-import { getNasDevices, nasDeviceQueryKeys, NasDevice } from '../../../services/nas-devices-api-client';
+import { getNasDevices, nasDeviceQueryKeys, NasDevice, testNasDeviceConnection } from '../../../services/nas-devices-api-client';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -98,6 +98,11 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
     enabled: destinationType === 'NAS',
   });
 
+  // Auto-test NAS device connection on selection
+  const { mutateAsync: testNasConnection, isPending: testingNasConnection } = useMutation({
+    mutationFn: testNasDeviceConnection,
+  });
+
   // Watch form fields
   const outputServerId = Form.useWatch('outputServerId', form);
   const nasDeviceId = Form.useWatch('nasDeviceId', form);
@@ -137,6 +142,24 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
   // Check if NAS device is mounted (provisioned)
   const isNasDeviceMounted = (device: NasDevice): boolean => {
     return device.IsPvCreated && device.IsPvcBound;
+  };
+
+  // Auto-test NAS device connection when selected
+  const handleNasDeviceChange = async (deviceId: string) => {
+    form.setFieldValue('nasDeviceId', deviceId);
+
+    if (!deviceId) return;
+
+    try {
+      const result = await testNasConnection(deviceId);
+      if (result.Success) {
+        message.success('NAS device connection successful');
+      } else {
+        message.warning(result.ErrorMessage || 'NAS device connection failed');
+      }
+    } catch (error) {
+      message.error('Error testing NAS connection');
+    }
   };
 
   // Check if servers/devices are available for the selected protocol
@@ -388,11 +411,12 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
                       ? 'טוען התקני NAS...'
                       : 'בחר התקן NAS לפלט...'
                   }
-                  loading={loadingNasDevices}
+                  loading={loadingNasDevices || testingNasConnection}
                   disabled={loadingNasDevices}
                   allowClear
                   showSearch
                   optionFilterProp="children"
+                  onChange={handleNasDeviceChange}
                 >
                   {availableNasDevices.map((device: NasDevice) => {
                     const isMounted = isNasDeviceMounted(device);

@@ -8,13 +8,13 @@
  * 3. Enter applicative settings (path, pattern, topic, etc.)
  */
 import React, { useMemo, useEffect } from 'react';
-import { Form, Input, Select, Button, Space, Alert, Row, Col, Tag, Divider, Typography } from 'antd';
+import { Form, Input, Select, Button, Space, Alert, Row, Col, Tag, Divider, Typography, message } from 'antd';
 import { FormInstance } from 'antd/es/form';
 import { ApiOutlined, FileOutlined, CheckCircleOutlined, CloseCircleOutlined, CloudServerOutlined, DatabaseOutlined, WarningOutlined, HddOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { KAFKA_OFFSET_RESET } from '../shared/constants';
 import { getInputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
-import { getNasDevices, nasDeviceQueryKeys, NasDevice } from '../../../services/nas-devices-api-client';
+import { getNasDevices, nasDeviceQueryKeys, NasDevice, testNasDeviceConnection } from '../../../services/nas-devices-api-client';
 import { ArchiveSettingsSection } from './sections/ArchiveSettingsSection';
 
 const { Option } = Select;
@@ -71,6 +71,11 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
     enabled: connectionType === 'NAS',
   });
 
+  // Auto-test NAS device connection on selection
+  const { mutateAsync: testNasConnection, isPending: testingNasConnection } = useMutation({
+    mutationFn: testNasDeviceConnection,
+  });
+
   // Watch form fields
   const inputServerId = Form.useWatch('inputServerId', form);
   const nasDeviceId = Form.useWatch('nasDeviceId', form);
@@ -112,6 +117,24 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   // Check if NAS device is mounted (provisioned)
   const isNasDeviceMounted = (device: NasDevice): boolean => {
     return device.IsPvCreated && device.IsPvcBound;
+  };
+
+  // Auto-test NAS device connection when selected
+  const handleNasDeviceChange = async (deviceId: string) => {
+    form.setFieldValue('nasDeviceId', deviceId);
+
+    if (!deviceId) return;
+
+    try {
+      const result = await testNasConnection(deviceId);
+      if (result.Success) {
+        message.success(t('datasources.nasConnectionSuccess') || 'NAS device connection successful');
+      } else {
+        message.warning(result.ErrorMessage || t('datasources.nasConnectionFailed') || 'NAS device connection failed');
+      }
+    } catch (error) {
+      message.error(t('datasources.nasTestError') || 'Error testing NAS connection');
+    }
   };
 
   // Check if servers are available for the selected protocol
@@ -275,11 +298,12 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
                     ? (t('datasources.loadingNasDevices') || 'טוען התקני NAS...')
                     : (t('datasources.selectNasDevice') || 'בחר התקן NAS...')
                 }
-                loading={loadingNasDevices}
+                loading={loadingNasDevices || testingNasConnection}
                 disabled={loadingNasDevices}
                 allowClear
                 showSearch
                 optionFilterProp="children"
+                onChange={handleNasDeviceChange}
                 notFoundContent={
                   loadingNasDevices ? (
                     <Space>
