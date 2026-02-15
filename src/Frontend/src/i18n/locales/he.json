@@ -508,6 +508,8 @@
       "kafkaSettings": "הגדרות Kafka",
       "archiveSettings": "הגדרות ארכיון"
     },
+    "nasConnectionFailed": "החיבור להתקן NAS נכשל",
+    "nasConnectionSuccess": "החיבור להתקן NAS הצליח",
     "nasNotMounted": "לא מחובר",
     "nasProvisioning": "מתקין...",
     "noNasDevices": "אין התקני NAS זמינים",
@@ -517,6 +519,8 @@
     "devicesAvailable": "התקנים זמינים",
     "nasDeviceSelected": "התקן NAS נבחר",
     "nasMountPath": "נתיב Mount",
+    "nasTestError": "שגיאה בבדיקת חיבור NAS",
+    "nasTestInProgress": "בודק חיבור להתקן NAS...",
     "computedMountPath": "נתיב Mount מלא",
     "tooltips": {
       "nasDevice": "בחר התקן NAS שהוגדר על ידי מנהל המערכת",

@@ -76,6 +76,8 @@
       "nasPathSettings": "NAS Path Settings",
       "archiveSettings": "Archive Settings"
     },
+    "nasConnectionFailed": "NAS device connection failed",
+    "nasConnectionSuccess": "NAS device connection successful",
     "nasNotMounted": "Not mounted",
     "nasProvisioning": "Provisioning...",
     "noNasDevices": "No NAS devices available",
@@ -85,6 +87,8 @@
     "devicesAvailable": "devices available",
     "nasDeviceSelected": "NAS device selected",
     "nasMountPath": "Mount Path",
+    "nasTestError": "Error testing NAS connection",
+    "nasTestInProgress": "Testing NAS device connection...",
     "computedMountPath": "Computed Mount Path",
     "tooltips": {
       "nasDevice": "Select a NAS device configured by system administrator",
