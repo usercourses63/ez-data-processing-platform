@@ -75,4 +75,32 @@ public class FileSimulatorClient
         return JsonSerializer.Deserialize<SimulatorServer>(json, _jsonOptions)
             ?? throw new InvalidOperationException("Failed to create NAS server");
     }
+
+    /// <summary>
+    /// Creates a dynamic FTP server in the file-simulator
+    /// POST /api/servers/ftp
+    /// </summary>
+    public async Task<SimulatorServer> CreateFtpServerAsync(string name, string username, string password, CancellationToken ct = default)
+    {
+        var request = new { name, username, password };
+        var response = await _http.PostAsJsonAsync("/api/servers/ftp", request, ct);
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync(ct);
+        return JsonSerializer.Deserialize<SimulatorServer>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("Failed to create FTP server");
+    }
+
+    /// <summary>
+    /// Creates a dynamic SFTP server in the file-simulator
+    /// POST /api/servers/sftp
+    /// </summary>
+    public async Task<SimulatorServer> CreateSftpServerAsync(string name, string username, string password, CancellationToken ct = default)
+    {
+        var request = new { name, username, password };
+        var response = await _http.PostAsJsonAsync("/api/servers/sftp", request, ct);
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync(ct);
+        return JsonSerializer.Deserialize<SimulatorServer>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("Failed to create SFTP server");
+    }
 }

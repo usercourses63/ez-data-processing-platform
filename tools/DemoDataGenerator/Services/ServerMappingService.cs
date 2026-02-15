@@ -13,10 +13,11 @@ public class ServerMappingService
     /// <summary>
     /// Maps a simulator server to an AdminServer entity with protocol-specific configuration
     /// </summary>
-    public AdminServer MapToAdminServer(SimulatorServer server, SimulatorConnectionInfo connInfo)
+    public AdminServer MapToAdminServer(SimulatorServer server, SimulatorConnectionInfo connInfo,
+        ServerDirection? directionOverride = null)
     {
         var serverType = NormalizeProtocol(server.Protocol);
-        var direction = ParseDirection(server.Name);
+        var direction = directionOverride ?? ParseDirection(server.Name);
         var connServer = FindConnectionServer(server.Name, connInfo);
 
         var adminServer = new AdminServer
@@ -25,7 +26,7 @@ public class ServerMappingService
             Description = $"Auto-discovered from file-simulator ({server.Protocol}:{server.NodePort})",
             ServerType = serverType,
             Direction = direction,
-            IsActive = server.PodReady,
+            IsActive = true, // Dynamic servers may not have pods ready yet; mark active for seeding
             Host = connServer?.Host ?? connInfo.Hostname ?? "file-simulator.local",
             Port = connServer?.Port ?? server.NodePort,
             BasePath = GetBasePath(serverType, direction),
@@ -35,7 +36,7 @@ public class ServerMappingService
             ConnectionTimeoutSeconds = 30,
             RetryCount = 3,
             LastConnectionTest = DateTime.UtcNow,
-            LastConnectionSuccess = server.PodReady,
+            LastConnectionSuccess = true,
             CreatedBy = "SimulatorSeeder",
             CorrelationId = Guid.NewGuid().ToString()
         };

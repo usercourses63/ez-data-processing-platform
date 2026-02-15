@@ -48,8 +48,8 @@ public class DataSourceGenerator
             "0 */2 * * * *"       // Every 2 minutes
         };
         
-        // Various connection types matching frontend constants (Local, SFTP, FTP, HTTP, Kafka, NAS)
-        var connectionTypes = new[] { "FTP", "SFTP", "HTTP", "Kafka", "NAS" };
+        // Various connection types matching simulator + platform protocols
+        var connectionTypes = new[] { "FTP", "SFTP", "HTTP", "S3", "Kafka", "NAS" };
         var protocolVersions = new[] { "v1", "v2", "v3" };
         
         for (int i = 0; i < DemoConfig.DataSourceCount; i++)
@@ -65,6 +65,7 @@ public class DataSourceGenerator
                 "FTP" => $"/incoming/{category}",
                 "SFTP" => $"/data/{category}",
                 "HTTP" => $"/{category}/files",
+                "S3" => $"{category}/incoming",
                 "Kafka" => $"{category}_topic",
                 "NAS" => $"/{category}/{i + 1:D3}",
                 _ => $"/data/input/{category}/{i + 1:D3}"
@@ -92,6 +93,12 @@ public class DataSourceGenerator
                 additionalConfig["method"] = i % 2 == 0 ? "GET" : "POST";
                 additionalConfig["headers"] = new BsonDocument { { "Authorization", "Bearer token" } };
             }
+            else if (connType == "S3")
+            {
+                additionalConfig["bucket"] = $"dataprocessing-{category.ToLower().Replace(" ", "-")}";
+                additionalConfig["region"] = "us-east-1";
+                additionalConfig["forcePathStyle"] = true;
+            }
             else if (connType == "Kafka")
             {
                 additionalConfig["brokers"] = "kafka:9092";
@@ -115,7 +122,12 @@ public class DataSourceGenerator
             }
             else
             {
-                server = AdminServerGenerator.GetServerByType(_servers, connType);
+                // Prefer input-direction servers for datasources (they read files)
+                var typeKey = connType.ToLower();
+                server = _servers
+                    .FirstOrDefault(s => s.ServerType.Equals(typeKey, StringComparison.OrdinalIgnoreCase) && s.CanBeInput
+                        && s.Direction == DataProcessing.Shared.Entities.ServerDirection.Input)
+                    ?? AdminServerGenerator.GetServerByType(_servers, connType);
             }
 
             // Create ConfigurationSettings JSON for frontend
@@ -130,6 +142,7 @@ public class DataSourceGenerator
                         "FTP" => 21,
                         "SFTP" => 22,
                         "HTTP" => 443,
+                        "S3" => 9000,
                         "Kafka" => 9092,
                         _ => 0
                     },
