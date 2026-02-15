@@ -119,6 +119,7 @@ try
 
     // Step 3: Generate Admin Servers (datasources reference them)
     List<AdminServer> servers;
+    List<NasDevice> seededNasDevices = new();
 
     if (useSimulator)
     {
@@ -138,8 +139,9 @@ try
         var seederService = new SimulatorSeederService(simulatorClient, mappingService);
 
         var createDynamic = createServers && !discoverOnly;
-        var (seededServers, nasDevices) = await seederService.SeedFromSimulatorAsync(createDynamic);
-        servers = seededServers;
+        var (discoveredServers, nasDevices) = await seederService.SeedFromSimulatorAsync(createDynamic);
+        servers = discoveredServers;
+        seededNasDevices = nasDevices;
     }
     else
     {
@@ -148,8 +150,8 @@ try
         servers = await serverGenerator.GenerateAsync();
     }
 
-    // Step 4: Generate DataSources (with server references)
-    var dsGenerator = new DataSourceGenerator(random, servers);
+    // Step 4: Generate DataSources (with server + NAS device references)
+    var dsGenerator = new DataSourceGenerator(random, servers, seededNasDevices);
     var datasources = await dsGenerator.GenerateAsync();
 
     // Step 5: Generate Schemas
