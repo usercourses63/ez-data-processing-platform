@@ -28,7 +28,7 @@ public class FileSimulatorClient
     {
         try
         {
-            var response = await _http.GetAsync("/api/health", ct);
+            var response = await _http.GetAsync("/health", ct);
             return response.IsSuccessStatusCode;
         }
         catch (HttpRequestException)
