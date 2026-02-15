@@ -128,9 +128,12 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
   const availableNasDevices = useMemo(() => {
     if (destinationType !== 'NAS') return [];
     // Filter devices that can be output destinations (Output or Both roles)
-    return nasDevices.filter((device: NasDevice) =>
-      device.Role === 'Output' || device.Role === 'Both'
-    );
+    // Backend returns Role as numeric enum (0=Input, 1=Output, 2=Backup, 3=Both)
+    const roleEnumToString: Record<number, string> = { 0: 'Input', 1: 'Output', 2: 'Backup', 3: 'Both' };
+    return nasDevices.filter((device: NasDevice) => {
+      const role = typeof device.Role === 'number' ? roleEnumToString[device.Role] : device.Role;
+      return role === 'Output' || role === 'Both';
+    });
   }, [destinationType, nasDevices]);
 
   // Get selected NAS device details
