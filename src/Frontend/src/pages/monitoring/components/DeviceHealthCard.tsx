@@ -37,6 +37,12 @@ const formatRelativeTime = (
   return t('monitoring.deviceHealth.minutesAgo', { count: diffMinutes });
 };
 
+const cardStyle: React.CSSProperties = {
+  background: '#1e293b',
+  border: '1px solid #334155',
+  height: '100%',
+};
+
 const DeviceHealthCard: React.FC<DeviceHealthCardProps> = ({ device }) => {
   const { t } = useTranslation();
 
@@ -49,7 +55,7 @@ const DeviceHealthCard: React.FC<DeviceHealthCardProps> = ({ device }) => {
   return (
     <Card
       hoverable
-      style={{ height: '100%' }}
+      style={cardStyle}
       bodyStyle={{ padding: 16 }}
     >
       <div style={{ textAlign: 'center', marginBottom: 8 }}>
@@ -59,39 +65,38 @@ const DeviceHealthCard: React.FC<DeviceHealthCardProps> = ({ device }) => {
       </div>
 
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <Text strong style={{ fontSize: 15 }}>{device.DeviceName}</Text>
+        <Text strong style={{ fontSize: 15, color: '#f1f5f9' }}>{device.DeviceName}</Text>
       </div>
 
       <div style={{ textAlign: 'center', marginBottom: 12 }}>
-        <Text type="secondary" style={{ fontSize: 12 }}>{subtitle}</Text>
+        <Text style={{ fontSize: 12, color: '#94a3b8' }}>{subtitle}</Text>
       </div>
 
       {showLatency && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <Text type="secondary">{t('monitoring.deviceHealth.latency')}:</Text>
-          <Text>{device.LatencyMs}ms</Text>
+          <Text style={{ color: '#94a3b8' }}>{t('monitoring.deviceHealth.latency')}:</Text>
+          <Text style={{ color: '#f1f5f9' }}>{device.LatencyMs}ms</Text>
         </div>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <Text type="secondary">{t('monitoring.deviceHealth.uptime24h')}:</Text>
-        <Text>{device.UptimePercentage24h.toFixed(1)}%</Text>
+        <Text style={{ color: '#94a3b8' }}>{t('monitoring.deviceHealth.uptime24h')}:</Text>
+        <Text style={{ color: '#f1f5f9' }}>{device.UptimePercentage24h.toFixed(1)}%</Text>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <Text type="secondary">{t('monitoring.deviceHealth.lastCheck')}:</Text>
-        <Text>{formatRelativeTime(device.LastCheckTime, t)}</Text>
+        <Text style={{ color: '#94a3b8' }}>{t('monitoring.deviceHealth.lastCheck')}:</Text>
+        <Text style={{ color: '#f1f5f9' }}>{formatRelativeTime(device.LastCheckTime, t)}</Text>
       </div>
 
       {showError && device.ErrorMessage && (
         <div style={{ marginTop: 8 }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text style={{ fontSize: 12, color: '#94a3b8' }}>
             {t('monitoring.deviceHealth.errorReason')}:
           </Text>
           <Tooltip title={device.ErrorMessage}>
             <Paragraph
-              type="danger"
-              style={{ fontSize: 12, marginBottom: 0, marginTop: 2 }}
+              style={{ fontSize: 12, marginBottom: 0, marginTop: 2, color: '#ff4d4f' }}
               ellipsis={{ rows: 2 }}
             >
               {device.ErrorMessage}

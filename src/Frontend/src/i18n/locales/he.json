@@ -688,7 +688,7 @@
       "adminServers": "שרתי ניהול",
       "summary": "סיכום",
       "healthy": "תקין",
-      "degraded": "מושפל",
+      "degraded": "חלקי",
       "down": "נפל",
       "disabled": "מושבת",
       "latency": "זמן תגובה",

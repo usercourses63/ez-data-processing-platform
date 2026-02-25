@@ -48,7 +48,7 @@ const DeviceHealthTab: React.FC = () => {
       <DeviceHealthSummaryBar data={data} />
 
       {/* NAS Devices Section */}
-      <Title level={5} style={{ marginBottom: 12 }}>
+      <Title level={5} style={{ marginBottom: 12, color: '#f1f5f9' }}>
         {t('monitoring.deviceHealth.nasDevices')}
       </Title>
       {data.NasDevices.length > 0 ? (
@@ -66,7 +66,7 @@ const DeviceHealthTab: React.FC = () => {
       )}
 
       {/* Admin Servers Section */}
-      <Title level={5} style={{ marginBottom: 12 }}>
+      <Title level={5} style={{ marginBottom: 12, color: '#f1f5f9' }}>
         {t('monitoring.deviceHealth.adminServers')}
       </Title>
       {data.AdminServers.length > 0 ? (

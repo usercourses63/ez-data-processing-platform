@@ -30,6 +30,11 @@ spec:
         component: api
         tier: backend
     spec:
+      # DNS resolution for file-simulator cluster (Hyper-V) from Docker minikube pods
+      hostAliases:
+      - ip: "172.17.89.141"
+        hostnames:
+        - "file-simulator.local"
       # ServiceAccount with RBAC permissions for NAS device PV/PVC management
       serviceAccountName: nas-device-manager
       securityContext:
@@ -41,7 +46,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: datasource-management
-        image: ez-platform/datasource-management:v0.2.0-otel
+        image: ez-platform/datasource-management:v0.3.0-health
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
