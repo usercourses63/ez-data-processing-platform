@@ -211,7 +211,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 11. Bug Fixes & UI Polish | v0.2 | 2/2 | Complete | 2026-02-11 |
 | 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
-| 14. OTEL Verification | 2/2 | Complete   | 2026-02-25 | - |
+| 14. OTEL Verification | 2/2 | Complete    | 2026-02-25 | - |
 | 15. Device Health Monitoring | v0.2 | 0/2 | Not started | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
