@@ -158,22 +158,26 @@ public class SmbConnector : IDataSourceConnector, IServerConnector
 
     private async Task TestConnectionInternalAsync(SmbConfig config, CancellationToken cancellationToken)
     {
+        // Resolve hostname to IP address if needed (outside the Task.Run for proper async/await)
+        var ipAddress = await ResolveHostAsync(config.Host);
+
         await Task.Run(() =>
         {
             var client = new SMB2Client();
 
             try
             {
-                _logger.LogInformation("Testing SMB connection to: {Host}:{Port}",
-                    config.Host, config.Port);
+                _logger.LogInformation("Testing SMB connection to: {Host} (port 445 required)",
+                    config.Host);
 
+                // Note: SMBLibrary DirectTCPTransport always uses port 445 - custom ports not supported
                 bool connected = client.Connect(
-                    IPAddress.Parse(config.Host),
+                    ipAddress,
                     SMBTransportType.DirectTCPTransport);
 
                 if (!connected)
                 {
-                    throw new InvalidOperationException($"Failed to connect to SMB server at {config.Host}:{config.Port}");
+                    throw new InvalidOperationException($"Failed to connect to SMB server at {config.Host}:445 (SMB requires port 445)");
                 }
 
                 var status = client.Login(
@@ -227,6 +231,9 @@ public class SmbConnector : IDataSourceConnector, IServerConnector
         string pattern,
         CancellationToken cancellationToken)
     {
+        // Resolve hostname to IP address before starting the synchronous operation
+        var ipAddress = await ResolveHostAsync(config.Host);
+
         return await Task.Run(() =>
         {
             var files = new List<DiscoveredFile>();
@@ -234,13 +241,14 @@ public class SmbConnector : IDataSourceConnector, IServerConnector
 
             try
             {
+                // Note: SMBLibrary DirectTCPTransport always uses port 445
                 bool connected = client.Connect(
-                    IPAddress.Parse(config.Host),
+                    ipAddress,
                     SMBTransportType.DirectTCPTransport);
 
                 if (!connected)
                 {
-                    throw new InvalidOperationException($"Failed to connect to SMB server at {config.Host}");
+                    throw new InvalidOperationException($"Failed to connect to SMB server at {config.Host}:445");
                 }
 
                 var status = client.Login(config.Domain, config.Username, config.Password);
@@ -360,19 +368,23 @@ public class SmbConnector : IDataSourceConnector, IServerConnector
         string filePath,
         CancellationToken cancellationToken)
     {
+        // Resolve hostname to IP address before starting the synchronous operation
+        var ipAddress = await ResolveHostAsync(config.Host);
+
         return await Task.Run(() =>
         {
             var client = new SMB2Client();
 
             try
             {
+                // Note: SMBLibrary DirectTCPTransport always uses port 445
                 bool connected = client.Connect(
-                    IPAddress.Parse(config.Host),
+                    ipAddress,
                     SMBTransportType.DirectTCPTransport);
 
                 if (!connected)
                 {
-                    throw new InvalidOperationException($"Failed to connect to SMB server at {config.Host}");
+                    throw new InvalidOperationException($"Failed to connect to SMB server at {config.Host}:445");
                 }
 
                 var status = client.Login(config.Domain, config.Username, config.Password);
@@ -469,19 +481,23 @@ public class SmbConnector : IDataSourceConnector, IServerConnector
         byte[] content,
         CancellationToken cancellationToken)
     {
+        // Resolve hostname to IP address before starting the synchronous operation
+        var ipAddress = await ResolveHostAsync(config.Host);
+
         await Task.Run(() =>
         {
             var client = new SMB2Client();
 
             try
             {
+                // Note: SMBLibrary DirectTCPTransport always uses port 445
                 bool connected = client.Connect(
-                    IPAddress.Parse(config.Host),
+                    ipAddress,
                     SMBTransportType.DirectTCPTransport);
 
                 if (!connected)
                 {
-                    throw new InvalidOperationException($"Failed to connect to SMB server at {config.Host}");
+                    throw new InvalidOperationException($"Failed to connect to SMB server at {config.Host}:445");
                 }
 
                 var status = client.Login(config.Domain, config.Username, config.Password);
@@ -593,6 +609,41 @@ public class SmbConnector : IDataSourceConnector, IServerConnector
     #endregion
 
     #region Helper Methods
+
+    /// <summary>
+    /// Resolves a hostname to an IP address. If the input is already an IP address, returns it directly.
+    /// </summary>
+    private async Task<IPAddress> ResolveHostAsync(string hostOrIp)
+    {
+        // First, try to parse as an IP address
+        if (IPAddress.TryParse(hostOrIp, out var ipAddress))
+        {
+            return ipAddress;
+        }
+
+        // It's a hostname, resolve it via DNS
+        try
+        {
+            _logger.LogDebug("Resolving hostname {Host} to IP address", hostOrIp);
+            var addresses = await Dns.GetHostAddressesAsync(hostOrIp);
+
+            if (addresses.Length == 0)
+            {
+                throw new InvalidOperationException($"Failed to resolve hostname '{hostOrIp}' to an IP address");
+            }
+
+            // Prefer IPv4 addresses for SMB compatibility
+            var preferredAddress = addresses.FirstOrDefault(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                   ?? addresses[0];
+
+            _logger.LogDebug("Resolved {Host} to {IpAddress}", hostOrIp, preferredAddress);
+            return preferredAddress;
+        }
+        catch (Exception ex) when (ex is not InvalidOperationException)
+        {
+            throw new InvalidOperationException($"Failed to resolve hostname '{hostOrIp}': {ex.Message}", ex);
+        }
+    }
 
     private SmbConfig GetSmbConfig(DataProcessingDataSource dataSource)
     {

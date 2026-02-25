@@ -41,7 +41,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: datasource-management
-        image: ez-platform/datasource-management:v0.3.0-health-tcp2
+        image: ez-platform/datasource-management:v0.3.0-health-smb2
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
