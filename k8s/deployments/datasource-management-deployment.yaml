@@ -41,7 +41,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: datasource-management
-        image: ez-platform/datasource-management:latest
+        image: ez-platform/datasource-management:v0.2.0-otel
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
