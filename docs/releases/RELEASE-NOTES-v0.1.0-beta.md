@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform - Release Notes v0.1.0-beta
 
 **Release Date:** December 29, 2025
@@ -272,7 +276,7 @@ None (initial release)
 - **Admin Guide**: [ADMIN-GUIDE.md](../admin/ADMIN-GUIDE.md)
 - **User Guide (Hebrew)**: [USER-GUIDE-HE.md](../user-guide/USER-GUIDE-HE.md)
 - **Project Standards**: [PROJECT_STANDARDS.md](../PROJECT_STANDARDS.md)
-- **MVP Deployment Plan**: [MVP-DEPLOYMENT-PLAN.md](../planning/Phase-MVP-Deployment/MVP-DEPLOYMENT-PLAN.md)
+- **MVP Deployment Plan**: [MVP-DEPLOYMENT-PLAN.md](../archive/planning/Phase-MVP-Deployment/MVP-DEPLOYMENT-PLAN.md)
 
 ---
 

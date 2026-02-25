@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # RTL Pattern Display Fix - Final Solution
 
 **Date:** November 9, 2025  

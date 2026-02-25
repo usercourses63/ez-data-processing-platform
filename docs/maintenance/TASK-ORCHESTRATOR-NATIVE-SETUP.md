@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Task Orchestrator - Native Installation (No Docker)
 
 **Goal:** Install task-orchestrator MCP server directly on Windows without Docker containers

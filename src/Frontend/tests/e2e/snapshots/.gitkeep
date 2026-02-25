@@ -1,0 +1,2 @@
+# Keep this directory for Playwright visual regression snapshots
+# Baseline screenshots are stored here for comparison during tests

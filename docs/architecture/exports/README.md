@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform Architecture Documentation - Exported Formats
 
 This directory contains the EZ Platform architecture documentation converted from HTML presentations into multiple formats suitable for network distribution and offline viewing.

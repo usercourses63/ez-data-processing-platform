@@ -1,14 +1,24 @@
 import React from 'react';
 import { Card, Tabs, Typography } from 'antd';
-import { SettingOutlined, TagsOutlined } from '@ant-design/icons';
+import { SettingOutlined, TagsOutlined, DownloadOutlined, UploadOutlined, HddOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import CategoryManagementTab from './tabs/CategoryManagementTab';
+import InputServersTab from './tabs/InputServersTab';
+import OutputServersTab from './tabs/OutputServersTab';
+import NasDevicesTab from './tabs/NasDevicesTab';
 import './AdminSettings.css';
 
 const { Title } = Typography;
 
 const AdminSettings: React.FC = () => {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'categories';
+
+  const handleTabChange = (key: string) => {
+    setSearchParams({ tab: key });
+  };
 
   const items = [
     {
@@ -21,17 +31,36 @@ const AdminSettings: React.FC = () => {
       ),
       children: <CategoryManagementTab />,
     },
-    // Future tabs can be added here:
-    // {
-    //   key: 'settings',
-    //   label: (
-    //     <span>
-    //       <SettingOutlined />
-    //       {t('admin.tabs.systemSettings') || 'הגדרות מערכת'}
-    //     </span>
-    //   ),
-    //   children: <SystemSettingsTab />,
-    // },
+    {
+      key: 'inputServers',
+      label: (
+        <span>
+          <DownloadOutlined />
+          {t('admin.tabs.inputServers') || 'שרתי קלט'}
+        </span>
+      ),
+      children: <InputServersTab />,
+    },
+    {
+      key: 'outputServers',
+      label: (
+        <span>
+          <UploadOutlined />
+          {t('admin.tabs.outputServers') || 'שרתי פלט'}
+        </span>
+      ),
+      children: <OutputServersTab />,
+    },
+    {
+      key: 'nasDevices',
+      label: (
+        <span>
+          <HddOutlined />
+          {t('admin.tabs.nasDevices') || 'התקני NAS'}
+        </span>
+      ),
+      children: <NasDevicesTab />,
+    },
   ];
 
   return (
@@ -42,7 +71,8 @@ const AdminSettings: React.FC = () => {
         </Title>
 
         <Tabs
-          defaultActiveKey="categories"
+          activeKey={activeTab}
+          onChange={handleTabChange}
           items={items}
           size="large"
         />

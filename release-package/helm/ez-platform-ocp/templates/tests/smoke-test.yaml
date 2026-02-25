@@ -1,0 +1,112 @@
+# Helm test hook for smoke testing all EZ Platform services
+# Run with: helm test <release-name> --namespace ez-platform --timeout 5m --logs
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .Release.Name }}-smoke-test
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}-smoke-test
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  {{- with .Values.securityContext.pod }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  containers:
+  - name: smoke-test
+    image: curlimages/curl:8.5.0
+    {{- with .Values.securityContext.container }}
+    securityContext:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    command:
+    - /bin/sh
+    - -c
+    - |
+      set -e
+      RETRY_COUNT=3
+      RETRY_INTERVAL=10
+
+      check_health() {
+        local svc=$1
+        local port=$2
+        local retries=0
+
+        echo "Testing $svc:$port..."
+        while [ $retries -lt $RETRY_COUNT ]; do
+          if curl -sf --max-time 5 "http://$svc:$port/health" > /dev/null 2>&1; then
+            echo "  OK: $svc is healthy"
+            return 0
+          fi
+          retries=$((retries + 1))
+          if [ $retries -lt $RETRY_COUNT ]; then
+            echo "  Retry $retries/$RETRY_COUNT for $svc..."
+            sleep $RETRY_INTERVAL
+          fi
+        done
+        echo "  FAILED: $svc health check failed after $RETRY_COUNT attempts"
+        return 1
+      }
+
+      echo "========================================="
+      echo "EZ Platform Smoke Test - {{ .Release.Name }}"
+      echo "========================================="
+      echo ""
+
+      # Wait for services to be ready
+      echo "Waiting 60 seconds for services to stabilize..."
+      sleep 60
+
+      FAILED=0
+
+      # Backend services (port 500x)
+      {{- if .Values.services.datasourceManagement.enabled }}
+      check_health "datasource-management" "5001" || FAILED=$((FAILED + 1))
+      {{- end }}
+      {{- if .Values.services.metricsConfiguration.enabled }}
+      check_health "metrics-configuration" "5002" || FAILED=$((FAILED + 1))
+      {{- end }}
+      {{- if .Values.services.validation.enabled }}
+      check_health "validation" "5003" || FAILED=$((FAILED + 1))
+      {{- end }}
+      {{- if .Values.services.scheduling.enabled }}
+      check_health "scheduling" "5004" || FAILED=$((FAILED + 1))
+      {{- end }}
+      {{- if .Values.services.invalidrecords.enabled }}
+      check_health "invalidrecords" "5006" || FAILED=$((FAILED + 1))
+      {{- end }}
+      {{- if .Values.services.filediscovery.enabled }}
+      check_health "filediscovery" "5007" || FAILED=$((FAILED + 1))
+      {{- end }}
+      {{- if .Values.services.fileprocessor.enabled }}
+      check_health "fileprocessor" "5008" || FAILED=$((FAILED + 1))
+      {{- end }}
+      {{- if .Values.services.output.enabled }}
+      check_health "output" "5009" || FAILED=$((FAILED + 1))
+      {{- end }}
+
+      # Frontend (port 8080)
+      {{- if .Values.services.frontend.enabled }}
+      check_health "frontend" "8080" || FAILED=$((FAILED + 1))
+      {{- end }}
+
+      # Docusaurus docs (port 8080)
+      {{- if .Values.services.docs.enabled }}
+      check_health "ezplatform-docs" "8080" || FAILED=$((FAILED + 1))
+      {{- end }}
+
+      echo ""
+      echo "========================================="
+      if [ $FAILED -eq 0 ]; then
+        echo "All health checks passed!"
+        exit 0
+      else
+        echo "FAILED: $FAILED service(s) unhealthy"
+        exit 1
+      fi
+  restartPolicy: Never

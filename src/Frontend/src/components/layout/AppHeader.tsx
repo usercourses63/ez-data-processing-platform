@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { openDocsInNewTab } from '../../utils/docs-url';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -99,12 +100,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({ collapsed = false, onCollapse }) 
           />
         </Space>
 
-        {/* Help */}
+        {/* Help - Opens Docusaurus documentation portal in new tab */}
         <Tooltip title={isRTL ? 'עזרה' : 'Help'}>
           <Button
             type="text"
             icon={<QuestionCircleOutlined />}
-            onClick={() => navigate('/help')}
+            onClick={() => openDocsInNewTab()}
+            aria-label={isRTL ? 'פתח תיעוד במעבר חדש' : 'Open documentation in new tab'}
             style={{
               fontSize: '16px',
               width: 40,

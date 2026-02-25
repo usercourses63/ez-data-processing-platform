@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Data Processing Platform - Documentation
 
 **Welcome to the EZ Platform Documentation!**

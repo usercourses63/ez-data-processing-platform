@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Docker Cleanup Guide - Task Orchestrator
 
 **Problem:** Multiple task-orchestrator Docker containers accumulate over time, consuming system resources.

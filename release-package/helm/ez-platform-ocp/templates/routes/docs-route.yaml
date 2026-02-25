@@ -8,17 +8,24 @@ metadata:
   namespace: {{ .Values.global.namespace }}
   labels:
     {{- include "ez-platform.labels" . | nindent 4 }}
-    app: docs
+    app.kubernetes.io/name: ezplatform-docs
+    app.kubernetes.io/component: documentation
+  annotations:
+    # Preserve path for Docusaurus (baseUrl: '/docs/')
+    haproxy.router.openshift.io/rewrite-target: /docs
 spec:
-  host: docs.{{ .Values.ocp.domain }}
+  # Same host as frontend, different path
+  host: {{ .Values.ocp.domain }}
+  # Route /docs/* requests to docs service
+  path: /docs
   to:
     kind: Service
-    name: docs
+    name: ezplatform-docs
     weight: 100
   port:
     targetPort: 8080
   tls:
-    termination: {{ .Values.ocp.routes.tls.termination }}
+    termination: {{ .Values.ocp.routes.tls.termination | default "edge" }}
     insecureEdgeTerminationPolicy: Redirect
   wildcardPolicy: None
 {{- end }}

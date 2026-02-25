@@ -47,6 +47,9 @@
       "validation": "Validation Rules",
       "notifications": "Notification Settings"
     },
+    "protocols": {
+      "nas": "NAS - Network Attached Storage"
+    },
     "fields": {
       "name": "Data Source Name",
       "supplierName": "Supplier Name",
@@ -57,8 +60,71 @@
       "description": "Description",
       "isActive": "Active",
       "createdAt": "Created Date",
-      "updatedAt": "Updated Date"
+      "updatedAt": "Updated Date",
+      "inputServer": "Input Server",
+      "nasDevice": "NAS Device",
+      "nasSubPath": "Sub-path within export",
+      "archiveType": "Archive Type",
+      "archivePassword": "Archive Password",
+      "extractionPattern": "Extraction Pattern",
+      "processNestedArchives": "Process Nested Archives"
     },
+    "sections": {
+      "serverSelection": "Server Selection",
+      "nasDeviceSelection": "NAS Device Selection",
+      "pathSettings": "Path Settings",
+      "nasPathSettings": "NAS Path Settings",
+      "archiveSettings": "Archive Settings"
+    },
+    "nasConnectionFailed": "NAS device connection failed",
+    "nasConnectionSuccess": "NAS device connection successful",
+    "nasNotMounted": "Not mounted",
+    "nasProvisioning": "Provisioning...",
+    "noNasDevices": "No NAS devices available",
+    "noNasDevicesFound": "No NAS devices found",
+    "loadingNasDevices": "Loading NAS devices...",
+    "selectNasDevice": "Select NAS device...",
+    "devicesAvailable": "devices available",
+    "nasDeviceSelected": "NAS device selected",
+    "nasMountPath": "Mount Path",
+    "nasTestError": "Error testing NAS connection",
+    "nasTestInProgress": "Testing NAS device connection...",
+    "computedMountPath": "Computed Mount Path",
+    "tooltips": {
+      "nasDevice": "Select a NAS device configured by system administrator",
+      "nasSubPath": "Relative path within the NAS export path",
+      "archiveType": "Select archive type or leave on auto to detect by file extension",
+      "archivePassword": "Password for protected archives (optional)",
+      "extractionPattern": "Pattern to filter files inside the archive. Example: *.csv to extract only CSV files",
+      "processNestedArchives": "If enabled, will also process archives found inside other archives"
+    },
+    "archive": {
+      "description": "Configure how to handle compressed archive files (ZIP, TAR.GZ, RAR, 7Z)",
+      "disabledHint": "Enable this option if the data source contains compressed files",
+      "types": {
+        "auto": "Auto-detect",
+        "zip": "ZIP (.zip)",
+        "tarGz": "TAR.GZ (.tar.gz, .tgz)",
+        "rar": "RAR (.rar)",
+        "7z": "7-Zip (.7z)"
+      }
+    },
+    "errors": {
+      "serverRequired": "Server selection is required",
+      "nasDeviceRequired": "NAS device selection is required",
+      "invalidExtractionPattern": "Invalid extraction pattern. Examples: *.csv, data_*.json, *.*"
+    },
+    "noServersForProtocol": "No {{protocol}} servers available",
+    "noServersHint": "Contact your system administrator to add a compatible server",
+    "goToAdminSettings": "Go to Admin Settings",
+    "loadingServers": "Loading servers...",
+    "selectServerPlaceholder": "Select {{protocol}} server...",
+    "noServersFound": "No servers found",
+    "serversAvailable": "servers available",
+    "selectNasOutputDevice": "Select NAS output device...",
+    "noNasOutputDevices": "No NAS output devices available",
+    "nasOutputDeviceRequired": "NAS output device is required",
+    "selectServerOrNasDevice": "Select an output server or NAS device",
     "categories": {
       "financial": "Financial",
       "customers": "Customers",
@@ -329,6 +395,147 @@
     "reconnecting": "Reconnecting...",
     "liveUpdates": "Live Updates",
     "lastUpdate": "Last Update"
+  },
+  "admin": {
+    "title": "System Settings",
+    "tabs": {
+      "categories": "Categories",
+      "servers": "File Servers",
+      "inputServers": "Input Servers",
+      "outputServers": "Output Servers",
+      "nasDevices": "NAS Devices"
+    },
+    "servers": {
+      "subtitle": "Manage File Servers",
+      "inputTitle": "Manage Input Servers",
+      "outputTitle": "Manage Output Servers",
+      "addInputServer": "Add Input Server",
+      "addOutputServer": "Add Output Server",
+      "noInputServers": "No input servers configured",
+      "noOutputServers": "No output servers configured",
+      "active": "Active",
+      "inactive": "Inactive",
+      "emptyHint": "Click 'Add' to create a new server",
+      "deleteSuccess": "Server deleted successfully",
+      "toggleSuccess": "Server status updated successfully",
+      "loadError": "Error loading servers",
+      "addButton": "Add Server",
+      "createTitle": "Create New Server",
+      "editTitle": "Edit Server",
+      "createSuccess": "Server created successfully",
+      "createError": "Error creating server",
+      "updateSuccess": "Server updated successfully",
+      "updateError": "Error updating server",
+      "deleteConfirm": "Delete this server?",
+      "deleteWarning": "This action cannot be undone",
+      "testConnection": "Test Connection",
+      "credentialsNote": "Note: Credentials are stored in Kubernetes Secrets and referenced via CredentialSecretRef",
+      "columns": {
+        "name": "Name",
+        "type": "Type",
+        "direction": "Direction",
+        "host": "Address",
+        "lastTest": "Last Test",
+        "active": "Active",
+        "actions": "Actions"
+      },
+      "fields": {
+        "name": "Server Name",
+        "description": "Description",
+        "type": "Server Type",
+        "direction": "Direction",
+        "host": "Host",
+        "port": "Port",
+        "basePath": "Base Path",
+        "credentials": "Secret Reference (K8s Secret)",
+        "timeout": "Timeout (seconds)",
+        "retries": "Retry Count",
+        "active": "Active",
+        "bootstrapServers": "Bootstrap Servers",
+        "securityProtocol": "Security Protocol",
+        "saslMechanism": "SASL Mechanism",
+        "defaultConsumerGroup": "Default Consumer Group",
+        "enableSsl": "Enable SSL"
+      },
+      "sections": {
+        "connection": "Connection Settings",
+        "path": "Path Settings",
+        "kafka": "Kafka Settings",
+        "advanced": "Advanced Settings"
+      }
+    },
+    "nas": {
+      "title": "NAS Device Management",
+      "devices": "devices",
+      "addDevice": "Add NAS Device",
+      "editDevice": "Edit NAS Device",
+      "deleteDevice": "Delete NAS Device",
+      "deleteConfirm": "Are you sure you want to delete this device?",
+      "deleteSuccess": "NAS device deleted successfully",
+      "deleteError": "Error deleting NAS device",
+      "createSuccess": "NAS device created successfully",
+      "createError": "Error creating NAS device",
+      "updateSuccess": "NAS device updated successfully",
+      "updateError": "Error updating NAS device",
+      "loadError": "Error loading NAS devices",
+      "provisionSuccess": "Kubernetes resources created successfully",
+      "provisionError": "Error creating Kubernetes resources",
+      "confirmProvision": "Confirm Provisioning",
+      "provisionDescription": "Create PersistentVolume and PersistentVolumeClaim for {{name}}?",
+      "provision": "Provision",
+      "reprovision": "Re-provision",
+      "testConnection": "Test Connection",
+      "testingConnection": "Testing connection...",
+      "connectionSuccess": "Connection successful",
+      "connectionFailed": "Connection failed",
+      "provisioned": "provisioned",
+      "pending": "pending",
+      "emptyTitle": "No NAS devices configured",
+      "emptyHint": "Click 'Add NAS Device' to configure a new NAS storage device",
+      "note": "Note: After saving, use the Provision button to create Kubernetes PV/PVC resources.",
+      "fields": {
+        "name": "Name",
+        "description": "Description",
+        "host": "Host",
+        "port": "Port",
+        "exportPath": "Export Path",
+        "role": "Role",
+        "storageCapacity": "Storage Capacity",
+        "accessMode": "Access Mode",
+        "reclaimPolicy": "Reclaim Policy",
+        "mountOptions": "Mount Options",
+        "provisioningStatus": "Provisioning Status"
+      },
+      "roles": {
+        "Input": "Input",
+        "Output": "Output",
+        "Backup": "Backup",
+        "Both": "Both (Input + Output)"
+      },
+      "status": {
+        "pvCreated": "PV Created",
+        "pvPending": "PV Pending",
+        "pvcBound": "PVC Bound",
+        "pvcPending": "PVC Pending",
+        "notProvisioned": "Not Provisioned"
+      },
+      "sections": {
+        "connection": "Connection Settings",
+        "storage": "Storage Configuration"
+      },
+      "reclaimPolicies": {
+        "Retain": "Retain (Keep data)",
+        "Delete": "Delete (Remove data)",
+        "Recycle": "Recycle (Scrub and reuse)"
+      },
+      "placeholders": {
+        "description": "Optional description",
+        "mountOptions": "nfsvers=3, tcp, hard, intr"
+      },
+      "columns": {
+        "actions": "Actions"
+      }
+    }
   },
   "footer": {
     "copyright": "© {{year}} EZ Platform. All rights reserved.",

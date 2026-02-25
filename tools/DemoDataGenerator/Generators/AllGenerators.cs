@@ -11,15 +11,19 @@ namespace DemoDataGenerator.Generators;
 public class DataSourceGenerator
 {
     private readonly Random _random;
-    
-    public DataSourceGenerator(Random random)
+    private readonly List<AdminServer> _servers;
+    private readonly List<NasDevice> _nasDevices;
+
+    public DataSourceGenerator(Random random, List<AdminServer>? servers = null, List<NasDevice>? nasDevices = null)
     {
         _random = random;
+        _servers = servers ?? new List<AdminServer>();
+        _nasDevices = nasDevices ?? new List<NasDevice>();
     }
-    
+
     public async Task<List<DataProcessingDataSource>> GenerateAsync()
     {
-        Console.WriteLine("[2/7] 📊 Generating 20 datasources...");
+        Console.WriteLine("[4/11] 📊 Generating 20 datasources...");
         var datasources = new List<DataProcessingDataSource>();
         
         // Various file patterns
@@ -44,8 +48,8 @@ public class DataSourceGenerator
             "0 */2 * * * *"       // Every 2 minutes
         };
         
-        // Various connection types matching frontend constants (Local, SFTP, FTP, HTTP, Kafka)
-        var connectionTypes = new[] { "Local", "FTP", "SFTP", "HTTP", "Kafka" };
+        // Various connection types matching simulator + platform protocols
+        var connectionTypes = new[] { "FTP", "SFTP", "HTTP", "S3", "Kafka", "NAS" };
         var protocolVersions = new[] { "v1", "v2", "v3" };
         
         for (int i = 0; i < DemoConfig.DataSourceCount; i++)
@@ -56,14 +60,14 @@ public class DataSourceGenerator
             var cronExpr = cronExpressions[i % cronExpressions.Length];
             
             // Create varied file paths based on connection type
-            // Using mounted volumes: /data/input for Local files, kafka:9092 for Kafka
             var filePath = connType switch
             {
-                "Local" => $"/data/input/{category}/{i + 1:D3}",
-                "FTP" => $"ftp://files.example.com/{category}/incoming",
-                "SFTP" => $"sftp://secure.example.com:22/{category}/data",
-                "HTTP" => $"https://api.example.com/{category}/files",
-                "Kafka" => $"kafka://kafka:9092/{category}_topic",
+                "FTP" => $"/incoming/{category}",
+                "SFTP" => $"/data/{category}",
+                "HTTP" => $"/{category}/files",
+                "S3" => $"{category}/incoming",
+                "Kafka" => $"{category}_topic",
+                "NAS" => $"/{category}/{i + 1:D3}",
                 _ => $"/data/input/{category}/{i + 1:D3}"
             };
             
@@ -89,6 +93,12 @@ public class DataSourceGenerator
                 additionalConfig["method"] = i % 2 == 0 ? "GET" : "POST";
                 additionalConfig["headers"] = new BsonDocument { { "Authorization", "Bearer token" } };
             }
+            else if (connType == "S3")
+            {
+                additionalConfig["bucket"] = $"dataprocessing-{category.ToLower().Replace(" ", "-")}";
+                additionalConfig["region"] = "us-east-1";
+                additionalConfig["forcePathStyle"] = true;
+            }
             else if (connType == "Kafka")
             {
                 additionalConfig["brokers"] = "kafka:9092";
@@ -97,25 +107,42 @@ public class DataSourceGenerator
                 additionalConfig["securityProtocol"] = "PLAINTEXT";
             }
             
+            // Find matching server or NAS device for this connection type
+            AdminServer? server = null;
+            NasDevice? nasDevice = null;
+
+            if (connType == "NAS")
+            {
+                // Pick an input NAS device (round-robin)
+                var inputNas = _nasDevices
+                    .Where(d => d.Role == NasDeviceRole.Input || d.Role == NasDeviceRole.Both)
+                    .ToList();
+                if (inputNas.Count > 0)
+                    nasDevice = inputNas[i % inputNas.Count];
+            }
+            else
+            {
+                // Prefer input-direction servers for datasources (they read files)
+                var typeKey = connType.ToLower();
+                server = _servers
+                    .FirstOrDefault(s => s.ServerType.Equals(typeKey, StringComparison.OrdinalIgnoreCase) && s.CanBeInput
+                        && s.Direction == DataProcessing.Shared.Entities.ServerDirection.Input)
+                    ?? AdminServerGenerator.GetServerByType(_servers, connType);
+            }
+
             // Create ConfigurationSettings JSON for frontend
             var configurationSettings = new
             {
                 connectionConfig = new
                 {
                     type = connType,
-                    host = connType switch
-                    {
-                        "FTP" => "files.example.com",
-                        "SFTP" => "secure.example.com",
-                        "HTTP" => "api.example.com",
-                        "Kafka" => "broker.example.com",
-                        _ => "localhost"
-                    },
-                    port = connType switch
+                    host = nasDevice?.Host ?? server?.Host ?? "file-simulator.local",
+                    port = nasDevice?.Port ?? server?.Port ?? connType switch
                     {
                         "FTP" => 21,
                         "SFTP" => 22,
                         "HTTP" => 443,
+                        "S3" => 9000,
                         "Kafka" => 9092,
                         _ => 0
                     },
@@ -134,7 +161,7 @@ public class DataSourceGenerator
                 },
                 schedule = new
                 {
-                    frequency = "Custom",  // Since we're using explicit cron expressions
+                    frequency = "Custom",
                     cronExpression = cronExpr,
                     enabled = true
                 },
@@ -151,18 +178,21 @@ public class DataSourceGenerator
                 },
                 outputConfig = GenerateOutputConfiguration(DemoConfig.DataSourceNames[i], filePattern, i)
             };
-            
+
             var datasource = new DataProcessingDataSource
             {
                 Name = DemoConfig.DataSourceNames[i],
                 SupplierName = DemoConfig.SupplierNames[i % DemoConfig.SupplierNames.Length],
-                FilePath = filePath,
-                CronExpression = cronExpr,  // Use explicit cron instead of PollingRate
+                FilePath = nasDevice != null ? $"{nasDevice.MountPath}{filePath}" : filePath,
+                CronExpression = cronExpr,
                 JsonSchema = new BsonDocument(),
                 Category = category,
                 SchemaVersion = 1,
                 IsActive = true,
                 FilePattern = filePattern,
+                FileServerId = server?.ID,
+                NasDeviceId = nasDevice?.ID,
+                NasSubPath = nasDevice != null ? filePath : null,
                 AdditionalConfiguration = new BsonDocument
                 {
                     { "ConfigurationSettings", JsonConvert.SerializeObject(configurationSettings) },
@@ -176,10 +206,11 @@ public class DataSourceGenerator
                 CreatedBy = "DemoGenerator",
                 CorrelationId = Guid.NewGuid().ToString()
             };
-            
+
             await datasource.SaveAsync();
             datasources.Add(datasource);
-            Console.WriteLine($"  ✓ Created: {datasource.Name} ({datasource.Category}, {connType}, {filePattern})");
+            var linkInfo = nasDevice != null ? $", nas={nasDevice.Name}" : server != null ? $", server={server.Name}" : "";
+            Console.WriteLine($"  ✓ Created: {datasource.Name} ({datasource.Category}, {connType}{linkInfo})");
         }
         
         Console.WriteLine($"  ✅ Generated {datasources.Count} datasources\n");

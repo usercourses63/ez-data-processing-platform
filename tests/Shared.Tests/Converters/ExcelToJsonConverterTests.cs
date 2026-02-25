@@ -1,7 +1,7 @@
 // ExcelToJsonConverterTests.cs - Unit Tests for ExcelToJsonConverter
 // UNIT-005: Excel Format Converter Tests
-// Version: 1.0
-// Date: December 17, 2025
+// Version: 1.1
+// Date: February 2, 2026
 
 using DataProcessing.Shared.Converters;
 using FluentAssertions;
@@ -313,6 +313,123 @@ public class ExcelToJsonConverterTests : IDisposable
         firstTxn.GetProperty("CustomerName").GetString().Should().Be("John Smith");
         firstTxn.GetProperty("Amount").GetDouble().Should().BeApproximately(1500.50, 0.01);
         firstTxn.GetProperty("Status").GetString().Should().Be("Completed");
+    }
+
+    #endregion
+
+    #region Edge Case Tests (Phase 04-01)
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "Excel")]
+    public async Task ConvertToJsonAsync_WithMultipleSheets_ReadsFirstSheet()
+    {
+        // Arrange - Create Excel with 2 sheets
+        var stream = new MemoryStream();
+        using (var package = new ExcelPackage())
+        {
+            // First sheet with data
+            var sheet1 = package.Workbook.Worksheets.Add("FirstSheet");
+            sheet1.Cells[1, 1].Value = "Name";
+            sheet1.Cells[2, 1].Value = "John";
+            sheet1.Cells[3, 1].Value = "Jane";
+
+            // Second sheet with different data
+            var sheet2 = package.Workbook.Worksheets.Add("SecondSheet");
+            sheet2.Cells[1, 1].Value = "Product";
+            sheet2.Cells[2, 1].Value = "Widget";
+
+            package.SaveAs(stream);
+        }
+        stream.Position = 0;
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert - Only first sheet is converted (documented multi-sheet behavior)
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        jsonArray.Should().NotBeNull();
+        jsonArray.Should().HaveCount(2, because: "first sheet has 2 data rows");
+
+        var firstRecord = jsonArray![0];
+        firstRecord.GetProperty("Name").GetString().Should().Be("John",
+            because: "first sheet data should be read");
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "Excel")]
+    public async Task ConvertToJsonAsync_WithDateCells_FormatsCorrectly()
+    {
+        // Arrange - Excel with date format cells
+        using var stream = CreateExcelStream(worksheet =>
+        {
+            worksheet.Cells[1, 1].Value = "EventName";
+            worksheet.Cells[1, 2].Value = "EventDate";
+
+            worksheet.Cells[2, 1].Value = "Conference";
+            worksheet.Cells[2, 2].Value = new DateTime(2026, 6, 15, 10, 30, 0);
+            worksheet.Cells[2, 2].Style.Numberformat.Format = "yyyy-MM-dd HH:mm:ss";
+
+            worksheet.Cells[3, 1].Value = "Meeting";
+            worksheet.Cells[3, 2].Value = new DateTime(2026, 7, 20, 14, 0, 0);
+        });
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        jsonArray.Should().NotBeNull();
+        jsonArray.Should().HaveCount(2);
+
+        // Date values are converted to their underlying representation
+        var firstEvent = jsonArray![0];
+        firstEvent.GetProperty("EventName").GetString().Should().Be("Conference");
+        // Date is returned as DateTime object value
+        firstEvent.TryGetProperty("EventDate", out var dateProperty).Should().BeTrue();
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "Excel")]
+    public async Task ConvertToJsonAsync_WithFormulaCells_ReadsValues()
+    {
+        // Arrange - Cells containing formulas
+        using var stream = CreateExcelStream(worksheet =>
+        {
+            worksheet.Cells[1, 1].Value = "Quantity";
+            worksheet.Cells[1, 2].Value = "Price";
+            worksheet.Cells[1, 3].Value = "Total";
+
+            worksheet.Cells[2, 1].Value = 10;
+            worksheet.Cells[2, 2].Value = 5.50;
+            worksheet.Cells[2, 3].Formula = "A2*B2"; // Formula
+            worksheet.Calculate(); // Calculate formulas
+
+            worksheet.Cells[3, 1].Value = 5;
+            worksheet.Cells[3, 2].Value = 12.00;
+            worksheet.Cells[3, 3].Formula = "A3*B3";
+            worksheet.Calculate();
+        });
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert - Formula results (not formulas) are in JSON
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        jsonArray.Should().NotBeNull();
+        jsonArray.Should().HaveCount(2);
+
+        var firstRow = jsonArray![0];
+        firstRow.GetProperty("Quantity").GetDouble().Should().Be(10);
+        firstRow.GetProperty("Price").GetDouble().Should().BeApproximately(5.50, 0.01);
+        // Total should be calculated value (10 * 5.50 = 55)
+        firstRow.GetProperty("Total").GetDouble().Should().BeApproximately(55.0, 0.01);
+
+        var secondRow = jsonArray[1];
+        // Total should be 5 * 12 = 60
+        secondRow.GetProperty("Total").GetDouble().Should().BeApproximately(60.0, 0.01);
     }
 
     #endregion

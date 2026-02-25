@@ -2,8 +2,17 @@ import { test, expect } from '@playwright/test';
 
 /**
  * DataSource Management E2E Tests
- * Tests CRUD operations for data sources in the EZ Platform
- * Updated for Hebrew UI with proper selectors
+ *
+ * Tests CRUD operations for data sources in the EZ Platform.
+ * Updated for Hebrew UI with proper selectors.
+ *
+ * Coverage:
+ * - CRUD operations (create, read, update, delete)
+ * - Connection testing (local file, various protocols)
+ * - Form navigation and validation
+ * - RTL baseline screenshots for visual regression
+ *
+ * RTL Verification: Screenshots captured for RTL layout baseline.
  */
 
 test.describe('DataSource Management', () => {
@@ -327,6 +336,86 @@ test.describe('DataSource Connection Testing', () => {
       await testBtn.click();
       // Should show error message
       await expect(page.getByText(/שגיאה|נכשל|לא נמצא|error|failed|not found/i)).toBeVisible({ timeout: 30000 });
+    }
+  });
+});
+
+/**
+ * RTL Visual Baseline Tests for DataSource Pages
+ *
+ * These tests capture RTL layout screenshots for visual regression comparison.
+ * Per CONTEXT.md: "screenshots only (not functional assertions)" for RTL checks
+ * within user journey tests.
+ */
+test.describe('DataSource RTL Visual Baseline', () => {
+  test('should capture data source list page RTL baseline', async ({ page }) => {
+    await page.goto('/datasources');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+
+    // Verify RTL direction is set
+    const direction = await page.evaluate(() => {
+      const layout = document.querySelector('.app-layout');
+      return layout?.getAttribute('dir') || document.documentElement.dir;
+    });
+    expect(direction).toBe('rtl');
+
+    // Capture RTL baseline screenshot
+    await expect(page).toHaveScreenshot('datasource-list-baseline.png', {
+      fullPage: true,
+      animations: 'disabled',
+    });
+  });
+
+  test('should capture data source form RTL baseline', async ({ page }) => {
+    await page.goto('/datasources/new');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+
+    // Verify RTL direction
+    const direction = await page.evaluate(() => {
+      const layout = document.querySelector('.app-layout');
+      return layout?.getAttribute('dir') || document.documentElement.dir;
+    });
+    expect(direction).toBe('rtl');
+
+    // Capture RTL baseline screenshot
+    await expect(page).toHaveScreenshot('datasource-form-baseline.png', {
+      fullPage: true,
+      animations: 'disabled',
+    });
+  });
+
+  test('should capture connection tab RTL baseline', async ({ page }) => {
+    await page.goto('/datasources/new');
+    await page.waitForLoadState('networkidle');
+
+    // Navigate to connection tab
+    const connectionTab = page.getByRole('tab', { name: /חיבור|connection/i });
+    if (await connectionTab.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await connectionTab.click();
+      await page.waitForTimeout(500);
+
+      await expect(page).toHaveScreenshot('datasource-connection-tab-baseline.png', {
+        fullPage: true,
+        animations: 'disabled',
+      });
+    }
+  });
+
+  test('should verify Hebrew text rendering in form labels', async ({ page }) => {
+    await page.goto('/datasources/new');
+    await page.waitForLoadState('networkidle');
+
+    // Check that Hebrew labels are visible and rendered correctly
+    const hebrewLabel = page.getByText(/מקור נתונים|שם|תיאור/i).first();
+    if (await hebrewLabel.isVisible({ timeout: 5000 }).catch(() => false)) {
+      const fontFamily = await hebrewLabel.evaluate((el) => {
+        return window.getComputedStyle(el).fontFamily;
+      });
+
+      // Should use Hebrew-compatible font (Rubik or sans-serif fallback)
+      expect(fontFamily.toLowerCase()).toMatch(/rubik|heebo|arial|sans-serif/);
     }
   });
 });

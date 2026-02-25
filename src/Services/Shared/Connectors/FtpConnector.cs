@@ -1,15 +1,18 @@
 using DataProcessing.Shared.Entities;
+using DataProcessing.Shared.Services;
 using FluentFTP;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
+using System.Diagnostics;
 
 namespace DataProcessing.Shared.Connectors;
 
 /// <summary>
 /// Connector for reading files from FTP servers
 /// Supports both passive and active FTP modes
+/// Implements both legacy DataProcessingDataSource and new AdminServer patterns
 /// </summary>
-public class FtpConnector : IDataSourceConnector
+public class FtpConnector : IDataSourceConnector, IServerConnector
 {
     private readonly ILogger<FtpConnector> _logger;
 
@@ -233,4 +236,215 @@ public class FtpConnector : IDataSourceConnector
         public bool UsePassiveMode { get; set; } = true;
         public bool UseSsl { get; set; } = false;
     }
+
+    #region IServerConnector Implementation (New - AdminServer)
+
+    public async Task<ConnectionTestResult> TestConnectionAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            _logger.LogInformation("Testing FTP connection to: {Server}:{Port}",
+                server.Host, server.Port ?? 21);
+
+            using var client = await CreateFtpClientFromServerAsync(server, credentials, cancellationToken);
+
+            var workingDir = await client.GetWorkingDirectory(cancellationToken);
+            stopwatch.Stop();
+
+            return ConnectionTestResult.Success(
+                stopwatch.ElapsedMilliseconds,
+                $"FTP Server, Working Directory: {workingDir}");
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "FTP connection test failed: {Server}", server.Host);
+            return ConnectionTestResult.Failure($"FTP Error: {ex.Message}");
+        }
+    }
+
+    public async Task<List<DiscoveredFile>> ListFilesAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string? path,
+        string pattern,
+        CancellationToken cancellationToken = default)
+    {
+        using var client = await CreateFtpClientFromServerAsync(server, credentials, cancellationToken);
+
+        try
+        {
+            var remotePath = CombinePath(server.BasePath, path);
+            _logger.LogInformation("Listing FTP files: {RemotePath} with pattern: {Pattern}",
+                remotePath, pattern);
+
+            var items = await client.GetListing(remotePath, cancellationToken);
+
+            var files = new List<DiscoveredFile>();
+            foreach (var item in items)
+            {
+                if (item.Type == FtpObjectType.Directory)
+                    continue;
+
+                if (!MatchesPattern(item.Name, pattern))
+                    continue;
+
+                var extension = Path.GetExtension(item.Name).ToLowerInvariant();
+                var isArchive = IsArchiveExtension(extension);
+
+                files.Add(new DiscoveredFile
+                {
+                    FullPath = item.FullName,
+                    FileName = item.Name,
+                    SizeBytes = item.Size,
+                    LastModifiedUtc = item.Modified.ToUniversalTime(),
+                    IsDirectory = false,
+                    ContentType = GetContentType(extension),
+                    IsArchive = isArchive,
+                    ArchiveType = isArchive ? GetArchiveType(extension) : null
+                });
+            }
+
+            _logger.LogInformation("Found {Count} files matching pattern on FTP", files.Count);
+            return files;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error listing FTP files: {Server}", server.Host);
+            throw new InvalidOperationException($"Failed to list FTP files: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<byte[]> ReadFileAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        using var client = await CreateFtpClientFromServerAsync(server, credentials, cancellationToken);
+
+        try
+        {
+            _logger.LogInformation("Reading file from FTP: {FilePath}", filePath);
+
+            using var memoryStream = new MemoryStream();
+            await client.DownloadStream(memoryStream, filePath, token: cancellationToken);
+
+            return memoryStream.ToArray();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading FTP file: {FilePath}", filePath);
+            throw new InvalidOperationException($"Failed to read FTP file: {ex.Message}", ex);
+        }
+    }
+
+    public async Task WriteFileAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string filePath,
+        byte[] content,
+        CancellationToken cancellationToken = default)
+    {
+        using var client = await CreateFtpClientFromServerAsync(server, credentials, cancellationToken);
+
+        try
+        {
+            _logger.LogInformation("Writing file to FTP: {FilePath} ({Size} bytes)",
+                filePath, content.Length);
+
+            using var stream = new MemoryStream(content);
+            var status = await client.UploadStream(stream, filePath, FtpRemoteExists.Overwrite,
+                createRemoteDir: true, token: cancellationToken);
+
+            if (status != FtpStatus.Success)
+            {
+                throw new InvalidOperationException($"FTP upload failed with status: {status}");
+            }
+
+            _logger.LogInformation("Successfully wrote file to FTP: {FilePath}", filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing FTP file: {FilePath}", filePath);
+            throw new InvalidOperationException($"Failed to write FTP file: {ex.Message}", ex);
+        }
+    }
+
+    private async Task<AsyncFtpClient> CreateFtpClientFromServerAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        CancellationToken cancellationToken)
+    {
+        var host = server.Host ?? throw new InvalidOperationException("FTP server host is required");
+        var port = server.Port ?? 21;
+
+        var client = new AsyncFtpClient(
+            host,
+            credentials?.Username ?? "anonymous",
+            credentials?.Password ?? "",
+            port);
+
+        // Configure from TypeSpecificConfig
+        var typeConfig = server.TypeSpecificConfig ?? new BsonDocument();
+        var usePassiveMode = typeConfig.GetValue("passiveMode", true).AsBoolean;
+        var useSsl = typeConfig.GetValue("useSsl", false).AsBoolean;
+
+        client.Config.DataConnectionType = usePassiveMode
+            ? FtpDataConnectionType.AutoPassive
+            : FtpDataConnectionType.AutoActive;
+
+        client.Config.EncryptionMode = useSsl
+            ? FtpEncryptionMode.Explicit
+            : FtpEncryptionMode.None;
+
+        client.Config.ConnectTimeout = server.ConnectionTimeoutSeconds * 1000;
+
+        await client.Connect(cancellationToken);
+        return client;
+    }
+
+    private static string CombinePath(string? basePath, string? relativePath)
+    {
+        if (string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(relativePath))
+            return "/";
+
+        if (string.IsNullOrEmpty(basePath))
+            return relativePath!.StartsWith('/') ? relativePath : "/" + relativePath;
+
+        if (string.IsNullOrEmpty(relativePath))
+            return basePath;
+
+        return basePath.TrimEnd('/') + "/" + relativePath.TrimStart('/');
+    }
+
+    private static bool IsArchiveExtension(string extension)
+    {
+        return extension switch
+        {
+            ".zip" or ".tar" or ".gz" or ".tgz" or ".rar" or ".7z" or ".bz2" => true,
+            _ => false
+        };
+    }
+
+    private static string? GetArchiveType(string extension)
+    {
+        return extension switch
+        {
+            ".zip" => "zip",
+            ".tar" => "tar",
+            ".gz" or ".tgz" => "tar.gz",
+            ".rar" => "rar",
+            ".7z" => "7z",
+            ".bz2" => "bz2",
+            _ => null
+        };
+    }
+
+    #endregion
 }

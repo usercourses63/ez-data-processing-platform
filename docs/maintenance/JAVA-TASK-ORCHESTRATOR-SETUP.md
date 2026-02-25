@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Java Task-Orchestrator Native Installation Guide
 
 **Version:** v1.0.1

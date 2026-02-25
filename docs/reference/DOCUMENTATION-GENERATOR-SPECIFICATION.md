@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Documentation Generator - Complete Specification
 
 **Feature:** Schema Documentation Auto-Generation  

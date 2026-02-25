@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform - Swagger API Documentation Endpoints
 
 **Last Updated:** December 30, 2025

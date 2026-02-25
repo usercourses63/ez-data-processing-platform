@@ -96,6 +96,24 @@ public class OutputDestination
     /// HTTP API configuration (when Type = "http") - FUTURE
     /// </summary>
     public HttpOutputConfig? HttpConfig { get; set; }
+
+    /// <summary>
+    /// S3/MinIO-specific configuration (when Type = "s3")
+    /// Added in v0.2.0 for file protocol support
+    /// </summary>
+    public S3OutputConfig? S3Config { get; set; }
+
+    /// <summary>
+    /// FTP-specific configuration (when Type = "ftp")
+    /// Added in v0.2.0 for file protocol support
+    /// </summary>
+    public FtpOutputConfig? FtpConfig { get; set; }
+
+    /// <summary>
+    /// Reference to AdminServer for server-based destinations (v0.2.0)
+    /// If set, uses credentials from the server configuration
+    /// </summary>
+    public string? OutputServerId { get; set; }
 }
 
 /// <summary>
@@ -244,21 +262,121 @@ public class HttpOutputConfig
     /// Example: "https://api.example.com/data/ingest"
     /// </summary>
     public string Url { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// HTTP method (GET, POST, PUT, PATCH)
     /// </summary>
     public string Method { get; set; } = "POST";
-    
+
     /// <summary>
     /// Custom HTTP headers (optional)
     /// Example: { "Content-Type": "application/json", "X-API-Key": "..." }
     /// </summary>
     public Dictionary<string, string>? Headers { get; set; }
-    
+
     /// <summary>
     /// Bearer token for authentication (optional)
     /// If provided, adds "Authorization: Bearer {token}" header
     /// </summary>
     public string? AuthToken { get; set; }
+}
+
+/// <summary>
+/// S3/MinIO output configuration (v0.2.0)
+/// </summary>
+public class S3OutputConfig
+{
+    /// <summary>
+    /// S3 endpoint URL
+    /// For AWS: Use region-specific endpoint or omit for default
+    /// For MinIO: "http://minio:9000"
+    /// </summary>
+    public string? Endpoint { get; set; }
+
+    /// <summary>
+    /// S3 bucket name (required)
+    /// </summary>
+    public string Bucket { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Key prefix (folder path) in the bucket
+    /// Example: "validated-data/banking/"
+    /// </summary>
+    public string? KeyPrefix { get; set; }
+
+    /// <summary>
+    /// AWS region (e.g., "us-east-1")
+    /// Required for AWS S3, optional for MinIO
+    /// </summary>
+    public string? Region { get; set; }
+
+    /// <summary>
+    /// Access key ID (if not using server credentials)
+    /// </summary>
+    public string? AccessKeyId { get; set; }
+
+    /// <summary>
+    /// Secret access key (if not using server credentials)
+    /// </summary>
+    public string? SecretAccessKey { get; set; }
+
+    /// <summary>
+    /// Use path-style URLs (required for MinIO, optional for AWS)
+    /// </summary>
+    public bool UsePathStyle { get; set; } = true;
+
+    /// <summary>
+    /// Key naming pattern
+    /// Supports placeholders: {filename}, {date}, {timestamp}, {datasource}, {ext}
+    /// Example: "{datasource}/{date}/{filename}.{ext}"
+    /// </summary>
+    public string? KeyPattern { get; set; }
+}
+
+/// <summary>
+/// FTP output configuration (v0.2.0)
+/// </summary>
+public class FtpOutputConfig
+{
+    /// <summary>
+    /// FTP server hostname or IP
+    /// </summary>
+    public string Host { get; set; } = string.Empty;
+
+    /// <summary>
+    /// FTP server port (default: 21)
+    /// </summary>
+    public int Port { get; set; } = 21;
+
+    /// <summary>
+    /// FTP username
+    /// </summary>
+    public string? Username { get; set; }
+
+    /// <summary>
+    /// FTP password
+    /// </summary>
+    public string? Password { get; set; }
+
+    /// <summary>
+    /// Remote path on FTP server
+    /// Example: "/data/incoming/validated"
+    /// </summary>
+    public string RemotePath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Use passive mode for FTP connections
+    /// </summary>
+    public bool UsePassiveMode { get; set; } = true;
+
+    /// <summary>
+    /// Enable SSL/TLS for secure FTP (FTPS)
+    /// </summary>
+    public bool UseSsl { get; set; } = false;
+
+    /// <summary>
+    /// Filename pattern (optional)
+    /// Supports placeholders: {filename}, {date}, {timestamp}, {datasource}, {ext}
+    /// </summary>
+    public string? FileNamePattern { get; set; }
 }

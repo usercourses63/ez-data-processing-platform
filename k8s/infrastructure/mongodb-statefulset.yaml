@@ -26,7 +26,7 @@ metadata:
   namespace: ez-platform
 spec:
   serviceName: mongodb
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: mongodb
@@ -60,11 +60,11 @@ spec:
           value: "ezplatform"
         resources:
           requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
             cpu: "1000m"
             memory: "2Gi"
-          limits:
-            cpu: "2000m"
-            memory: "4Gi"
         volumeMounts:
         - name: mongodb-data
           mountPath: /data/db

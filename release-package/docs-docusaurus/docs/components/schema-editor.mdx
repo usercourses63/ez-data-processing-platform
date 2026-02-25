@@ -1,0 +1,355 @@
+---
+sidebar_position: 3
+title: Schema Editor
+description: JSON Schema editing components with visual builder
+last_verified: 2026-02-03
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Schema Editor Components
+
+Components for editing and managing JSON Schema definitions with visual editing support.
+
+## SchemaEditorPage
+
+Full-page component for editing existing schemas with API persistence.
+
+### Props
+
+This is a route component - it receives the schema ID from URL parameters.
+
+| Parameter | Source | Type | Description |
+|-----------|--------|------|-------------|
+| `id` | URL params | `string` | Schema ID from `/schema/:id` route |
+
+### Features
+
+- **Route-Based Loading**: Loads schema from API based on URL parameter
+- **Auto-Save Warning**: Prompts before leaving with unsaved changes
+- **Version Tracking**: Displays schema version number
+- **API Integration**: Direct save to ValidationService API
+- **Hebrew UI**: All interface elements localized
+
+### Internal State
+
+```typescript
+interface SchemaEditorState {
+  schema: JSONSchema;           // Parsed JSON Schema object
+  schemaData: SchemaData | null; // Full schema metadata from API
+  loading: boolean;             // API loading state
+  saving: boolean;              // Save in progress
+  error: string | null;         // Error message
+  hasChanges: boolean;          // Unsaved changes flag
+}
+```
+
+### Usage
+
+This component is typically used as a route:
+
+```tsx
+// In your router configuration
+import { SchemaEditorPage } from '@/pages/schema/SchemaEditorPage';
+
+const routes = [
+  {
+    path: '/schema/:id/edit',
+    element: <SchemaEditorPage />
+  }
+];
+
+// Navigation to edit a schema
+navigate(`/schema/${schemaId}/edit`);
+```
+
+### API Integration
+
+**Load Schema:**
+```typescript
+GET /api/v1/schema/{id}
+Response: {
+  isSuccess: boolean;
+  data: {
+    ID: string;
+    Name: string;
+    DisplayName: string;
+    Description: string;
+    JsonSchemaContent: string;  // Stringified JSON
+    DataSourceId?: string;
+    Tags: string[];
+    Status: number;
+    Version: number;
+    CreatedBy: string;
+    CreatedAt: string;
+    UpdatedAt: string;
+  }
+}
+```
+
+**Save Schema:**
+```typescript
+PUT /api/v1/schema/{id}
+Body: {
+  displayName: string;
+  description: string;
+  dataSourceId?: string;
+  jsonSchemaContent: string;  // Stringified JSON
+  tags: string[];
+  status: number;
+  updatedBy: string;
+}
+```
+
+### Screenshots
+
+<Tabs>
+  <TabItem value="ltr" label="LTR (English)" default>
+    <img src="/img/components/schema-editor-ltr.svg" alt="SchemaEditorPage in LTR mode" />
+  </TabItem>
+  <TabItem value="rtl" label="RTL (Hebrew)">
+    <img src="/img/components/schema-editor-rtl.svg" alt="SchemaEditorPage in RTL mode" />
+  </TabItem>
+</Tabs>
+
+### Navigation Behavior
+
+```tsx
+// User workflow
+/schema                    // Schema list page
+  |
+  v
+/schema/{id}/edit         // SchemaEditorPage
+  |
+  v (on save or back)
+/schema                    // Returns to list
+```
+
+### Unsaved Changes Handling
+
+The component uses `window.confirm` for unsaved changes:
+
+```tsx
+const handleBack = () => {
+  if (hasChanges) {
+    const confirmed = window.confirm(
+      'You have unsaved changes. Are you sure you want to leave?'
+    );
+    if (!confirmed) return;
+  }
+  navigate('/schema');
+};
+```
+
+### Do's and Don'ts
+
+:::tip Do's
+- Use as a route component, not embedded
+- Show loading state during API fetch
+- Display version number for audit trail
+- Warn users before navigation with unsaved changes
+:::
+
+:::danger Don'ts
+- Don't embed in modals - use full page
+- Don't allow navigation without save prompt
+- Don't show editor before schema loads
+- Don't stringify schema twice (it's already a string in API response)
+:::
+
+---
+
+## VanillaJSONEditorWrapper
+
+React wrapper for the vanilla-jsoneditor library. Provides tree, text, and table views for JSON editing.
+
+### Props
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `content` | `string` | Yes | - | JSON content as string |
+| `onChange` | `(content: string) => void` | No | - | Called when content changes |
+| `mode` | `'tree' \| 'text' \| 'table'` | No | `'tree'` | Editor display mode |
+| `readOnly` | `boolean` | No | `false` | Disable editing |
+| `height` | `string` | No | `'500px'` | Editor height |
+| `mainMenuBar` | `boolean` | No | `true` | Show main menu |
+| `navigationBar` | `boolean` | No | `true` | Show navigation breadcrumb |
+| `statusBar` | `boolean` | No | `true` | Show status bar |
+
+### Features
+
+- **Multiple Modes**: Tree, text, and table view options
+- **Syntax Highlighting**: Color-coded JSON in text mode
+- **Navigation**: Breadcrumb navigation in tree mode
+- **Search**: Full-text search within JSON
+- **Dark Theme**: Supports `jse-theme-dark` CSS
+
+### Usage
+
+```tsx
+import VanillaJSONEditorWrapper from '@/components/schema/VanillaJSONEditorWrapper';
+import { useState } from 'react';
+
+const JsonViewer: React.FC = () => {
+  const [json, setJson] = useState('{"key": "value"}');
+
+  return (
+    <VanillaJSONEditorWrapper
+      content={json}
+      onChange={setJson}
+      mode="tree"
+      height="400px"
+    />
+  );
+};
+```
+
+### Read-Only Usage
+
+```tsx
+// For displaying JSON without editing
+<VanillaJSONEditorWrapper
+  content={JSON.stringify(data, null, 2)}
+  readOnly={true}
+  mainMenuBar={false}
+  mode="tree"
+/>
+```
+
+### Mode Comparison
+
+| Mode | Best For | Features |
+|------|----------|----------|
+| `tree` | Exploring structure | Collapsible nodes, drag-and-drop |
+| `text` | Syntax editing | Syntax highlighting, line numbers |
+| `table` | Array data | Spreadsheet-like grid view |
+
+### Styling
+
+The component applies default styling:
+
+```tsx
+<div
+  style={{
+    height,
+    border: '1px solid #d9d9d9',
+    borderRadius: '6px',
+    overflow: 'hidden'
+  }}
+/>
+```
+
+Override with wrapper div:
+
+```tsx
+<div style={{ border: 'none' }}>
+  <VanillaJSONEditorWrapper {...props} />
+</div>
+```
+
+### Error Handling
+
+Invalid JSON is handled gracefully:
+
+```tsx
+useEffect(() => {
+  if (editorInstanceRef.current && content) {
+    try {
+      const jsonContent = JSON.parse(content);
+      editorInstanceRef.current.set({ json: jsonContent });
+    } catch (e) {
+      // Fall back to text mode for invalid JSON
+      editorInstanceRef.current.set({ text: content });
+    }
+  }
+}, [content]);
+```
+
+### Do's and Don'ts
+
+:::tip Do's
+- Parse JSON before passing if you have an object
+- Use `readOnly` for display-only scenarios
+- Match height to container for proper scrolling
+- Provide meaningful error feedback for invalid JSON
+:::
+
+:::danger Don'ts
+- Don't create new content state on every render (causes re-initialization)
+- Don't mix modes without clearing state
+- Don't set height less than 300px (toolbar gets cramped)
+- Don't forget to handle parse errors
+:::
+
+---
+
+## Integration Pattern
+
+SchemaEditorPage uses SchemaBuilderNew internally, which may use VanillaJSONEditorWrapper:
+
+```
+SchemaEditorPage
+    |
+    v
+SchemaBuilderNew (jsonjoy-builder based)
+    |
+    v
+VanillaJSONEditorWrapper (for text/tree view)
+```
+
+### When to Use Each
+
+| Use Case | Component |
+|----------|-----------|
+| Full schema editing page | `SchemaEditorPage` |
+| Embedded in data source form | `SchemaTab` + `SchemaBuilderNew` |
+| Raw JSON editing/viewing | `VanillaJSONEditorWrapper` |
+| Quick JSON display | `VanillaJSONEditorWrapper` (readOnly) |
+
+### Example: Custom Schema Editor
+
+```tsx
+import { useState } from 'react';
+import VanillaJSONEditorWrapper from '@/components/schema/VanillaJSONEditorWrapper';
+import { Button, Space, Alert } from 'antd';
+
+const CustomSchemaEditor: React.FC<{
+  initialSchema: object;
+  onSave: (schema: object) => void;
+}> = ({ initialSchema, onSave }) => {
+  const [content, setContent] = useState(JSON.stringify(initialSchema, null, 2));
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = () => {
+    try {
+      const parsed = JSON.parse(content);
+      setError(null);
+      onSave(parsed);
+    } catch (e) {
+      setError('Invalid JSON syntax');
+    }
+  };
+
+  return (
+    <Space direction="vertical" style={{ width: '100%' }}>
+      {error && <Alert type="error" message={error} />}
+      <VanillaJSONEditorWrapper
+        content={content}
+        onChange={setContent}
+        mode="text"
+        height="500px"
+      />
+      <Button type="primary" onClick={handleSave}>
+        Save Schema
+      </Button>
+    </Space>
+  );
+};
+```
+
+## See Also
+
+- [Data Source Forms](datasource-forms) - Form tab components
+- [NAS Devices](nas-devices) - NAS device management
+- [Component Library](index) - All components overview

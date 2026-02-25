@@ -75,6 +75,18 @@ export const ConnectionDetailsTab: React.FC<{ connectionConfig: any; dataSource:
         )}
       </>
     )}
+    {connectionConfig.type === 'NAS' && (
+      <>
+        <Descriptions.Item label="התקן NAS" span={2}>
+          <Text>{connectionConfig.nasDeviceId || 'לא הוגדר'}</Text>
+        </Descriptions.Item>
+        {connectionConfig.nasSubPath && (
+          <Descriptions.Item label="נתיב משנה" span={2}>
+            <Text code>{connectionConfig.nasSubPath}</Text>
+          </Descriptions.Item>
+        )}
+      </>
+    )}
   </Descriptions>
 );
 
@@ -207,7 +219,8 @@ export const OutputDetailsTab: React.FC<{ outputConfig: OutputConfiguration | nu
       render: (type: string) => (
         <Space>
           {type === 'kafka' && <CloudServerOutlined style={{ color: '#1890ff' }} />}
-          {type === 'folder' && <FolderOutlined style={{ color: '#faad14' }} />}
+          {(type === 'ftp' || type === 'sftp' || type === 'nfs') && <FolderOutlined style={{ color: '#faad14' }} />}
+          {type === 's3' && <CloudServerOutlined style={{ color: '#52c41a' }} />}
           <Text>{type?.toUpperCase() || 'UNKNOWN'}</Text>
         </Space>
       )
@@ -240,7 +253,7 @@ export const OutputDetailsTab: React.FC<{ outputConfig: OutputConfiguration | nu
               )}
             </Space>
           );
-        } else if (dest.type === 'folder' && dest.folderConfig) {
+        } else if (dest.folderConfig) {
           return (
             <Space direction="vertical" size="small">
               <Text type="secondary">Path: <Text code>{dest.folderConfig.path}</Text></Text>

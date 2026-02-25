@@ -14,6 +14,7 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',  // Use IPv4 explicitly to avoid IPv6 permission issues
     port: 3002,  // Using 3002 instead of 3000 due to port conflict
+    allowedHosts: ['host.docker.internal', 'localhost', '127.0.0.1'],
     proxy: {
       '/api': {
         target: 'http://localhost:5001',

@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # RTL Regex Pattern Fix - Complete Solution
 
 ## Date: November 5, 2025

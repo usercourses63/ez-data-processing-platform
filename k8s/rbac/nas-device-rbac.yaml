@@ -1,0 +1,110 @@
+# RBAC configuration for NAS device management
+# Enables the EZ Platform to dynamically create/manage PV/PVC resources
+# via the Kubernetes API for NAS device provisioning
+#
+# Created: 2026-02-02
+# Phase: 02-nas-nfs-architecture
+
+---
+# ServiceAccount for NAS device management operations
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nas-device-manager
+  namespace: ez-platform
+  labels:
+    app: ez-platform
+    component: nas-device-manager
+    managed-by: ez-platform
+  annotations:
+    description: "ServiceAccount for NAS device PV/PVC management"
+    created-by: "ez-platform/phase-02"
+
+---
+# ClusterRole for PersistentVolume operations (cluster-scoped)
+# PVs are not namespaced, so we need ClusterRole to manage them
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nas-pv-manager
+  labels:
+    app: ez-platform
+    component: nas-device-manager
+    managed-by: ez-platform
+  annotations:
+    description: "ClusterRole for managing NFS PersistentVolumes"
+    created-by: "ez-platform/phase-02"
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+# ClusterRoleBinding to link ClusterRole to ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: nas-device-manager-pv-binding
+  labels:
+    app: ez-platform
+    component: nas-device-manager
+    managed-by: ez-platform
+  annotations:
+    description: "Binds nas-pv-manager ClusterRole to nas-device-manager ServiceAccount"
+    created-by: "ez-platform/phase-02"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: nas-pv-manager
+subjects:
+  - kind: ServiceAccount
+    name: nas-device-manager
+    namespace: ez-platform
+
+---
+# Role for namespace-scoped resources (PVC, Deployments)
+# PVCs and Deployments are namespaced, so we use Role instead of ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nas-resource-manager
+  namespace: ez-platform
+  labels:
+    app: ez-platform
+    component: nas-device-manager
+    managed-by: ez-platform
+  annotations:
+    description: "Role for managing PVCs and Deployment volume mounts"
+    created-by: "ez-platform/phase-02"
+rules:
+  # PersistentVolumeClaim management (create/bind/delete)
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Deployment updates (add/remove volume mounts)
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "update", "patch"]
+
+---
+# RoleBinding to link Role to ServiceAccount in ez-platform namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nas-device-manager-binding
+  namespace: ez-platform
+  labels:
+    app: ez-platform
+    component: nas-device-manager
+    managed-by: ez-platform
+  annotations:
+    description: "Binds nas-resource-manager Role to nas-device-manager ServiceAccount"
+    created-by: "ez-platform/phase-02"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: nas-resource-manager
+subjects:
+  - kind: ServiceAccount
+    name: nas-device-manager
+    namespace: ez-platform

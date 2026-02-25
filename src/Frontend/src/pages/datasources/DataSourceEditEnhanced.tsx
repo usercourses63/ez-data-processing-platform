@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined, BarChartOutlined } from '@ant-design/icons';
 import { type JSONSchema } from 'jsonjoy-builder';
+import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
+import { DataSource, ApiResponse, OutputConfiguration } from '../../components/datasource/shared/types';
 
 // Lazy load tab components for better performance
 const BasicInfoTab = lazy(() => import('../../components/datasource/tabs/BasicInfoTab').then(m => ({ default: m.BasicInfoTab })));
@@ -16,10 +18,6 @@ const NotificationsTab = lazy(() => import('../../components/datasource/tabs/Not
 const OutputTab = lazy(() => import('../../components/datasource/tabs/OutputTab').then(m => ({ default: m.OutputTab })));
 const MetricsTab = lazy(() => import('../../components/datasource/tabs/MetricsTab').then(m => ({ default: m.MetricsTab })));
 const CronHelperDialog = lazy(() => import('../../components/datasource/CronHelperDialog'));
-
-// Import shared utilities
-import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
-import { DataSource, ApiResponse, OutputConfiguration } from '../../components/datasource/shared/types';
 
 const { Title, Paragraph } = Typography;
 
@@ -150,6 +148,9 @@ const DataSourceEditEnhanced: React.FC = () => {
           kafkaConsumerGroup: connectionConfig.consumerGroup,
           kafkaSecurityProtocol: connectionConfig.securityProtocol,
           kafkaOffsetReset: connectionConfig.offsetReset,
+          // NAS fields
+          nasDeviceId: connectionConfig.nasDeviceId,
+          nasSubPath: connectionConfig.nasSubPath,
           fileType: fileConfig.type || extractFileTypeFromPattern(data.Data.FilePattern) || 'CSV',
           csvDelimiter: fileConfig.delimiter || ',',
           hasHeaders: fileConfig.hasHeaders !== false,
@@ -255,7 +256,10 @@ const DataSourceEditEnhanced: React.FC = () => {
           topic: values.kafkaTopic ?? existingConfig.connectionConfig?.topic,
           consumerGroup: values.kafkaConsumerGroup ?? existingConfig.connectionConfig?.consumerGroup,
           securityProtocol: values.kafkaSecurityProtocol ?? existingConfig.connectionConfig?.securityProtocol,
-          offsetReset: values.kafkaOffsetReset ?? existingConfig.connectionConfig?.offsetReset
+          offsetReset: values.kafkaOffsetReset ?? existingConfig.connectionConfig?.offsetReset,
+          // NAS-specific fields
+          nasDeviceId: values.nasDeviceId ?? existingConfig.connectionConfig?.nasDeviceId,
+          nasSubPath: values.nasSubPath ?? existingConfig.connectionConfig?.nasSubPath
         },
         fileConfig: {
           ...(existingConfig.fileConfig || {}),
@@ -313,6 +317,17 @@ const DataSourceEditEnhanced: React.FC = () => {
 
       if (jsonSchema && Object.keys(jsonSchema).length > 0) {
         requestPayload.JsonSchema = jsonSchema;
+      }
+
+      // Map Archive settings (v0.2.0) - nest form fields in ArchiveSettings object
+      if (values.isArchiveSource) {
+        requestPayload.ArchiveSettings = {
+          IsArchiveSource: values.isArchiveSource,
+          ArchiveType: values.archiveType || 'auto',
+          ArchivePassword: values.archivePassword,
+          ExtractionPattern: values.extractionPattern || '*.*',
+          ProcessNestedArchives: values.processNestedArchives || false
+        };
       }
 
       const response = await fetch(`/api/v1/datasource/${id}`, {

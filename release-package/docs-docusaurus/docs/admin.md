@@ -2,24 +2,25 @@
 sidebar_position: 2
 ---
 
-# EZ Platform - Administrator Guide v0.1.0-beta
+# EZ Platform - Administrator Guide v0.2.0
 
-**Last Updated:** December 29, 2025
+**Last Updated:** February 3, 2026
 **Audience:** System Administrators, DevOps Engineers
-**Version:** 0.1.0-beta
+**Version:** 0.2.0
 
 ---
 
 ## Table of Contents
 
 1. [System Overview](#system-overview)
-2. [Category Management](#category-management)
-3. [Monitoring & Alerts](#monitoring--alerts)
-4. [Backup & Recovery](#backup--recovery)
-5. [Scaling Guidelines](#scaling-guidelines)
-6. [Performance Tuning](#performance-tuning)
-7. [Security Hardening](#security-hardening)
-8. [Troubleshooting](#troubleshooting)
+2. [NAS Device Management](#nas-device-management)
+3. [Category Management](#category-management)
+4. [Monitoring & Alerts](#monitoring--alerts)
+5. [Backup & Recovery](#backup--recovery)
+6. [Scaling Guidelines](#scaling-guidelines)
+7. [Performance Tuning](#performance-tuning)
+8. [Security Hardening](#security-hardening)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -67,6 +68,143 @@ EZ Platform consists of:
 | **invalidrecords** | Manage validation failures | 5007 |
 | **metrics-configuration** | Business metrics API | 5002 |
 | **frontend** | React UI | 3000 |
+
+---
+
+## NAS Device Management
+
+### Overview
+
+NAS (Network Attached Storage) devices provide shared network storage for file processing. In v0.2.0, administrators can configure NAS devices that are automatically provisioned as Kubernetes PersistentVolumes.
+
+**Access:** Frontend > Admin Settings > NAS Devices tab
+
+**Hebrew interface:** הגדרות מערכת > התקני NAS
+
+### NAS Device Lifecycle
+
+```
+1. Create Device (MongoDB)
+   ↓
+2. Test Connection (NFS ping)
+   ↓
+3. Provision (Create PV/PVC in K8s)
+   ↓
+4. Use in Data Sources
+```
+
+### Creating a NAS Device
+
+1. Navigate to **Admin Settings** > **NAS Devices**
+2. Click **Add NAS Device** (הוסף התקן NAS)
+3. Fill in the form:
+
+| Field | Hebrew | Required | Description |
+|-------|--------|----------|-------------|
+| Name | שם | Yes | Unique display name |
+| Host | כתובת שרת | Yes | NFS server IP or hostname |
+| Port | יציאה | No | NFS port (default: 2049) |
+| Export Path | נתיב יצוא | Yes | NFS export path (e.g., `/exports/data`) |
+| Storage Capacity | קיבולת | No | PV size (default: 10Gi) |
+| Role | תפקיד | Yes | Input, Output, Both, or Backup |
+| Description | תיאור | No | Optional notes |
+
+4. Click **Save** (שמור)
+
+### Device Roles
+
+| Role | Color | Can Read | Can Write | Use Case |
+|------|-------|----------|-----------|----------|
+| **Input** | Blue | Yes | No | Source files for processing |
+| **Output** | Green | No | Yes | Processed file destination |
+| **Backup** | Orange | No | Yes | Archive/backup storage |
+| **Both** | Purple | Yes | Yes | General purpose |
+
+### Provisioning
+
+After creating a device, you must provision it to create Kubernetes resources:
+
+1. Find the device in the list
+2. Click **Provision** (הפעל)
+3. System creates:
+   - PersistentVolume: `{name}-pv`
+   - PersistentVolumeClaim: `{name}-pvc`
+4. Status changes to green when bound
+
+**RBAC Required:** The datasource-management service needs cluster-level permissions:
+```bash
+kubectl apply -f k8s/rbac/nas-device-rbac.yaml
+```
+
+### Connection Testing
+
+Before provisioning, test NFS connectivity:
+
+1. Click **Test Connection** (בדוק חיבור)
+2. System attempts to reach NFS server
+3. Result shows:
+   - ✅ Success: Server reachable
+   - ❌ Failed: Error message with details
+
+### Deprovisioning
+
+To remove Kubernetes resources without deleting the device:
+
+1. Click **Deprovision** (הסר משאבים)
+2. Confirm the action
+3. PV and PVC are deleted
+4. Device remains in MongoDB for reconfiguration
+
+### API Operations
+
+```bash
+# List all NAS devices
+curl http://localhost:5001/api/v1/nasdevices
+
+# Create device
+curl -X POST http://localhost:5001/api/v1/nasdevices \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Production-NAS","host":"192.168.1.100","exportPath":"/data","role":"Both"}'
+
+# Provision device
+curl -X POST http://localhost:5001/api/v1/nasdevices/{id}/provision
+
+# Test connection
+curl -X POST http://localhost:5001/api/v1/nasdevices/{id}/test
+
+# Deprovision
+curl -X POST http://localhost:5001/api/v1/nasdevices/{id}/deprovision
+```
+
+### Troubleshooting NAS Issues
+
+**Device stuck in "Provisioning":**
+```bash
+# Check PV status
+kubectl get pv | grep {device-name}
+
+# Check PVC status
+kubectl get pvc -n ez-platform | grep {device-name}
+
+# Check events
+kubectl describe pv {device-name}-pv
+kubectl describe pvc {device-name}-pvc -n ez-platform
+```
+
+**Connection test fails:**
+- Verify NFS server is running: `showmount -e {host}`
+- Check firewall allows port 2049
+- Verify export path exists and has correct permissions
+- Ensure NFS export allows access from K8s nodes
+
+**PVC not binding:**
+- Check storage class compatibility
+- Verify PV and PVC storage sizes match
+- Check access modes match
+
+### Hebrew User Guide
+
+For end-user documentation in Hebrew, see: [מדריך למשתמש](/user-guide-he#ניהול-התקני-nas)
 
 ---
 
@@ -1127,6 +1265,6 @@ kubectl describe pvc <name> -n ez-platform
 
 ---
 
-**Admin Guide Version:** 1.0
-**Platform Version:** v0.1.0-beta
-**Last Updated:** December 29, 2025
+**Admin Guide Version:** 2.0
+**Platform Version:** v0.2.0
+**Last Updated:** February 3, 2026

@@ -1,14 +1,19 @@
 using DataProcessing.Shared.Entities;
+using DataProcessing.Shared.Services;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using Renci.SshNet;
+using System.Diagnostics;
+using System.Text;
 
 namespace DataProcessing.Shared.Connectors;
 
 /// <summary>
 /// Connector for reading files from SFTP (SSH File Transfer Protocol) servers
+/// Supports password and private key authentication
+/// Implements both legacy DataProcessingDataSource and new AdminServer patterns
 /// </summary>
-public class SftpConnector : IDataSourceConnector
+public class SftpConnector : IDataSourceConnector, IServerConnector
 {
     private readonly ILogger<SftpConnector> _logger;
 
@@ -206,4 +211,261 @@ public class SftpConnector : IDataSourceConnector
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
+
+    #region IServerConnector Implementation (New - AdminServer)
+
+    public async Task<ConnectionTestResult> TestConnectionAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            _logger.LogInformation("Testing SFTP connection to: {Server}:{Port}",
+                server.Host, server.Port ?? 22);
+
+            using var client = CreateSftpClientFromServer(server, credentials);
+            await Task.Run(() => client.Connect(), cancellationToken);
+
+            var workingDir = client.WorkingDirectory;
+            client.Disconnect();
+            stopwatch.Stop();
+
+            return ConnectionTestResult.Success(
+                stopwatch.ElapsedMilliseconds,
+                $"SFTP Server, Working Directory: {workingDir}");
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "SFTP connection test failed: {Server}", server.Host);
+            return ConnectionTestResult.Failure($"SFTP Error: {ex.Message}");
+        }
+    }
+
+    public async Task<List<DiscoveredFile>> ListFilesAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string? path,
+        string pattern,
+        CancellationToken cancellationToken = default)
+    {
+        using var client = CreateSftpClientFromServer(server, credentials);
+
+        try
+        {
+            await Task.Run(() => client.Connect(), cancellationToken);
+            var remotePath = CombinePath(server.BasePath, path);
+            _logger.LogInformation("Listing SFTP files: {RemotePath} with pattern: {Pattern}",
+                remotePath, pattern);
+
+            var items = client.ListDirectory(remotePath);
+
+            var files = new List<DiscoveredFile>();
+            foreach (var item in items)
+            {
+                if (!item.IsRegularFile)
+                    continue;
+
+                if (!MatchesPattern(item.Name, pattern))
+                    continue;
+
+                var extension = Path.GetExtension(item.Name).ToLowerInvariant();
+                var isArchive = IsArchiveExtension(extension);
+
+                files.Add(new DiscoveredFile
+                {
+                    FullPath = item.FullName,
+                    FileName = item.Name,
+                    SizeBytes = item.Length,
+                    LastModifiedUtc = item.LastWriteTimeUtc,
+                    IsDirectory = false,
+                    ContentType = GetContentType(extension),
+                    IsArchive = isArchive,
+                    ArchiveType = isArchive ? GetArchiveType(extension) : null
+                });
+            }
+
+            _logger.LogInformation("Found {Count} files matching pattern on SFTP", files.Count);
+            return files;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error listing SFTP files: {Server}", server.Host);
+            throw new InvalidOperationException($"Failed to list SFTP files: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<byte[]> ReadFileAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        using var client = CreateSftpClientFromServer(server, credentials);
+
+        try
+        {
+            await Task.Run(() => client.Connect(), cancellationToken);
+            _logger.LogInformation("Reading file from SFTP: {FilePath}", filePath);
+
+            using var memoryStream = new MemoryStream();
+            client.DownloadFile(filePath, memoryStream);
+
+            return memoryStream.ToArray();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading SFTP file: {FilePath}", filePath);
+            throw new InvalidOperationException($"Failed to read SFTP file: {ex.Message}", ex);
+        }
+    }
+
+    public async Task WriteFileAsync(
+        AdminServer server,
+        ServerCredentials? credentials,
+        string filePath,
+        byte[] content,
+        CancellationToken cancellationToken = default)
+    {
+        using var client = CreateSftpClientFromServer(server, credentials);
+
+        try
+        {
+            await Task.Run(() => client.Connect(), cancellationToken);
+            _logger.LogInformation("Writing file to SFTP: {FilePath} ({Size} bytes)",
+                filePath, content.Length);
+
+            // Ensure directory exists
+            var directory = Path.GetDirectoryName(filePath)?.Replace('\\', '/');
+            if (!string.IsNullOrEmpty(directory) && !client.Exists(directory))
+            {
+                CreateDirectoryRecursively(client, directory);
+            }
+
+            // Delete existing file if it exists (to emulate overwrite)
+            if (client.Exists(filePath))
+            {
+                client.DeleteFile(filePath);
+            }
+
+            using var stream = new MemoryStream(content);
+            client.UploadFile(stream, filePath);
+
+            _logger.LogInformation("Successfully wrote file to SFTP: {FilePath}", filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing SFTP file: {FilePath}", filePath);
+            throw new InvalidOperationException($"Failed to write SFTP file: {ex.Message}", ex);
+        }
+    }
+
+    private SftpClient CreateSftpClientFromServer(AdminServer server, ServerCredentials? credentials)
+    {
+        var host = server.Host ?? throw new InvalidOperationException("SFTP server host is required");
+        var port = server.Port ?? 22;
+        var username = credentials?.Username ?? throw new InvalidOperationException("SFTP username is required");
+
+        var typeConfig = server.TypeSpecificConfig ?? new BsonDocument();
+        var useKeyAuth = typeConfig.GetValue("useKeyAuth", false).AsBoolean;
+
+        ConnectionInfo connectionInfo;
+
+        if (useKeyAuth && !string.IsNullOrEmpty(credentials?.PrivateKey))
+        {
+            // Private key authentication
+            var keyStream = new MemoryStream(Encoding.UTF8.GetBytes(credentials.PrivateKey));
+            PrivateKeyFile keyFile;
+
+            if (!string.IsNullOrEmpty(credentials.PrivateKeyPassphrase))
+            {
+                keyFile = new PrivateKeyFile(keyStream, credentials.PrivateKeyPassphrase);
+            }
+            else
+            {
+                keyFile = new PrivateKeyFile(keyStream);
+            }
+
+            connectionInfo = new ConnectionInfo(
+                host,
+                port,
+                username,
+                new PrivateKeyAuthenticationMethod(username, keyFile));
+
+            _logger.LogDebug("Using private key authentication for SFTP");
+        }
+        else
+        {
+            // Password authentication
+            var password = credentials?.Password ?? string.Empty;
+            connectionInfo = new ConnectionInfo(
+                host,
+                port,
+                username,
+                new PasswordAuthenticationMethod(username, password));
+
+            _logger.LogDebug("Using password authentication for SFTP");
+        }
+
+        connectionInfo.Timeout = TimeSpan.FromSeconds(server.ConnectionTimeoutSeconds);
+
+        return new SftpClient(connectionInfo);
+    }
+
+    private void CreateDirectoryRecursively(SftpClient client, string path)
+    {
+        var parts = path.Split('/').Where(p => !string.IsNullOrEmpty(p)).ToArray();
+        var currentPath = "";
+
+        foreach (var part in parts)
+        {
+            currentPath = currentPath + "/" + part;
+            if (!client.Exists(currentPath))
+            {
+                client.CreateDirectory(currentPath);
+            }
+        }
+    }
+
+    private static string CombinePath(string? basePath, string? relativePath)
+    {
+        if (string.IsNullOrEmpty(basePath) && string.IsNullOrEmpty(relativePath))
+            return "/";
+
+        if (string.IsNullOrEmpty(basePath))
+            return relativePath!.StartsWith('/') ? relativePath : "/" + relativePath;
+
+        if (string.IsNullOrEmpty(relativePath))
+            return basePath;
+
+        return basePath.TrimEnd('/') + "/" + relativePath.TrimStart('/');
+    }
+
+    private static bool IsArchiveExtension(string extension)
+    {
+        return extension switch
+        {
+            ".zip" or ".tar" or ".gz" or ".tgz" or ".rar" or ".7z" or ".bz2" => true,
+            _ => false
+        };
+    }
+
+    private static string? GetArchiveType(string extension)
+    {
+        return extension switch
+        {
+            ".zip" => "zip",
+            ".tar" => "tar",
+            ".gz" or ".tgz" => "tar.gz",
+            ".rar" => "rar",
+            ".7z" => "7z",
+            ".bz2" => "bz2",
+            _ => null
+        };
+    }
+
+    #endregion
 }

@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # EZ Platform - Administrator Guide v0.1.0-beta
 
 **Last Updated:** December 29, 2025

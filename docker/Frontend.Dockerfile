@@ -1,8 +1,16 @@
 # Frontend Dockerfile
-# Multi-stage build: Node build + Nginx serve
+# Multi-stage build: Node build + Nginx serve with version injection
+
+# Version injection (CI/CD)
+ARG VERSION=0.0.0
+ARG COMMIT_SHA=unknown
 
 FROM node:20-alpine AS build
 WORKDIR /app
+
+# Redeclare ARGs for build stage
+ARG VERSION
+ARG COMMIT_SHA
 
 # Copy package files
 COPY src/Frontend/package*.json ./
@@ -12,6 +20,13 @@ RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY src/Frontend/ ./
+
+# Inject version information into version.ts
+RUN sed -i "s/__VERSION__/${VERSION}/g" src/version.ts && \
+    sed -i "s/__COMMIT_SHA__/${COMMIT_SHA}/g" src/version.ts
+
+# Debug: verify version injection
+RUN echo "Version injection result:" && cat src/version.ts
 
 # Debug: List public folder to verify docs exist
 RUN ls -la ./public/docs/ || echo "docs folder missing!"
@@ -25,6 +40,12 @@ RUN ls -la ./build/docs/ || echo "docs not in build!"
 # Production image
 FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
+
+# Redeclare ARGs for runtime stage labels
+ARG VERSION
+ARG COMMIT_SHA
+LABEL org.opencontainers.image.version="${VERSION}"
+LABEL org.opencontainers.image.revision="${COMMIT_SHA}"
 
 # Remove default nginx static files
 RUN rm -rf ./*

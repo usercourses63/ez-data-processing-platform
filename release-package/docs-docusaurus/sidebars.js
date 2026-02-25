@@ -4,9 +4,9 @@
  - render a sidebar for each doc of that group
  - provide next/previous navigation
 
- The sidebars can be generated from the filesystem, or explicitly defined here.
+ * The sidebars can be generated from the filesystem, or explicitly defined here.
 
- Create as many sidebars as you want.
+ * Create as many sidebars as you want.
  */
 
 // @ts-check
@@ -42,8 +42,40 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Architecture',
+      label: 'Components',
       collapsed: false,
+      items: [
+        'components/index',
+        'components/datasource-forms',
+        'components/schema-editor',
+        'components/nas-devices',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Development',
+      collapsed: false,
+      items: [
+        'development/index',
+        'development/api-coordination',
+        'development/react19-patterns',
+      ],
+    },
+    // NOTE: Consolidated guides planned for future release
+    // {
+    //   type: 'category',
+    //   label: 'Guides',
+    //   collapsed: false,
+    //   items: [
+    //     'architecture/ARCHITECTURE',
+    //     'deployment/DEPLOYMENT',
+    //     'testing/TESTING',
+    //   ],
+    // },
+    {
+      type: 'category',
+      label: 'Architecture (Legacy)',
+      collapsed: true,
       items: [
         'architecture/system-architecture',
         'architecture/he/system-architecture-he',
@@ -51,8 +83,8 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Deployment',
-      collapsed: false,
+      label: 'Deployment (Legacy)',
+      collapsed: true,
       items: [
         'deployment/deployment-plan',
         'deployment/deployment-success-summary',

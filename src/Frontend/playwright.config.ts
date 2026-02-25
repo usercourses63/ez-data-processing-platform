@@ -3,10 +3,22 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright Configuration for EZ Data Processing Platform
  * @see https://playwright.dev/docs/test-configuration
+ *
+ * Features:
+ * - Visual regression testing with toHaveScreenshot()
+ * - RTL layout verification (Hebrew UI)
+ * - Multi-browser support (Chromium, Firefox, WebKit)
+ * - Mobile viewport testing
  */
 export default defineConfig({
   // Test directory
   testDir: './tests/e2e',
+
+  // Snapshot directory for visual regression baselines
+  snapshotDir: './tests/e2e/snapshots',
+
+  // Snapshot path template - organize by test file and project
+  snapshotPathTemplate: '{snapshotDir}/{testFilePath}/{projectName}/{arg}{ext}',
 
   // Run tests in files in parallel
   fullyParallel: true,
@@ -27,10 +39,14 @@ export default defineConfig({
     ['list']
   ],
 
+  // Output directory for test artifacts (screenshots, videos, traces)
+  outputDir: './test-results',
+
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    // Default to port 7000 for K8s port-forwarded frontend, fallback to 3000 for local dev
+    baseURL: process.env.BASE_URL || 'http://localhost:7000',
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -51,9 +67,31 @@ export default defineConfig({
   // Global timeout for each test
   timeout: 60000,
 
-  // Expect configuration
+  // Expect configuration with snapshot settings
   expect: {
     timeout: 10000,
+
+    // Visual regression snapshot settings
+    toHaveScreenshot: {
+      // Allow 30% pixel difference for dynamic content (timestamps, live data)
+      maxDiffPixelRatio: 0.3,
+
+      // Threshold for individual pixel color difference
+      threshold: 0.2,
+
+      // Animation handling
+      animations: 'disabled',
+
+      // Scale images for consistent comparison across displays
+      scale: 'device',
+    },
+
+    // Page screenshot settings
+    toMatchSnapshot: {
+      // Allow 30% difference for RTL layout variations
+      maxDiffPixelRatio: 0.3,
+      threshold: 0.2,
+    },
   },
 
   // Configure projects for major browsers
@@ -83,10 +121,12 @@ export default defineConfig({
   ],
 
   // Run local dev server before starting the tests
-  webServer: {
+  // Disabled by default - K8s port-forward on 7000 is typically active
+  // Set RUN_WEBSERVER=true to start local dev server instead
+  webServer: process.env.RUN_WEBSERVER ? {
     command: 'npm start',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3002',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
-  },
+  } : undefined,
 });

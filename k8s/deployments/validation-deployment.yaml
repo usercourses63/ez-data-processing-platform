@@ -97,6 +97,10 @@ spec:
             configMapKeyRef:
               name: services-config
               key: Hazelcast__CacheTTLHours
+        envFrom:
+        - configMapRef:
+            name: file-simulator-config
+            optional: true
         resources:
           requests:
             cpu: "100m"

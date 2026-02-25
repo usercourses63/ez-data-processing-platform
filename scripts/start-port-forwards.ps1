@@ -14,7 +14,7 @@ Start-Sleep -Seconds 2
 # Define port forwards
 $portForwards = @(
     # Application Services
-    @{Name="Frontend"; Port=3000; Service="frontend"; TargetPort=80},
+    @{Name="Frontend"; Port=7000; Service="frontend"; TargetPort=80},
     @{Name="Datasource Management"; Port=5001; Service="datasource-management"; TargetPort=5001},
     @{Name="Validation"; Port=5003; Service="validation"; TargetPort=5003},
     @{Name="Scheduling"; Port=5004; Service="scheduling"; TargetPort=5004},

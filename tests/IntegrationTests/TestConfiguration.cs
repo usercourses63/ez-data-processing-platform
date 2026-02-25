@@ -72,4 +72,40 @@ public static class TestConfiguration
     public static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(30);
     public static TimeSpan KafkaMessageTimeout => TimeSpan.FromSeconds(60);
     public static TimeSpan PipelineProcessingTimeout => TimeSpan.FromMinutes(2);
+
+    // ========== File-Simulator Configuration ==========
+
+    /// <summary>
+    /// File-simulator IP address from environment variable or default
+    /// </summary>
+    public static string FileSimulatorIp =>
+        Environment.GetEnvironmentVariable("FILE_SIMULATOR_IP") ?? FileSimulator.DefaultIp;
+
+    /// <summary>
+    /// File-simulator protocol endpoints configuration
+    /// </summary>
+    public static class FileSimulator
+    {
+        /// <summary>
+        /// Default file-simulator Minikube IP (Hyper-V)
+        /// Set FILE_SIMULATOR_IP environment variable to override
+        /// </summary>
+        public const string DefaultIp = "172.25.201.3";
+
+        // Protocol NodePorts
+        public const int FtpPort = 30021;
+        public const int SftpPort = 30022;
+        public const int S3Port = 30900;
+        public const int HttpPort = 30088;
+        public const int WebDavPort = 30089;
+
+        // NFS NodePorts (mapped by NAS role)
+        public const int NfsInputPort1 = 32150;
+        public const int NfsInputPort2 = 32151;
+        public const int NfsOutputPort1 = 32152;
+        public const int NfsOutputPort2 = 32153;
+        public const int NfsBackupPort1 = 32154;
+        public const int NfsBackupPort2 = 32155;
+        public const int NfsBothPort = 32156;
+    }
 }

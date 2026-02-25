@@ -1,0 +1,49 @@
+<svg width="700" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect x="10" y="10" width="680" height="380" fill="white" stroke="#d9d9d9" rx="8"/>
+  <text x="350" y="40" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">NasDevicesTab - RTL Mode (Hebrew)</text>
+
+  <!-- Header (RTL) -->
+  <rect x="30" y="60" width="640" height="50" fill="white"/>
+  <text x="650" y="85" text-anchor="end" font-family="Arial" font-size="14" font-weight="bold" fill="#333">ניהול התקני NAS</text>
+  <text x="650" y="100" text-anchor="end" font-family="Arial" font-size="10" fill="#52c41a">2 מופעלים | 1 בהמתנה</text>
+  <rect x="30" y="70" width="120" height="32" fill="#1890ff" rx="4"/>
+  <text x="90" y="90" text-anchor="middle" font-family="Arial" font-size="11" fill="white">+ הוסף התקן NAS</text>
+
+  <!-- Table header (RTL) -->
+  <rect x="30" y="120" width="640" height="35" fill="#fafafa" stroke="#d9d9d9"/>
+  <text x="650" y="142" text-anchor="end" font-family="Arial" font-size="11" font-weight="bold" fill="#333">שם</text>
+  <text x="530" y="142" text-anchor="end" font-family="Arial" font-size="11" font-weight="bold" fill="#333">שרת</text>
+  <text x="380" y="142" text-anchor="end" font-family="Arial" font-size="11" font-weight="bold" fill="#333">נתיב ייצוא</text>
+  <text x="230" y="142" text-anchor="end" font-family="Arial" font-size="11" font-weight="bold" fill="#333">סטטוס</text>
+  <text x="100" y="142" text-anchor="end" font-family="Arial" font-size="11" font-weight="bold" fill="#333">פעולות</text>
+
+  <!-- Row 1 (RTL) -->
+  <rect x="30" y="155" width="640" height="50" fill="white" stroke="#f0f0f0"/>
+  <text x="650" y="185" text-anchor="end" font-family="Arial" font-size="11" fill="#333">NAS ייצור</text>
+  <text x="530" y="185" text-anchor="end" font-family="monospace" font-size="10" fill="#666">192.168.1.100</text>
+  <text x="380" y="185" text-anchor="end" font-family="monospace" font-size="10" fill="#666">/exports/data</text>
+  <rect x="170" y="170" width="80" height="22" fill="#f6ffed" stroke="#b7eb8f" rx="4"/>
+  <text x="210" y="185" text-anchor="middle" font-family="Arial" font-size="10" fill="#52c41a">מופעל</text>
+  <text x="100" y="185" text-anchor="end" font-family="Arial" font-size="10" fill="#1890ff">עריכה | בדיקה | מחיקה</text>
+
+  <!-- Row 2 (RTL) -->
+  <rect x="30" y="205" width="640" height="50" fill="#fafafa" stroke="#f0f0f0"/>
+  <text x="650" y="235" text-anchor="end" font-family="Arial" font-size="11" fill="#333">NAS גיבוי</text>
+  <text x="530" y="235" text-anchor="end" font-family="monospace" font-size="10" fill="#666">192.168.1.101</text>
+  <text x="380" y="235" text-anchor="end" font-family="monospace" font-size="10" fill="#666">/exports/backup</text>
+  <rect x="170" y="220" width="80" height="22" fill="#f6ffed" stroke="#b7eb8f" rx="4"/>
+  <text x="210" y="235" text-anchor="middle" font-family="Arial" font-size="10" fill="#52c41a">מופעל</text>
+  <text x="100" y="235" text-anchor="end" font-family="Arial" font-size="10" fill="#1890ff">עריכה | בדיקה | מחיקה</text>
+
+  <!-- Row 3 (RTL) -->
+  <rect x="30" y="255" width="640" height="50" fill="white" stroke="#f0f0f0"/>
+  <text x="650" y="285" text-anchor="end" font-family="Arial" font-size="11" fill="#333">NAS ארכיון</text>
+  <text x="530" y="285" text-anchor="end" font-family="monospace" font-size="10" fill="#666">192.168.1.102</text>
+  <text x="380" y="285" text-anchor="end" font-family="monospace" font-size="10" fill="#666">/exports/archive</text>
+  <rect x="170" y="270" width="80" height="22" fill="#fffbe6" stroke="#ffe58f" rx="4"/>
+  <text x="210" y="285" text-anchor="middle" font-family="Arial" font-size="10" fill="#faad14">בהמתנה</text>
+  <text x="100" y="285" text-anchor="end" font-family="Arial" font-size="10" fill="#1890ff">הפעל | עריכה</text>
+
+  <text x="350" y="390" text-anchor="middle" font-family="Arial" font-size="10" fill="#999">Placeholder - Replace with actual screenshot</text>
+</svg>

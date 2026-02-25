@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Data Processing Platform - Product Requirements Document
 
 ## 1. Executive Summary

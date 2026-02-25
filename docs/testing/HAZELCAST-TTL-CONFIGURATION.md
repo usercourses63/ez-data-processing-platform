@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Hazelcast TTL Configuration
 
 **Date:** December 29, 2025 (Session 35)

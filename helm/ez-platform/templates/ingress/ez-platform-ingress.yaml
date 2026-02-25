@@ -7,7 +7,6 @@ metadata:
   labels:
     {{- include "ez-platform.labels" . | nindent 4 }}
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -25,22 +24,17 @@ spec:
   - host: {{ .Values.ingress.host }}
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: frontend
-            port:
-              number: 80
+      # Docusaurus documentation at /docs (must be before catch-all)
       {{- if .Values.services.docs.enabled }}
       - path: /docs
         pathType: Prefix
         backend:
           service:
-            name: docs
+            name: ezplatform-docs
             port:
-              number: 80
+              number: 8080
       {{- end }}
+      # API routes
       - path: /api
         pathType: Prefix
         backend:
@@ -48,6 +42,7 @@ spec:
             name: datasource-management
             port:
               number: 5001
+      # Grafana dashboard
       - path: /grafana
         pathType: Prefix
         backend:
@@ -55,4 +50,12 @@ spec:
             name: grafana
             port:
               number: 3000
+      # Frontend catch-all (must be last)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 8080
 {{- end }}

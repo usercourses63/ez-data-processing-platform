@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, Layout, theme } from 'antd';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -51,6 +51,12 @@ const App: React.FC = () => {
   const { i18n } = useTranslation();
   const isRTL = i18n.language === 'he';
   const antdLocale = isRTL ? heIL : enUS;
+
+  // Sync document direction with language (Phase 11 RTL fix)
+  useEffect(() => {
+    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+    document.documentElement.lang = i18n.language;
+  }, [isRTL, i18n.language]);
 
   // Check if splash screen was already shown in this session
   const [showSplash, setShowSplash] = useState(() => {

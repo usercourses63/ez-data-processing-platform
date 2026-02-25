@@ -1,6 +1,7 @@
 using MongoDB.Entities;
 using MongoDB.Bson;
 using System.ComponentModel.DataAnnotations;
+using DataProcessing.Shared.Services;
 
 namespace DataProcessing.Shared.Entities;
 
@@ -128,6 +129,8 @@ public class DataProcessingDataSource : DataProcessingBaseEntity
 
     /// <summary>
     /// Additional configuration options stored as JSON
+    /// DEPRECATED in v0.2.0: Use FileServerId and AdminServer for server configuration
+    /// Will be removed in v0.3.0 - do not use for new implementations
     /// </summary>
     public BsonDocument? AdditionalConfiguration { get; set; }
 
@@ -136,6 +139,41 @@ public class DataProcessingDataSource : DataProcessingBaseEntity
     /// </summary>
     [StringLength(1000)]
     public string? Description { get; set; }
+
+    // ========== Server Reference Fields (v0.2.0) ==========
+
+    /// <summary>
+    /// Reference to AdminServer used for file access
+    /// New architecture: Server configuration is centralized in AdminServer collection
+    /// </summary>
+    [StringLength(24)]
+    public string? FileServerId { get; set; }
+
+    // ========== NAS Device Reference (v0.2.0) ==========
+
+    /// <summary>
+    /// Reference to NasDevice used for NFS file access.
+    /// When set, FilePath is auto-populated from NasDevice.MountPath + ExportPath + subpath.
+    /// The NAS device must be provisioned (PVC bound) before DataSource can be created.
+    /// </summary>
+    [StringLength(24)]
+    public string? NasDeviceId { get; set; }
+
+    /// <summary>
+    /// Optional sub-path within the NAS export directory.
+    /// Combined with NasDevice.MountPath and ExportPath to compute full FilePath.
+    /// Example: "/sales/daily" appended to "/mnt/nas-device/export" = "/mnt/nas-device/export/sales/daily"
+    /// </summary>
+    [StringLength(500)]
+    public string? NasSubPath { get; set; }
+
+    // ========== Archive Support Fields (v0.2.0) ==========
+
+    /// <summary>
+    /// Archive processing settings for this datasource
+    /// When configured, archive files are detected and their contents are processed individually
+    /// </summary>
+    public ArchiveSettings? ArchiveSettings { get; set; }
 
     /// <summary>
     /// Output configuration with support for multiple destinations

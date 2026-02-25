@@ -77,10 +77,23 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-// Register data source connectors
+// Register connector factory and all connectors (Phase 2: v0.2.0)
+builder.Services.AddConnectorFactory();
+
+// Register data source connectors (individual registration for legacy support)
 builder.Services.AddScoped<LocalFileConnector>();
 builder.Services.AddScoped<FtpConnector>();
 builder.Services.AddScoped<SftpConnector>();
+
+// Register archive service for archive extraction
+builder.Services.AddScoped<DataProcessing.Shared.Services.IArchiveService, DataProcessing.Shared.Services.SharpCompressArchiveService>();
+
+// Register archive cache service for retrieving cached archives from Hazelcast
+builder.Services.AddScoped<DataProcessing.Shared.Services.IArchiveCacheService, DataProcessing.Shared.Services.HazelcastArchiveCacheService>();
+
+// Configure archive cache settings from configuration
+builder.Services.Configure<DataProcessing.Shared.Services.ArchiveCacheSettings>(
+    builder.Configuration.GetSection("ArchiveCache"));
 
 // Register format converters
 builder.Services.AddScoped<CsvToJsonConverter>();

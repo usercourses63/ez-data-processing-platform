@@ -1,3 +1,7 @@
+---
+last-verified: 2026-02-02
+status: current
+---
 # Frontend Documentation
 
 This directory contains comprehensive documentation for the EZ Platform frontend architecture, refactoring plan, and progress tracking.

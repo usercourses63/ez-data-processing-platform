@@ -1,10 +1,11 @@
 // CsvToJsonConverterTests.cs - Unit Tests for CsvToJsonConverter
 // UNIT-003: CSV Format Converter Tests
-// Version: 1.0
-// Date: December 17, 2025
+// Version: 1.1
+// Date: February 2, 2026
 
 using System.Text;
 using DataProcessing.Shared.Converters;
+using DataProcessing.Shared.Tests.TestData;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -299,6 +300,77 @@ TXN-20251201-000002,CUST-1002,Jane Doe,2025-12-01 11:45:00,250.00,EUR,Refund,Pen
         firstTxn.GetProperty("Amount").GetDouble().Should().BeApproximately(1500.50, 0.01);
         firstTxn.GetProperty("Currency").GetString().Should().Be("USD");
         firstTxn.GetProperty("Status").GetString().Should().Be("Completed");
+    }
+
+    #endregion
+
+    #region Edge Case Tests (Phase 04-01)
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "CSV")]
+    public async Task ConvertToJsonAsync_WithHebrewContent_PreservesCharacters()
+    {
+        // Arrange - CSV with Hebrew customer names and descriptions
+        var csv = "Name,Description\nיוסי כהן,תיאור בעברית\nשרה לוי,עוד תיאור";
+        using var stream = CreateStream(csv);
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert - Parse JSON to verify Hebrew characters are preserved
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        jsonArray.Should().NotBeNull();
+        jsonArray.Should().HaveCount(2);
+
+        var firstRecord = jsonArray![0];
+        firstRecord.GetProperty("Name").GetString().Should().Be("יוסי כהן");
+        firstRecord.GetProperty("Description").GetString().Should().Be("תיאור בעברית");
+
+        var secondRecord = jsonArray[1];
+        secondRecord.GetProperty("Name").GetString().Should().Be("שרה לוי");
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "CSV")]
+    public async Task ConvertToJsonAsync_WithNewlinesInQuotedFields_HandlesCorrectly()
+    {
+        // Arrange - CSV with multiline content in quoted fields
+        var csv = "Name,Description\nJohn,\"This is a\nmultiline\ndescription\"\nJane,\"Single line\"";
+        using var stream = CreateStream(csv);
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        jsonArray.Should().NotBeNull();
+        jsonArray.Should().HaveCount(2);
+
+        var firstRecord = jsonArray![0];
+        var description = firstRecord.GetProperty("Description").GetString();
+        description.Should().Contain("\n", because: "newlines should be preserved in quoted fields");
+        description.Should().Contain("multiline");
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "CSV")]
+    public async Task ConvertToJsonAsync_WithLargeFile_CompletesSuccessfully()
+    {
+        // Arrange - Generate 1000 records via TestDataFactory
+        var csv = TestDataFactory.GenerateCsv(1000);
+        using var stream = CreateStream(csv);
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert - Verify conversion completes and record count matches
+        result.Should().NotBeNullOrEmpty();
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        jsonArray.Should().NotBeNull();
+        jsonArray.Should().HaveCount(1000, because: "all 1000 records should be converted");
     }
 
     #endregion

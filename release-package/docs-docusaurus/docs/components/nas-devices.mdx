@@ -1,0 +1,319 @@
+---
+sidebar_position: 4
+title: NAS Devices
+description: NAS device management component for admin panel
+last_verified: 2026-02-03
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# NAS Devices Component
+
+Admin panel component for managing Network Attached Storage (NAS) devices and their Kubernetes provisioning.
+
+## NasDevicesTab
+
+Main component for NAS device CRUD operations and Kubernetes PV/PVC provisioning.
+
+### Props
+
+This is a self-contained tab component - no props required.
+
+### Features
+
+- **Device CRUD**: Create, read, update, delete NAS devices
+- **K8s Provisioning**: Create PersistentVolume and PersistentVolumeClaim
+- **Connection Testing**: Test NFS connectivity
+- **Status Tracking**: Shows provisioned vs pending devices
+- **React Query Integration**: Automatic cache invalidation
+
+### Internal State
+
+```typescript
+interface NasDevicesTabState {
+  isModalVisible: boolean;           // Add/Edit modal state
+  editingDevice: NasDevice | null;   // Device being edited
+}
+```
+
+### Data Model
+
+```typescript
+interface NasDevice {
+  ID: string;
+  Name: string;
+  NfsServer: string;        // NFS server IP/hostname
+  ExportPath: string;       // NFS export path
+  StorageClass: string;     // K8s storage class
+  CapacityGb: number;       // Storage capacity in GB
+  AccessModes: string[];    // ReadWriteOnce, ReadOnlyMany, etc.
+  IsPvCreated: boolean;     // PersistentVolume created
+  IsPvcBound: boolean;      // PersistentVolumeClaim bound
+  PvName?: string;          // Generated PV name
+  PvcName?: string;         // Generated PVC name
+  CreatedAt: string;
+  UpdatedAt: string;
+  IsDeleted: boolean;
+}
+```
+
+### Usage
+
+The component is typically used in the admin settings page:
+
+```tsx
+import NasDevicesTab from '@/pages/admin/tabs/NasDevicesTab';
+
+const AdminSettingsPage: React.FC = () => {
+  return (
+    <Tabs defaultActiveKey="nas">
+      <Tabs.TabPane tab="NAS Devices" key="nas">
+        <NasDevicesTab />
+      </Tabs.TabPane>
+      {/* Other admin tabs */}
+    </Tabs>
+  );
+};
+```
+
+### API Integration
+
+**List Devices:**
+```typescript
+GET /api/v1/nasdevices
+Response: NasDevice[]
+```
+
+**Create Device:**
+```typescript
+POST /api/v1/nasdevices
+Body: {
+  name: string;
+  nfsServer: string;
+  exportPath: string;
+  storageClass?: string;
+  capacityGb: number;
+  accessModes: string[];
+}
+```
+
+**Update Device:**
+```typescript
+PUT /api/v1/nasdevices/{id}
+Body: { /* Same as create */ }
+```
+
+**Delete Device:**
+```typescript
+DELETE /api/v1/nasdevices/{id}
+```
+
+**Provision (Create K8s Resources):**
+```typescript
+POST /api/v1/nasdevices/{id}/provision
+Response: {
+  Success: boolean;
+  PvName: string;
+  PvcName: string;
+  ErrorMessage?: string;
+}
+```
+
+**Test Connection:**
+```typescript
+POST /api/v1/nasdevices/{id}/test
+Response: {
+  Success: boolean;
+  Message: string;
+  Details?: string;
+}
+```
+
+### Screenshots
+
+<Tabs>
+  <TabItem value="ltr" label="LTR (English)" default>
+    <img src="/img/components/nas-devices-ltr.svg" alt="NasDevicesTab in LTR mode" />
+  </TabItem>
+  <TabItem value="rtl" label="RTL (Hebrew)">
+    <img src="/img/components/nas-devices-rtl.svg" alt="NasDevicesTab in RTL mode" />
+  </TabItem>
+</Tabs>
+
+### Status Indicators
+
+| Status | Badge | Description |
+|--------|-------|-------------|
+| Provisioned | Green | PV and PVC created and bound |
+| Pending | Yellow | Device configured but not provisioned |
+| Error | Red | Provisioning failed |
+
+### Provisioning Flow
+
+```
+1. Admin creates NAS device (configuration only)
+      |
+      v
+2. Device appears as "Pending"
+      |
+      v
+3. Admin clicks "Provision"
+      |
+      v
+4. API creates PersistentVolume
+      |
+      v
+5. API creates PersistentVolumeClaim
+      |
+      v
+6. K8s binds PVC to PV
+      |
+      v
+7. Device status: "Provisioned"
+```
+
+### Child Components
+
+NasDevicesTab uses these internal components:
+
+**NasDeviceTable:**
+```tsx
+<NasDeviceTable
+  devices={devices}
+  loading={isLoading}
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+  onProvision={handleProvision}
+  onTestConnection={handleTestConnection}
+/>
+```
+
+**NasDeviceModal:**
+```tsx
+<NasDeviceModal
+  visible={isModalVisible}
+  device={editingDevice}       // null for create, device for edit
+  onClose={handleModalClose}
+  onSuccess={handleModalSuccess}
+/>
+```
+
+### React Query Keys
+
+```typescript
+const nasDeviceQueryKeys = {
+  all: ['nas-devices'],
+  list: () => [...nasDeviceQueryKeys.all, 'list'],
+  detail: (id: string) => [...nasDeviceQueryKeys.all, 'detail', id],
+};
+```
+
+### Mutations
+
+**Delete:**
+```typescript
+const deleteMutation = useMutation({
+  mutationFn: deleteNasDevice,
+  onSuccess: () => {
+    message.success('NAS device deleted');
+    queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.all });
+  },
+});
+```
+
+**Provision:**
+```typescript
+const provisionMutation = useMutation({
+  mutationFn: (id: string) => provisionNasDevice(id),
+  onSuccess: (result) => {
+    if (result.Success) {
+      message.success('Kubernetes resources created');
+    } else {
+      message.error(result.ErrorMessage);
+    }
+    queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.all });
+  },
+});
+```
+
+### Do's and Don'ts
+
+:::tip Do's
+- Show confirmation dialog before provisioning
+- Invalidate queries after mutations for fresh data
+- Display connection test results clearly
+- Show device statistics in header (provisioned/pending count)
+:::
+
+:::danger Don'ts
+- Don't allow delete of provisioned devices without warning
+- Don't auto-provision - always require explicit user action
+- Don't show provision button for already-provisioned devices
+- Don't forget to handle K8s RBAC errors gracefully
+:::
+
+### RBAC Requirements
+
+The NAS device provisioning requires Kubernetes RBAC permissions:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ez-nas-manager
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "create", "delete"]
+```
+
+### Error Handling
+
+Common errors and their handling:
+
+| Error | Cause | User Message |
+|-------|-------|--------------|
+| 403 Forbidden | Missing RBAC | "Insufficient permissions for K8s operations" |
+| Connection refused | Wrong server IP | "Cannot connect to NFS server" |
+| Export not found | Wrong path | "NFS export path not found" |
+| PV already exists | Duplicate provision | "Kubernetes resources already exist" |
+
+### Example: Conditional Actions
+
+```tsx
+// In NasDeviceTable
+const getActions = (device: NasDevice) => {
+  const actions = ['Edit', 'Test'];
+
+  if (!device.IsPvCreated) {
+    actions.push('Provision');
+  }
+
+  if (!device.IsPvCreated || !device.IsPvcBound) {
+    actions.push('Delete');  // Safe to delete if not provisioned
+  }
+
+  return actions;
+};
+```
+
+## Related Components
+
+The NAS device management system includes:
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| NasDevicesTab | `/pages/admin/tabs/` | Main management tab |
+| NasDeviceTable | `/pages/admin/components/` | Device list table |
+| NasDeviceModal | `/pages/admin/components/` | Add/Edit form modal |
+
+## See Also
+
+- [Data Source Forms](datasource-forms) - Form tab components
+- [Schema Editor](schema-editor) - Schema editing
+- [Component Library](index) - All components overview
+- [Architecture Guide](/docs/architecture/ARCHITECTURE) - NFS integration architecture

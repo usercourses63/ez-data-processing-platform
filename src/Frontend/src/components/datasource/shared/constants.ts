@@ -77,7 +77,7 @@ export const ENCODING_OPTIONS = [
 export const DEFAULT_FORM_VALUES = {
   isActive: true,
   category: 'financial',
-  connectionType: 'Local',
+  connectionType: 'NFS',
   fileType: 'CSV',
   encoding: 'UTF-8',
   hasHeaders: true,
