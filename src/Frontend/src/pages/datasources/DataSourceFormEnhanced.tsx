@@ -134,10 +134,24 @@ const DataSourceFormEnhanced: React.FC = () => {
           },
           outputConfig: outputConfig
         }),
-        output: {
-          defaultOutputFormat: outputConfig?.defaultOutputFormat || 'original',
-          includeInvalidRecords: outputConfig?.includeInvalidRecords || false,
-          destinations: outputConfig?.destinations || []
+        Output: {
+          DefaultOutputFormat: outputConfig?.defaultOutputFormat || 'original',
+          IncludeInvalidRecords: outputConfig?.includeInvalidRecords || false,
+          Destinations: (outputConfig?.destinations || []).map(d => ({
+            Id: d.id,
+            Name: d.name,
+            Description: d.description,
+            Type: d.type,
+            Enabled: d.enabled,
+            OutputFormat: d.outputFormat,
+            IncludeInvalidRecords: d.includeInvalidRecords,
+            OutputServerId: d.outputServerId,
+            NasDeviceId: d.nasDeviceId,
+            KafkaConfig: d.kafkaConfig,
+            FolderConfig: d.folderConfig,
+            SftpConfig: d.sftpConfig,
+            HttpConfig: d.httpConfig,
+          }))
         },
         fileFormat: values.fileType,
         retentionDays: values.retentionDays

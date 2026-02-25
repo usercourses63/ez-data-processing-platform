@@ -307,7 +307,21 @@ const DataSourceEditEnhanced: React.FC = () => {
         Output: {
           DefaultOutputFormat: outputConfig?.defaultOutputFormat || 'original',
           IncludeInvalidRecords: outputConfig?.includeInvalidRecords || false,
-          Destinations: outputConfig?.destinations || []
+          Destinations: (outputConfig?.destinations || []).map(d => ({
+            Id: d.id,
+            Name: d.name,
+            Description: d.description,
+            Type: d.type,
+            Enabled: d.enabled,
+            OutputFormat: d.outputFormat,
+            IncludeInvalidRecords: d.includeInvalidRecords,
+            OutputServerId: d.outputServerId,
+            NasDeviceId: d.nasDeviceId,
+            KafkaConfig: d.kafkaConfig,
+            FolderConfig: d.folderConfig,
+            SftpConfig: d.sftpConfig,
+            HttpConfig: d.httpConfig,
+          }))
         },
         ValidationRules: null,
         Metadata: null,
