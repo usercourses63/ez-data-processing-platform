@@ -21,7 +21,7 @@
 - [x] **Phase 12: NAS Lifecycle Completion** - Auto-mount, DataSource linking, PVC verification, delete lifecycle ✓ (2026-02-11)
 - [ ] **Phase 13: AdminServer & Feature Completion** - File-simulator integration, NAS auto-test in forms
 - [x] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices (completed 2026-02-25)
-- [ ] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring
+- [x] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring (completed 2026-02-25)
 - [ ] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page
 - [ ] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration
 - [ ] **Phase 18: E2E Validation** - Full file flow tests, error tests, Playwright UI verification
@@ -212,7 +212,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
 | 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
-| 15. Device Health Monitoring | v0.2 | 1/2 | In Progress | - |
+| 15. Device Health Monitoring | 2/2 | Complete   | 2026-02-25 | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
 | 18. E2E Validation | v0.2 | 0/4 | Not started | - |

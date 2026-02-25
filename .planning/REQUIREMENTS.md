@@ -34,8 +34,8 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 ### System Monitoring
 
-- [ ] **MON-05**: System Monitoring page reflects real current system components (replace mock data generators)
-- [ ] **MON-06**: File access device health/latency/keep-alive monitoring (NAS devices, AdminServers)
+- [x] **MON-05**: System Monitoring page reflects real current system components (replace mock data generators)
+- [x] **MON-06**: File access device health/latency/keep-alive monitoring (NAS devices, AdminServers)
 - [ ] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator-suite patterns)
 
 ### File-Simulator Integration
