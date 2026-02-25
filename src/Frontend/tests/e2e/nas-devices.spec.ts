@@ -14,7 +14,7 @@ import { test, expect } from '@playwright/test';
  * - Visual regression for RTL layout
  */
 
-const FILE_SIMULATOR_BASE = process.env.FILE_SIMULATOR_URL || 'http://localhost:32150';
+const FILE_SIMULATOR_BASE = process.env.FILE_SIMULATOR_URL || 'http://file-simulator.local:30080';
 
 test.describe('NAS Device Management', () => {
   // CRITICAL: Fail if file-simulator unavailable
@@ -28,175 +28,143 @@ test.describe('NAS Device Management', () => {
     }
   });
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/admin/settings');
+  // Helper: navigate to admin settings → NAS Devices tab
+  async function goToNasTab(page: import('@playwright/test').Page) {
+    await page.goto('/admin/settings?tab=nasDevices');
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+    // Wait for table rows to load (14 seeded devices)
+    await page.locator('.ant-table-row').first().waitFor({ state: 'visible', timeout: 10000 });
+  }
 
-    // Navigate to NAS Devices tab (Hebrew: "התקני NAS")
-    const nasTab = page.getByRole('tab', { name: /התקני NAS|NAS devices/i });
-    await nasTab.click();
-    await page.waitForLoadState('networkidle');
+  // Helper: open create/edit modal and fill required fields
+  async function fillNasForm(page: import('@playwright/test').Page, data: { name: string; host: string; exportPath: string }) {
+    const modal = page.locator('.ant-modal-content');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+    // Name field
+    await modal.locator('#Name').fill(data.name);
+    // Host field
+    await modal.locator('#Host').fill(data.host);
+    // Export path field
+    await modal.locator('#ExportPath').fill(data.exportPath);
+  }
+
+  test.beforeEach(async ({ page }) => {
+    await goToNasTab(page);
   });
 
   test.describe('CRUD Operations', () => {
     test('should display NAS devices list', async ({ page }) => {
-      // Verify table is visible (use first() to handle multiple tables)
-      await expect(page.locator('.ant-table').first()).toBeVisible();
+      // Verify table rows are visible (seeded data has 14 devices)
+      const rows = page.locator('.ant-table-row');
+      const count = await rows.count();
+      expect(count).toBeGreaterThan(0);
 
-      // Verify column headers (Hebrew: name, address, status)
+      // Verify column headers exist
       await expect(page.getByRole('columnheader').first()).toBeVisible();
     });
 
     test('should create NAS device', async ({ page }) => {
-      // Click add button (Hebrew: "הוסף התקן NAS")
-      await page.getByRole('button', { name: /הוסף|add/i }).click();
-
-      // Wait for modal to appear
+      // Click "הוסף התקן NAS" button
+      await page.getByRole('button', { name: /הוסף התקן NAS/i }).click();
       await page.waitForTimeout(500);
 
-      // Fill form using more specific selectors (textbox role instead of label)
-      await page.getByRole('textbox', { name: /שם|name/i }).fill('Test NAS Device');
-      await page.getByRole('textbox', { name: /כתובת|host|server/i }).fill('192.168.1.100');
-      await page.getByRole('textbox', { name: /נתיב יצוא|export path/i }).fill('/exports/test');
+      await fillNasForm(page, {
+        name: 'E2E Test Device',
+        host: '192.168.1.200',
+        exportPath: '/exports/e2e-test',
+      });
 
-      // Select role
-      const roleSelect = page.locator('.ant-select').filter({ hasText: /תפקיד|role/i });
-      if (await roleSelect.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await roleSelect.click();
-        await page.getByRole('option', { name: /קלט|input/i }).click();
-      }
+      // Click OK/Create in modal
+      await page.locator('.ant-modal-footer').getByRole('button', { name: /צור|create/i }).click();
 
-      // Save
-      await page.getByRole('button', { name: /שמור|save/i }).click();
-
-      // Verify success message
-      await expect(page.getByText(/נוצר בהצלחה|created successfully/i)).toBeVisible({ timeout: 10000 });
+      // Verify: modal closes and success toast appears (ant-message)
+      await expect(page.locator('.ant-modal-content')).toBeHidden({ timeout: 10000 });
+      await expect(page.locator('.ant-message-notice').filter({ hasText: /נוצר בהצלחה/ })).toBeVisible({ timeout: 5000 });
     });
 
     test('should edit NAS device', async ({ page }) => {
-      // Find first row and click edit
+      // Click edit (EditOutlined icon button) on first row
+      // Action buttons are icon-only with Tooltip aria-label
       const firstRow = page.locator('.ant-table-row').first();
-      const hasData = await firstRow.isVisible({ timeout: 5000 }).catch(() => false);
-
-      if (!hasData) {
-        // Create a device first
-        await page.getByRole('button', { name: /הוסף|add/i }).click();
-        await page.waitForTimeout(500);
-        await page.getByRole('textbox', { name: /שם|name/i }).fill('Edit Test Device');
-        await page.getByRole('textbox', { name: /כתובת|host/i }).fill('192.168.1.101');
-        await page.getByRole('textbox', { name: /נתיב יצוא|export path/i }).fill('/exports/edit');
-        await page.getByRole('button', { name: /שמור|save/i }).click();
-        await page.waitForLoadState('networkidle');
-      }
-
-      // Click edit on first row
-      await page.locator('.ant-table-row').first().getByRole('button', { name: /ערוך|edit/i }).click();
+      await firstRow.locator('button').filter({ has: page.locator('.anticon-edit') }).click();
       await page.waitForTimeout(500);
 
-      // Modify description
-      const descInput = page.getByRole('textbox', { name: /תיאור|description/i });
-      if (await descInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await descInput.fill('Updated via E2E test');
-      }
+      // Modify description in the modal
+      const modal = page.locator('.ant-modal-content');
+      await expect(modal).toBeVisible({ timeout: 5000 });
+      await modal.locator('#Description').fill('Updated via E2E test');
 
       // Save
-      await page.getByRole('button', { name: /שמור|save|עדכן|update/i }).click();
+      await modal.locator('.ant-modal-footer').getByRole('button', { name: /שמור|save/i }).click();
 
-      // Verify success
-      await expect(page.getByText(/עודכן|updated/i)).toBeVisible({ timeout: 10000 });
+      // Verify: modal closes and success toast
+      await expect(page.locator('.ant-modal-content')).toBeHidden({ timeout: 10000 });
+      await expect(page.locator('.ant-message-notice').filter({ hasText: /עודכן בהצלחה/ })).toBeVisible({ timeout: 5000 });
     });
 
     test('should delete NAS device', async ({ page }) => {
-      // Ensure we have a device to delete
-      const rows = page.locator('.ant-table-row');
-      const count = await rows.count();
+      // Get initial row count
+      const initialCount = await page.locator('.ant-table-row').count();
 
-      if (count === 0) {
-        // Create one first
-        await page.getByRole('button', { name: /הוסף|add/i }).click();
-        await page.waitForTimeout(500);
-        await page.getByRole('textbox', { name: /שם|name/i }).fill('Delete Test Device');
-        await page.getByRole('textbox', { name: /כתובת|host/i }).fill('192.168.1.102');
-        await page.getByRole('textbox', { name: /נתיב יצוא|export path/i }).fill('/exports/delete');
-        await page.getByRole('button', { name: /שמור|save/i }).click();
-        await page.waitForLoadState('networkidle');
-      }
+      // Click delete (DeleteOutlined icon) on last row - triggers Popconfirm
+      const lastRow = page.locator('.ant-table-row').last();
+      await lastRow.locator('button').filter({ has: page.locator('.anticon-delete') }).click();
+      await page.waitForTimeout(300);
 
-      // Click delete on last row
-      await page.locator('.ant-table-row').last().getByRole('button', { name: /מחק|delete/i }).click();
+      // Confirm in Popconfirm popup
+      await page.locator('.ant-popconfirm-buttons').getByRole('button').last().click();
 
-      // Confirm deletion
-      await page.getByRole('button', { name: /אישור|confirm|yes/i }).click();
-
-      // Verify success
-      await expect(page.getByText(/נמחק|deleted/i)).toBeVisible({ timeout: 10000 });
+      // Verify success toast
+      await expect(page.locator('.ant-message-notice').filter({ hasText: /נמחק בהצלחה/ })).toBeVisible({ timeout: 10000 });
     });
   });
 
   test.describe('Provisioning', () => {
     test('should provision NAS device (create PV/PVC)', async ({ page }) => {
-      // Find unprovisioned device or create one
+      // Find a row with "לא מוקצה" (not provisioned) status
       const unprovisionedRow = page.locator('.ant-table-row').filter({
-        hasText: /ממתין להפעלה|pending|not provisioned/i
+        hasText: /לא מוקצה/
       }).first();
 
       const hasUnprovisioned = await unprovisionedRow.isVisible({ timeout: 3000 }).catch(() => false);
 
-      if (!hasUnprovisioned) {
-        // Create a new device to provision
-        await page.getByRole('button', { name: /הוסף|add/i }).click();
-        await page.waitForTimeout(500);
-        await page.getByRole('textbox', { name: /שם|name/i }).fill('Provision Test Device');
-        await page.getByRole('textbox', { name: /כתובת|host/i }).fill('192.168.1.103');
-        await page.getByRole('textbox', { name: /נתיב יצוא|export path/i }).fill('/exports/provision');
-        await page.getByRole('button', { name: /שמור|save/i }).click();
-        await page.waitForLoadState('networkidle');
-      }
+      if (hasUnprovisioned) {
+        // Click provision (CloudUploadOutlined icon button)
+        await unprovisionedRow.locator('button').filter({ has: page.locator('.anticon-cloud-upload') }).click();
+        await page.waitForTimeout(300);
 
-      // Click provision button
-      const provisionBtn = page.locator('.ant-table-row').last().getByRole('button', { name: /הפעל|provision/i });
-      if (await provisionBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await provisionBtn.click();
-
-        // Confirm in modal
-        const confirmBtn = page.getByRole('button', { name: /אישור|confirm|yes/i });
-        if (await confirmBtn.isVisible({ timeout: 3000 })) {
+        // Confirm provision in modal
+        const confirmBtn = page.locator('.ant-modal-footer').getByRole('button', { name: /אישור|ok|confirm/i });
+        if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
           await confirmBtn.click();
         }
 
-        // Wait for provisioning (may take a few seconds)
-        await page.waitForTimeout(3000);
-
-        // Verify status changed (look for success indicator)
-        await expect(page.getByText(/הופעל|provisioned|מחובר|connected/i)).toBeVisible({ timeout: 15000 });
+        // Verify success message
+        await expect(page.getByText(/משאבי Kubernetes נוצרו בהצלחה|provisionSuccess/i)).toBeVisible({ timeout: 15000 });
+      } else {
+        // All devices already provisioned - verify at least one has PVC מחובר
+        await expect(page.getByText(/PVC מחובר/).first()).toBeVisible({ timeout: 5000 });
       }
     });
 
     test('should show mount status indicator', async ({ page }) => {
-      // Look for status column/badge
-      const statusBadge = page.locator('.ant-badge-status-dot, .ant-tag');
-
-      // At least one status indicator should be visible
-      await expect(statusBadge.first()).toBeVisible({ timeout: 5000 });
+      // Look for provisioning status tags (PVC מחובר, PV נוצר, לא מוקצה)
+      const statusTag = page.locator('.ant-tag').filter({
+        hasText: /PVC מחובר|PV נוצר|לא מוקצה/
+      });
+      await expect(statusTag.first()).toBeVisible({ timeout: 5000 });
     });
   });
 
   test.describe('Connection Testing', () => {
     test('should test NAS connection', async ({ page }) => {
-      // Find a provisioned device
-      const provisionedRow = page.locator('.ant-table-row').filter({
-        has: page.locator('.ant-badge-status-success, .ant-tag-green')
-      }).first();
+      // Find first row and click test connection (ApiOutlined icon button)
+      const firstRow = page.locator('.ant-table-row').first();
+      await firstRow.locator('button').filter({ has: page.locator('.anticon-api') }).click();
 
-      const hasProvisioned = await provisionedRow.isVisible({ timeout: 3000 }).catch(() => false);
-
-      if (hasProvisioned) {
-        // Click test connection
-        await provisionedRow.getByRole('button', { name: /בדוק חיבור|test/i }).click();
-
-        // Wait for test result
-        await expect(page.getByText(/חיבור תקין|connection successful|נכשל|failed/i)).toBeVisible({ timeout: 10000 });
-      }
+      // Wait for test result toast message
+      await expect(page.locator('.ant-message-notice').filter({ hasText: /החיבור תקין|החיבור נכשל/ })).toBeVisible({ timeout: 15000 });
     });
   });
 
@@ -215,15 +183,14 @@ test.describe('NAS Device Management', () => {
     });
 
     test('should capture NAS device modal RTL baseline', async ({ page }) => {
-      await page.getByRole('button', { name: /הוסף|add/i }).click();
+      await page.getByRole('button', { name: /הוסף התקן NAS/i }).click();
       await page.waitForTimeout(500);
 
       const modal = page.locator('.ant-modal-content');
-      if (await modal.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await expect(modal).toHaveScreenshot('nas-device-modal-rtl.png', {
-          animations: 'disabled',
-        });
-      }
+      await expect(modal).toBeVisible({ timeout: 5000 });
+      await expect(modal).toHaveScreenshot('nas-device-modal-rtl.png', {
+        animations: 'disabled',
+      });
     });
   });
 });
