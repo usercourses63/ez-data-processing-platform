@@ -20,7 +20,7 @@
 - [x] **Phase 11: Bug Fixes & UI Polish** - Fix Hebrew/RTL regressions, unwanted translations, NAS dropdown ✓ (2026-02-11)
 - [x] **Phase 12: NAS Lifecycle Completion** - Auto-mount, DataSource linking, PVC verification, delete lifecycle ✓ (2026-02-11)
 - [ ] **Phase 13: AdminServer & Feature Completion** - File-simulator integration, NAS auto-test in forms
-- [ ] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices
+- [x] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices (completed 2026-02-25)
 - [ ] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring
 - [ ] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page
 - [ ] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration
@@ -211,7 +211,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 11. Bug Fixes & UI Polish | v0.2 | 2/2 | Complete | 2026-02-11 |
 | 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
-| 14. OTEL Verification | v0.2 | 1/2 | In Progress | - |
+| 14. OTEL Verification | 2/2 | Complete   | 2026-02-25 | - |
 | 15. Device Health Monitoring | v0.2 | 0/2 | Not started | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
