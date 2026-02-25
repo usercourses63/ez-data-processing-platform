@@ -78,19 +78,19 @@ Plans:
 - [ ] 13-03-PLAN.md — Translation keys and end-to-end verification
 
 ### Phase 14: OTEL Verification
-**Goal**: Verify complete observability pipeline for all microservices
+**Goal**: Verify complete observability pipeline for all deployed microservices and fix all gaps
 **Depends on**: Nothing (can run parallel with 12-13)
 **Requirements**: OTEL-01, OTEL-02, OTEL-03
 **Success Criteria** (what must be TRUE):
   1. Every microservice generates structured logs visible in Elasticsearch
   2. Every microservice generates distributed traces visible in Jaeger
   3. Every microservice generates metrics visible in Prometheus
-  4. OTEL verification tool/script confirms coverage for all 9 services
-**Plans**: TBD
+  4. OTEL verification script confirms 24/24 checks pass (8 deployed services x 3 signals)
+**Plans**: 2 plans (Wave 1: 14-01; Wave 2: 14-02)
 
 Plans:
-- [ ] 14-01: OTEL verification tooling (query Elasticsearch, Jaeger, Prometheus APIs)
-- [ ] 14-02: Fix OTEL gaps and verify all 9 microservices emit logs/traces/metrics
+- [ ] 14-01-PLAN.md — Build OTEL verification PowerShell script and run initial gap assessment (OTEL-01, OTEL-02, OTEL-03)
+- [ ] 14-02-PLAN.md — Fix all OTEL gaps, rebuild/redeploy services, verify 24/24 checks pass (OTEL-01, OTEL-02, OTEL-03)
 
 ### Phase 15: Device Health Monitoring
 **Goal**: Implement real device health monitoring for NAS and AdminServers
@@ -211,7 +211,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 11. Bug Fixes & UI Polish | v0.2 | 2/2 | Complete | 2026-02-11 |
 | 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
-| 14. OTEL Verification | v0.2 | 0/2 | Not started | - |
+| 14. OTEL Verification | v0.2 | 0/2 | Planned | - |
 | 15. Device Health Monitoring | v0.2 | 0/2 | Not started | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
@@ -223,4 +223,4 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **v0.2 Totals:** 5/28 plans complete (18%)
 
 ---
-*Roadmap updated: 2026-02-15 after Phase 13 planning complete*
+*Roadmap updated: 2026-02-25 after Phase 14 planning complete*
