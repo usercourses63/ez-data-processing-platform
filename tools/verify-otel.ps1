@@ -166,50 +166,98 @@ function Test-ServiceLogs {
 function Test-ServiceTraces {
     param([string]$ServiceName)
 
+    # Method 1: Check Jaeger HTTP API (live services in current daily index)
     try {
-        # Step 1: Get all services reporting traces
         $servicesResult = Invoke-RestMethod -Uri "$jaegerUrl/api/services" -TimeoutSec 10
         $serviceList = $servicesResult.data
 
-        if ($null -eq $serviceList) {
-            return @{ Pass = $false; Note = "Jaeger returned no services list" }
-        }
+        if ($null -ne $serviceList) {
+            $hasService = $serviceList -contains $ServiceName
 
-        # Step 2: Check if our service name exists
-        $hasService = $serviceList -contains $ServiceName
+            if (-not $hasService) {
+                # Try case-insensitive match and partial match
+                $matched = $serviceList | Where-Object { $_ -eq $ServiceName -or $_ -like "*$($ServiceName.Split('.')[-1])*" }
+                if ($matched) {
+                    $hasService = $true
+                    if ($Verbose) {
+                        Write-Host "    [Jaeger API] Matched via partial: $matched" -ForegroundColor DarkGray
+                    }
+                }
+            }
 
-        if (-not $hasService) {
-            # Try case-insensitive match and partial match
-            $matched = $serviceList | Where-Object { $_ -eq $ServiceName -or $_ -like "*$($ServiceName.Split('.')[-1])*" }
-            if ($matched) {
-                $hasService = $true
-                if ($Verbose) {
-                    Write-Host "    [Jaeger] Matched via partial: $matched" -ForegroundColor DarkGray
+            if ($hasService) {
+                $lookbackMicro = [long]$LookbackHours * 3600 * 1000 * 1000
+                $endTime = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() * 1000
+                $startTime = $endTime - $lookbackMicro
+                $tracesResult = Invoke-RestMethod -Uri "$jaegerUrl/api/traces?service=$([System.Uri]::EscapeDataString($ServiceName))&limit=1&start=$startTime&end=$endTime" -TimeoutSec 10
+                if ($tracesResult.data -and $tracesResult.data.Count -gt 0) {
+                    return @{ Pass = $true; Note = "" }
+                } else {
+                    return @{ Pass = $true; Note = "Service registered in Jaeger but no recent traces" }
                 }
             }
         }
+    } catch {
+        if ($Verbose) {
+            Write-Host "    [Jaeger API] Error: $($_.Exception.Message)" -ForegroundColor DarkGray
+        }
+    }
 
-        if ($hasService) {
-            # Step 3: Verify at least one trace exists
-            $lookbackMicro = [long]$LookbackHours * 3600 * 1000 * 1000
-            $endTime = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() * 1000
-            $startTime = $endTime - $lookbackMicro
-            $tracesResult = Invoke-RestMethod -Uri "$jaegerUrl/api/traces?service=$([System.Uri]::EscapeDataString($ServiceName))&limit=1&start=$startTime&end=$endTime" -TimeoutSec 10
-            if ($tracesResult.data -and $tracesResult.data.Count -gt 0) {
-                return @{ Pass = $true; Note = "" }
-            } else {
-                return @{ Pass = $true; Note = "Service registered but no recent traces in lookback window" }
+    # Method 2: Check Jaeger's Elasticsearch indices directly (covers historical data across daily indices)
+    try {
+        $body = @{
+            query = @{
+                term = @{ "serviceName" = $ServiceName }
             }
-        } else {
-            $availableServices = ($serviceList -join ", ")
-            if ($Verbose) {
-                Write-Host "    [Jaeger] Available services: $availableServices" -ForegroundColor DarkGray
-            }
-            return @{ Pass = $false; Note = "Service not found in Jaeger (available: $($serviceList.Count) services)" }
+            size = 1
+        } | ConvertTo-Json -Depth 10
+
+        $result = Invoke-RestMethod -Uri "$esUrl/jaeger-jaeger-service-*/_search" -Method POST -Body $body -ContentType "application/json" -TimeoutSec 10
+        $hitCount = 0
+        if ($result.hits -and $result.hits.total) {
+            if ($result.hits.total -is [int]) { $hitCount = $result.hits.total }
+            elseif ($result.hits.total.value -ne $null) { $hitCount = $result.hits.total.value }
+        }
+        if ($hitCount -gt 0) {
+            return @{ Pass = $true; Note = "Found in Jaeger ES indices (not in today's live API)" }
         }
     } catch {
-        return @{ Pass = $false; Note = "Jaeger error: $($_.Exception.Message)" }
+        if ($Verbose) {
+            Write-Host "    [Jaeger ES] Error: $($_.Exception.Message)" -ForegroundColor DarkGray
+        }
     }
+
+    # Method 3: Check OTEL Collector's dataprocessing-traces index
+    try {
+        $body = @{
+            query = @{
+                bool = @{
+                    should = @(
+                        @{ match = @{ "service.name" = $ServiceName } }
+                        @{ match = @{ "resource.service.name" = $ServiceName } }
+                    )
+                    minimum_should_match = 1
+                }
+            }
+            size = 1
+        } | ConvertTo-Json -Depth 10
+
+        $result = Invoke-RestMethod -Uri "$esUrl/dataprocessing-traces*/_search" -Method POST -Body $body -ContentType "application/json" -TimeoutSec 10
+        $hitCount = 0
+        if ($result.hits -and $result.hits.total) {
+            if ($result.hits.total -is [int]) { $hitCount = $result.hits.total }
+            elseif ($result.hits.total.value -ne $null) { $hitCount = $result.hits.total.value }
+        }
+        if ($hitCount -gt 0) {
+            return @{ Pass = $true; Note = "Found in OTEL traces index (not in Jaeger live API)" }
+        }
+    } catch {
+        if ($Verbose) {
+            Write-Host "    [OTEL Traces ES] Error: $($_.Exception.Message)" -ForegroundColor DarkGray
+        }
+    }
+
+    return @{ Pass = $false; Note = "No traces found in Jaeger API, Jaeger ES indices, or OTEL traces index" }
 }
 
 # ============================================================
