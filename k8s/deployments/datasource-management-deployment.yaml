@@ -30,11 +30,6 @@ spec:
         component: api
         tier: backend
     spec:
-      # DNS resolution for file-simulator cluster (Hyper-V) from Docker minikube pods
-      hostAliases:
-      - ip: "172.17.89.141"
-        hostnames:
-        - "file-simulator.local"
       # ServiceAccount with RBAC permissions for NAS device PV/PVC management
       serviceAccountName: nas-device-manager
       securityContext:
@@ -79,7 +74,7 @@ spec:
               key: otlp-endpoint
         resources:
           requests:
-            cpu: "500m"
+            cpu: "50m"
             memory: "1Gi"
           limits:
             cpu: "2000m"
