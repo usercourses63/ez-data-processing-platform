@@ -44,18 +44,14 @@ services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "DataSource Management API", Version = "v1" });
 });
 
-// Configure logging
-services.AddLogging(loggingBuilder =>
-{
-    loggingBuilder.AddConsole();
-    loggingBuilder.AddDebug();
-});
-
 // Configure OpenTelemetry (metrics, traces, and logs via OTLP)
 var serviceName = "DataProcessing.DataSourceManagement";
 var activitySource = new ActivitySource(serviceName);
 services.AddSingleton(activitySource);
 services.AddDataProcessingOpenTelemetry(configuration, serviceName);
+
+// Configure structured logging via Serilog + OTEL pipeline
+services.AddDataProcessingLogging(configuration, builder.Environment, serviceName);
 
 // Configure metrics
 services.AddSingleton<BusinessMetrics>();

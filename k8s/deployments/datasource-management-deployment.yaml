@@ -67,6 +67,11 @@ spec:
           value: "ez-platform"
         - name: Kubernetes__Context
           value: "minikube"  # Ignored in-cluster, useful for local dev
+        - name: OpenTelemetry__OtlpEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: otlp-endpoint
         resources:
           requests:
             cpu: "500m"
