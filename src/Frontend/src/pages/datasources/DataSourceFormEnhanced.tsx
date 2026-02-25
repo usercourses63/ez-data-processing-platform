@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined } from '@ant-design/icons';
 import { type JSONSchema } from 'jsonjoy-builder';
 import type { OutputConfiguration } from '../../components/datasource/shared/types';
+import { buildConnectionString, frequencyToCron } from '../../components/datasource/shared/helpers';
+import { DEFAULT_FORM_VALUES } from '../../components/datasource/shared/constants';
 
 // Lazy load tab components for better performance
 const BasicInfoTab = lazy(() => import('../../components/datasource/tabs/BasicInfoTab').then(m => ({ default: m.BasicInfoTab })));
@@ -16,10 +18,6 @@ const ValidationTab = lazy(() => import('../../components/datasource/tabs/Valida
 const NotificationsTab = lazy(() => import('../../components/datasource/tabs/NotificationsTab').then(m => ({ default: m.NotificationsTab })));
 const OutputTab = lazy(() => import('../../components/datasource/tabs/OutputTab').then(m => ({ default: m.OutputTab })));
 const CronHelperDialog = lazy(() => import('../../components/datasource/CronHelperDialog'));
-
-// Import shared utilities
-import { buildConnectionString, frequencyToCron } from '../../components/datasource/shared/helpers';
-import { DEFAULT_FORM_VALUES } from '../../components/datasource/shared/constants';
 
 const { Title, Paragraph } = Typography;
 

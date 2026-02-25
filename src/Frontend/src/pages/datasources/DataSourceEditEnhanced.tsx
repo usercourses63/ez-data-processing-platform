@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined, BarChartOutlined } from '@ant-design/icons';
 import { type JSONSchema } from 'jsonjoy-builder';
+import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
+import { DataSource, ApiResponse, OutputConfiguration } from '../../components/datasource/shared/types';
 
 // Lazy load tab components for better performance
 const BasicInfoTab = lazy(() => import('../../components/datasource/tabs/BasicInfoTab').then(m => ({ default: m.BasicInfoTab })));
@@ -16,10 +18,6 @@ const NotificationsTab = lazy(() => import('../../components/datasource/tabs/Not
 const OutputTab = lazy(() => import('../../components/datasource/tabs/OutputTab').then(m => ({ default: m.OutputTab })));
 const MetricsTab = lazy(() => import('../../components/datasource/tabs/MetricsTab').then(m => ({ default: m.MetricsTab })));
 const CronHelperDialog = lazy(() => import('../../components/datasource/CronHelperDialog'));
-
-// Import shared utilities
-import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
-import { DataSource, ApiResponse, OutputConfiguration } from '../../components/datasource/shared/types';
 
 const { Title, Paragraph } = Typography;
 

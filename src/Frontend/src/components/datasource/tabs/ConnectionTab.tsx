@@ -10,7 +10,7 @@
 import React, { useMemo, useEffect } from 'react';
 import { Form, Input, Select, Button, Space, Alert, Row, Col, Tag, Divider, Typography, message } from 'antd';
 import { FormInstance } from 'antd/es/form';
-import { ApiOutlined, FileOutlined, CheckCircleOutlined, CloseCircleOutlined, CloudServerOutlined, DatabaseOutlined, WarningOutlined, HddOutlined } from '@ant-design/icons';
+import { ApiOutlined, CheckCircleOutlined, CloseCircleOutlined, CloudServerOutlined, DatabaseOutlined, WarningOutlined, HddOutlined } from '@ant-design/icons';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { KAFKA_OFFSET_RESET } from '../shared/constants';
 import { getInputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
