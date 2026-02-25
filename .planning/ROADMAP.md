@@ -20,7 +20,7 @@
 - [x] **Phase 11: Bug Fixes & UI Polish** - Fix Hebrew/RTL regressions, unwanted translations, NAS dropdown ✓ (2026-02-11)
 - [x] **Phase 12: NAS Lifecycle Completion** - Auto-mount, DataSource linking, PVC verification, delete lifecycle ✓ (2026-02-11)
 - [ ] **Phase 13: AdminServer & Feature Completion** - File-simulator integration, NAS auto-test in forms
-- [x] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices (completed 2026-02-25)
+- [x] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices (completed 2026-02-25)
 - [ ] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring
 - [ ] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page
 - [ ] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration
@@ -101,11 +101,11 @@ Plans:
   2. NAS device health status includes connectivity, latency, and availability
   3. AdminServer health status includes connectivity and response time
   4. Health check jobs run on schedule and persist results
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 15-01; Wave 2: 15-02)
 
 Plans:
-- [ ] 15-01: Replace mock data with real health check infrastructure
-- [ ] 15-02: Implement device health monitoring (NAS, AdminServer, protocols)
+- [ ] 15-01-PLAN.md — Backend health check infrastructure: Quartz.NET job, DeviceHealthService, MongoDB TTL history, REST API endpoint (MON-05, MON-06)
+- [ ] 15-02-PLAN.md — Frontend Device Health tab: status cards, summary bar, React Query polling, Hebrew translations (MON-05, MON-06)
 
 ### Phase 16: SignalR Real-Time Updates
 **Goal**: Enable real-time updates on System Monitoring page via SignalR
@@ -211,8 +211,8 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 11. Bug Fixes & UI Polish | v0.2 | 2/2 | Complete | 2026-02-11 |
 | 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
-| 14. OTEL Verification | 2/2 | Complete    | 2026-02-25 | - |
-| 15. Device Health Monitoring | v0.2 | 0/2 | Not started | - |
+| 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
+| 15. Device Health Monitoring | v0.2 | 0/2 | Planned | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
 | 18. E2E Validation | v0.2 | 0/4 | Not started | - |
@@ -220,7 +220,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 6/28 plans complete (21%)
+**v0.2 Totals:** 7/28 plans complete (25%)
 
 ---
-*Roadmap updated: 2026-02-25 after 14-01 execution complete*
+*Roadmap updated: 2026-02-25 after Phase 15 planning complete*
