@@ -424,8 +424,8 @@ public class NasDeviceService : INasDeviceService
 
             // NFS connection test strategy:
             // - If PVC is bound, the NFS mount is working (K8s verified it)
-            // - If not provisioned, return a message indicating provisioning is needed
-            // - Direct NFS testing from .NET is not practical without K8s mount
+            // - If not provisioned, do a TCP connectivity test to verify NFS server is reachable
+            // - This allows health monitoring even before K8s provisioning
 
             if (device.IsProvisioned)
             {
@@ -446,17 +446,36 @@ public class NasDeviceService : INasDeviceService
                     device.SetConnectionTestResult(false, result.ErrorMessage);
                 }
             }
-            else if (device.IsPvCreated && !device.IsPvcBound)
-            {
-                result.Success = false;
-                result.Message = $"PV נוצר אך PVC לא מחובר. יש להמתין או לבדוק את התצורה.";
-                result.ErrorMessage = "PVC לא מחובר";
-            }
             else
             {
-                result.Success = false;
-                result.Message = $"התקן NAS לא הוקצה. יש לבצע הקצאה (provision) כדי לבדוק חיבור.";
-                result.ErrorMessage = "נדרשת הקצאת משאבי Kubernetes";
+                // Not provisioned - do TCP connectivity test to NFS port
+                try
+                {
+                    using var tcpClient = new System.Net.Sockets.TcpClient();
+                    var connectTask = tcpClient.ConnectAsync(device.Host, device.Port);
+                    var timeoutTask = Task.Delay(TimeSpan.FromSeconds(3), ct);
+
+                    var completedTask = await Task.WhenAny(connectTask, timeoutTask);
+
+                    if (completedTask == connectTask && tcpClient.Connected)
+                    {
+                        result.Success = true;
+                        result.Message = $"שרת NFS נגיש ב-{device.Host}:{device.Port} (לא הוקצה - בדיקת רשת בלבד)";
+                        device.SetConnectionTestResult(true);
+                    }
+                    else
+                    {
+                        result.Success = false;
+                        result.ErrorMessage = $"לא ניתן להתחבר ל-{device.Host}:{device.Port} - שרת NFS לא נגיש";
+                        device.SetConnectionTestResult(false, result.ErrorMessage);
+                    }
+                }
+                catch (Exception tcpEx)
+                {
+                    result.Success = false;
+                    result.ErrorMessage = $"שגיאת רשת: {tcpEx.Message}";
+                    device.SetConnectionTestResult(false, result.ErrorMessage);
+                }
             }
 
             await device.SaveAsync(cancellation: ct);

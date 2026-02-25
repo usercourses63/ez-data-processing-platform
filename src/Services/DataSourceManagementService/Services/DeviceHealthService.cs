@@ -103,8 +103,9 @@ public class DeviceHealthService : IDeviceHealthService, IHostedService
             // Schedule NAS device checks
             foreach (var device in nasDevices)
             {
-                // Skip inactive, deleted, or unprovisioned NAS devices
-                if (!device.IsActive || device.IsDeleted || !device.IsProvisioned)
+                // Skip inactive or deleted NAS devices
+                // Note: Allow unprovisioned devices - health check will do TCP connectivity test
+                if (!device.IsActive || device.IsDeleted)
                     continue;
 
                 tasks.Add(CheckNasDeviceAsync(nasService, device, ct));
@@ -318,7 +319,8 @@ public class DeviceHealthService : IDeviceHealthService, IHostedService
         // Build NAS device health info
         foreach (var device in nasDevices)
         {
-            var isActive = device.IsActive && !device.IsDeleted && device.IsProvisioned;
+            // NAS devices are active if IsActive && !IsDeleted (provisioning is separate)
+            var isActive = device.IsActive && !device.IsDeleted;
             var info = new DeviceHealthInfo
             {
                 DeviceId = device.ID,

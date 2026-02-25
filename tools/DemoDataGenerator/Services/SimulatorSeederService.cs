@@ -137,6 +137,8 @@ public class SimulatorSeederService
 
     private static AdminServer CreateKafkaServer(string name, string description, ServerDirection direction)
     {
+        // Use internal Kubernetes service address for in-cluster communication
+        // kafka:9092 is the internal service, localhost:9094 only works from port-forward
         return new AdminServer
         {
             Name = name,
@@ -144,11 +146,11 @@ public class SimulatorSeederService
             ServerType = "kafka",
             Direction = direction,
             IsActive = true,
-            Host = "localhost",
-            Port = 9094,
+            Host = "kafka",
+            Port = 9092,
             KafkaConfig = new KafkaServerConfig
             {
-                BootstrapServers = "localhost:9094",
+                BootstrapServers = "kafka:9092",
                 SecurityProtocol = "PLAINTEXT",
                 DefaultConsumerGroup = "dataprocessing-group",
                 AcksRequired = 1
