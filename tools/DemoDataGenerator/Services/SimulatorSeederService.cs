@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+using System.Text.Json;
 using DataProcessing.Shared.Entities;
 using DemoDataGenerator.Generators;
 using DemoDataGenerator.Models;
@@ -13,11 +15,13 @@ public class SimulatorSeederService
 {
     private readonly FileSimulatorClient _client;
     private readonly ServerMappingService _mappingService;
+    private readonly HttpClient? _apiClient;
 
-    public SimulatorSeederService(FileSimulatorClient client, ServerMappingService mappingService)
+    public SimulatorSeederService(FileSimulatorClient client, ServerMappingService mappingService, HttpClient? apiClient = null)
     {
         _client = client;
         _mappingService = mappingService;
+        _apiClient = apiClient;
     }
 
     /// <summary>
@@ -25,10 +29,11 @@ public class SimulatorSeederService
     /// Performs clean-slate: deletes all existing AdminServers and NasDevices first.
     /// </summary>
     /// <param name="createDynamic">If true, creates dynamic servers (FTP/SFTP input/output pairs, NAS) before discovering</param>
+    /// <param name="provisionNas">If true, provisions PV/PVC for NAS devices via DataSourceManagement API</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>Tuple of created AdminServers and NasDevices</returns>
     public async Task<(List<AdminServer> Servers, List<NasDevice> NasDevices)> SeedFromSimulatorAsync(
-        bool createDynamic, CancellationToken ct = default)
+        bool createDynamic, bool provisionNas = false, CancellationToken ct = default)
     {
         Console.WriteLine("\n[SIM] Seeding from file-simulator...");
 
@@ -127,7 +132,14 @@ public class SimulatorSeederService
         adminServers.Add(kafkaOutput);
         Console.WriteLine($"  \u2713 Created AdminServer: kafka-output (kafka, Output)");
 
-        // 8. Summary
+        // 8. Provision NAS devices (PV/PVC/Mount)
+        if (provisionNas && nasDevices.Count > 0)
+        {
+            Console.WriteLine("\n  Provisioning NAS devices (PV/PVC/Mount)...");
+            await ProvisionNasDevicesAsync(nasDevices, ct);
+        }
+
+        // 9. Summary
         var inputCount = adminServers.Count(s => s.CanBeInput);
         var outputCount = adminServers.Count(s => s.CanBeOutput);
         Console.WriteLine($"\n  \u2705 {adminServers.Count} AdminServers ({inputCount} input, {outputCount} output), {nasDevices.Count} NasDevices seeded\n");
@@ -175,5 +187,97 @@ public class SimulatorSeederService
         {
             Console.WriteLine($"  \u26a0 Skipped {label}: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Provisions PV/PVC for NAS devices by calling the DataSourceManagement API.
+    /// </summary>
+    private async Task ProvisionNasDevicesAsync(List<NasDevice> nasDevices, CancellationToken ct)
+    {
+        if (_apiClient == null)
+        {
+            Console.WriteLine("  \u26a0 No API client configured - skipping provisioning");
+            Console.WriteLine("    Use --api-url=http://datasource-management:5001 to enable");
+            return;
+        }
+
+        var provisionedCount = 0;
+        var failedCount = 0;
+
+        foreach (var device in nasDevices)
+        {
+            try
+            {
+                var request = new
+                {
+                    Namespace = "ez-platform",
+                    CreatePv = true,
+                    CreatePvc = true,
+                    WaitForBinding = true,
+                    TimeoutSeconds = 60
+                };
+
+                var response = await _apiClient.PostAsJsonAsync(
+                    $"/api/v1/nasdevices/{device.ID}/provision",
+                    request,
+                    ct);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<ProvisionResult>(ct);
+                    if (result?.Success == true)
+                    {
+                        provisionedCount++;
+                        Console.WriteLine($"  \u2713 Provisioned: {device.Name} (PV={result.PvCreated}, PVC={result.PvcCreated}, Bound={result.PvcBound})");
+
+                        // Update local entity to reflect provisioning
+                        device.IsPvCreated = result.PvCreated;
+                        device.IsPvcBound = result.PvcBound;
+                        await device.SaveAsync(cancellation: ct);
+
+                        // Log mounted deployments
+                        if (result.MountedDeployments?.Count > 0)
+                        {
+                            Console.WriteLine($"    Mounted to: {string.Join(", ", result.MountedDeployments)}");
+                        }
+                    }
+                    else
+                    {
+                        failedCount++;
+                        Console.WriteLine($"  \u2717 Failed: {device.Name} - {result?.ErrorMessage ?? "Unknown error"}");
+                    }
+                }
+                else
+                {
+                    failedCount++;
+                    var error = await response.Content.ReadAsStringAsync(ct);
+                    Console.WriteLine($"  \u2717 Failed: {device.Name} - HTTP {response.StatusCode}: {error}");
+                }
+            }
+            catch (Exception ex)
+            {
+                failedCount++;
+                Console.WriteLine($"  \u2717 Failed: {device.Name} - {ex.Message}");
+            }
+        }
+
+        Console.WriteLine($"  Provisioning complete: {provisionedCount} succeeded, {failedCount} failed");
+    }
+
+    /// <summary>
+    /// Result model for NAS provisioning API response
+    /// </summary>
+    private class ProvisionResult
+    {
+        public bool Success { get; set; }
+        public bool PvCreated { get; set; }
+        public bool PvcCreated { get; set; }
+        public bool PvcBound { get; set; }
+        public string? PvName { get; set; }
+        public string? PvcName { get; set; }
+        public string? ErrorMessage { get; set; }
+        public long DurationMs { get; set; }
+        public List<string>? MountedDeployments { get; set; }
+        public List<string>? FailedMounts { get; set; }
     }
 }
