@@ -126,8 +126,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OTEL-01 | Phase 14 | Complete |
 | OTEL-02 | Phase 14 | Complete |
 | OTEL-03 | Phase 14 | Complete |
-| MON-05 | Phase 15 | Pending |
-| MON-06 | Phase 15 | Pending |
+| MON-05 | Phase 15 | In Progress |
+| MON-06 | Phase 15 | In Progress |
 | MON-07 | Phase 16 | Pending |
 | SIM-01 | Phase 17 | Pending |
 | SIM-02 | Phase 17 | Pending |
