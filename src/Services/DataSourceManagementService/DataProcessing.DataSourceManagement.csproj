@@ -11,6 +11,8 @@
     <PackageReference Include="NJsonSchema" />
     <PackageReference Include="MassTransit" />
     <PackageReference Include="MassTransit.RabbitMQ" />
+    <PackageReference Include="Quartz" />
+    <PackageReference Include="Quartz.Extensions.Hosting" />
   </ItemGroup>
 
   <ItemGroup>
