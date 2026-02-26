@@ -27,6 +27,8 @@ interface ConnectionTabProps {
   testingConnection: boolean;
   connectionTestResult: 'success' | 'failed' | null;
   onTestConnection: () => void;
+  /** Pre-loaded field values to restore on mount (edit mode) */
+  savedFieldValues?: Record<string, any>;
 }
 
 // Server type icons for display
@@ -55,8 +57,16 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   connectionType,
   testingConnection,
   connectionTestResult,
-  onTestConnection
+  onTestConnection,
+  savedFieldValues
 }) => {
+  // Restore saved field values on mount (edit mode fix: form.setFieldsValue runs
+  // before lazy-loaded tab components mount, so Form.Item fields aren't registered yet)
+  useEffect(() => {
+    if (savedFieldValues) {
+      form.setFieldsValue(savedFieldValues);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Fetch available input servers (for non-NAS protocols)
   const { data: inputServers = [], isLoading: loadingServers } = useQuery({
     queryKey: serverQueryKeys.list('input'),

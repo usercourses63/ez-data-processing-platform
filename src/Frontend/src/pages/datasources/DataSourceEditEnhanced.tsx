@@ -457,6 +457,10 @@ const DataSourceEditEnhanced: React.FC = () => {
                         testingConnection={testingConnection}
                         connectionTestResult={connectionTestResult}
                         onTestConnection={handleTestConnection}
+                        savedFieldValues={parsedConfig?.connectionConfig ? {
+                          inputServerId: parsedConfig.connectionConfig.inputServerId || (dataSource as any)?.FileServerId,
+                          nasDeviceId: parsedConfig.connectionConfig.nasDeviceId || (dataSource as any)?.NasDeviceId,
+                        } : undefined}
                       />
                     </Suspense>
                   )
