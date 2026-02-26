@@ -156,6 +156,9 @@ public class DataSourceGenerator
                         _ => 0
                     },
                     path = filePath,
+                    inputServerId = server?.ID,
+                    nasDeviceId = nasDevice?.ID,
+                    nasSubPath = nasDevice != null ? filePath : (string?)null,
                     kafkaBrokers = connType == "Kafka" ? "kafka:9092" : (string?)null,
                     kafkaTopic = connType == "Kafka" ? $"{category}_events" : (string?)null,
                     kafkaConsumerGroup = connType == "Kafka" ? $"dataprocessing_{category}_group" : (string?)null,

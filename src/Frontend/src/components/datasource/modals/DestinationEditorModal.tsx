@@ -175,6 +175,7 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
         outputFormat: destination.outputFormat,
         includeInvalidRecords: destination.includeInvalidRecords,
         outputServerId: destination.outputServerId,
+        nasDeviceId: destination.nasDeviceId,
         // Applicative fields
         path: destination.folderConfig?.path || destination.kafkaConfig?.topic,
         fileNamePattern: destination.folderConfig?.fileNamePattern,

@@ -107,6 +107,8 @@ const DataSourceFormEnhanced: React.FC = () => {
             consumerGroup: values.kafkaConsumerGroup,
             securityProtocol: values.kafkaSecurityProtocol,
             offsetReset: values.kafkaOffsetReset,
+            // Server reference (v0.2.0)
+            inputServerId: values.inputServerId,
             // NAS-specific fields
             nasDeviceId: values.nasDeviceId,
             nasSubPath: values.nasSubPath,
