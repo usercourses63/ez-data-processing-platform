@@ -121,16 +121,31 @@ public class SimulatorSeederService
         }
 
         // 7. Add Kafka servers from EZ platform's internal cluster
-        Console.WriteLine("  Adding Kafka servers from EZ platform cluster...");
-        var kafkaInput = CreateKafkaServer("kafka-input", "EZ Platform Kafka (input consumer)", ServerDirection.Input);
+        Console.WriteLine("  Adding Kafka servers...");
+        var kafkaInput = CreateKafkaServer("kafka-input", "EZ Platform Kafka (input consumer)", ServerDirection.Input, "kafka", 9092);
         await kafkaInput.SaveAsync();
         adminServers.Add(kafkaInput);
         Console.WriteLine($"  \u2713 Created AdminServer: kafka-input (kafka, Input)");
 
-        var kafkaOutput = CreateKafkaServer("kafka-output", "EZ Platform Kafka (output producer)", ServerDirection.Output);
+        var kafkaOutput = CreateKafkaServer("kafka-output", "EZ Platform Kafka (output producer)", ServerDirection.Output, "kafka", 9092);
         await kafkaOutput.SaveAsync();
         adminServers.Add(kafkaOutput);
         Console.WriteLine($"  \u2713 Created AdminServer: kafka-output (kafka, Output)");
+
+        // 7b. Add Kafka server from file-simulator cluster (external Kafka for cross-cluster scenarios)
+        var simHost = connInfo.Hostname;
+        if (!string.IsNullOrEmpty(simHost))
+        {
+            var simKafka = CreateKafkaServer(
+                "file-simulator-kafka",
+                $"File Simulator Kafka ({simHost}:30092)",
+                ServerDirection.Both,
+                simHost,
+                30092);
+            await simKafka.SaveAsync();
+            adminServers.Add(simKafka);
+            Console.WriteLine($"  \u2713 Created AdminServer: file-simulator-kafka (kafka, Both)");
+        }
 
         // 8. Provision NAS devices (PV/PVC/Mount)
         if (provisionNas && nasDevices.Count > 0)
@@ -147,10 +162,8 @@ public class SimulatorSeederService
         return (adminServers, nasDevices);
     }
 
-    private static AdminServer CreateKafkaServer(string name, string description, ServerDirection direction)
+    private static AdminServer CreateKafkaServer(string name, string description, ServerDirection direction, string host, int port)
     {
-        // Use internal Kubernetes service address for in-cluster communication
-        // kafka:9092 is the internal service, localhost:9094 only works from port-forward
         return new AdminServer
         {
             Name = name,
@@ -158,11 +171,11 @@ public class SimulatorSeederService
             ServerType = "kafka",
             Direction = direction,
             IsActive = true,
-            Host = "kafka",
-            Port = 9092,
+            Host = host,
+            Port = port,
             KafkaConfig = new KafkaServerConfig
             {
-                BootstrapServers = "kafka:9092",
+                BootstrapServers = $"{host}:{port}",
                 SecurityProtocol = "PLAINTEXT",
                 DefaultConsumerGroup = "dataprocessing-group",
                 AcksRequired = 1
