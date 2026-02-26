@@ -21,7 +21,8 @@
 - [x] **Phase 12: NAS Lifecycle Completion** - Auto-mount, DataSource linking, PVC verification, delete lifecycle ✓ (2026-02-11)
 - [ ] **Phase 13: AdminServer & Feature Completion** - File-simulator integration, NAS auto-test in forms
 - [x] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices (completed 2026-02-25)
-- [x] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring (completed 2026-02-25)
+- [x] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring (completed 2026-02-25)
+- [ ] **Phase 15.1: Protocol File Operations Testing** - Test all device protocols against file-simulator (INSERTED)
 - [ ] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page
 - [ ] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration
 - [ ] **Phase 18: E2E Validation** - Full file flow tests, error tests, Playwright UI verification
@@ -106,6 +107,24 @@ Plans:
 Plans:
 - [x] 15-01-PLAN.md — Backend health check infrastructure: Quartz.NET job, DeviceHealthService, MongoDB TTL history, REST API endpoint (MON-05, MON-06)
 - [ ] 15-02-PLAN.md — Frontend Device Health tab: status cards, summary bar, React Query polling, Hebrew translations (MON-05, MON-06)
+
+### Phase 15.1: Test all system devices (NAS and protocols) file operations against simulator (INSERTED)
+
+**Goal:** Validate all device types and protocol-based file operations work correctly against the file-simulator service with full protocol x format x operation matrix coverage
+**Depends on:** Phase 15
+**Requirements**: SIM-TEST-01, SIM-TEST-02, SIM-TEST-03, SIM-TEST-04
+**Success Criteria** (what must be TRUE):
+  1. Backend file operation REST endpoints exist for List/Read/Write on any registered AdminServer
+  2. All protocols pass file operations against static simulator devices (Scenario A)
+  3. FTP, SFTP, and NAS pass file operations against dynamically created devices (Scenario B)
+  4. Protocol x format matrix report generated showing pass/fail per combination
+**Plans**: 4 plans (Wave 1: 15.1-01; Wave 2: 15.1-02, 15.1-03 parallel; Wave 3: 15.1-04)
+
+Plans:
+- [ ] 15.1-01-PLAN.md — Backend file operations REST proxy + Playwright test infrastructure (SIM-TEST-01)
+- [ ] 15.1-02-PLAN.md — FTP, SFTP, HTTP/WebDAV protocol test files (SIM-TEST-02, SIM-TEST-03)
+- [ ] 15.1-03-PLAN.md — S3, Kafka, NAS/NFS protocol test files (SIM-TEST-02, SIM-TEST-03)
+- [ ] 15.1-04-PLAN.md — Global setup/teardown, full test execution, matrix report (SIM-TEST-04)
 
 ### Phase 16: SignalR Real-Time Updates
 **Goal**: Enable real-time updates on System Monitoring page via SignalR
@@ -202,7 +221,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21
+Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21
 
 Note: Phases 14 and 17 can run in parallel with earlier phases as they have no strict dependencies.
 
@@ -212,7 +231,8 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
 | 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
-| 15. Device Health Monitoring | 2/2 | Complete    | 2026-02-25 | - |
+| 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
+| 15.1. Protocol File Operations Testing | v0.2 | 0/4 | Planned | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
 | 18. E2E Validation | v0.2 | 0/4 | Not started | - |
@@ -220,7 +240,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 8/28 plans complete (29%)
+**v0.2 Totals:** 9/32 plans complete (28%)
 
 ---
-*Roadmap updated: 2026-02-25 after 15-01 plan execution complete*
+*Roadmap updated: 2026-02-26 after Phase 15.1 planning complete*

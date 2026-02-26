@@ -21,8 +21,8 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 ### NAS Lifecycle Management
 
-- [ ] **NAS-08**: Auto-mount PV/PVC volumes to service deployments after provisioning (role-based: Input→FileDiscovery+FileProcessor, Output→OutputService, Both→all three)
-- [ ] **NAS-09**: DataSource → NasDevice entity linking (NasDeviceId field, mount path auto-population in DataSource.FilePath)
+- [ ] **NAS-08**: Auto-mount PV/PVC volumes to service deployments after provisioning (role-based: Input->FileDiscovery+FileProcessor, Output->OutputService, Both->all three)
+- [ ] **NAS-09**: DataSource -> NasDevice entity linking (NasDeviceId field, mount path auto-population in DataSource.FilePath)
 - [ ] **NAS-10**: PVC binding verification required before DataSource can use a NAS device
 - [ ] **NAS-11**: NAS update/delete lifecycle (prevent delete if referenced by DataSources, cascade cleanup on deprovision, pod restart on configuration changes)
 
@@ -37,6 +37,13 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 - [x] **MON-05**: System Monitoring page reflects real current system components (replace mock data generators)
 - [x] **MON-06**: File access device health/latency/keep-alive monitoring (NAS devices, AdminServers)
 - [ ] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator-suite patterns)
+
+### Protocol File Operations Testing (Phase 15.1 - INSERTED)
+
+- [ ] **SIM-TEST-01**: Backend file operation proxy endpoints (List/Read/Write) exist for all server protocols via REST API
+- [ ] **SIM-TEST-02**: Scenario A passes: all static devices tested with full file operation matrix (all protocols x all formats)
+- [ ] **SIM-TEST-03**: Scenario B passes: dynamic devices (FTP, SFTP, NAS) created via simulator API, registered in EZ UI, and tested with same file operation matrix
+- [ ] **SIM-TEST-04**: Protocol x format matrix report generated with pass/fail per combination
 
 ### File-Simulator Integration
 
@@ -61,7 +68,7 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 ### E2E Validation
 
-- [ ] **E2E-01**: Full file flow test (generate input → ingest → process → output → compare results)
+- [ ] **E2E-01**: Full file flow test (generate input -> ingest -> process -> output -> compare results)
 - [ ] **E2E-02**: Error/negative tests with intentional bad data verify filtering and error handling
 - [ ] **E2E-03**: Playwright UI verification of NAS devices, AdminServer, file protocols, all features
 - [ ] **E2E-04**: All existing E2E tests validated against file-simulator environment
@@ -126,9 +133,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OTEL-01 | Phase 14 | Complete |
 | OTEL-02 | Phase 14 | Complete |
 | OTEL-03 | Phase 14 | Complete |
-| MON-05 | Phase 15 | In Progress |
-| MON-06 | Phase 15 | In Progress |
+| MON-05 | Phase 15 | Complete |
+| MON-06 | Phase 15 | Complete |
 | MON-07 | Phase 16 | Pending |
+| SIM-TEST-01 | Phase 15.1 | Pending |
+| SIM-TEST-02 | Phase 15.1 | Pending |
+| SIM-TEST-03 | Phase 15.1 | Pending |
+| SIM-TEST-04 | Phase 15.1 | Pending |
 | SIM-01 | Phase 17 | Pending |
 | SIM-02 | Phase 17 | Pending |
 | SIM-03 | Phase 17 | Pending |
@@ -149,10 +160,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REL-02 | Phase 21 | Pending |
 
 **Coverage:**
-- v0.2 requirements: 34 total
-- Mapped to phases: 34
+- v0.2 requirements: 38 total
+- Mapped to phases: 38
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-11 after v0.2 roadmap creation*
+*Last updated: 2026-02-26 after Phase 15.1 planning (added SIM-TEST-01 through SIM-TEST-04)*
