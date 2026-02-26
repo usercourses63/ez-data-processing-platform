@@ -60,13 +60,6 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   onTestConnection,
   savedFieldValues
 }) => {
-  // Restore saved field values on mount (edit mode fix: form.setFieldsValue runs
-  // before lazy-loaded tab components mount, so Form.Item fields aren't registered yet)
-  useEffect(() => {
-    if (savedFieldValues) {
-      form.setFieldsValue(savedFieldValues);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Fetch available input servers (for non-NAS protocols)
   const { data: inputServers = [], isLoading: loadingServers } = useQuery({
     queryKey: serverQueryKeys.list('input'),
@@ -80,6 +73,17 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
     queryFn: () => getNasDevices(),
     enabled: connectionType === 'NAS',
   });
+
+  // Restore saved field values after data loads (edit mode fix: form.setFieldsValue
+  // discards values when Select options aren't available yet due to lazy loading)
+  useEffect(() => {
+    if (!savedFieldValues) return;
+    if (connectionType === 'NAS' && nasDevices.length > 0 && savedFieldValues.nasDeviceId) {
+      form.setFieldsValue({ nasDeviceId: savedFieldValues.nasDeviceId });
+    } else if (connectionType !== 'NAS' && inputServers.length > 0 && savedFieldValues.inputServerId) {
+      form.setFieldsValue({ inputServerId: savedFieldValues.inputServerId });
+    }
+  }, [nasDevices, inputServers]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-test NAS device connection on selection
   const { mutateAsync: testNasConnection, isPending: testingNasConnection } = useMutation({
