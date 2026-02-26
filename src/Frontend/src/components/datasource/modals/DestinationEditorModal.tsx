@@ -77,7 +77,7 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
   onCancel
 }) => {
   const [form] = Form.useForm();
-  const [destinationType, setDestinationType] = useState<string>(destination?.type || 'NAS');
+  const [destinationType, setDestinationType] = useState<string>(destination?.type?.toUpperCase() || 'NAS');
 
   // Fetch available output servers (for non-NAS protocols)
   const { data: outputServers = [], isLoading: loadingServers } = useQuery({
@@ -122,12 +122,12 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
   // Filter NAS devices - show output-capable devices
   const availableNasDevices = useMemo(() => {
     if (destinationType !== 'NAS') return [];
-    // Filter devices that can be output destinations (Output or Both roles)
+    // Filter devices that can be output destinations (Output, Backup, or Both roles)
     // Backend returns Role as numeric enum (0=Input, 1=Output, 2=Backup, 3=Both)
     const roleEnumToString: Record<number, string> = { 0: 'Input', 1: 'Output', 2: 'Backup', 3: 'Both' };
     return nasDevices.filter((device: NasDevice) => {
       const role = typeof device.Role === 'number' ? roleEnumToString[device.Role] : device.Role;
-      return role === 'Output' || role === 'Both';
+      return role === 'Output' || role === 'Both' || role === 'Backup';
     });
   }, [destinationType, nasDevices]);
 
@@ -167,6 +167,10 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
 
   useEffect(() => {
     if (visible && destination) {
+      // For NAS destinations, the NAS device ID may be stored in outputServerId
+      const nasId = destination.type?.toLowerCase() === 'nas'
+        ? (destination.nasDeviceId || destination.outputServerId)
+        : destination.nasDeviceId;
       form.setFieldsValue({
         name: destination.name,
         description: destination.description,
@@ -175,14 +179,14 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
         outputFormat: destination.outputFormat,
         includeInvalidRecords: destination.includeInvalidRecords,
         outputServerId: destination.outputServerId,
-        nasDeviceId: destination.nasDeviceId,
+        nasDeviceId: nasId,
         // Applicative fields
         path: destination.folderConfig?.path || destination.kafkaConfig?.topic,
         fileNamePattern: destination.folderConfig?.fileNamePattern,
         kafkaTopic: destination.kafkaConfig?.topic,
         kafkaMessageKey: destination.kafkaConfig?.messageKey,
       });
-      setDestinationType(destination.type);
+      setDestinationType(destination.type?.toUpperCase() || 'NAS');
     } else if (visible && !destination) {
       // New destination - default to NAS
       form.resetFields();
