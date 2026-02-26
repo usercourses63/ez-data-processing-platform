@@ -107,6 +107,8 @@ const DataSourceFormEnhanced: React.FC = () => {
             consumerGroup: values.kafkaConsumerGroup,
             securityProtocol: values.kafkaSecurityProtocol,
             offsetReset: values.kafkaOffsetReset,
+            // Server reference (v0.2.0)
+            inputServerId: values.inputServerId,
             // NAS-specific fields
             nasDeviceId: values.nasDeviceId,
             nasSubPath: values.nasSubPath,
@@ -134,10 +136,24 @@ const DataSourceFormEnhanced: React.FC = () => {
           },
           outputConfig: outputConfig
         }),
-        output: {
-          defaultOutputFormat: outputConfig?.defaultOutputFormat || 'original',
-          includeInvalidRecords: outputConfig?.includeInvalidRecords || false,
-          destinations: outputConfig?.destinations || []
+        Output: {
+          DefaultOutputFormat: outputConfig?.defaultOutputFormat || 'original',
+          IncludeInvalidRecords: outputConfig?.includeInvalidRecords || false,
+          Destinations: (outputConfig?.destinations || []).map(d => ({
+            Id: d.id,
+            Name: d.name,
+            Description: d.description,
+            Type: d.type,
+            Enabled: d.enabled,
+            OutputFormat: d.outputFormat,
+            IncludeInvalidRecords: d.includeInvalidRecords,
+            OutputServerId: d.outputServerId,
+            NasDeviceId: d.nasDeviceId,
+            KafkaConfig: d.kafkaConfig,
+            FolderConfig: d.folderConfig,
+            SftpConfig: d.sftpConfig,
+            HttpConfig: d.httpConfig,
+          }))
         },
         fileFormat: values.fileType,
         retentionDays: values.retentionDays
@@ -223,7 +239,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                 },
                 {
                   key: 'connection',
-                  label: <span><ApiOutlined /> הגדרות חיבור</span>,
+                  label: <span><ApiOutlined /> הגדרות קלט</span>,
                   children: (
                     <Suspense fallback={<Skeleton active />}>
                       <ConnectionTab

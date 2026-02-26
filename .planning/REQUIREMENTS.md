@@ -28,14 +28,14 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 ### Observability Verification
 
-- [ ] **OTEL-01**: Every microservice generates structured logs via OTEL collector to Elasticsearch
-- [ ] **OTEL-02**: Every microservice generates distributed traces via OTEL collector to Jaeger
-- [ ] **OTEL-03**: Every microservice generates metrics via OTEL collector to Prometheus
+- [x] **OTEL-01**: Every microservice generates structured logs via OTEL collector to Elasticsearch
+- [x] **OTEL-02**: Every microservice generates distributed traces via OTEL collector to Jaeger
+- [x] **OTEL-03**: Every microservice generates metrics via OTEL collector to Prometheus
 
 ### System Monitoring
 
-- [ ] **MON-05**: System Monitoring page reflects real current system components (replace mock data generators)
-- [ ] **MON-06**: File access device health/latency/keep-alive monitoring (NAS devices, AdminServers)
+- [x] **MON-05**: System Monitoring page reflects real current system components (replace mock data generators)
+- [x] **MON-06**: File access device health/latency/keep-alive monitoring (NAS devices, AdminServers)
 - [ ] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator-suite patterns)
 
 ### File-Simulator Integration
@@ -123,11 +123,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NAS-09 | Phase 12 | Complete |
 | NAS-10 | Phase 12 | Complete |
 | NAS-11 | Phase 12 | Complete |
-| OTEL-01 | Phase 14 | Pending |
-| OTEL-02 | Phase 14 | Pending |
-| OTEL-03 | Phase 14 | Pending |
-| MON-05 | Phase 15 | Pending |
-| MON-06 | Phase 15 | Pending |
+| OTEL-01 | Phase 14 | Complete |
+| OTEL-02 | Phase 14 | Complete |
+| OTEL-03 | Phase 14 | Complete |
+| MON-05 | Phase 15 | In Progress |
+| MON-06 | Phase 15 | In Progress |
 | MON-07 | Phase 16 | Pending |
 | SIM-01 | Phase 17 | Pending |
 | SIM-02 | Phase 17 | Pending |

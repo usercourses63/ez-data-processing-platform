@@ -59,9 +59,14 @@ spec:
             configMapKeyRef:
               name: services-config
               key: database-name
+        - name: OpenTelemetry__OtlpEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: otlp-endpoint
         resources:
           requests:
-            cpu: "500m"
+            cpu: "50m"
             memory: "1Gi"
           limits:
             cpu: "2000m"

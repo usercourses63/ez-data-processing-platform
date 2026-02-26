@@ -142,6 +142,8 @@ const DataSourceEditEnhanced: React.FC = () => {
           connectionPath: connectionConfig.path || data.Data.FilePath,
           connectionUrl: connectionConfig.url,
           filePattern: connectionConfig.filePattern || data.Data.FilePattern || '*.*',
+          // Server reference (v0.2.0)
+          inputServerId: connectionConfig.inputServerId || (data.Data as any).FileServerId,
           // Kafka fields
           kafkaBrokers: connectionConfig.brokers,
           kafkaTopic: connectionConfig.topic,
@@ -149,7 +151,7 @@ const DataSourceEditEnhanced: React.FC = () => {
           kafkaSecurityProtocol: connectionConfig.securityProtocol,
           kafkaOffsetReset: connectionConfig.offsetReset,
           // NAS fields
-          nasDeviceId: connectionConfig.nasDeviceId,
+          nasDeviceId: connectionConfig.nasDeviceId || (data.Data as any).NasDeviceId,
           nasSubPath: connectionConfig.nasSubPath,
           fileType: fileConfig.type || extractFileTypeFromPattern(data.Data.FilePattern) || 'CSV',
           csvDelimiter: fileConfig.delimiter || ',',
@@ -186,6 +188,8 @@ const DataSourceEditEnhanced: React.FC = () => {
               enabled: dest.Enabled,
               outputFormat: dest.OutputFormat,
               includeInvalidRecords: dest.IncludeInvalidRecords,
+              outputServerId: dest.OutputServerId,
+              nasDeviceId: dest.NasDeviceId,
               kafkaConfig: dest.KafkaConfig ? {
                 brokerServer: dest.KafkaConfig.BrokerServer,
                 topic: dest.KafkaConfig.Topic,
@@ -257,6 +261,8 @@ const DataSourceEditEnhanced: React.FC = () => {
           consumerGroup: values.kafkaConsumerGroup ?? existingConfig.connectionConfig?.consumerGroup,
           securityProtocol: values.kafkaSecurityProtocol ?? existingConfig.connectionConfig?.securityProtocol,
           offsetReset: values.kafkaOffsetReset ?? existingConfig.connectionConfig?.offsetReset,
+          // Server reference (v0.2.0)
+          inputServerId: values.inputServerId ?? existingConfig.connectionConfig?.inputServerId,
           // NAS-specific fields
           nasDeviceId: values.nasDeviceId ?? existingConfig.connectionConfig?.nasDeviceId,
           nasSubPath: values.nasSubPath ?? existingConfig.connectionConfig?.nasSubPath
@@ -307,7 +313,21 @@ const DataSourceEditEnhanced: React.FC = () => {
         Output: {
           DefaultOutputFormat: outputConfig?.defaultOutputFormat || 'original',
           IncludeInvalidRecords: outputConfig?.includeInvalidRecords || false,
-          Destinations: outputConfig?.destinations || []
+          Destinations: (outputConfig?.destinations || []).map(d => ({
+            Id: d.id,
+            Name: d.name,
+            Description: d.description,
+            Type: d.type,
+            Enabled: d.enabled,
+            OutputFormat: d.outputFormat,
+            IncludeInvalidRecords: d.includeInvalidRecords,
+            OutputServerId: d.outputServerId,
+            NasDeviceId: d.nasDeviceId,
+            KafkaConfig: d.kafkaConfig,
+            FolderConfig: d.folderConfig,
+            SftpConfig: d.sftpConfig,
+            HttpConfig: d.httpConfig,
+          }))
         },
         ValidationRules: null,
         Metadata: null,
@@ -427,7 +447,7 @@ const DataSourceEditEnhanced: React.FC = () => {
                 },
                 {
                   key: 'connection',
-                  label: <span><ApiOutlined /> הגדרות חיבור</span>,
+                  label: <span><ApiOutlined /> הגדרות קלט</span>,
                   children: (
                     <Suspense fallback={<Skeleton active />}>
                       <ConnectionTab
@@ -437,6 +457,10 @@ const DataSourceEditEnhanced: React.FC = () => {
                         testingConnection={testingConnection}
                         connectionTestResult={connectionTestResult}
                         onTestConnection={handleTestConnection}
+                        savedFieldValues={parsedConfig?.connectionConfig ? {
+                          inputServerId: parsedConfig.connectionConfig.inputServerId || (dataSource as any)?.FileServerId,
+                          nasDeviceId: parsedConfig.connectionConfig.nasDeviceId || (dataSource as any)?.NasDeviceId,
+                        } : undefined}
                       />
                     </Suspense>
                   )

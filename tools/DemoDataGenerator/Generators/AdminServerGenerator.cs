@@ -132,6 +132,24 @@ public class AdminServerGenerator
                     AcksRequired = 1
                 }
             ),
+            // 8b. External Kafka - File Simulator cluster
+            (
+                Name: "file-simulator Kafka",
+                NameEn: "file-simulator Kafka",
+                Description: $"אשכול Kafka חיצוני בסימולטור קבצים ({_fileSimulatorHost}:30092)",
+                ServerType: "kafka",
+                Direction: ServerDirection.Both,
+                Host: _fileSimulatorHost,
+                Port: 30092,
+                BasePath: null,
+                KafkaConfig: new KafkaServerConfig
+                {
+                    BootstrapServers = $"{_fileSimulatorHost}:30092",
+                    SecurityProtocol = "PLAINTEXT",
+                    DefaultConsumerGroup = "dataprocessing-group",
+                    AcksRequired = 1
+                }
+            ),
             // 9. NFS Input - file-simulator (mounted as PV)
             (
                 Name: "file-simulator NFS קלט",

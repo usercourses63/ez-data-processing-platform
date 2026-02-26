@@ -27,6 +27,8 @@ interface ConnectionTabProps {
   testingConnection: boolean;
   connectionTestResult: 'success' | 'failed' | null;
   onTestConnection: () => void;
+  /** Pre-loaded field values to restore on mount (edit mode) */
+  savedFieldValues?: Record<string, any>;
 }
 
 // Server type icons for display
@@ -55,7 +57,8 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   connectionType,
   testingConnection,
   connectionTestResult,
-  onTestConnection
+  onTestConnection,
+  savedFieldValues
 }) => {
   // Fetch available input servers (for non-NAS protocols)
   const { data: inputServers = [], isLoading: loadingServers } = useQuery({
@@ -70,6 +73,17 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
     queryFn: () => getNasDevices(),
     enabled: connectionType === 'NAS',
   });
+
+  // Restore saved field values after data loads (edit mode fix: form.setFieldsValue
+  // discards values when Select options aren't available yet due to lazy loading)
+  useEffect(() => {
+    if (!savedFieldValues) return;
+    if (connectionType === 'NAS' && nasDevices.length > 0 && savedFieldValues.nasDeviceId) {
+      form.setFieldsValue({ nasDeviceId: savedFieldValues.nasDeviceId });
+    } else if (connectionType !== 'NAS' && inputServers.length > 0 && savedFieldValues.inputServerId) {
+      form.setFieldsValue({ inputServerId: savedFieldValues.inputServerId });
+    }
+  }, [nasDevices, inputServers]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-test NAS device connection on selection
   const { mutateAsync: testNasConnection, isPending: testingNasConnection } = useMutation({
@@ -168,7 +182,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   return (
     <>
       <Alert
-        message="הגדרות חיבור למקור הנתונים"
+        message="הגדרות קלט למקור הנתונים"
         description="בחר את סוג הפרוטוקול ושרת שהוגדר על ידי מנהל המערכת"
         type="info"
         showIcon

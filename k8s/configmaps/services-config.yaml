@@ -8,9 +8,8 @@ metadata:
   name: services-config
   namespace: ez-platform
 data:
-  # MongoDB Configuration - Replica Set (3 nodes)
-  # Full MongoDB URI with all replica set members
-  mongodb-connection: "mongodb://mongodb-0.mongodb.ez-platform.svc.cluster.local:27017,mongodb-1.mongodb.ez-platform.svc.cluster.local:27017,mongodb-2.mongodb.ez-platform.svc.cluster.local:27017/?replicaSet=rs0"
+  # MongoDB Configuration - Single node with replica set
+  mongodb-connection: "mongodb://mongodb:27017"
   database-name: "ezplatform"
 
   # Kafka Configuration - Using Service (not specific pod)

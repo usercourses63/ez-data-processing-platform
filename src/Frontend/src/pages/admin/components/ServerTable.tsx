@@ -38,11 +38,14 @@ const serverTypeConfig: Record<string, { label: string; color: string }> = {
   folder: { label: 'Folder', color: 'default' },
 };
 
-// Direction display
-const directionConfig: Record<string, { label: string; color: string }> = {
+// Direction display (backend returns numeric enum: 0=Input, 1=Output, 2=Both)
+const directionConfig: Record<string | number, { label: string; color: string }> = {
+  0: { label: 'קלט', color: 'blue' },
+  1: { label: 'פלט', color: 'green' },
+  2: { label: 'דו-כיווני', color: 'purple' },
   Input: { label: 'קלט', color: 'blue' },
   Output: { label: 'פלט', color: 'green' },
-  Both: { label: 'קלט + פלט', color: 'purple' },
+  Both: { label: 'דו-כיווני', color: 'purple' },
 };
 
 const ServerTable: React.FC<ServerTableProps> = ({

@@ -61,9 +61,14 @@ spec:
             configMapKeyRef:
               name: services-config
               key: kafka-server
+        - name: OpenTelemetry__OtlpEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: otlp-endpoint
         resources:
           requests:
-            cpu: "250m"
+            cpu: "50m"
             memory: "512Mi"
           limits:
             cpu: "1000m"

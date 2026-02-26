@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 13 of 21 (AdminServer & Feature Completion) - IN PROGRESS
-Plan: 2 of 3 in current phase - COMPLETE
-Status: Executing Phase
-Last activity: 2026-02-15 — Completed 13-01-PLAN.md (File-Simulator API Client + DemoDataGenerator Integration)
+Phase: 15 of 21 (Device Health Monitoring) - COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase Complete
+Last activity: 2026-02-25 — Completed 15-02-PLAN.md (Frontend Device Health tab with React Query polling)
 
-Progress: [###############░░░░░░░░░░░░░░░░░] 39/60 plans (v0.1: 32/32, v0.2: 7/28)
+Progress: [###################░░░░░░░░░░░░░] 43/60 plans (v0.1: 32/32, v0.2: 11/28)
 
 ## Performance Metrics
 
@@ -35,10 +35,12 @@ Progress: [###############░░░░░░░░░░░░░░░░░] 3
 | 06-deployment-automation | 4 | 14 min | 3.5 min |
 | 07-documentation-audit | 2 | 15 min | 7.5 min |
 | 09-frontend-development | 4 | 20 min | 5.0 min |
+| 14-otel-verification | 2 | 12 min | 6.0 min |
+| 15-device-health-monitoring | 2 | 10 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 12-02 (5 min), 12-03 (4 min), 13-02 (2 min), 13-01 (5 min)
-- Trend: Consistent ~3-5 min/plan
+- Last 5 plans: 14-01 (4 min), 14-02 (8 min), 15-01 (7 min), 15-02 (3 min)
+- Trend: Consistent ~3-8 min/plan
 
 *Updated after each plan completion*
 
@@ -58,6 +60,10 @@ Recent decisions affecting current work:
 - [12-03]: Delete blocked with Hebrew error listing DataSource names; cascade unmount before PVC delete on deprovision
 - [13-02]: Used existing NasDeviceConnectionTestResult instead of creating new NasTestResult; antd message toast for auto-test feedback
 - [13-01]: Used Central Package Management (versions in Directory.Packages.props); direct HttpClient in CLI tool
+- [14-01]: Excluded DataSourceChatService from OTEL verification (no k8s deployment); multi-method trace detection (Jaeger API + ES indices + OTEL traces index)
+- [14-02]: All k8s deployments must include OpenTelemetry__OtlpEndpoint env var; DataSourceManagement image rebuilt as v0.2.0-otel with Serilog logging; 24/24 OTEL checks verified
+- [15-01]: Quartz.NET health check job every 30s; consecutive failure tracking (0=Healthy, 1-2=Degraded, 3+=Down); NAS degraded at 2000ms, AdminServer at 5000ms; image tagged v0.2.0-health
+- [15-02]: PascalCase interfaces matching backend PropertyNamingPolicy=null; 15s React Query polling; HeartOutlined icon for Device Health tab between overview and pods
 
 ### Pending Todos
 
@@ -74,9 +80,9 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-02-15
-Stopped at: Completed 13-01-PLAN.md (File-Simulator API Client + DemoDataGenerator Integration)
-Resume file: Continue Phase 13 with 13-03-PLAN.md
+Last session: 2026-02-25
+Stopped at: Completed 15-02-PLAN.md (Frontend Device Health tab with React Query polling)
+Resume file: Continue to Phase 16 (SignalR Real-Time Updates)
 
 ## v0.2 Phase Summary
 

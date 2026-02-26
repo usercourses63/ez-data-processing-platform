@@ -680,7 +680,27 @@
     "consumers": "צרכנים",
     "healthy": "תקין",
     "warning": "אזהרה",
-    "unknown": "לא ידוע"
+    "unknown": "לא ידוע",
+    "deviceHealth": {
+      "title": "בריאות התקנים",
+      "subtitle": "ניטור בריאות התקני NAS ושרתי ניהול",
+      "nasDevices": "התקני NAS",
+      "adminServers": "שרתי ניהול",
+      "summary": "סיכום",
+      "healthy": "תקין",
+      "degraded": "חלקי",
+      "down": "נפל",
+      "disabled": "מושבת",
+      "latency": "זמן תגובה",
+      "uptime24h": "זמינות (24 שע')",
+      "lastCheck": "בדיקה אחרונה",
+      "noDevices": "לא נמצאו התקנים",
+      "initializing": "בדיקות בריאות מאתחלות...",
+      "errorReason": "סיבת שגיאה",
+      "secondsAgo": "לפני {{count}} שניות",
+      "minutesAgo": "לפני {{count}} דקות",
+      "notAvailable": "לא זמין"
+    }
   },
   "schema": {
     "title": "ניהול Schema",

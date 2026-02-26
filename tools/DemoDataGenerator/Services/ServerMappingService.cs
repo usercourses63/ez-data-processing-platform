@@ -65,6 +65,7 @@ public class ServerMappingService
             AccessMode = "ReadWriteMany",
             ReclaimPolicy = "Retain",
             MountOptions = new List<string> { "nfsvers=3", "tcp", "hard", "intr" },
+            // Not provisioned - health check will do TCP connectivity test
             IsPvCreated = false,
             IsPvcBound = false,
             IsActive = true,

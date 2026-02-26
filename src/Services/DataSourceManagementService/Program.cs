@@ -11,6 +11,8 @@ using MongoDB.Bson;
 using System.Reflection;
 using System.Diagnostics;
 using MassTransit;
+using Quartz;
+using DataProcessing.DataSourceManagement.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,18 +46,14 @@ services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "DataSource Management API", Version = "v1" });
 });
 
-// Configure logging
-services.AddLogging(loggingBuilder =>
-{
-    loggingBuilder.AddConsole();
-    loggingBuilder.AddDebug();
-});
-
 // Configure OpenTelemetry (metrics, traces, and logs via OTLP)
 var serviceName = "DataProcessing.DataSourceManagement";
 var activitySource = new ActivitySource(serviceName);
 services.AddSingleton(activitySource);
 services.AddDataProcessingOpenTelemetry(configuration, serviceName);
+
+// Configure structured logging via Serilog + OTEL pipeline
+services.AddDataProcessingLogging(configuration, builder.Environment, serviceName);
 
 // Configure metrics
 services.AddSingleton<BusinessMetrics>();
@@ -121,6 +119,26 @@ services.AddScoped<DataProcessing.DataSourceManagement.Services.Schema.ISchemaVa
 // Register connection testing service (Week 1: Connection Testing)
 services.AddScoped<DataProcessing.DataSourceManagement.Services.ConnectionTest.IConnectionTestService,
     DataProcessing.DataSourceManagement.Services.ConnectionTest.ConnectionTestService>();
+
+// Register device health monitoring (v0.2.0: MON-05, MON-06)
+services.AddScoped<IDeviceHealthService, DeviceHealthService>();
+services.AddScoped<DeviceHealthCheckJob>();
+services.AddHostedService<DeviceHealthService>();
+
+// Configure Quartz.NET for device health check scheduling
+builder.Services.AddQuartz(q =>
+{
+    q.UseInMemoryStore();
+    var jobKey = new JobKey("DeviceHealthCheck");
+    q.AddJob<DeviceHealthCheckJob>(opts => opts.WithIdentity(jobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("DeviceHealthCheck-trigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInSeconds(30)
+            .RepeatForever()));
+});
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 // Add CORS
 services.AddCors(options =>
@@ -218,6 +236,18 @@ try
 
             await DB.Index<DataSourceCategory>()
                 .Key(x => x.Name, KeyType.Ascending)
+                .CreateAsync();
+
+            // TTL index for 7-day retention of health check history (v0.2.0: MON-05)
+            await DB.Index<DeviceHealthCheckResult>()
+                .Key(x => x.CheckedAt, KeyType.Ascending)
+                .Option(o => o.ExpireAfter = TimeSpan.FromDays(7))
+                .CreateAsync();
+
+            // Compound index for fast per-device latest check lookup
+            await DB.Index<DeviceHealthCheckResult>()
+                .Key(x => x.DeviceId, KeyType.Ascending)
+                .Key(x => x.CheckedAt, KeyType.Descending)
                 .CreateAsync();
 
             initLogger.LogInformation("Database indexes created successfully");

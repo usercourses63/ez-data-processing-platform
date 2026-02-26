@@ -3,6 +3,7 @@ import { Row, Col, Typography, Spin, Alert as AntAlert, Tabs } from 'antd';
 import { useTranslation } from 'react-i18next';
 import {
   DashboardOutlined,
+  HeartOutlined,
   AppstoreOutlined,
   BarChartOutlined,
   InboxOutlined,
@@ -42,6 +43,7 @@ import PodStatusTable from './components/PodStatusTable';
 import DistributedTracing from './components/DistributedTracing';
 import MessageQueues from './components/MessageQueues';
 import RecentAlerts from './components/RecentAlerts';
+import DeviceHealthTab from './components/DeviceHealthTab';
 import './SystemMonitoring.css';
 
 const { Title, Paragraph } = Typography;
@@ -170,6 +172,16 @@ const SystemMonitoring: React.FC = () => {
           <PerformanceCharts metrics={metrics} />
         </>
       ),
+    },
+    {
+      key: 'deviceHealth',
+      label: (
+        <span>
+          <HeartOutlined />
+          {t('monitoring.deviceHealth.title')}
+        </span>
+      ),
+      children: <DeviceHealthTab />,
     },
     {
       key: 'pods',

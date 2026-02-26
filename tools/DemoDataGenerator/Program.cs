@@ -17,6 +17,7 @@ bool incrementalMode = args.Contains("--incremental");
 bool useSimulator = args.Contains("--use-simulator");
 bool discoverOnly = args.Contains("--discover-only");
 bool createServers = args.Contains("--create-servers");
+bool provisionNas = args.Contains("--provision-nas");
 
 // Parse MongoDB connection string (support both Docker Compose and K8s)
 string mongoHost = "localhost"; // Default for Docker Compose
@@ -43,6 +44,14 @@ var simUrlArg = args.FirstOrDefault(a => a.StartsWith("--simulator-url="));
 if (simUrlArg != null)
 {
     simulatorUrlOverride = simUrlArg.Split('=', 2)[1];
+}
+
+// Parse API URL for provisioning (DataSourceManagement service)
+string? apiUrlOverride = null;
+var apiUrlArg = args.FirstOrDefault(a => a.StartsWith("--api-url="));
+if (apiUrlArg != null)
+{
+    apiUrlOverride = apiUrlArg.Split('=', 2)[1];
 }
 
 // Load configuration from appsettings.json
@@ -78,6 +87,12 @@ if (useSimulator)
     Console.WriteLine($"Simulator URL: {simUrl}");
     Console.WriteLine($"Discover Only: {discoverOnly}");
     Console.WriteLine($"Create Servers: {createServers}");
+    Console.WriteLine($"Provision NAS: {provisionNas}");
+    if (provisionNas)
+    {
+        var apiUrl = apiUrlOverride ?? "http://datasource-management:5001";
+        Console.WriteLine($"API URL: {apiUrl}");
+    }
 }
 else
 {
@@ -134,12 +149,24 @@ try
             Timeout = TimeSpan.FromSeconds(30)
         };
 
+        // Create API client for provisioning if enabled
+        HttpClient? apiClient = null;
+        if (provisionNas)
+        {
+            var apiUrl = apiUrlOverride ?? "http://datasource-management:5001";
+            apiClient = new HttpClient
+            {
+                BaseAddress = new Uri(apiUrl),
+                Timeout = TimeSpan.FromSeconds(120) // Longer timeout for provisioning
+            };
+        }
+
         var simulatorClient = new FileSimulatorClient(httpClient);
         var mappingService = new ServerMappingService();
-        var seederService = new SimulatorSeederService(simulatorClient, mappingService);
+        var seederService = new SimulatorSeederService(simulatorClient, mappingService, apiClient);
 
         var createDynamic = createServers && !discoverOnly;
-        var (discoveredServers, nasDevices) = await seederService.SeedFromSimulatorAsync(createDynamic);
+        var (discoveredServers, nasDevices) = await seederService.SeedFromSimulatorAsync(createDynamic, provisionNas);
         servers = discoveredServers;
         seededNasDevices = nasDevices;
     }

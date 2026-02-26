@@ -240,7 +240,27 @@
     "consumers": "Consumers",
     "healthy": "Healthy",
     "warning": "Warning",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "deviceHealth": {
+      "title": "Device Health",
+      "subtitle": "NAS device and AdminServer health monitoring",
+      "nasDevices": "NAS Devices",
+      "adminServers": "Admin Servers",
+      "summary": "Summary",
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "down": "Down",
+      "disabled": "Disabled",
+      "latency": "Latency",
+      "uptime24h": "Uptime (24h)",
+      "lastCheck": "Last Check",
+      "noDevices": "No devices found",
+      "initializing": "Health checks initializing...",
+      "errorReason": "Error reason",
+      "secondsAgo": "{{count}} seconds ago",
+      "minutesAgo": "{{count}} minutes ago",
+      "notAvailable": "N/A"
+    }
   },
   "schema": {
     "title": "Schema Management",
