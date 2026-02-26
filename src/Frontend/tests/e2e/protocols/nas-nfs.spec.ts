@@ -38,6 +38,7 @@ import {
   testServerConnection,
   createNasDevice,
   provisionNasDevice,
+  deprovisionNasDevice,
   testNasConnection,
   getNasDevices,
   deleteNasDevice,
@@ -45,9 +46,12 @@ import {
   readFile,
   writeFile,
   deleteServer,
+  waitForDeploymentReady,
   AdminServerResponse,
   NasDeviceResponse,
   EZ_API_BASE,
+  ServerDirection,
+  NasDeviceRole,
 } from '../helpers/ez-api-client';
 import { addNasDeviceViaUI } from '../helpers/ui-helpers';
 import { FORMATS, loadTestData, getTestDataFileName, verifyFileContent, TestDataFormat } from '../helpers/test-data';
@@ -74,14 +78,11 @@ async function waitForProvisioning(
       const response = await request.get(`${EZ_API_BASE}/api/v1/nasdevices/${deviceId}`);
       if (response.ok()) {
         const device = await response.json();
-        const status = device.ProvisioningStatus || device.provisioningStatus;
-        console.log(`[nas-nfs.spec] Provisioning poll ${i + 1}/${maxAttempts}: status=${status}`);
-        if (
-          status === 'Bound' ||
-          status === 'Mounted' ||
-          status === 'Ready' ||
-          status === 'Provisioned'
-        ) {
+        // Backend returns IsProvisioned (bool) and IsPvcBound (bool), not a string status
+        const isProvisioned = device.IsProvisioned === true;
+        const isPvcBound = device.IsPvcBound === true;
+        console.log(`[nas-nfs.spec] Provisioning poll ${i + 1}/${maxAttempts}: IsProvisioned=${isProvisioned}, IsPvcBound=${isPvcBound}`);
+        if (isProvisioned && isPvcBound) {
           return true;
         }
       }
@@ -134,31 +135,41 @@ test.describe('NAS/NFS - Scenario A: Static Devices', () => {
     expect(nasServers.length, 'At least one static NAS/NFS server must exist on simulator').toBeGreaterThan(0);
 
     nasServer = nasServers[0];
-    console.log(`[nas-nfs.spec] Using static NAS server: ${nasServer.Name} (${nasServer.ClusterIp}:${nasServer.Port})`);
+    console.log(`[nas-nfs.spec] Using static NAS server: ${nasServer.name} (${nasServer.clusterIp}:${nasServer.port})`);
 
     // 3. Check if NAS device already registered in EZ
     const existingDevices = await getNasDevices(request);
     const existingDevice = existingDevices.find(
       (d) =>
         d.Host === SIMULATOR_HOST ||
-        d.Host === nasServer.ClusterIp ||
+        d.Host === nasServer.clusterIp ||
         d.Name.toLowerCase().includes('static')
     );
 
-    if (existingDevice) {
+    if (existingDevice && existingDevice.IsProvisioned && existingDevice.IsPvcBound) {
       nasDeviceId = existingDevice.ID;
       mountPath = existingDevice.MountPath || `/mnt/${existingDevice.Name.toLowerCase().replace(/[^a-z0-9-]/g, '-')}`;
-      console.log(`[nas-nfs.spec] Reusing existing NAS device: ${existingDevice.Name} (${nasDeviceId})`);
+      console.log(`[nas-nfs.spec] Reusing existing provisioned NAS device: ${existingDevice.Name} (${nasDeviceId})`);
     } else {
+      // Delete stale E2E device if exists but not properly provisioned
+      if (existingDevice) {
+        console.log(`[nas-nfs.spec] Found stale NAS device ${existingDevice.Name} (provisioned=${existingDevice.IsProvisioned}, pvcBound=${existingDevice.IsPvcBound}), deleting...`);
+        try {
+          await deprovisionNasDevice(request, existingDevice.ID);
+        } catch { /* ignore */ }
+        try {
+          await deleteNasDevice(request, existingDevice.ID);
+        } catch { /* ignore */ }
+      }
       // 4. Create NAS device in EZ
       const timestamp = Date.now();
-      const exportPath = `/exports/${nasServer.Name}`;
+      const exportPath = `/exports/${nasServer.name}`;
       const device = await createNasDevice(request, {
         Name: `E2E-NAS-Static-${timestamp}`,
         Host: SIMULATOR_HOST,
-        Port: nasServer.NodePort || 2049,
+        Port: nasServer.nodePort || 2049,
         ExportPath: exportPath,
-        Role: 'Both',
+        Role: NasDeviceRole.Both,
         Description: 'E2E static NAS device for protocol testing',
       });
 
@@ -186,14 +197,22 @@ test.describe('NAS/NFS - Scenario A: Static Devices', () => {
       if (!provisioned) {
         console.warn('[nas-nfs.spec] Provisioning may not have completed; tests may fail');
       }
+
+      // 7. Wait for deployment rollout to complete (provisioning patches deployment
+      //    with new volume mount, triggering pod restart)
+      console.log('[nas-nfs.spec] Waiting for deployment rollout after provisioning...');
+      const ready = await waitForDeploymentReady(request, 90000);
+      if (!ready) {
+        console.warn('[nas-nfs.spec] Deployment rollout may not have completed; file ops may fail');
+      }
     }
 
-    // 7. Create a folder-type AdminServer pointing to the NAS mount path
+    // 8. Create a folder-type AdminServer pointing to the NAS mount path
     // This allows file operations via FileOperationsController
     const folderServer = await createAdminServer(request, {
       Name: `E2E-NAS-Folder-${Date.now()}`,
       ServerType: 'folder',
-      Direction: 'Both',
+      Direction: ServerDirection.Both,
       Host: 'localhost',
       Port: 0,
       BasePath: mountPath,
@@ -248,7 +267,7 @@ test.describe('NAS/NFS - Scenario A: Static Devices', () => {
       let listPassed = false;
       let listError: string | undefined;
       try {
-        const files = await listFiles(request, folderServerId!, '/', '*');
+        const files = await listFiles(request, folderServerId!, undefined, '*');
         const found = files.some((f) => f.FileName === fileName || f.FullPath.includes(fileName));
         listPassed = found;
         if (!found) {
@@ -287,10 +306,21 @@ test.describe('NAS/NFS - Scenario A: Static Devices', () => {
         console.warn(`[nas-nfs.spec] Cleanup failed for folder server: ${err}`);
       }
     }
-    // Do NOT deprovision or delete the NAS device (other tests may use it)
-    // Only clean up if we created it and there's a need
+    // Deprovision and delete NAS device if we created it
     if (createdNasDevice && nasDeviceId) {
-      console.log(`[nas-nfs.spec] NAS device ${nasDeviceId} left provisioned for other tests`);
+      try {
+        console.log(`[nas-nfs.spec] Deprovisioning static NAS device ${nasDeviceId}...`);
+        await deprovisionNasDevice(request, nasDeviceId);
+        console.log(`[nas-nfs.spec] Deprovisioned static NAS device ${nasDeviceId}`);
+      } catch (err) {
+        console.warn(`[nas-nfs.spec] Deprovision failed for static NAS device: ${err}`);
+      }
+      try {
+        await deleteNasDevice(request, nasDeviceId);
+        console.log(`[nas-nfs.spec] Deleted static NAS device ${nasDeviceId}`);
+      } catch (err) {
+        console.warn(`[nas-nfs.spec] Delete failed for static NAS device: ${err}`);
+      }
     }
   });
 });
@@ -313,11 +343,11 @@ test.describe('NAS/NFS - Scenario B: Dynamic Devices', () => {
 
     // 2. Create dynamic NAS server on simulator
     console.log(`[nas-nfs.spec] Creating dynamic NAS server: ${dynamicNasName}`);
-    dynamicNasServer = await createDynamicNas(request, dynamicNasName, '/data/dynamic');
+    dynamicNasServer = await createDynamicNas(request, dynamicNasName, 'data/dynamic');
     expect(dynamicNasServer, 'Dynamic NAS server must be created on simulator').toBeTruthy();
     console.log(
-      `[nas-nfs.spec] Dynamic NAS created: ${dynamicNasServer.Name} ` +
-      `(${dynamicNasServer.ClusterIp}:${dynamicNasServer.Port}, NodePort=${dynamicNasServer.NodePort})`
+      `[nas-nfs.spec] Dynamic NAS created: ${dynamicNasServer.name} ` +
+      `(${dynamicNasServer.clusterIp}:${dynamicNasServer.port}, NodePort=${dynamicNasServer.nodePort})`
     );
 
     // Wait for NAS server to be ready on simulator
@@ -329,9 +359,9 @@ test.describe('NAS/NFS - Scenario B: Dynamic Devices', () => {
     const device = await createNasDevice(request, {
       Name: `E2E-NAS-Dynamic-${timestamp}`,
       Host: SIMULATOR_HOST,
-      Port: dynamicNasServer.NodePort || 2049,
+      Port: dynamicNasServer.nodePort || 2049,
       ExportPath: exportPath,
-      Role: 'Both',
+      Role: NasDeviceRole.Both,
       Description: `E2E dynamic NAS device from simulator (${dynamicNasName})`,
     });
 
@@ -359,11 +389,18 @@ test.describe('NAS/NFS - Scenario B: Dynamic Devices', () => {
       console.warn('[nas-nfs.spec] Dynamic NAS provisioning may not have completed; tests may fail');
     }
 
-    // 6. Create folder-type AdminServer for file operations on the NAS mount
+    // 6. Wait for deployment rollout after provisioning
+    console.log('[nas-nfs.spec] Waiting for deployment rollout after dynamic NAS provisioning...');
+    const ready = await waitForDeploymentReady(request, 90000);
+    if (!ready) {
+      console.warn('[nas-nfs.spec] Deployment rollout may not have completed; file ops may fail');
+    }
+
+    // 7. Create folder-type AdminServer for file operations on the NAS mount
     const folderServer = await createAdminServer(request, {
       Name: `E2E-NAS-Dynamic-Folder-${timestamp}`,
       ServerType: 'folder',
-      Direction: 'Both',
+      Direction: ServerDirection.Both,
       Host: 'localhost',
       Port: 0,
       BasePath: mountPath,
@@ -418,7 +455,7 @@ test.describe('NAS/NFS - Scenario B: Dynamic Devices', () => {
       let listPassed = false;
       let listError: string | undefined;
       try {
-        const files = await listFiles(request, folderServerId!, '/', '*');
+        const files = await listFiles(request, folderServerId!, undefined, '*');
         const found = files.some((f) => f.FileName === fileName || f.FullPath.includes(fileName));
         listPassed = found;
         if (!found) {
@@ -458,8 +495,15 @@ test.describe('NAS/NFS - Scenario B: Dynamic Devices', () => {
       }
     }
 
-    // Delete NAS device from EZ (triggers deprovision cascade)
+    // Deprovision NAS device (removes mounts, PVC, PV) then delete
     if (nasDeviceId) {
+      try {
+        console.log(`[nas-nfs.spec] Deprovisioning dynamic NAS device ${nasDeviceId}...`);
+        await deprovisionNasDevice(request, nasDeviceId);
+        console.log(`[nas-nfs.spec] Deprovisioned dynamic NAS device ${nasDeviceId}`);
+      } catch (err) {
+        console.warn(`[nas-nfs.spec] Deprovision failed for dynamic NAS device: ${err}`);
+      }
       try {
         await deleteNasDevice(request, nasDeviceId);
         console.log(`[nas-nfs.spec] Deleted dynamic NAS device ${nasDeviceId}`);

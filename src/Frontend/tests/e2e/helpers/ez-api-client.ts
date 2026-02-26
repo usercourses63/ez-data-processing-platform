@@ -13,11 +13,19 @@ export const EZ_API_BASE = process.env.EZ_API_URL || 'http://localhost:5001';
 // Type definitions (PascalCase matching backend)
 // ============================================================
 
+// Backend enum ServerDirection: Input=0, Output=1, Both=2
+// No JsonStringEnumConverter registered, so API expects numeric values
+export enum ServerDirection {
+  Input = 0,
+  Output = 1,
+  Both = 2,
+}
+
 export interface AdminServerPayload {
   Name: string;
   Description?: string;
   ServerType: string;
-  Direction: 'Input' | 'Output' | 'Both';
+  Direction: ServerDirection;
   IsActive?: boolean;
   Host?: string;
   Port?: number;
@@ -44,6 +52,14 @@ export interface AdminServerResponse {
   BasePath?: string;
 }
 
+// Backend enum NasDeviceRole: Input=0, Output=1, Backup=2, Both=3
+export enum NasDeviceRole {
+  Input = 0,
+  Output = 1,
+  Backup = 2,
+  Both = 3,
+}
+
 export interface NasDevicePayload {
   Name: string;
   Host: string;
@@ -51,7 +67,7 @@ export interface NasDevicePayload {
   ExportPath: string;
   MountPath?: string;
   SubPath?: string;
-  Role: 'Input' | 'Output' | 'Both' | 'Backup';
+  Role: NasDeviceRole;
   Description?: string;
 }
 
@@ -63,7 +79,9 @@ export interface NasDeviceResponse {
   ExportPath: string;
   MountPath: string;
   Role: string;
-  ProvisioningStatus: string;
+  IsProvisioned: boolean;
+  IsPvcBound: boolean;
+  IsPvCreated: boolean;
 }
 
 export interface ProvisionRequest {
@@ -284,6 +302,71 @@ export async function deleteNasDevice(
     console.error(`[ez-api] DELETE /api/v1/nasdevices/${deviceId} failed (${response.status()}): ${body}`);
     throw new Error(`Failed to delete NAS device: ${response.status()} ${body}`);
   }
+}
+
+/**
+ * Deprovision a NAS device (remove mounts, delete PVC/PV)
+ */
+export async function deprovisionNasDevice(
+  request: APIRequestContext,
+  deviceId: string,
+  namespace = 'ez-platform'
+): Promise<void> {
+  const response = await request.post(
+    `${EZ_API_BASE}/api/v1/nasdevices/${deviceId}/deprovision?namespace=${namespace}`
+  );
+  if (!response.ok() && response.status() !== 404) {
+    const body = await response.text();
+    console.error(`[ez-api] POST /api/v1/nasdevices/${deviceId}/deprovision failed (${response.status()}): ${body}`);
+    throw new Error(`Failed to deprovision NAS device: ${response.status()} ${body}`);
+  }
+}
+
+/**
+ * Wait for the datasource-management deployment to complete its rollout after
+ * provisioning a NAS device (which patches the deployment with a new volume mount,
+ * triggering a pod restart).
+ *
+ * Strategy: poll the health endpoint. After provisioning, the old pod is terminating
+ * and the new pod is starting. We wait until health returns 200 consistently.
+ */
+export async function waitForDeploymentReady(
+  request: APIRequestContext,
+  timeoutMs = 90000,
+  pollIntervalMs = 5000
+): Promise<boolean> {
+  const maxAttempts = Math.ceil(timeoutMs / pollIntervalMs);
+  let consecutiveOk = 0;
+  const requiredConsecutive = 2; // 2 consecutive OKs = pod is stable
+
+  console.log(`[ez-api] Waiting for deployment rollout (up to ${timeoutMs / 1000}s)...`);
+
+  // Initial delay to let the rollout start (pod termination begins)
+  await new Promise((r) => setTimeout(r, 5000));
+
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const response = await request.get(`${EZ_API_BASE}/health`, { timeout: 5000 });
+      if (response.ok()) {
+        consecutiveOk++;
+        console.log(`[ez-api] Health check ${i + 1}/${maxAttempts}: OK (${consecutiveOk}/${requiredConsecutive})`);
+        if (consecutiveOk >= requiredConsecutive) {
+          console.log(`[ez-api] Deployment ready after ${(i + 1) * pollIntervalMs / 1000}s`);
+          return true;
+        }
+      } else {
+        consecutiveOk = 0;
+        console.log(`[ez-api] Health check ${i + 1}/${maxAttempts}: ${response.status()} (not ready)`);
+      }
+    } catch {
+      consecutiveOk = 0;
+      console.log(`[ez-api] Health check ${i + 1}/${maxAttempts}: connection refused (pod restarting)`);
+    }
+    await new Promise((r) => setTimeout(r, pollIntervalMs));
+  }
+
+  console.warn(`[ez-api] Deployment rollout timed out after ${timeoutMs / 1000}s`);
+  return false;
 }
 
 // ============================================================

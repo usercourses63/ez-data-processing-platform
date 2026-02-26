@@ -87,8 +87,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Fixed TypeSpecificConfig JsonElement→BsonDocument bug + SFTP path/credential test fixes. 19/86 passing (up from 3). 53 remaining failures across HTTP, S3, Kafka, NAS, FTP.
+Last session: 2026-02-26 (session 11)
+Stopped at: Fixed deployment rollout race condition in NAS tests. Added deprovisionNasDevice() + waitForDeploymentReady() to ez-api-client.ts. Fixed nas-nfs.spec.ts cleanup. Cleaned up stale NAS PVs/PVCs and recreated deployments. Ready to run tests.
 Resume file: .planning/phases/15.1-test-all-system-devices-nas-and-protocols-file-operations-against-simulator/.continue-here.md
 
 ## v0.2 Phase Summary
