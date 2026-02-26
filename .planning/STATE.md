@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 15 of 21 (Device Health Monitoring) - COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-02-25 — Completed 15-02-PLAN.md (Frontend Device Health tab with React Query polling)
+Phase: 15.1 of 21 (Protocol File Operations Testing) - IN PROGRESS
+Plan: 1 of 4 in current phase
+Status: Executing
+Last activity: 2026-02-26 — Completed 15.1-01-PLAN.md (Backend file operations REST proxy + Playwright test infrastructure)
 
-Progress: [###################░░░░░░░░░░░░░] 43/60 plans (v0.1: 32/32, v0.2: 11/28)
+Progress: [####################░░░░░░░░░░░░] 44/64 plans (v0.1: 32/32, v0.2: 12/32)
 
 ## Performance Metrics
 
@@ -39,7 +39,7 @@ Progress: [###################░░░░░░░░░░░░░] 43/60 pla
 | 15-device-health-monitoring | 2 | 10 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 14-01 (4 min), 14-02 (8 min), 15-01 (7 min), 15-02 (3 min)
+- Last 5 plans: 14-02 (8 min), 15-01 (7 min), 15-02 (3 min), 15.1-01 (8 min)
 - Trend: Consistent ~3-8 min/plan
 
 *Updated after each plan completion*
@@ -64,6 +64,7 @@ Recent decisions affecting current work:
 - [14-02]: All k8s deployments must include OpenTelemetry__OtlpEndpoint env var; DataSourceManagement image rebuilt as v0.2.0-otel with Serilog logging; 24/24 OTEL checks verified
 - [15-01]: Quartz.NET health check job every 30s; consecutive failure tracking (0=Healthy, 1-2=Degraded, 3+=Down); NAS degraded at 2000ms, AdminServer at 5000ms; image tagged v0.2.0-health
 - [15-02]: PascalCase interfaces matching backend PropertyNamingPolicy=null; 15s React Query polling; HeartOutlined icon for Device Health tab between overview and pods
+- [15.1-01]: Base64 encoding for file write content over REST; credential resolution follows ServerService pattern; minimal XLSX via raw ZIP (no external deps); protocol tests sequential in chromium-only project
 
 ### Pending Todos
 
@@ -84,9 +85,9 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Completed 15-02-PLAN.md (Frontend Device Health tab with React Query polling)
-Resume file: Continue to Phase 16 (SignalR Real-Time Updates)
+Last session: 2026-02-26
+Stopped at: Completed 15.1-01-PLAN.md (Backend file operations REST proxy + Playwright test infrastructure)
+Resume file: Continue with 15.1-02-PLAN.md (FTP, SFTP, HTTP/WebDAV protocol test files)
 
 ## v0.2 Phase Summary
 

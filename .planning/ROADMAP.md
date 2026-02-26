@@ -121,7 +121,7 @@ Plans:
 **Plans**: 4 plans (Wave 1: 15.1-01; Wave 2: 15.1-02, 15.1-03 parallel; Wave 3: 15.1-04)
 
 Plans:
-- [ ] 15.1-01-PLAN.md — Backend file operations REST proxy + Playwright test infrastructure (SIM-TEST-01)
+- [x] 15.1-01-PLAN.md — Backend file operations REST proxy + Playwright test infrastructure (SIM-TEST-01)
 - [ ] 15.1-02-PLAN.md — FTP, SFTP, HTTP/WebDAV protocol test files (SIM-TEST-02, SIM-TEST-03)
 - [ ] 15.1-03-PLAN.md — S3, Kafka, NAS/NFS protocol test files (SIM-TEST-02, SIM-TEST-03)
 - [ ] 15.1-04-PLAN.md — Global setup/teardown, full test execution, matrix report (SIM-TEST-04)
@@ -232,7 +232,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
 | 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
 | 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
-| 15.1. Protocol File Operations Testing | v0.2 | 0/4 | Planned | - |
+| 15.1. Protocol File Operations Testing | v0.2 | 1/4 | In Progress | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
 | 18. E2E Validation | v0.2 | 0/4 | Not started | - |
@@ -240,7 +240,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 9/32 plans complete (28%)
+**v0.2 Totals:** 10/32 plans complete (31%)
 
 ---
 *Roadmap updated: 2026-02-26 after Phase 15.1 planning complete*

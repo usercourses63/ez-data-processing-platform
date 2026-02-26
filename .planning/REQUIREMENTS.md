@@ -40,7 +40,7 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 ### Protocol File Operations Testing (Phase 15.1 - INSERTED)
 
-- [ ] **SIM-TEST-01**: Backend file operation proxy endpoints (List/Read/Write) exist for all server protocols via REST API
+- [x] **SIM-TEST-01**: Backend file operation proxy endpoints (List/Read/Write) exist for all server protocols via REST API
 - [ ] **SIM-TEST-02**: Scenario A passes: all static devices tested with full file operation matrix (all protocols x all formats)
 - [ ] **SIM-TEST-03**: Scenario B passes: dynamic devices (FTP, SFTP, NAS) created via simulator API, registered in EZ UI, and tested with same file operation matrix
 - [ ] **SIM-TEST-04**: Protocol x format matrix report generated with pass/fail per combination
@@ -136,7 +136,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MON-05 | Phase 15 | Complete |
 | MON-06 | Phase 15 | Complete |
 | MON-07 | Phase 16 | Pending |
-| SIM-TEST-01 | Phase 15.1 | Pending |
+| SIM-TEST-01 | Phase 15.1 | Complete |
 | SIM-TEST-02 | Phase 15.1 | Pending |
 | SIM-TEST-03 | Phase 15.1 | Pending |
 | SIM-TEST-04 | Phase 15.1 | Pending |
