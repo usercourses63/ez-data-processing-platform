@@ -69,6 +69,7 @@ export interface NasDevicePayload {
   SubPath?: string;
   Role: NasDeviceRole;
   Description?: string;
+  MountOptions?: string[];
 }
 
 export interface NasDeviceResponse {
@@ -327,46 +328,128 @@ export async function deprovisionNasDevice(
  * provisioning a NAS device (which patches the deployment with a new volume mount,
  * triggering a pod restart).
  *
- * Strategy: poll the health endpoint. After provisioning, the old pod is terminating
- * and the new pod is starting. We wait until health returns 200 consistently.
+ * Strategy: K8s rolling update keeps old pod alive until new pod is Ready.
+ * Simple health polling always hits the old pod (returns 200).
+ * Instead, we wait for health to go DOWN (old pod terminating) then come back UP
+ * (new pod ready). If health never goes down within a window, the rollout
+ * may have completed very fast — fall through to mount verification.
  */
 export async function waitForDeploymentReady(
   request: APIRequestContext,
-  timeoutMs = 90000,
-  pollIntervalMs = 5000
+  timeoutMs = 120000,
+  pollIntervalMs = 3000
 ): Promise<boolean> {
-  const maxAttempts = Math.ceil(timeoutMs / pollIntervalMs);
-  let consecutiveOk = 0;
-  const requiredConsecutive = 2; // 2 consecutive OKs = pod is stable
-
   console.log(`[ez-api] Waiting for deployment rollout (up to ${timeoutMs / 1000}s)...`);
 
-  // Initial delay to let the rollout start (pod termination begins)
-  await new Promise((r) => setTimeout(r, 5000));
+  const startTime = Date.now();
+
+  // Phase 1: Wait for health to go DOWN (old pod terminating)
+  // Give it up to 30s — if it never goes down, the rollout may be instant
+  const downDeadline = startTime + 30000;
+  let sawDown = false;
+
+  while (Date.now() < downDeadline) {
+    try {
+      const response = await request.get(`${EZ_API_BASE}/health`, { timeout: 3000 });
+      if (!response.ok()) {
+        sawDown = true;
+        console.log(`[ez-api] Health DOWN (${response.status()}) — rollout in progress`);
+        break;
+      }
+    } catch {
+      sawDown = true;
+      console.log(`[ez-api] Health DOWN (connection refused) — rollout in progress`);
+      break;
+    }
+    await new Promise((r) => setTimeout(r, pollIntervalMs));
+  }
+
+  if (!sawDown) {
+    console.log(`[ez-api] Health never went down — rollout may have completed quickly or not started yet`);
+  }
+
+  // Phase 2: Wait for health to come back UP (new pod ready)
+  const maxAttempts = Math.ceil((timeoutMs - (Date.now() - startTime)) / pollIntervalMs);
+  let consecutiveOk = 0;
+  const requiredConsecutive = 2;
 
   for (let i = 0; i < maxAttempts; i++) {
     try {
       const response = await request.get(`${EZ_API_BASE}/health`, { timeout: 5000 });
       if (response.ok()) {
         consecutiveOk++;
-        console.log(`[ez-api] Health check ${i + 1}/${maxAttempts}: OK (${consecutiveOk}/${requiredConsecutive})`);
+        console.log(`[ez-api] Health UP (${consecutiveOk}/${requiredConsecutive})`);
         if (consecutiveOk >= requiredConsecutive) {
-          console.log(`[ez-api] Deployment ready after ${(i + 1) * pollIntervalMs / 1000}s`);
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          console.log(`[ez-api] Deployment ready after ${elapsed}s`);
           return true;
         }
       } else {
         consecutiveOk = 0;
-        console.log(`[ez-api] Health check ${i + 1}/${maxAttempts}: ${response.status()} (not ready)`);
       }
     } catch {
       consecutiveOk = 0;
-      console.log(`[ez-api] Health check ${i + 1}/${maxAttempts}: connection refused (pod restarting)`);
     }
     await new Promise((r) => setTimeout(r, pollIntervalMs));
   }
 
   console.warn(`[ez-api] Deployment rollout timed out after ${timeoutMs / 1000}s`);
   return false;
+}
+
+/**
+ * Wait for a NAS mount path to be accessible inside the running pod.
+ * Creates a temporary folder-type AdminServer pointing to the mount path,
+ * polls TestConnection until it reports the directory exists, then cleans up.
+ *
+ * This is the definitive check that the new pod (with the NFS volume mount)
+ * is serving requests — not the old pod from before the rollout.
+ */
+export async function waitForMountReady(
+  request: APIRequestContext,
+  mountPath: string,
+  timeoutMs = 90000,
+  pollIntervalMs = 5000
+): Promise<boolean> {
+  console.log(`[ez-api] Verifying mount path accessible: ${mountPath} (up to ${timeoutMs / 1000}s)...`);
+
+  // Create a temporary folder server pointing to the mount path
+  const tempServer = await createAdminServer(request, {
+    Name: `mount-check-${Date.now()}`,
+    ServerType: 'folder',
+    Direction: ServerDirection.Both,
+    Host: 'localhost',
+    Port: 0,
+    BasePath: mountPath,
+  });
+
+  const startTime = Date.now();
+  const maxAttempts = Math.ceil(timeoutMs / pollIntervalMs);
+
+  try {
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        const result = await testServerConnection(request, tempServer.ID);
+        if (result.Success) {
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          console.log(`[ez-api] Mount path verified after ${elapsed}s: ${mountPath}`);
+          return true;
+        }
+        console.log(`[ez-api] Mount check ${i + 1}/${maxAttempts}: not accessible yet (${result.ErrorMessage})`);
+      } catch {
+        console.log(`[ez-api] Mount check ${i + 1}/${maxAttempts}: request failed (pod restarting?)`);
+      }
+      await new Promise((r) => setTimeout(r, pollIntervalMs));
+    }
+
+    console.warn(`[ez-api] Mount path verification timed out after ${timeoutMs / 1000}s: ${mountPath}`);
+    return false;
+  } finally {
+    // Clean up temporary server
+    try {
+      await deleteServer(request, tempServer.ID);
+    } catch { /* ignore cleanup errors */ }
+  }
 }
 
 // ============================================================
@@ -445,6 +528,7 @@ export async function writeFile(
         FilePath: filePath,
         Content: content.toString('base64'),
       },
+      timeout: 60000,
     }
   );
   if (!response.ok()) {

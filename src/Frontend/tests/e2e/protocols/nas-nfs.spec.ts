@@ -47,6 +47,7 @@ import {
   writeFile,
   deleteServer,
   waitForDeploymentReady,
+  waitForMountReady,
   AdminServerResponse,
   NasDeviceResponse,
   EZ_API_BASE,
@@ -121,7 +122,9 @@ test.describe('NAS/NFS - Scenario A: Static Devices', () => {
   let mountPath: string;
   let createdNasDevice = false;
 
-  test.beforeAll(async ({ request }) => {
+  // NAS provisioning involves PV/PVC creation + deployment rollout + mount verification
+  test.beforeAll(async ({ request }, testInfo) => {
+    testInfo.setTimeout(240000); // 4 min for NAS setup
     // 1. Check simulator health - MUST fail if unavailable
     const healthy = await getSimulatorHealth(request);
     expect(healthy, 'File-simulator must be reachable for NAS/NFS tests').toBeTruthy();
@@ -137,78 +140,73 @@ test.describe('NAS/NFS - Scenario A: Static Devices', () => {
     nasServer = nasServers[0];
     console.log(`[nas-nfs.spec] Using static NAS server: ${nasServer.name} (${nasServer.clusterIp}:${nasServer.port})`);
 
-    // 3. Check if NAS device already registered in EZ
+    // 3. Clean up any stale E2E NAS devices (DB may claim provisioned but PV/PVC deleted)
     const existingDevices = await getNasDevices(request);
-    const existingDevice = existingDevices.find(
+    const staleDevices = existingDevices.filter(
       (d) =>
+        d.Name.toLowerCase().includes('e2e-nas-static') ||
         d.Host === SIMULATOR_HOST ||
-        d.Host === nasServer.clusterIp ||
-        d.Name.toLowerCase().includes('static')
+        d.Host === nasServer.clusterIp
     );
-
-    if (existingDevice && existingDevice.IsProvisioned && existingDevice.IsPvcBound) {
-      nasDeviceId = existingDevice.ID;
-      mountPath = existingDevice.MountPath || `/mnt/${existingDevice.Name.toLowerCase().replace(/[^a-z0-9-]/g, '-')}`;
-      console.log(`[nas-nfs.spec] Reusing existing provisioned NAS device: ${existingDevice.Name} (${nasDeviceId})`);
-    } else {
-      // Delete stale E2E device if exists but not properly provisioned
-      if (existingDevice) {
-        console.log(`[nas-nfs.spec] Found stale NAS device ${existingDevice.Name} (provisioned=${existingDevice.IsProvisioned}, pvcBound=${existingDevice.IsPvcBound}), deleting...`);
-        try {
-          await deprovisionNasDevice(request, existingDevice.ID);
-        } catch { /* ignore */ }
-        try {
-          await deleteNasDevice(request, existingDevice.ID);
-        } catch { /* ignore */ }
-      }
-      // 4. Create NAS device in EZ
-      const timestamp = Date.now();
-      const exportPath = `/exports/${nasServer.name}`;
-      const device = await createNasDevice(request, {
-        Name: `E2E-NAS-Static-${timestamp}`,
-        Host: SIMULATOR_HOST,
-        Port: nasServer.nodePort || 2049,
-        ExportPath: exportPath,
-        Role: NasDeviceRole.Both,
-        Description: 'E2E static NAS device for protocol testing',
-      });
-
-      nasDeviceId = device.ID;
-      createdNasDevice = true;
-      mountPath = device.MountPath || `/mnt/${device.Name.toLowerCase().replace(/[^a-z0-9-]/g, '-')}`;
-      console.log(`[nas-nfs.spec] Created NAS device: ${device.Name} (${nasDeviceId})`);
-
-      // 5. Provision the NAS device (create PV/PVC)
-      console.log(`[nas-nfs.spec] Provisioning NAS device ${nasDeviceId}...`);
-      try {
-        await provisionNasDevice(request, nasDeviceId, {
-          Namespace: 'ez-platform',
-          CreatePv: true,
-          CreatePvc: true,
-          WaitForBinding: true,
-          TimeoutSeconds: 60,
-        });
-      } catch (err) {
-        console.warn(`[nas-nfs.spec] Provision call returned error (may still be provisioning): ${err}`);
-      }
-
-      // 6. Wait for provisioning to complete
-      const provisioned = await waitForProvisioning(request, nasDeviceId, 90000);
-      if (!provisioned) {
-        console.warn('[nas-nfs.spec] Provisioning may not have completed; tests may fail');
-      }
-
-      // 7. Wait for deployment rollout to complete (provisioning patches deployment
-      //    with new volume mount, triggering pod restart)
-      console.log('[nas-nfs.spec] Waiting for deployment rollout after provisioning...');
-      const ready = await waitForDeploymentReady(request, 90000);
-      if (!ready) {
-        console.warn('[nas-nfs.spec] Deployment rollout may not have completed; file ops may fail');
-      }
+    for (const stale of staleDevices) {
+      console.log(`[nas-nfs.spec] Cleaning up stale NAS device: ${stale.Name} (${stale.ID})`);
+      try { await deprovisionNasDevice(request, stale.ID); } catch { /* ignore */ }
+      try { await deleteNasDevice(request, stale.ID); } catch { /* ignore */ }
     }
 
-    // 8. Create a folder-type AdminServer pointing to the NAS mount path
-    // This allows file operations via FileOperationsController
+    // 4. Create fresh NAS device in EZ
+    // NFSv4 with fsid=0: export pseudo-root is '/' (maps to /data on server)
+    // Only port 2049 (via NodePort) needed — no mountd required for NFSv4
+    const timestamp = Date.now();
+    const exportPath = '/';
+    const nfsNodePort = nasServer.nodePort || 2049;
+    const device = await createNasDevice(request, {
+      Name: `E2E-NAS-Static-${timestamp}`,
+      Host: SIMULATOR_HOST,
+      Port: nfsNodePort,
+      ExportPath: exportPath,
+      Role: NasDeviceRole.Both,
+      Description: 'E2E static NAS device for protocol testing',
+      MountOptions: ['nfsvers=4', `port=${nfsNodePort}`, 'nolock'],
+    });
+
+    nasDeviceId = device.ID;
+    createdNasDevice = true;
+    mountPath = device.MountPath || `/mnt/${device.Name.toLowerCase().replace(/[^a-z0-9-]/g, '-')}`;
+    console.log(`[nas-nfs.spec] Created NAS device: ${device.Name} (${nasDeviceId})`);
+
+    // 5. Provision the NAS device (create PV/PVC + auto-mount to deployments)
+    console.log(`[nas-nfs.spec] Provisioning NAS device ${nasDeviceId}...`);
+    try {
+      await provisionNasDevice(request, nasDeviceId, {
+        Namespace: 'ez-platform',
+        CreatePv: true,
+        CreatePvc: true,
+        WaitForBinding: true,
+        TimeoutSeconds: 60,
+      });
+    } catch (err) {
+      console.warn(`[nas-nfs.spec] Provision call returned error (may still be provisioning): ${err}`);
+    }
+
+    // 6. Wait for provisioning to complete (PV/PVC bound)
+    const provisioned = await waitForProvisioning(request, nasDeviceId, 90000);
+    if (!provisioned) {
+      console.warn('[nas-nfs.spec] Provisioning may not have completed; tests may fail');
+    }
+
+    // 7. Wait for deployment rollout (provisioning patches deployment with volume mount)
+    console.log('[nas-nfs.spec] Waiting for deployment rollout after provisioning...');
+    await waitForDeploymentReady(request, 120000);
+
+    // 8. Verify the NAS mount is actually accessible in the pod
+    console.log(`[nas-nfs.spec] Verifying mount path ${mountPath} is accessible...`);
+    const mountReady = await waitForMountReady(request, mountPath, 90000);
+    if (!mountReady) {
+      console.warn('[nas-nfs.spec] Mount path verification failed; file ops may fail');
+    }
+
+    // 9. Create a folder-type AdminServer pointing to the NAS mount path
     const folderServer = await createAdminServer(request, {
       Name: `E2E-NAS-Folder-${Date.now()}`,
       ServerType: 'folder',
@@ -336,7 +334,9 @@ test.describe('NAS/NFS - Scenario B: Dynamic Devices', () => {
   let mountPath: string;
   const dynamicNasName = `e2e-dynamic-nas-${Date.now()}`;
 
-  test.beforeAll(async ({ request }) => {
+  // NAS provisioning involves PV/PVC creation + deployment rollout + mount verification
+  test.beforeAll(async ({ request }, testInfo) => {
+    testInfo.setTimeout(240000); // 4 min for NAS setup
     // 1. Check simulator health
     const healthy = await getSimulatorHealth(request);
     expect(healthy, 'File-simulator must be reachable for dynamic NAS tests').toBeTruthy();
@@ -355,14 +355,18 @@ test.describe('NAS/NFS - Scenario B: Dynamic Devices', () => {
 
     // 3. Register NAS device in EZ via API (more reliable than UI for provisioning flow)
     const timestamp = Date.now();
-    const exportPath = `/exports/${dynamicNasName}`;
+    // NFSv4 with fsid=0: export pseudo-root is '/' (maps to /data on server)
+    // Only port 2049 (via NodePort) needed — no mountd required for NFSv4
+    const exportPath = '/';
+    const nfsNodePort = dynamicNasServer.nodePort || 2049;
     const device = await createNasDevice(request, {
       Name: `E2E-NAS-Dynamic-${timestamp}`,
       Host: SIMULATOR_HOST,
-      Port: dynamicNasServer.nodePort || 2049,
+      Port: nfsNodePort,
       ExportPath: exportPath,
       Role: NasDeviceRole.Both,
       Description: `E2E dynamic NAS device from simulator (${dynamicNasName})`,
+      MountOptions: ['nfsvers=4', `port=${nfsNodePort}`, 'nolock'],
     });
 
     nasDeviceId = device.ID;
@@ -390,13 +394,18 @@ test.describe('NAS/NFS - Scenario B: Dynamic Devices', () => {
     }
 
     // 6. Wait for deployment rollout after provisioning
+    // 6. Wait for deployment rollout after provisioning
     console.log('[nas-nfs.spec] Waiting for deployment rollout after dynamic NAS provisioning...');
-    const ready = await waitForDeploymentReady(request, 90000);
-    if (!ready) {
-      console.warn('[nas-nfs.spec] Deployment rollout may not have completed; file ops may fail');
+    await waitForDeploymentReady(request, 120000);
+
+    // 7. Verify the NAS mount is actually accessible in the pod
+    console.log(`[nas-nfs.spec] Verifying dynamic mount path ${mountPath} is accessible...`);
+    const mountReady = await waitForMountReady(request, mountPath, 90000);
+    if (!mountReady) {
+      console.warn('[nas-nfs.spec] Dynamic mount path verification failed; file ops may fail');
     }
 
-    // 7. Create folder-type AdminServer for file operations on the NAS mount
+    // 8. Create folder-type AdminServer for file operations on the NAS mount
     const folderServer = await createAdminServer(request, {
       Name: `E2E-NAS-Dynamic-Folder-${timestamp}`,
       ServerType: 'folder',
