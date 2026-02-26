@@ -1,7 +1,7 @@
 // OutputConfigurationTemplate.cs - Template for Generating Multi-Destination Output Configs
 // Task-22: DemoDataGenerator Enhancement
-// Version: 1.0
-// Date: November 12, 2025
+// Version: 2.0 - Now uses actual output servers and NAS devices
+// Date: February 26, 2026
 
 using DataProcessing.Shared.Entities;
 
@@ -9,13 +9,19 @@ namespace DemoDataGenerator.Templates;
 
 /// <summary>
 /// Template for generating realistic multi-destination output configurations
+/// using actual output servers and NAS devices from the seeded data.
 /// </summary>
 public static class OutputConfigurationTemplate
 {
     /// <summary>
-    /// Generate output configuration based on datasource type
+    /// Generate output configuration using actual servers and NAS devices
     /// </summary>
-    public static OutputConfiguration Generate(string datasourceName, string fileType)
+    public static OutputConfiguration Generate(
+        string datasourceName,
+        string fileType,
+        AdminServer? kafkaServer = null,
+        NasDevice? outputNas = null,
+        AdminServer? ftpServer = null)
     {
         var config = new OutputConfiguration
         {
@@ -24,62 +30,84 @@ public static class OutputConfigurationTemplate
             Destinations = new List<OutputDestination>()
         };
 
-        // Add 2-3 destinations per datasource (realistic enterprise scenario)
-        
         // Destination 1: Real-time Kafka topic (always JSON)
-        config.Destinations.Add(new OutputDestination
-        {
-            Name = "Real-Time Analytics",
-            Type = "kafka",
-            Enabled = true,
-            OutputFormat = "json", // Override: Always JSON for real-time
-            KafkaConfig = new KafkaOutputConfig
-            {
-                Topic = $"{datasourceName.ToLower().Replace(" ", "-")}-validated",
-                MessageKey = "{filename}_{timestamp}",
-                Headers = new Dictionary<string, string>
-                {
-                    ["source"] = datasourceName,
-                    ["environment"] = "development",
-                    ["producer"] = "output-service"
-                }
-            }
-        });
-
-        // Destination 2: Daily archive folder (original format)
-        // Using mounted volume: /data/output
-        config.Destinations.Add(new OutputDestination
-        {
-            Name = "Daily Archive",
-            Type = "folder",
-            Enabled = true,
-            FolderConfig = new FolderOutputConfig
-            {
-                Path = $"/data/output/archive/{datasourceName.Replace(" ", "")}",
-                FileNamePattern = "{filename}_{date}_valid.{ext}",
-                CreateSubfolders = true,
-                SubfolderPattern = "{year}/{month}/{day}",
-                OverwriteExisting = false
-            }
-            // OutputFormat = null (use default: "original")
-        });
-
-        // Destination 3: Analytics team folder (CSV for easy analysis)
-        if (fileType != "CSV") // Only add if source is not CSV
+        if (kafkaServer != null)
         {
             config.Destinations.Add(new OutputDestination
             {
-                Name = "Analytics Team Export",
-                Type = "folder",
+                Name = "Real-Time Analytics",
+                Type = "kafka",
                 Enabled = true,
-                OutputFormat = "csv", // Override: Always CSV for analytics
-                IncludeInvalidRecords = true, // Override: Include for debugging
+                OutputFormat = "json",
+                OutputServerId = kafkaServer.ID,
+                KafkaConfig = new KafkaOutputConfig
+                {
+                    Topic = $"{datasourceName.ToLower().Replace(" ", "-")}-validated",
+                    BrokerServer = kafkaServer.KafkaConfig?.BootstrapServers ?? "kafka:9092",
+                    MessageKey = "{filename}_{timestamp}",
+                    Headers = new Dictionary<string, string>
+                    {
+                        ["source"] = datasourceName,
+                        ["server"] = kafkaServer.Name,
+                        ["environment"] = "development"
+                    }
+                }
+            });
+        }
+
+        // Destination 2: Output NAS folder (original format)
+        if (outputNas != null)
+        {
+            config.Destinations.Add(new OutputDestination
+            {
+                Name = "NAS Archive",
+                Type = "nas",
+                Enabled = true,
+                OutputServerId = outputNas.ID,
                 FolderConfig = new FolderOutputConfig
                 {
-                    Path = $"/data/output/analytics/{datasourceName.Replace(" ", "")}",
-                    FileNamePattern = "analytics_{date}.csv",
-                    CreateSubfolders = false,
-                    OverwriteExisting = true // Analytics wants latest data
+                    Path = $"{outputNas.MountPath}/archive/{datasourceName.Replace(" ", "")}",
+                    FileNamePattern = "{filename}_{date}_valid.{ext}",
+                    CreateSubfolders = true,
+                    SubfolderPattern = "{year}/{month}/{day}",
+                    OverwriteExisting = false
+                }
+            });
+        }
+        else
+        {
+            // Fallback to local folder if no NAS
+            config.Destinations.Add(new OutputDestination
+            {
+                Name = "Local Archive",
+                Type = "folder",
+                Enabled = true,
+                FolderConfig = new FolderOutputConfig
+                {
+                    Path = $"/data/output/archive/{datasourceName.Replace(" ", "")}",
+                    FileNamePattern = "{filename}_{date}_valid.{ext}",
+                    CreateSubfolders = true,
+                    SubfolderPattern = "{year}/{month}/{day}",
+                    OverwriteExisting = false
+                }
+            });
+        }
+
+        // Destination 3: FTP/SFTP export (CSV for partners)
+        if (ftpServer != null && fileType != "CSV")
+        {
+            config.Destinations.Add(new OutputDestination
+            {
+                Name = "Partner Export",
+                Type = ftpServer.ServerType,
+                Enabled = true,
+                OutputFormat = "csv",
+                OutputServerId = ftpServer.ID,
+                FolderConfig = new FolderOutputConfig
+                {
+                    Path = $"{ftpServer.BasePath ?? "/export"}/{datasourceName.Replace(" ", "")}",
+                    FileNamePattern = "export_{date}.csv",
+                    OverwriteExisting = true
                 }
             });
         }
@@ -95,91 +123,168 @@ public static class OutputConfigurationTemplate
         /// <summary>
         /// Banking scenario: High-compliance with multiple audit destinations
         /// </summary>
-        public static OutputConfiguration BankingCompliance(string datasourceName)
+        public static OutputConfiguration BankingCompliance(
+            string datasourceName,
+            AdminServer? kafkaServer = null,
+            NasDevice? outputNas = null,
+            NasDevice? backupNas = null)
         {
-            return new OutputConfiguration
+            var config = new OutputConfiguration
             {
                 DefaultOutputFormat = "original",
                 IncludeInvalidRecords = false,
-                Destinations = new List<OutputDestination>
+                Destinations = new List<OutputDestination>()
+            };
+
+            // Real-time fraud detection (Kafka)
+            if (kafkaServer != null)
+            {
+                config.Destinations.Add(new OutputDestination
                 {
-                    // Real-time fraud detection
-                    new() {
-                        Name = "Fraud Detection System",
-                        Type = "kafka",
-                        Enabled = true,
-                        OutputFormat = "json",
-                        KafkaConfig = new() {
-                            Topic = "fraud-detection-input",
-                            MessageKey = "{datasource}_{timestamp}",
-                            Headers = new() { ["priority"] = "high", ["system"] = "fraud" }
-                        }
-                    },
-                    // Regulatory archive (7 years retention)
-                    new() {
-                        Name = "Regulatory Archive",
-                        Type = "folder",
-                        Enabled = true,
-                        FolderConfig = new() {
-                            Path = "/data/output/compliance/banking/transactions",
-                            FileNamePattern = "{filename}_{timestamp}_validated.{ext}",
-                            CreateSubfolders = true,
-                            SubfolderPattern = "{year}/{month}",
-                            OverwriteExisting = false
-                        }
-                    },
-                    // Risk analytics (CSV for Excel)
-                    new() {
-                        Name = "Risk Analytics",
-                        Type = "folder",
-                        Enabled = true,
-                        OutputFormat = "csv",
-                        FolderConfig = new() {
-                            Path = "/data/output/analytics/risk",
-                            FileNamePattern = "risk_data_{date}.csv",
-                            OverwriteExisting = true
-                        }
-                    },
-                    // Audit log (Kafka with all records including invalid)
-                    new() {
-                        Name = "Audit Log",
-                        Type = "kafka",
-                        Enabled = true,
-                        OutputFormat = "json",
-                        IncludeInvalidRecords = true, // Include invalid for audit trail
-                        KafkaConfig = new() {
-                            Topic = "audit-log-all-records",
-                            Headers = new() { ["record-type"] = "validated-and-invalid" }
+                    Name = "Fraud Detection System",
+                    Type = "kafka",
+                    Enabled = true,
+                    OutputFormat = "json",
+                    OutputServerId = kafkaServer.ID,
+                    KafkaConfig = new KafkaOutputConfig
+                    {
+                        Topic = "fraud-detection-input",
+                        BrokerServer = kafkaServer.KafkaConfig?.BootstrapServers ?? "kafka:9092",
+                        MessageKey = "{datasource}_{timestamp}",
+                        Headers = new Dictionary<string, string>
+                        {
+                            ["priority"] = "high",
+                            ["system"] = "fraud",
+                            ["server"] = kafkaServer.Name
                         }
                     }
-                }
-            };
+                });
+
+                // Audit log (Kafka with all records)
+                config.Destinations.Add(new OutputDestination
+                {
+                    Name = "Audit Log",
+                    Type = "kafka",
+                    Enabled = true,
+                    OutputFormat = "json",
+                    IncludeInvalidRecords = true,
+                    OutputServerId = kafkaServer.ID,
+                    KafkaConfig = new KafkaOutputConfig
+                    {
+                        Topic = "audit-log-all-records",
+                        BrokerServer = kafkaServer.KafkaConfig?.BootstrapServers ?? "kafka:9092",
+                        Headers = new Dictionary<string, string>
+                        {
+                            ["record-type"] = "validated-and-invalid"
+                        }
+                    }
+                });
+            }
+
+            // Regulatory archive (Output NAS - 7 years retention)
+            if (outputNas != null)
+            {
+                config.Destinations.Add(new OutputDestination
+                {
+                    Name = "Regulatory Archive",
+                    Type = "nas",
+                    Enabled = true,
+                    OutputServerId = outputNas.ID,
+                    FolderConfig = new FolderOutputConfig
+                    {
+                        Path = $"{outputNas.MountPath}/compliance/banking/transactions",
+                        FileNamePattern = "{filename}_{timestamp}_validated.{ext}",
+                        CreateSubfolders = true,
+                        SubfolderPattern = "{year}/{month}",
+                        OverwriteExisting = false
+                    }
+                });
+            }
+
+            // Backup NAS for disaster recovery
+            if (backupNas != null)
+            {
+                config.Destinations.Add(new OutputDestination
+                {
+                    Name = "Disaster Recovery Backup",
+                    Type = "nas",
+                    Enabled = true,
+                    OutputServerId = backupNas.ID,
+                    FolderConfig = new FolderOutputConfig
+                    {
+                        Path = $"{backupNas.MountPath}/banking/{datasourceName.Replace(" ", "")}",
+                        FileNamePattern = "{filename}_{timestamp}_backup.{ext}",
+                        CreateSubfolders = true,
+                        SubfolderPattern = "{year}/{month}/{day}",
+                        OverwriteExisting = false
+                    }
+                });
+            }
+
+            return config;
         }
 
         /// <summary>
-        /// Simple scenario: Basic Kafka + Archive
+        /// Simple scenario: Basic Kafka + NAS Archive
         /// </summary>
-        public static OutputConfiguration Simple(string datasourceName)
+        public static OutputConfiguration Simple(
+            string datasourceName,
+            AdminServer? kafkaServer = null,
+            NasDevice? outputNas = null)
         {
-            return new OutputConfiguration
+            var config = new OutputConfiguration
             {
                 DefaultOutputFormat = "original",
-                Destinations = new List<OutputDestination>
-                {
-                    new() {
-                        Name = "Primary Kafka Topic",
-                        Type = "kafka",
-                        Enabled = true,
-                        KafkaConfig = new() { Topic = $"{datasourceName.ToLower()}-validated" }
-                    },
-                    new() {
-                        Name = "Backup Archive",
-                        Type = "folder",
-                        Enabled = true,
-                        FolderConfig = new() { Path = $"/data/output/archive/{datasourceName}" }
-                    }
-                }
+                Destinations = new List<OutputDestination>()
             };
+
+            // Primary Kafka Topic
+            if (kafkaServer != null)
+            {
+                config.Destinations.Add(new OutputDestination
+                {
+                    Name = "Primary Kafka Topic",
+                    Type = "kafka",
+                    Enabled = true,
+                    OutputServerId = kafkaServer.ID,
+                    KafkaConfig = new KafkaOutputConfig
+                    {
+                        Topic = $"{datasourceName.ToLower().Replace(" ", "-")}-validated",
+                        BrokerServer = kafkaServer.KafkaConfig?.BootstrapServers ?? "kafka:9092"
+                    }
+                });
+            }
+
+            // Backup Archive (NAS or local)
+            if (outputNas != null)
+            {
+                config.Destinations.Add(new OutputDestination
+                {
+                    Name = "NAS Backup",
+                    Type = "nas",
+                    Enabled = true,
+                    OutputServerId = outputNas.ID,
+                    FolderConfig = new FolderOutputConfig
+                    {
+                        Path = $"{outputNas.MountPath}/backup/{datasourceName.Replace(" ", "")}"
+                    }
+                });
+            }
+            else
+            {
+                config.Destinations.Add(new OutputDestination
+                {
+                    Name = "Local Backup",
+                    Type = "folder",
+                    Enabled = true,
+                    FolderConfig = new FolderOutputConfig
+                    {
+                        Path = $"/data/output/archive/{datasourceName.Replace(" ", "")}"
+                    }
+                });
+            }
+
+            return config;
         }
     }
 }

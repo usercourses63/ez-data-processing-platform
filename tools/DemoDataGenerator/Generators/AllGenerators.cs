@@ -241,29 +241,68 @@ public class DataSourceGenerator
     /// <summary>
     /// Get next NAS device using round-robin to ensure all are used
     /// </summary>
-    private NasDevice GetNextNasDevice(List<NasDevice> devices)
+    private NasDevice GetNextNasDevice(List<NasDevice> devices, string roleKey = "input")
     {
-        var key = "input";
-        if (!_nasUsageCount.TryGetValue(key, out var count))
+        if (!_nasUsageCount.TryGetValue(roleKey, out var count))
             count = 0;
         var device = devices[count % devices.Count];
-        _nasUsageCount[key] = count + 1;
+        _nasUsageCount[roleKey] = count + 1;
         return device;
+    }
+
+    /// <summary>
+    /// Get next output server using round-robin
+    /// </summary>
+    private AdminServer? GetNextOutputServer(string typeKey)
+    {
+        var outputServers = _servers
+            .Where(s => s.ServerType.Equals(typeKey, StringComparison.OrdinalIgnoreCase) && s.CanBeOutput)
+            .ToList();
+        if (outputServers.Count == 0) return null;
+
+        var key = $"output_{typeKey}";
+        if (!_serverUsageCount.TryGetValue(key, out var count))
+            count = 0;
+        var server = outputServers[count % outputServers.Count];
+        _serverUsageCount[key] = count + 1;
+        return server;
+    }
+
+    /// <summary>
+    /// Get next output NAS device using round-robin
+    /// </summary>
+    private NasDevice? GetNextOutputNasDevice()
+    {
+        var outputNas = _nasDevices
+            .Where(d => d.Role == NasDeviceRole.Output || d.Role == NasDeviceRole.Backup || d.Role == NasDeviceRole.Both)
+            .ToList();
+        if (outputNas.Count == 0) return null;
+        return GetNextNasDevice(outputNas, "output");
     }
 
     /// <summary>
     /// Generate varied output configurations for different datasources
     /// </summary>
-    private static OutputConfiguration GenerateOutputConfiguration(string datasourceName, string filePattern, int index)
+    private OutputConfiguration GenerateOutputConfiguration(string datasourceName, string filePattern, int index)
     {
         var fileType = filePattern.TrimStart('*', '.').ToUpper();
+
+        // Get output servers and NAS devices for this datasource
+        var kafkaServer = GetNextOutputServer("kafka");
+        var ftpServer = GetNextOutputServer("ftp") ?? GetNextOutputServer("sftp");
+        var s3Server = GetNextOutputServer("s3");
+        var outputNas = GetNextOutputNasDevice();
+        var backupNas = _nasDevices.FirstOrDefault(d => d.Role == NasDeviceRole.Backup);
 
         // Use different scenarios for variety
         return index switch
         {
-            0 or 5 or 10 or 15 => OutputConfigurationTemplate.Scenarios.BankingCompliance(datasourceName), // 4 destinations
-            1 or 6 or 11 or 16 => OutputConfigurationTemplate.Scenarios.Simple(datasourceName),           // 2 destinations
-            _ => OutputConfigurationTemplate.Generate(datasourceName, fileType)                           // 2-3 destinations (standard)
+            0 or 5 or 10 or 15 => OutputConfigurationTemplate.Scenarios.BankingCompliance(
+                datasourceName, kafkaServer, outputNas, backupNas),
+            1 or 6 or 11 or 16 => OutputConfigurationTemplate.Scenarios.Simple(
+                datasourceName, kafkaServer, outputNas),
+            _ => OutputConfigurationTemplate.Generate(
+                datasourceName, fileType, kafkaServer, outputNas, ftpServer)
         };
     }
 }
