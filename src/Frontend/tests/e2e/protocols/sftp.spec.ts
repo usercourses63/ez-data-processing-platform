@@ -26,6 +26,7 @@ import {
   writeFile,
   deleteServer,
   getServers,
+  ServerDirection,
 } from '../helpers/ez-api-client';
 import { addServerViaUI } from '../helpers/ui-helpers';
 import { FORMATS, loadTestData, getTestDataFileName, verifyFileContent, TestDataFormat } from '../helpers/test-data';
@@ -56,7 +57,7 @@ test.describe('SFTP - Scenario A: Static Devices', () => {
 
     // Discover static SFTP servers
     const allServers = await getSimulatorServers(request);
-    const sftpServers = filterServersByProtocol(allServers, 'sftp').filter((s) => !s.IsDynamic);
+    const sftpServers = filterServersByProtocol(allServers, 'sftp').filter((s) => !s.isDynamic);
 
     if (sftpServers.length === 0) {
       test.skip(true, 'No static SFTP server found on file-simulator');
@@ -67,23 +68,23 @@ test.describe('SFTP - Scenario A: Static Devices', () => {
     connectionInfo = await getConnectionInfo(request);
 
     // Find NodePort for this SFTP server from connection info
-    const serverEndpoint = connectionInfo.Servers?.find(
-      (s) => s.Name === staticServer!.Name || s.Protocol?.toLowerCase() === 'sftp'
+    const serverEndpoint = connectionInfo.servers?.find(
+      (s) => s.name === staticServer!.name || s.protocol?.toLowerCase() === 'sftp'
     );
-    nodePort = serverEndpoint?.NodePort || staticServer.NodePort;
+    nodePort = serverEndpoint?.port || staticServer.nodePort;
 
     // Determine base path from connection info or use default
     basePath = '/upload';
 
     // Get credentials from the simulator server info
-    const username = staticServer.Credentials?.Username || 'sftpuser';
-    const password = staticServer.Credentials?.Password || 'sftppass123';
+    const username = staticServer.credentials?.username || 'sftpuser';
+    const password = staticServer.credentials?.password || 'sftppass123';
 
     // Register the static SFTP server in EZ via API
     const created = await createAdminServer(request, {
       Name: `E2E-SFTP-Static-${testRunId}`,
       ServerType: 'sftp',
-      Direction: 'Both',
+      Direction: ServerDirection.Both,
       Host: SIMULATOR_HOST,
       Port: nodePort,
       BasePath: basePath,
@@ -125,7 +126,8 @@ test.describe('SFTP - Scenario A: Static Devices', () => {
   for (const format of FORMATS) {
     test.describe(`Format: ${format}`, () => {
       const fileName = `sftp-static-${testRunId}.${format}`;
-      const filePath = `/upload/${fileName}`;
+      // Paths are relative to server BasePath (/upload)
+      const filePath = fileName;
 
       test(`Write ${format} file - static SFTP`, async ({ request }) => {
         test.setTimeout(60000);
@@ -149,7 +151,8 @@ test.describe('SFTP - Scenario A: Static Devices', () => {
         let passed = false;
         let error: string | undefined;
         try {
-          const files = await listFiles(request, ezServerId, '/upload', `*${format}`);
+          // Pass null to list from BasePath root
+          const files = await listFiles(request, ezServerId, undefined, `*${format}`);
           const found = files.some((f) => f.FileName === fileName || f.FullPath?.includes(fileName));
           expect(found, `Expected to find ${fileName} in file listing`).toBeTruthy();
           passed = true;
@@ -209,13 +212,13 @@ test.describe('SFTP - Scenario B: Dynamic Devices', () => {
 
     // Get connection info to find the NodePort
     connectionInfo = await getConnectionInfo(request);
-    const serverEndpoint = connectionInfo.Servers?.find(
-      (s) => s.Name === dynamicServer.Name || s.Name === dynamicName
+    const serverEndpoint = connectionInfo.servers?.find(
+      (s) => s.name === dynamicServer.name || s.name === dynamicName
     );
-    nodePort = serverEndpoint?.NodePort || dynamicServer.NodePort;
+    nodePort = serverEndpoint?.port || dynamicServer.nodePort;
 
-    const username = dynamicServer.Credentials?.Username || 'sftpuser';
-    const password = dynamicServer.Credentials?.Password || 'sftppass123';
+    const username = dynamicServer.credentials?.username || 'sftpuser';
+    const password = dynamicServer.credentials?.password || 'sftppass123';
 
     // Register the dynamic SFTP server in EZ via UI
     const page = await browser.newPage();
@@ -244,24 +247,25 @@ test.describe('SFTP - Scenario B: Dynamic Devices', () => {
       (s) => s.Name === `E2E-SFTP-Dynamic-${testRunId}`
     );
 
-    if (!matchingServer) {
-      // Fallback: create via API if UI registration didn't work
-      const created = await createAdminServer(request, {
-        Name: `E2E-SFTP-Dynamic-${testRunId}`,
-        ServerType: 'sftp',
-        Direction: 'Both',
-        Host: SIMULATOR_HOST,
-        Port: nodePort,
-        BasePath: '/upload',
-        TypeSpecificConfig: {
-          Username: username,
-          Password: password,
-        },
-      });
-      ezServerId = created.ID;
-    } else {
-      ezServerId = matchingServer.ID;
+    // Always create via API to ensure TypeSpecificConfig credentials are stored
+    // (UI registration may not persist credentials in TypeSpecificConfig)
+    if (matchingServer) {
+      // Clean up UI-created server (may lack credentials)
+      await deleteServer(request, matchingServer.ID).catch(() => {});
     }
+    const created = await createAdminServer(request, {
+      Name: `E2E-SFTP-Dynamic-${testRunId}`,
+      ServerType: 'sftp',
+      Direction: ServerDirection.Both,
+      Host: SIMULATOR_HOST,
+      Port: nodePort,
+      BasePath: '/upload',
+      TypeSpecificConfig: {
+        Username: username,
+        Password: password,
+      },
+    });
+    ezServerId = created.ID;
   });
 
   test.afterAll(async ({ request }) => {
@@ -300,7 +304,8 @@ test.describe('SFTP - Scenario B: Dynamic Devices', () => {
   for (const format of FORMATS) {
     test.describe(`Format: ${format}`, () => {
       const fileName = `sftp-dynamic-${testRunId}.${format}`;
-      const filePath = `/upload/${fileName}`;
+      // Paths are relative to server BasePath (/upload)
+      const filePath = fileName;
 
       test(`Write ${format} file - dynamic SFTP`, async ({ request }) => {
         test.setTimeout(60000);
@@ -324,7 +329,7 @@ test.describe('SFTP - Scenario B: Dynamic Devices', () => {
         let passed = false;
         let error: string | undefined;
         try {
-          const files = await listFiles(request, ezServerId, '/upload', `*${format}`);
+          const files = await listFiles(request, ezServerId, undefined, `*${format}`);
           const found = files.some((f) => f.FileName === fileName || f.FullPath?.includes(fileName));
           expect(found, `Expected to find ${fileName} in file listing`).toBeTruthy();
           passed = true;

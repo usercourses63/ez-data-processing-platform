@@ -3,6 +3,7 @@ using DataProcessing.DataSourceManagement.Services;
 using DataProcessing.Shared.Entities;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using System.Text.Json;
 
 namespace DataProcessing.DataSourceManagement.Controllers;
 
@@ -205,7 +206,7 @@ public class ServersController : ControllerBase
                 BasePath = request.BasePath,
                 CredentialSecretRef = request.CredentialSecretRef,
                 KafkaConfig = request.KafkaConfig != null ? MapKafkaConfig(request.KafkaConfig) : null,
-                TypeSpecificConfig = request.TypeSpecificConfig != null ? new BsonDocument(request.TypeSpecificConfig) : null,
+                TypeSpecificConfig = ConvertToBsonDocument(request.TypeSpecificConfig),
                 ConnectionTimeoutSeconds = request.ConnectionTimeoutSeconds,
                 RetryCount = request.RetryCount
             };
@@ -256,7 +257,7 @@ public class ServersController : ControllerBase
                 BasePath = request.BasePath,
                 CredentialSecretRef = request.CredentialSecretRef,
                 KafkaConfig = request.KafkaConfig != null ? MapKafkaConfig(request.KafkaConfig) : null,
-                TypeSpecificConfig = request.TypeSpecificConfig != null ? new BsonDocument(request.TypeSpecificConfig) : null,
+                TypeSpecificConfig = ConvertToBsonDocument(request.TypeSpecificConfig),
                 ConnectionTimeoutSeconds = request.ConnectionTimeoutSeconds,
                 RetryCount = request.RetryCount
             };
@@ -426,6 +427,54 @@ public class ServersController : ControllerBase
             AcksRequired = request.AcksRequired,
             DefaultConsumerGroup = request.DefaultConsumerGroup,
             AdditionalConfig = request.AdditionalConfig
+        };
+    }
+
+    /// <summary>
+    /// Converts a Dictionary&lt;string, object&gt; (which may contain JsonElement values
+    /// from System.Text.Json deserialization) to a BsonDocument.
+    /// </summary>
+    private static BsonDocument? ConvertToBsonDocument(Dictionary<string, object>? dict)
+    {
+        if (dict == null) return null;
+
+        var doc = new BsonDocument();
+        foreach (var kvp in dict)
+        {
+            doc[kvp.Key] = ConvertToBsonValue(kvp.Value);
+        }
+        return doc;
+    }
+
+    private static BsonValue ConvertToBsonValue(object? value)
+    {
+        if (value == null) return BsonNull.Value;
+
+        if (value is JsonElement je)
+        {
+            return je.ValueKind switch
+            {
+                JsonValueKind.String => new BsonString(je.GetString()!),
+                JsonValueKind.Number when je.TryGetInt32(out var i) => new BsonInt32(i),
+                JsonValueKind.Number when je.TryGetInt64(out var l) => new BsonInt64(l),
+                JsonValueKind.Number => new BsonDouble(je.GetDouble()),
+                JsonValueKind.True => new BsonBoolean(true),
+                JsonValueKind.False => new BsonBoolean(false),
+                JsonValueKind.Null => BsonNull.Value,
+                JsonValueKind.Object => BsonDocument.Parse(je.GetRawText()),
+                JsonValueKind.Array => new BsonArray(je.EnumerateArray().Select(e => ConvertToBsonValue(e))),
+                _ => new BsonString(je.GetRawText()),
+            };
+        }
+
+        return value switch
+        {
+            string s => new BsonString(s),
+            int i => new BsonInt32(i),
+            long l => new BsonInt64(l),
+            double d => new BsonDouble(d),
+            bool b => new BsonBoolean(b),
+            _ => new BsonString(value.ToString() ?? string.Empty),
         };
     }
 }
