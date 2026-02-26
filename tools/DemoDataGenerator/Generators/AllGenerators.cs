@@ -14,6 +14,10 @@ public class DataSourceGenerator
     private readonly List<AdminServer> _servers;
     private readonly List<NasDevice> _nasDevices;
 
+    // Track usage counts for round-robin distribution
+    private readonly Dictionary<string, int> _serverUsageCount = new();
+    private readonly Dictionary<string, int> _nasUsageCount = new();
+
     public DataSourceGenerator(Random random, List<AdminServer>? servers = null, List<NasDevice>? nasDevices = null)
     {
         _random = random;
@@ -107,27 +111,32 @@ public class DataSourceGenerator
                 additionalConfig["securityProtocol"] = "PLAINTEXT";
             }
             
-            // Find matching server or NAS device for this connection type
+            // Find matching server or NAS device for this connection type (round-robin to use all)
             AdminServer? server = null;
             NasDevice? nasDevice = null;
 
             if (connType == "NAS")
             {
-                // Pick an input NAS device (round-robin)
+                // Pick an input NAS device (round-robin to ensure all are used)
                 var inputNas = _nasDevices
                     .Where(d => d.Role == NasDeviceRole.Input || d.Role == NasDeviceRole.Both)
                     .ToList();
                 if (inputNas.Count > 0)
-                    nasDevice = inputNas[i % inputNas.Count];
+                {
+                    nasDevice = GetNextNasDevice(inputNas);
+                }
             }
             else
             {
-                // Prefer input-direction servers for datasources (they read files)
+                // Round-robin across all input servers of this type
                 var typeKey = connType.ToLower();
-                server = _servers
-                    .FirstOrDefault(s => s.ServerType.Equals(typeKey, StringComparison.OrdinalIgnoreCase) && s.CanBeInput
-                        && s.Direction == DataProcessing.Shared.Entities.ServerDirection.Input)
-                    ?? AdminServerGenerator.GetServerByType(_servers, connType);
+                var inputServers = _servers
+                    .Where(s => s.ServerType.Equals(typeKey, StringComparison.OrdinalIgnoreCase) && s.CanBeInput)
+                    .ToList();
+                if (inputServers.Count > 0)
+                {
+                    server = GetNextServer(inputServers, typeKey);
+                }
             }
 
             // Create ConfigurationSettings JSON for frontend
@@ -215,6 +224,31 @@ public class DataSourceGenerator
         
         Console.WriteLine($"  ✅ Generated {datasources.Count} datasources\n");
         return datasources;
+    }
+
+    /// <summary>
+    /// Get next server using round-robin to ensure all servers are used
+    /// </summary>
+    private AdminServer GetNextServer(List<AdminServer> servers, string typeKey)
+    {
+        if (!_serverUsageCount.TryGetValue(typeKey, out var count))
+            count = 0;
+        var server = servers[count % servers.Count];
+        _serverUsageCount[typeKey] = count + 1;
+        return server;
+    }
+
+    /// <summary>
+    /// Get next NAS device using round-robin to ensure all are used
+    /// </summary>
+    private NasDevice GetNextNasDevice(List<NasDevice> devices)
+    {
+        var key = "input";
+        if (!_nasUsageCount.TryGetValue(key, out var count))
+            count = 0;
+        var device = devices[count % devices.Count];
+        _nasUsageCount[key] = count + 1;
+        return device;
     }
 
     /// <summary>
