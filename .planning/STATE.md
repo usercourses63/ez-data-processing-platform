@@ -69,6 +69,10 @@ Recent decisions affecting current work:
 
 None - starting fresh with v0.2 milestone.
 
+### Roadmap Evolution
+
+- Phase 15.1 inserted after Phase 15: Test all system devices (NAS and protocols) file operations against simulator (URGENT)
+
 ### Blockers/Concerns
 
 Carried from v0.1 milestone audit:
