@@ -232,7 +232,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
 | 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
 | 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
-| 15.1. Protocol File Operations Testing | v0.2 | 2/4 | In Progress | - |
+| 15.1. Protocol File Operations Testing | 3/4 | In Progress|  | - |
 | 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
 | 18. E2E Validation | v0.2 | 0/4 | Not started | - |
