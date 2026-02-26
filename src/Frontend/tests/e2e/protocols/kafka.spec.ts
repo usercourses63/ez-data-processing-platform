@@ -36,6 +36,9 @@ import {
 } from '../helpers/ez-api-client';
 import { matrixReporter } from '../helpers/report-generator';
 
+// Enable file-based persistence so results survive Playwright worker isolation
+matrixReporter.enablePersistence('kafka');
+
 const PROTOCOL_LOCAL = 'Kafka (local)';
 const PROTOCOL_SIMULATOR = 'Kafka (simulator)';
 const SIMULATOR_HOST = '172.17.89.141';

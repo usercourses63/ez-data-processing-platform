@@ -11,6 +11,12 @@ import { defineConfig, devices } from '@playwright/test';
  * - Mobile viewport testing
  */
 export default defineConfig({
+  // Global setup/teardown for protocol test suite
+  // Pre-flight health checks + matrix report generation
+  // Gated internally: only runs when --project=protocols or PROTOCOL_TESTS=true
+  globalSetup: require.resolve('./tests/e2e/protocols/global-setup'),
+  globalTeardown: require.resolve('./tests/e2e/protocols/global-teardown'),
+
   // Test directory
   testDir: './tests/e2e',
 

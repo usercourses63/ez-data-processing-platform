@@ -34,6 +34,9 @@ import {
 import { FORMATS, loadTestData, getTestDataFileName, verifyFileContent, TestDataFormat } from '../helpers/test-data';
 import { matrixReporter } from '../helpers/report-generator';
 
+// Enable file-based persistence so results survive Playwright worker isolation
+matrixReporter.enablePersistence('s3');
+
 const PROTOCOL = 'S3';
 const SIMULATOR_HOST = '172.17.89.141';
 
