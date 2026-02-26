@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Records>
+  <Record>
+    <Id>1</Id>
+    <Name>Test Item</Name>
+    <Category>Sales</Category>
+    <Amount>100.50</Amount>
+    <Description>First test record</Description>
+  </Record>
+  <Record>
+    <Id>2</Id>
+    <Name>פריט בדיקה</Name>
+    <Category>Finance</Category>
+    <Amount>200.75</Amount>
+    <Description>רשומת בדיקה שנייה</Description>
+  </Record>
+  <Record>
+    <Id>3</Id>
+    <Name>Mixed שילוב</Name>
+    <Category>HR</Category>
+    <Amount>350.00</Amount>
+    <Description>Record with mixed content</Description>
+  </Record>
+  <Record>
+    <Id>4</Id>
+    <Name>Another Item</Name>
+    <Category>Inventory</Category>
+    <Amount>425.25</Amount>
+    <Description>Fourth test record</Description>
+  </Record>
+  <Record>
+    <Id>5</Id>
+    <Name>פריט אחרון</Name>
+    <Category>Operations</Category>
+    <Amount>550.99</Amount>
+    <Description>רשומה אחרונה</Description>
+  </Record>
+</Records>

@@ -1,0 +1,37 @@
+[
+  {
+    "Id": 1,
+    "Name": "Test Item",
+    "Category": "Sales",
+    "Amount": 100.50,
+    "Description": "First test record"
+  },
+  {
+    "Id": 2,
+    "Name": "פריט בדיקה",
+    "Category": "Finance",
+    "Amount": 200.75,
+    "Description": "רשומת בדיקה שנייה"
+  },
+  {
+    "Id": 3,
+    "Name": "Mixed שילוב",
+    "Category": "HR",
+    "Amount": 350.00,
+    "Description": "Record with mixed content"
+  },
+  {
+    "Id": 4,
+    "Name": "Another Item",
+    "Category": "Inventory",
+    "Amount": 425.25,
+    "Description": "Fourth test record"
+  },
+  {
+    "Id": 5,
+    "Name": "פריט אחרון",
+    "Category": "Operations",
+    "Amount": 550.99,
+    "Description": "רשומה אחרונה"
+  }
+]

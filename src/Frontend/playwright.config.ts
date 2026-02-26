@@ -118,6 +118,20 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
     },
+
+    // Protocol file operations testing (chromium only, sequential, 2min timeout)
+    {
+      name: 'protocols',
+      testDir: './tests/e2e/protocols',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Longer action timeout for cross-cluster network operations
+        actionTimeout: 30000,
+        navigationTimeout: 60000,
+      },
+      timeout: 120000, // 2 min per test (network operations across clusters)
+      fullyParallel: false, // Sequential to avoid resource contention
+    },
   ],
 
   // Run local dev server before starting the tests
