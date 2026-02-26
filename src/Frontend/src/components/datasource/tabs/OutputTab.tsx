@@ -230,8 +230,9 @@ export const OutputTab: React.FC<OutputTabProps> = ({ output, onChange }) => {
             description={
               <ul style={{ margin: 0, paddingRight: 20 }}>
                 <li><strong>Kafka:</strong> שליחת נתונים ל-Message Queue לעיבוד Real-Time</li>
-                <li><strong>Folder:</strong> שמירת קבצים בתיקייה (מקומית או רשת)</li>
-                <li><strong>SFTP/HTTP:</strong> יעדים נוספים יתווספו בגרסאות עתידיות</li>
+                <li><strong>Folder:</strong> שמירת קבצים בתיקייה מקומית או רשתית</li>
+                <li><strong>FTP / SFTP:</strong> העברת קבצים לשרת מרוחק</li>
+                <li><strong>NAS:</strong> שמירה על התקן אחסון רשתי (NFS)</li>
                 <li><strong>מרובה:</strong> ניתן להגדיר מספר יעדים במקביל עם הגדרות שונות</li>
                 <li><strong>דריסה:</strong> כל יעד יכול לדרוס את הגדרות ברירת המחדל</li>
               </ul>

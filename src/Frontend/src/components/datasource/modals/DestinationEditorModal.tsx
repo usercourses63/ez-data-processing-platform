@@ -269,7 +269,7 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
       <Form form={form} layout="vertical" preserve={false}>
         <Alert
           message="הגדרות יעד פלט"
-          description="בחר את סוג הפרוטוקול ושרת שהוגדר על ידי מנהל המערכת"
+          description="הגדר יעד פלט לשליחת נתונים מעובדים. בחר פרוטוקול (תיקייה, FTP, SFTP, Kafka, NAS) ושרת פלט מתוך השרתים שהוגדרו במערכת."
           type="info"
           showIcon
           style={{ marginBottom: 16 }}

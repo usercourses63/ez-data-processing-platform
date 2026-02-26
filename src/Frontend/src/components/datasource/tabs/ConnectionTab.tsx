@@ -182,7 +182,7 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
   return (
     <>
       <Alert
-        message="הגדרות חיבור למקור הנתונים"
+        message="הגדרות קלט למקור הנתונים"
         description="בחר את סוג הפרוטוקול ושרת שהוגדר על ידי מנהל המערכת"
         type="info"
         showIcon

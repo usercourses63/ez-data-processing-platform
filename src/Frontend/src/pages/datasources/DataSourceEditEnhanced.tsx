@@ -447,7 +447,7 @@ const DataSourceEditEnhanced: React.FC = () => {
                 },
                 {
                   key: 'connection',
-                  label: <span><ApiOutlined /> הגדרות חיבור</span>,
+                  label: <span><ApiOutlined /> הגדרות קלט</span>,
                   children: (
                     <Suspense fallback={<Skeleton active />}>
                       <ConnectionTab
