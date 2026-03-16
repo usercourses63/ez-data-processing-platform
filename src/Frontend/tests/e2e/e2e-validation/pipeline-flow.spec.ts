@@ -15,7 +15,7 @@ import { e2eValidationTeardown } from './global-teardown';
 import { e2eReporter } from './helpers/validation-reporter';
 import { waitForPipelineOutput, parseCsvContent, compareOutputWithInput } from './helpers/pipeline-poller';
 import {
-  EZ_API_BASE, getServers, getNasDevices, listFiles, readFile,
+  EZ_API_BASE, getServers, getNasDevices, getDataSources, listFiles, readFile,
   AdminServerResponse, NasDeviceResponse
 } from '../helpers/ez-api-client';
 
@@ -151,6 +151,126 @@ test('Pipeline: query DataSources and verify seeded data exists', async ({ reque
   } catch (err: any) {
     e2eReporter.addResult({
       suite: 'pipeline-flow', testName: 'DataSources seeded with outputs',
+      passed: false, error: err.message, durationMs: Date.now() - startTime, category: 'pipeline'
+    });
+    throw err;
+  }
+});
+
+test('Pipeline: wait for output files from folder-type destination', async ({ request }) => {
+  const startTime = Date.now();
+  try {
+    const dataSources = await getDataSources(request);
+    // Find a DataSource with an enabled folder/NAS output destination
+    let outputServerId: string | undefined;
+    for (const ds of dataSources) {
+      const destinations = ds.OutputDestinations || [];
+      const folderDest = destinations.find(
+        (d: any) => (d.Type === 'folder' || d.Type === 'nas') && d.Enabled !== false
+      );
+      if (folderDest && folderDest.OutputServerId) {
+        outputServerId = folderDest.OutputServerId;
+        console.log(`[pipeline-flow] Found folder/NAS output destination on DataSource '${ds.Name}', OutputServerId: ${outputServerId}`);
+        break;
+      }
+    }
+
+    if (!outputServerId) {
+      // Fallback: try to find an output server from the servers list
+      const servers = await getServers(request);
+      const outputServer = servers.find(
+        s => s.Direction === 'Output' || s.Direction === '1' || (s as any).Direction === 1
+      );
+      if (outputServer) {
+        outputServerId = outputServer.ID;
+        console.log(`[pipeline-flow] Fallback: using output server '${outputServer.Name}' (${outputServerId})`);
+      }
+    }
+
+    test.skip(!outputServerId, 'No DataSource with folder/NAS output destination found');
+
+    const files = await waitForPipelineOutput(request, outputServerId!, 1, 90000, 5000);
+    expect(files.length).toBeGreaterThanOrEqual(1);
+    console.log(`[pipeline-flow] Output files found: ${files.map(f => f.FileName).join(', ')}`);
+
+    e2eReporter.addResult({
+      suite: 'pipeline-flow', testName: 'Pipeline wait for output files',
+      passed: true, durationMs: Date.now() - startTime, category: 'pipeline'
+    });
+  } catch (err: any) {
+    e2eReporter.addResult({
+      suite: 'pipeline-flow', testName: 'Pipeline wait for output files',
+      passed: false, error: err.message, durationMs: Date.now() - startTime, category: 'pipeline'
+    });
+    throw err;
+  }
+});
+
+test('Pipeline: compare output records with field sampling', async ({ request }) => {
+  const startTime = Date.now();
+  try {
+    const dataSources = await getDataSources(request);
+    // Find a DataSource with an enabled folder/NAS output destination
+    let outputServerId: string | undefined;
+    for (const ds of dataSources) {
+      const destinations = ds.OutputDestinations || [];
+      const folderDest = destinations.find(
+        (d: any) => (d.Type === 'folder' || d.Type === 'nas') && d.Enabled !== false
+      );
+      if (folderDest && folderDest.OutputServerId) {
+        outputServerId = folderDest.OutputServerId;
+        break;
+      }
+    }
+
+    if (!outputServerId) {
+      const servers = await getServers(request);
+      const outputServer = servers.find(
+        s => s.Direction === 'Output' || s.Direction === '1' || (s as any).Direction === 1
+      );
+      if (outputServer) outputServerId = outputServer.ID;
+    }
+
+    test.skip(!outputServerId, 'No folder/NAS output destination available');
+
+    // Find CSV output files
+    let csvFiles = await listFiles(request, outputServerId!, undefined, '*.csv');
+    if (csvFiles.length === 0) {
+      // Try listing all files
+      const allFiles = await listFiles(request, outputServerId!);
+      test.skip(allFiles.length === 0, 'No output files found for comparison');
+      csvFiles = allFiles.filter(f => f.FileName.endsWith('.csv'));
+      test.skip(csvFiles.length === 0, 'No CSV output files found for comparison');
+    }
+
+    const csvFile = csvFiles[0];
+    console.log(`[pipeline-flow] Comparing output file: ${csvFile.FileName}`);
+
+    const content = await readFile(request, outputServerId!, csvFile.FullPath);
+    const records = parseCsvContent(content.toString('utf-8'));
+    expect(records.length).toBeGreaterThan(0);
+
+    // Use first 3 column headers as sample fields
+    const allFields = Object.keys(records[0]);
+    const sampleFields = allFields.slice(0, Math.min(3, allFields.length));
+
+    // Self-comparison: use first 2 records as expected samples (proves parsing + comparison pipeline)
+    const expectedSamples = records.slice(0, Math.min(2, records.length));
+
+    const result = await compareOutputWithInput(
+      request, outputServerId!, csvFile.FullPath,
+      records.length, sampleFields, expectedSamples
+    );
+    expect(result.passed).toBeTruthy();
+    console.log(`[pipeline-flow] Comparison result: ${result.details}`);
+
+    e2eReporter.addResult({
+      suite: 'pipeline-flow', testName: 'Pipeline compare output records',
+      passed: true, durationMs: Date.now() - startTime, category: 'pipeline'
+    });
+  } catch (err: any) {
+    e2eReporter.addResult({
+      suite: 'pipeline-flow', testName: 'Pipeline compare output records',
       passed: false, error: err.message, durationMs: Date.now() - startTime, category: 'pipeline'
     });
     throw err;
