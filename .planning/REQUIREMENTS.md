@@ -36,7 +36,7 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 - [x] **MON-05**: System Monitoring page reflects real current system components (replace mock data generators)
 - [x] **MON-06**: File access device health/latency/keep-alive monitoring (NAS devices, AdminServers)
-- [ ] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator-suite patterns)
+- [x] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator-suite patterns)
 
 ### Protocol File Operations Testing (Phase 15.1 - INSERTED)
 
@@ -135,7 +135,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OTEL-03 | Phase 14 | Complete |
 | MON-05 | Phase 15 | Complete |
 | MON-06 | Phase 15 | Complete |
-| MON-07 | Phase 16 | Pending |
+| MON-07 | Phase 16 | Complete |
 | SIM-TEST-01 | Phase 15.1 | Complete |
 | SIM-TEST-02 | Phase 15.1 | Complete |
 | SIM-TEST-03 | Phase 15.1 | Complete |
