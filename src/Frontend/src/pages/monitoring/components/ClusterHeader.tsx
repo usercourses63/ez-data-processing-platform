@@ -1,13 +1,16 @@
 import React from 'react';
+import { Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { ClusterInfo } from '../../../types/kubernetes.types';
+import { ConnectionState } from '../../../hooks/useMonitoringHub';
 
 interface ClusterHeaderProps {
   clusterInfo: ClusterInfo;
   lastUpdate: Date;
+  connectionState: ConnectionState;
 }
 
-const ClusterHeader: React.FC<ClusterHeaderProps> = ({ clusterInfo, lastUpdate }) => {
+const ClusterHeader: React.FC<ClusterHeaderProps> = ({ clusterInfo, lastUpdate, connectionState }) => {
   const { t } = useTranslation();
 
   const formatLastUpdate = () => {
@@ -20,6 +23,20 @@ const ClusterHeader: React.FC<ClusterHeaderProps> = ({ clusterInfo, lastUpdate }
     const minutes = Math.floor(diff / 60);
     return `${minutes}${t('monitoring.minutesAgo')}`;
   };
+
+  const getConnectionTooltip = () => {
+    switch (connectionState) {
+      case 'connected': return t('monitoring.connection.live');
+      case 'reconnecting': return t('monitoring.connection.reconnecting');
+      default: return t('monitoring.connection.disconnected');
+    }
+  };
+
+  const dotClass = connectionState === 'connected'
+    ? 'connection-dot-connected'
+    : connectionState === 'reconnecting'
+      ? 'connection-dot-reconnecting'
+      : 'connection-dot-disconnected';
 
   return (
     <div className="cluster-header" style={{
@@ -70,6 +87,9 @@ const ClusterHeader: React.FC<ClusterHeaderProps> = ({ clusterInfo, lastUpdate }
         </div>
         <div className="cluster-stat">
           <span className="cluster-stat-label" style={{ color: '#94a3b8' }}>
+            <Tooltip title={getConnectionTooltip()}>
+              <span className={`connection-dot ${dotClass}`} />
+            </Tooltip>
             {t('monitoring.lastUpdate')}
           </span>
           <span className="cluster-stat-value cluster-stat-update" style={{ color: '#10b981' }}>

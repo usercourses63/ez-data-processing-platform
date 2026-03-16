@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Typography, Spin, Alert as AntAlert, Tabs } from 'antd';
 import { useTranslation } from 'react-i18next';
 import {
@@ -9,30 +9,7 @@ import {
   InboxOutlined,
   BellOutlined,
 } from '@ant-design/icons';
-import {
-  ServiceStatus,
-  PipelineEvent,
-  DashboardMetrics,
-} from '../../types/monitoring.types';
-import {
-  PodStatus,
-  DistributedTrace,
-  MessageQueue,
-  Alert,
-  ClusterInfo,
-} from '../../types/kubernetes.types';
-import {
-  generateServiceStatuses,
-  generatePipelineEvents,
-  generateDashboardMetrics,
-} from '../../services/monitoring-mock-data';
-import {
-  generatePodStatuses,
-  generateDistributedTrace,
-  generateMessageQueues,
-  generateRecentAlerts,
-  generateClusterInfo,
-} from '../../services/kubernetes-mock-data';
+import { useMonitoringHub } from '../../hooks/useMonitoringHub';
 import ClusterHeader from './components/ClusterHeader';
 import MetricsOverviewCards from './components/MetricsOverviewCards';
 import PipelineFlow from './components/PipelineFlow';
@@ -46,97 +23,35 @@ import RecentAlerts from './components/RecentAlerts';
 import DeviceHealthTab from './components/DeviceHealthTab';
 import './SystemMonitoring.css';
 
-const { Title, Paragraph } = Typography;
+const { Paragraph } = Typography;
 
 const SystemMonitoring: React.FC = () => {
   const { t } = useTranslation();
-  const [services, setServices] = useState<ServiceStatus[]>([]);
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [events, setEvents] = useState<PipelineEvent[]>([]);
-  const [pods, setPods] = useState<PodStatus[]>([]);
-  const [trace, setTrace] = useState<DistributedTrace | null>(null);
-  const [queues, setQueues] = useState<MessageQueue[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [clusterInfo, setClusterInfo] = useState<ClusterInfo | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('overview');
 
-  // Load dashboard data
-  const loadDashboardData = () => {
-    try {
-      setError(null);
+  const hubUrl = `${window.location.protocol}//${window.location.host}/hubs/monitoring`;
 
-      // Generate service statuses
-      const newServices = generateServiceStatuses();
-      setServices(newServices);
+  const {
+    connectionState, isConnected,
+    deviceHealth, services, pods, metrics, queues, alerts, trace, clusterInfo, events, lastUpdate
+  } = useMonitoringHub(hubUrl);
 
-      // Generate dashboard metrics
-      const newMetrics = generateDashboardMetrics();
-      setMetrics(newMetrics);
-
-      // Add new events (keep last 50)
-      setEvents(prev => {
-        const newEvents = generatePipelineEvents(2); // Add 2 new events per refresh
-        return [...newEvents, ...prev].slice(0, 50);
-      });
-
-      // Generate Kubernetes data
-      const newPods = generatePodStatuses();
-      setPods(newPods);
-
-      const newTrace = generateDistributedTrace();
-      setTrace(newTrace);
-
-      const newQueues = generateMessageQueues();
-      setQueues(newQueues);
-
-      const newAlerts = generateRecentAlerts();
-      setAlerts(newAlerts);
-
-      const newClusterInfo = generateClusterInfo();
-      setClusterInfo(newClusterInfo);
-
-      setLastUpdate(new Date());
-
-      if (loading) {
-        setLoading(false);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load monitoring data');
-      console.error('Error loading monitoring data:', err);
-      setLoading(false);
-    }
-  };
-
-  // Initialize and set up auto-refresh
-  useEffect(() => {
-    // Initial load
-    loadDashboardData();
-
-    // Refresh every 30 seconds (matching existing Dashboard pattern)
-    const interval = setInterval(loadDashboardData, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Loading state
-  if (loading) {
+  // Loading state: only show spinner on initial connection before any data arrives
+  if (connectionState === 'connecting' && !lastUpdate) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
         <Spin size="large" />
-        <Paragraph style={{ marginTop: 16 }}>{t('common.loading')}</Paragraph>
+        <Paragraph style={{ marginTop: 16 }}>{t('monitoring.connection.connecting')}</Paragraph>
       </div>
     );
   }
 
-  // Error state
-  if (error) {
+  // Error state: disconnected and never received data
+  if (connectionState === 'disconnected' && !lastUpdate) {
     return (
       <AntAlert
-        message="Error Loading Monitoring Dashboard"
-        description={error}
+        message={t('monitoring.connection.error')}
+        description={t('monitoring.connection.errorBody')}
         type="error"
         showIcon
         style={{ margin: 24 }}
@@ -181,7 +96,7 @@ const SystemMonitoring: React.FC = () => {
           {t('monitoring.deviceHealth.title')}
         </span>
       ),
-      children: <DeviceHealthTab />,
+      children: <DeviceHealthTab signalRData={deviceHealth} isSignalRConnected={isConnected} />,
     },
     {
       key: 'pods',
@@ -228,7 +143,7 @@ const SystemMonitoring: React.FC = () => {
   return (
     <div className="monitoring-dashboard">
       {/* Cluster Header - Common section */}
-      {clusterInfo && <ClusterHeader clusterInfo={clusterInfo} lastUpdate={lastUpdate} />}
+      {clusterInfo && <ClusterHeader clusterInfo={clusterInfo} lastUpdate={lastUpdate ?? new Date()} connectionState={connectionState} />}
 
       {/* Top-level Metrics Overview - Common section */}
       <MetricsOverviewCards metrics={metrics} />

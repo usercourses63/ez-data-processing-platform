@@ -1,17 +1,35 @@
 import React from 'react';
 import { Row, Col, Spin, Alert, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useDeviceHealthStatus } from '../../../services/health-status-api-client';
+import { useQuery } from '@tanstack/react-query';
+import { getDeviceHealthStatus } from '../../../services/health-status-api-client';
+import { DeviceHealthStatusResponse } from '../../../types/device-health.types';
 import DeviceHealthSummaryBar from './DeviceHealthSummaryBar';
 import DeviceHealthCard from './DeviceHealthCard';
 
 const { Title, Paragraph, Text } = Typography;
 
-const DeviceHealthTab: React.FC = () => {
-  const { t } = useTranslation();
-  const { data, isLoading, error } = useDeviceHealthStatus();
+interface DeviceHealthTabProps {
+  signalRData?: DeviceHealthStatusResponse | null;
+  isSignalRConnected?: boolean;
+}
 
-  if (isLoading) {
+const DeviceHealthTab: React.FC<DeviceHealthTabProps> = ({ signalRData, isSignalRConnected }) => {
+  const { t } = useTranslation();
+
+  // Polling fallback: only poll when SignalR is disconnected
+  const { data: polledData, isLoading, error } = useQuery<DeviceHealthStatusResponse>({
+    queryKey: ['device-health-status'],
+    queryFn: getDeviceHealthStatus,
+    refetchInterval: isSignalRConnected ? false : 15000,
+    enabled: !isSignalRConnected,
+    refetchIntervalInBackground: false,
+    staleTime: 10000,
+  });
+
+  const data = signalRData ?? polledData;
+
+  if (isLoading && !signalRData) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 0' }}>
         <Spin size="large" />
@@ -20,7 +38,7 @@ const DeviceHealthTab: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && !signalRData) {
     return (
       <Alert
         message={t('common.error')}
