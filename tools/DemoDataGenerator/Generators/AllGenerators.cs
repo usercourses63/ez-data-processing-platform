@@ -62,6 +62,10 @@ public class DataSourceGenerator
             var connType = connectionTypes[i % connectionTypes.Length];
             var filePattern = filePatterns[i % filePatterns.Length];
             var cronExpr = cronExpressions[i % cronExpressions.Length];
+
+            // When servers are seeded from simulator, use CSV/JSON patterns that match uploaded files
+            // (FileGeneratorService only generates .csv and .json)
+            var simulatorFilePatterns = new[] { "*.csv", "*.json" };
             
             // Create varied file paths based on connection type
             var filePath = connType switch
@@ -139,6 +143,11 @@ public class DataSourceGenerator
                 }
             }
 
+            // For simulator-seeded servers, override file pattern to match uploaded formats
+            var effectiveFilePattern = (server != null || nasDevice != null)
+                ? simulatorFilePatterns[i % simulatorFilePatterns.Length]
+                : filePattern;
+
             // Create ConfigurationSettings JSON for frontend
             var configurationSettings = new
             {
@@ -166,7 +175,7 @@ public class DataSourceGenerator
                 },
                 fileConfig = new
                 {
-                    type = filePattern.TrimStart('*', '.').ToUpper(),
+                    type = effectiveFilePattern.TrimStart('*', '.').ToUpper(),
                     delimiter = ",",
                     hasHeaders = true,
                     encoding = "UTF-8"
@@ -188,7 +197,7 @@ public class DataSourceGenerator
                     onFailure = true,
                     recipients = new[] { "admin@example.com" }
                 },
-                outputConfig = GenerateOutputConfiguration(DemoConfig.DataSourceNames[i], filePattern, i)
+                outputConfig = GenerateOutputConfiguration(DemoConfig.DataSourceNames[i], effectiveFilePattern, i)
             };
 
             var datasource = new DataProcessingDataSource
@@ -201,7 +210,7 @@ public class DataSourceGenerator
                 Category = category,
                 SchemaVersion = 1,
                 IsActive = true,
-                FilePattern = filePattern,
+                FilePattern = effectiveFilePattern,
                 FileServerId = server?.ID,
                 NasDeviceId = nasDevice?.ID,
                 NasSubPath = nasDevice != null ? filePath : null,
