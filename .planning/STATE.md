@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 15.1 of 21 (Protocol File Operations Testing) - IN PROGRESS
-Plan: 3 of 4 in current phase
-Status: Executing
-Last activity: 2026-02-26 — Completed 15.1-03-PLAN.md (S3, Kafka, NAS/NFS protocol test files)
+Phase: 15.1 of 21 (Protocol File Operations Testing) - COMPLETE
+Plan: 4 of 4 in current phase (DONE)
+Status: Phase Complete - Ready for Phase 16
+Last activity: 2026-03-16 — Completed 15.1-04-PLAN.md (Global setup/teardown + protocol matrix report)
 
-Progress: [######################░░░░░░░░░░] 46/64 plans (v0.1: 32/32, v0.2: 14/32)
+Progress: [#######################░░░░░░░░░] 47/64 plans (v0.1: 32/32, v0.2: 15/32)
 
 ## Performance Metrics
 
@@ -38,9 +38,11 @@ Progress: [######################░░░░░░░░░░] 46/64 plans (v0
 | 14-otel-verification | 2 | 12 min | 6.0 min |
 | 15-device-health-monitoring | 2 | 10 min | 5.0 min |
 
+| 15.1-protocol-testing | 4 | 62 min | 15.5 min |
+
 **Recent Trend:**
-- Last 5 plans: 15-02 (3 min), 15.1-01 (8 min), 15.1-02 (5 min), 15.1-03 (4 min)
-- Trend: Consistent ~3-8 min/plan
+- Last 5 plans: 15.1-01 (8 min), 15.1-02 (5 min), 15.1-03 (4 min), 15.1-04 (45 min)
+- Trend: 15.1-04 longer due to multi-session checkpoint with NFS debugging
 
 *Updated after each plan completion*
 
@@ -67,6 +69,7 @@ Recent decisions affecting current work:
 - [15.1-01]: Base64 encoding for file write content over REST; credential resolution follows ServerService pattern; minimal XLSX via raw ZIP (no external deps); protocol tests sequential in chromium-only project
 - [15.1-02]: Credentials via TypeSpecificConfig PascalCase keys (Username, Password) for FromBsonDocument; FTP PassiveMode for NAT compat; SFTP /upload base path; HTTP Scenario B N/A (no dynamic creation); UI registration with API fallback
 - [15.1-03]: Folder-type AdminServer as bridge to NFS mount path for FileOperationsController; Kafka file ops reported as N/A (intentional design); NAS provisioning via API for reliability
+- [15.1-04]: File-based result persistence for cross-worker state; NAS tests use main NFS server (port 32149); port injection in BuildMountOptions(); 6 ECONNREFUSED failures are port-forward disruption not code bugs
 
 ### Pending Todos
 
@@ -87,9 +90,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-02-26 (session 11)
-Stopped at: Fixed deployment rollout race condition in NAS tests. Added deprovisionNasDevice() + waitForDeploymentReady() to ez-api-client.ts. Fixed nas-nfs.spec.ts cleanup. Cleaned up stale NAS PVs/PVCs and recreated deployments. Ready to run tests.
-Resume file: .planning/phases/15.1-test-all-system-devices-nas-and-protocols-file-operations-against-simulator/.continue-here.md
+Last session: 2026-03-16 (session 12)
+Stopped at: Completed 15.1-04-PLAN.md. Phase 15.1 complete (4/4 plans). Protocol matrix report generated with 42/86 tests pass, 19/20 combinations PASS. Ready for Phase 16 (SignalR Real-Time Updates).
 
 ## v0.2 Phase Summary
 

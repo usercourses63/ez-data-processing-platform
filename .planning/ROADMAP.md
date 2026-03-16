@@ -22,7 +22,7 @@
 - [ ] **Phase 13: AdminServer & Feature Completion** - File-simulator integration, NAS auto-test in forms
 - [x] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices (completed 2026-02-25)
 - [x] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring (completed 2026-02-25)
-- [ ] **Phase 15.1: Protocol File Operations Testing** - Test all device protocols against file-simulator (INSERTED)
+- [x] **Phase 15.1: Protocol File Operations Testing** - Test all device protocols against file-simulator (INSERTED) (completed 2026-03-16)
 - [ ] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page
 - [ ] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration
 - [ ] **Phase 18: E2E Validation** - Full file flow tests, error tests, Playwright UI verification
@@ -122,9 +122,9 @@ Plans:
 
 Plans:
 - [x] 15.1-01-PLAN.md — Backend file operations REST proxy + Playwright test infrastructure (SIM-TEST-01)
-- [ ] 15.1-02-PLAN.md — FTP, SFTP, HTTP/WebDAV protocol test files (SIM-TEST-02, SIM-TEST-03)
+- [x] 15.1-02-PLAN.md — FTP, SFTP, HTTP/WebDAV protocol test files (SIM-TEST-02, SIM-TEST-03)
 - [x] 15.1-03-PLAN.md — S3, Kafka, NAS/NFS protocol test files (SIM-TEST-02, SIM-TEST-03)
-- [ ] 15.1-04-PLAN.md — Global setup/teardown, full test execution, matrix report (SIM-TEST-04)
+- [x] 15.1-04-PLAN.md — Global setup/teardown, full test execution, matrix report (SIM-TEST-04)
 
 ### Phase 16: SignalR Real-Time Updates
 **Goal**: Enable real-time updates on System Monitoring page via SignalR
