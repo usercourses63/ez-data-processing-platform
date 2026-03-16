@@ -4,6 +4,7 @@
 
 - v0.1 **Testing Foundation + Infrastructure** — Phases 1-10 (shipped 2026-02-11) — [archive](milestones/v0.1-ROADMAP.md)
 - v0.2 **Production Validation & Release** — Phases 11-21 (in progress)
+- v0.3 **Real-Time Monitoring & Scaling** — Phase 22+ (planned)
 
 ## Next Milestone
 
@@ -29,6 +30,7 @@
 - [ ] **Phase 19: Documentation Update** - Docusaurus content update, container build, help link verification
 - [ ] **Phase 20: CI/CD & Production Deployment** - Pipeline, version display, local prod mode, OCP resources
 - [ ] **Phase 21: Release Package** - Tagged release, offline Helm package
+- [ ] **Phase 22: SignalR Monitoring Data Integration** - Replace mock data with real K8s/Prometheus/Kafka/Jaeger data (v0.3)
 
 ## Phase Details
 
@@ -218,10 +220,35 @@ Plans:
 - [ ] 21-01: Tagged GitHub release v0.2.0 with CHANGELOG
 - [ ] 21-02: Offline Helm package for air-gapped OCP deployment
 
+---
+
+## v0.3 Real-Time Monitoring & Scaling
+
+**Milestone Goal:** Replace all mock data on System Monitoring page with real data from K8s, Prometheus, Kafka, and MassTransit pipeline events via SignalR. Prepare for multi-pod scaling.
+
+### Phase 22: SignalR Monitoring Data Integration
+**Goal**: Debug and integrate all SignalR backend data services against the live cluster so System Monitoring page displays real data instead of mock fallback
+**Depends on**: Phase 21 (v0.2 released)
+**Requirements**: MON-08, MON-09, MON-10, MON-11, MON-12, MON-13
+**Success Criteria** (what must be TRUE):
+  1. KubernetesMonitoringService returns real pod/service status (RBAC verified, service account bound)
+  2. PrometheusQueryService returns real metrics and time-series history from PromQL instant + range queries
+  3. KafkaMonitoringService returns real topic depths and consumer lag via AdminClient
+  4. Jaeger trace queries return real distributed traces on the Traces tab
+  5. PipelineEventConsumer pushes real MassTransit events (FileDiscovered, ValidationCompleted, etc.) to EventStream
+  6. All mock data generators can be removed — every tab shows real data from SignalR
+**Plans**: TBD
+
+Plans:
+- [ ] 22-01: Debug and fix K8s + Prometheus + Kafka + Jaeger backend services against live cluster
+- [ ] 22-02: Verify real data on all monitoring tabs, remove mock fallback, E2E validation
+
+---
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21
+Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21 -> 22
 
 Note: Phases 14 and 17 can run in parallel with earlier phases as they have no strict dependencies.
 
@@ -239,8 +266,10 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 19. Documentation Update | v0.2 | 0/2 | Not started | - |
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
+| 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
 
 **v0.2 Totals:** 10/32 plans complete (31%)
+**v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
 *Roadmap updated: 2026-02-26 after Phase 15.1 planning complete*

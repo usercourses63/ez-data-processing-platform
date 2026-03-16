@@ -88,6 +88,15 @@ Deferred to future release. Tracked but not in current roadmap.
 - **HA-02**: Multi-replica deployment configuration for all services
 - **HA-03**: Horizontal Pod Autoscaler (HPA) configuration
 
+### Real-Time Monitoring Integration
+
+- **MON-08**: K8s monitoring service returns real pod/service status (fix RBAC binding, verify service account)
+- **MON-09**: Prometheus PromQL queries return real metrics (verify metric names, range queries, Prometheus connectivity)
+- **MON-10**: Kafka AdminClient returns real queue depths and consumer lag (verify internal bootstrap connectivity)
+- **MON-11**: Jaeger trace queries return real distributed traces (verify Jaeger API endpoint and response parsing)
+- **MON-12**: PipelineEventConsumer receives real MassTransit events and pushes to SignalR (verify Kafka topic subscription)
+- **MON-13**: System Monitoring page displays real data from SignalR instead of mock fallback (all mock generators removable)
+
 ### Advanced Features
 
 - **ADV-01**: AI Assistant (DataSourceChatService) integration
@@ -158,11 +167,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-04 | Phase 18 | Pending |
 | REL-01 | Phase 21 | Pending |
 | REL-02 | Phase 21 | Pending |
+| MON-08 | Phase 22 | Pending |
+| MON-09 | Phase 22 | Pending |
+| MON-10 | Phase 22 | Pending |
+| MON-11 | Phase 22 | Pending |
+| MON-12 | Phase 22 | Pending |
+| MON-13 | Phase 22 | Pending |
 
 **Coverage:**
-- v0.2 requirements: 38 total
-- Mapped to phases: 38
-- Unmapped: 0
+- v0.2 requirements: 38 total, mapped: 38, unmapped: 0
+- v0.3 requirements: 6 total, mapped: 6, unmapped: 0
 
 ---
 *Requirements defined: 2026-02-11*
