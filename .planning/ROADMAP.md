@@ -168,7 +168,7 @@ Plans:
 **Plans**: 4 plans (Wave 1: 18-01, 18-02 parallel; Wave 2: 18-03; Wave 3: 18-04)
 
 Plans:
-- [ ] 18-01-PLAN.md — Pipeline infrastructure + full flow E2E tests with DemoDataGenerator seeding (E2E-01)
+- [x] 18-01-PLAN.md — Pipeline infrastructure + full flow E2E tests with DemoDataGenerator seeding (E2E-01)
 - [ ] 18-02-PLAN.md — Static bad data fixtures + error/negative E2E tests via InvalidRecords API (E2E-02)
 - [ ] 18-03-PLAN.md — Playwright UI tests for NAS, AdminServer, monitoring, cross-feature workflows (E2E-03)
 - [ ] 18-04-PLAN.md — Run all existing tests against file-simulator + E2E validation report (E2E-04)
@@ -262,13 +262,13 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 15.1. Protocol File Operations Testing | 3/4 | In Progress|  | - |
 | 16. SignalR Real-Time Updates | 2/2 | Complete    | 2026-03-16 | - |
 | 17. File-Simulator Integration | 2/2 | Complete    | 2026-03-16 | - |
-| 18. E2E Validation | v0.2 | 0/4 | Planned | - |
+| 18. E2E Validation | v0.2 | 1/4 | In Progress | - |
 | 19. Documentation Update | v0.2 | 0/2 | Not started | - |
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
 | 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 11/32 plans complete (34%)
+**v0.2 Totals:** 12/32 plans complete (38%)
 **v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
