@@ -13,6 +13,8 @@ using System.Diagnostics;
 using MassTransit;
 using Quartz;
 using DataProcessing.DataSourceManagement.Jobs;
+using DataProcessing.DataSourceManagement.Hubs;
+using DataProcessing.DataSourceManagement.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +67,9 @@ var rabbitMqPass = configuration.GetValue<string>("RabbitMQ:Password") ?? "guest
 
 services.AddMassTransit(x =>
 {
+    // Register pipeline event consumer for SignalR broadcasting (v0.2.0: MON-07)
+    x.AddConsumer<PipelineEventConsumer>();
+
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMqHost, "/", h =>
@@ -128,6 +133,16 @@ services.AddScoped<IDeviceHealthService, DeviceHealthService>();
 services.AddScoped<DeviceHealthCheckJob>();
 services.AddHostedService<DeviceHealthService>();
 
+// Register monitoring data services (v0.2.0: SignalR Real-Time Updates, MON-07)
+services.AddScoped<IKubernetesMonitoringService, KubernetesMonitoringService>();
+services.AddScoped<IPrometheusQueryService, PrometheusQueryService>();
+services.AddScoped<IKafkaMonitoringService, KafkaMonitoringService>();
+
+// Register SignalR hub and monitoring broadcaster
+services.AddSignalR();
+services.AddSingleton<MonitoringBroadcaster>();
+services.AddHostedService(sp => sp.GetRequiredService<MonitoringBroadcaster>());
+
 // Configure Quartz.NET for device health check scheduling
 builder.Services.AddQuartz(q =>
 {
@@ -148,9 +163,11 @@ services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(origin =>
+                new Uri(origin).Host is "localhost" or "127.0.0.1" or "172.17.80.157" or "172.17.86.71" or "172.17.89.141")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials(); // Required for SignalR WebSocket transport
     });
 
     options.AddPolicy("Production", policy =>
@@ -376,6 +393,9 @@ app.UseHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthC
 {
     Predicate = _ => false // No checks, just returns healthy
 });
+
+// Map SignalR monitoring hub (v0.2.0: MON-07)
+app.MapHub<MonitoringHub>("/hubs/monitoring");
 
 // Map controllers
 app.MapControllers();
