@@ -3,29 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
-stopped_at: Phase 17 planned (2 plans, 2 waves, verified)
-last_updated: "2026-03-16T17:59:51.049Z"
-last_activity: 2026-03-16 — Completed 16-02-PLAN.md (SignalR frontend)
+stopped_at: Completed 17-01-PLAN.md (FileGeneratorService + FileUploadService + FileSimulatorClient docs)
+last_updated: "2026-03-16T18:05:33.000Z"
+last_activity: 2026-03-16 — Completed 17-01-PLAN.md (file generator and upload services)
 progress:
   total_phases: 13
   completed_phases: 7
   total_plans: 21
-  completed_plans: 19
----
-
----
-gsd_state_version: 1.0
-milestone: v0.2
-milestone_name: Production Validation & Release
-status: in_progress
-stopped_at: Completed 16-02-PLAN.md (SignalR frontend integration — Phase 16 done)
-last_updated: "2026-03-16T16:21:27.000Z"
-last_activity: 2026-03-16 — Completed 16-02-PLAN.md (SignalR frontend)
-progress:
-  total_phases: 12
-  completed_phases: 7
-  total_plans: 19
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -39,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 16 of 21 (SignalR Real-Time Updates) - COMPLETE
-Plan: 2 of 2 in current phase (DONE)
-Status: Phase 16 complete, Phase 17 next
-Last activity: 2026-03-16 — Completed 16-02-PLAN.md (SignalR frontend)
+Phase: 17 of 21 (File-Simulator Integration) - IN PROGRESS
+Plan: 1 of 2 in current phase (17-01 DONE, 17-02 next)
+Status: Phase 17 plan 01 complete, plan 02 next
+Last activity: 2026-03-16 — Completed 17-01-PLAN.md (file generator and upload services)
 
-Progress: [#########################░░░░░░░] 49/64 plans (v0.1: 32/32, v0.2: 17/32)
+Progress: [##########################░░░░░░] 50/64 plans (v0.1: 32/32, v0.2: 18/32)
 
 ## Performance Metrics
 
@@ -70,9 +55,11 @@ Progress: [#########################░░░░░░░] 49/64 plans (v0.1: 32
 
 | 15.1-protocol-testing | 4 | 62 min | 15.5 min |
 
+| 17-file-simulator-integration | 1 | 3 min | 3.0 min |
+
 **Recent Trend:**
-- Last 5 plans: 15.1-03 (4 min), 15.1-04 (45 min), 16-01 (6 min), 16-02 (4 min)
-- Trend: Steady pace, Phase 16 complete in 10 min total (2 plans)
+- Last 5 plans: 15.1-04 (45 min), 16-01 (6 min), 16-02 (4 min), 17-01 (3 min)
+- Trend: Steady pace, fast execution on service creation plans
 
 *Updated after each plan completion*
 
@@ -102,6 +89,7 @@ Recent decisions affecting current work:
 - [15.1-04]: File-based result persistence for cross-worker state; NAS tests use main NFS server (port 32149); port injection in BuildMountOptions(); 6 ECONNREFUSED failures are port-forward disruption not code bugs
 - [16-01]: Singleton+AddHostedService for MonitoringBroadcaster; CORS SetIsOriginAllowed+AllowCredentials for SignalR WebSocket; dual-speed 5s/30s broadcast; short-lived Kafka AdminClient per call
 - [16-02]: PascalCase mapper functions per type for backend-frontend bridge; conditional React Query polling fallback; connection dot in ClusterHeader Last Update stat
+- [17-01]: ServerCredentials.FromBsonDocument for credential resolution; NFS/local/folder skipped from host upload; NAS skipped with message; overwrite-by-design for demo data
 
 ### Pending Todos
 
@@ -122,8 +110,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-16T17:59:51.046Z
-Stopped at: Phase 17 planned (2 plans, 2 waves, verified)
+Last session: 2026-03-16T18:05:33.000Z
+Stopped at: Completed 17-01-PLAN.md (FileGeneratorService + FileUploadService + FileSimulatorClient docs)
 
 ## v0.2 Phase Summary
 

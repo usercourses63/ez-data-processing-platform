@@ -153,7 +153,7 @@ Plans:
 **Plans**: 2 plans (Wave 1: 17-01; Wave 2: 17-02)
 
 Plans:
-- [ ] 17-01-PLAN.md — FileGeneratorService, FileUploadService, and FileSimulatorClient API docs (SIM-01, SIM-03)
+- [x] 17-01-PLAN.md — FileGeneratorService, FileUploadService, and FileSimulatorClient API docs (SIM-01, SIM-03)
 - [ ] 17-02-PLAN.md — Wire --upload-files flag, DI container, and upload step into Program.cs (SIM-02, SIM-03)
 
 ### Phase 18: E2E Validation
@@ -261,15 +261,15 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
 | 15.1. Protocol File Operations Testing | 3/4 | In Progress|  | - |
 | 16. SignalR Real-Time Updates | 2/2 | Complete    | 2026-03-16 | - |
-| 17. File-Simulator Integration | v0.2 | 0/2 | Planned | - |
+| 17. File-Simulator Integration | v0.2 | 1/2 | In Progress | - |
 | 18. E2E Validation | v0.2 | 0/4 | Not started | - |
 | 19. Documentation Update | v0.2 | 0/2 | Not started | - |
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
 | 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 10/32 plans complete (31%)
+**v0.2 Totals:** 11/32 plans complete (34%)
 **v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-03-16 after Phase 17 planning complete*
+*Roadmap updated: 2026-03-16 after 17-01-PLAN.md complete*
