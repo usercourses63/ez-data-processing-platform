@@ -64,6 +64,7 @@ backups/
 .playwright-mcp/
 playwright-report/
 test-results/
+!test-results/E2E-VALIDATION-REPORT.md
 **/playwright-report/
 **/test-results/
 
