@@ -150,11 +150,11 @@ Plans:
   1. File-simulator API endpoints documented and understood
   2. DemoDataGenerator reads file-simulator config and creates matching EZ devices
   3. DemoDataGenerator uploads files via file-simulator for all supported protocols
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 17-01; Wave 2: 17-02)
 
 Plans:
-- [ ] 17-01: Document file-simulator API and create client library
-- [ ] 17-02: DemoDataGenerator integration with file-simulator config and upload
+- [ ] 17-01-PLAN.md — FileGeneratorService, FileUploadService, and FileSimulatorClient API docs (SIM-01, SIM-03)
+- [ ] 17-02-PLAN.md — Wire --upload-files flag, DI container, and upload step into Program.cs (SIM-02, SIM-03)
 
 ### Phase 18: E2E Validation
 **Goal**: Comprehensive E2E test coverage including file-simulator environment
@@ -261,7 +261,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
 | 15.1. Protocol File Operations Testing | 3/4 | In Progress|  | - |
 | 16. SignalR Real-Time Updates | 2/2 | Complete    | 2026-03-16 | - |
-| 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
+| 17. File-Simulator Integration | v0.2 | 0/2 | Planned | - |
 | 18. E2E Validation | v0.2 | 0/4 | Not started | - |
 | 19. Documentation Update | v0.2 | 0/2 | Not started | - |
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
@@ -272,4 +272,4 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-02-26 after Phase 15.1 planning complete*
+*Roadmap updated: 2026-03-16 after Phase 17 planning complete*
