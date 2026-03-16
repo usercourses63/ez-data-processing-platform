@@ -165,13 +165,13 @@ Plans:
   2. Error/negative tests verify filtering and error handling with bad data
   3. Playwright UI tests cover NAS devices, AdminServer, all file protocols
   4. All existing E2E tests pass against file-simulator environment
-**Plans**: TBD
+**Plans**: 4 plans (Wave 1: 18-01, 18-02 parallel; Wave 2: 18-03; Wave 3: 18-04)
 
 Plans:
-- [ ] 18-01: Full file flow E2E test with comparison validation
-- [ ] 18-02: Error handling and negative E2E tests
-- [ ] 18-03: Playwright UI tests for NAS, AdminServer, protocols
-- [ ] 18-04: Validate all E2E tests against file-simulator
+- [ ] 18-01-PLAN.md — Pipeline infrastructure + full flow E2E tests with DemoDataGenerator seeding (E2E-01)
+- [ ] 18-02-PLAN.md — Static bad data fixtures + error/negative E2E tests via InvalidRecords API (E2E-02)
+- [ ] 18-03-PLAN.md — Playwright UI tests for NAS, AdminServer, monitoring, cross-feature workflows (E2E-03)
+- [ ] 18-04-PLAN.md — Run all existing tests against file-simulator + E2E validation report (E2E-04)
 
 ### Phase 19: Documentation Update
 **Goal**: Update Docusaurus documentation for v0.2.0 release
@@ -262,7 +262,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 15.1. Protocol File Operations Testing | 3/4 | In Progress|  | - |
 | 16. SignalR Real-Time Updates | 2/2 | Complete    | 2026-03-16 | - |
 | 17. File-Simulator Integration | 2/2 | Complete    | 2026-03-16 | - |
-| 18. E2E Validation | v0.2 | 0/4 | Not started | - |
+| 18. E2E Validation | v0.2 | 0/4 | Planned | - |
 | 19. Documentation Update | v0.2 | 0/2 | Not started | - |
 | 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
@@ -272,4 +272,4 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-03-16 after 17-01-PLAN.md complete*
+*Roadmap updated: 2026-03-16 after Phase 18 planning complete*
