@@ -550,7 +550,7 @@
       },
       "placeholders": {
         "description": "Optional description",
-        "mountOptions": "nfsvers=3, tcp, hard, intr"
+        "mountOptions": "nfsvers=4, nolock"
       },
       "columns": {
         "actions": "Actions"

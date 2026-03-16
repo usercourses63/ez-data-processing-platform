@@ -30,7 +30,7 @@ interface NasDeviceModalProps {
 }
 
 // Default NFS mount options
-const DEFAULT_MOUNT_OPTIONS = ['nfsvers=3', 'tcp', 'hard', 'intr'];
+const DEFAULT_MOUNT_OPTIONS = ['nfsvers=4', 'nolock'];
 
 const NasDeviceModal: React.FC<NasDeviceModalProps> = ({
   visible,
@@ -257,11 +257,11 @@ const NasDeviceModal: React.FC<NasDeviceModalProps> = ({
           <Select
             mode="tags"
             style={{ width: '100%' }}
-            placeholder={t('admin.nas.placeholders.mountOptions') || 'nfsvers=3, tcp, hard, intr'}
+            placeholder={t('admin.nas.placeholders.mountOptions') || 'nfsvers=4, nolock'}
             tokenSeparators={[',']}
           >
-            <Option value="nfsvers=3">nfsvers=3</Option>
             <Option value="nfsvers=4">nfsvers=4</Option>
+            <Option value="nfsvers=3">nfsvers=3</Option>
             <Option value="tcp">tcp</Option>
             <Option value="hard">hard</Option>
             <Option value="soft">soft</Option>

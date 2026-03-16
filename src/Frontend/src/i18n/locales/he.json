@@ -1143,7 +1143,7 @@
       },
       "placeholders": {
         "description": "תיאור (אופציונלי)",
-        "mountOptions": "nfsvers=3, tcp, hard, intr"
+        "mountOptions": "nfsvers=4, nolock"
       },
       "columns": {
         "actions": "פעולות"

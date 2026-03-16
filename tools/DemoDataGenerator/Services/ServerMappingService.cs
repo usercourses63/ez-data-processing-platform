@@ -64,7 +64,7 @@ public class ServerMappingService
             StorageCapacity = "10Gi",
             AccessMode = "ReadWriteMany",
             ReclaimPolicy = "Retain",
-            MountOptions = new List<string> { "nfsvers=3", "tcp", "hard", "intr" },
+            MountOptions = new List<string> { "nfsvers=4", "nolock" },
             // Not provisioned - health check will do TCP connectivity test
             IsPvCreated = false,
             IsPvcBound = false,
@@ -120,28 +120,10 @@ public class ServerMappingService
 
     private static string ParseExportPath(string? directory, ConnectionInfoServer? connServer)
     {
-        // Derive suffix from directory field (e.g., C:\simulator-data\input → /input)
-        var suffix = "";
-        if (!string.IsNullOrEmpty(directory))
-        {
-            if (directory.Contains("\\input") || directory.Contains("/input")) suffix = "/input";
-            else if (directory.Contains("\\output") || directory.Contains("/output")) suffix = "/output";
-            else if (directory.Contains("\\backup") || directory.Contains("/backup")) suffix = "/backup";
-        }
-
-        // Try to extract base path from connectionString (format: "host:port:/path")
-        if (connServer?.ConnectionString != null)
-        {
-            var parts = connServer.ConnectionString.Split(':');
-            if (parts.Length >= 3)
-            {
-                var basePath = parts[^1]; // Last segment after last ':'
-                if (basePath.StartsWith("/")) return basePath + suffix;
-            }
-        }
-
-        // Fall back to directory-based path
-        return "/data" + suffix;
+        // NFSv4 with pseudo-root (fsid=0): export path is always "/" because
+        // the NFS server maps "/" to its exported directory (e.g., /data).
+        // Subdirectories (input, output, backup) are accessed via the pod mount path.
+        return "/";
     }
 
     private static string? GetBasePath(string serverType, ServerDirection direction)

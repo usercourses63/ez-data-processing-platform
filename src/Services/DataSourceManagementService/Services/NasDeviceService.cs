@@ -110,7 +110,7 @@ public class NasDeviceService : INasDeviceService
         // Apply default mount options if not specified
         if (device.MountOptions == null || device.MountOptions.Count == 0)
         {
-            device.MountOptions = new List<string> { "nfsvers=3", "tcp", "hard", "intr" };
+            device.MountOptions = new List<string> { "nfsvers=4", "nolock" };
         }
 
         await device.SaveAsync(cancellation: ct);
@@ -572,12 +572,14 @@ public class NasDeviceService : INasDeviceService
     /// </summary>
     private static List<string> GetTargetDeployments(NasDeviceRole role)
     {
+        // datasource-management always included: hosts FileOperationsController
+        // which needs filesystem access to NAS mount paths
         return role switch
         {
-            NasDeviceRole.Input => new List<string> { "filediscovery", "fileprocessor" },
-            NasDeviceRole.Output => new List<string> { "output" },
-            NasDeviceRole.Both => new List<string> { "filediscovery", "fileprocessor", "output" },
-            NasDeviceRole.Backup => new List<string> { "output" },
+            NasDeviceRole.Input => new List<string> { "filediscovery", "fileprocessor", "datasource-management" },
+            NasDeviceRole.Output => new List<string> { "output", "datasource-management" },
+            NasDeviceRole.Both => new List<string> { "filediscovery", "fileprocessor", "output", "datasource-management" },
+            NasDeviceRole.Backup => new List<string> { "output", "datasource-management" },
             _ => new List<string>()
         };
     }

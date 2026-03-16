@@ -251,10 +251,10 @@ function Test-CreateNasDevice {
         Name = "test-nas-integration"
         Host = "file-sim-nas-input-1.file-simulator.svc.cluster.local"
         Port = 2049
-        ExportPath = "/data"
+        ExportPath = "/"
         Role = "Input"
         StorageCapacity = "1Gi"
-        MountOptions = @("nfsvers=3", "tcp", "hard", "intr")
+        MountOptions = @("nfsvers=4", "nolock")
     }
 
     Write-Info "Creating NAS device: $($testDevice.Name)"

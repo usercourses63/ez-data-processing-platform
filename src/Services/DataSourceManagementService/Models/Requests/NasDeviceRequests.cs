@@ -34,10 +34,10 @@ public class CreateNasDeviceRequest
     public int Port { get; set; } = 2049;
 
     /// <summary>
-    /// NFS export path on the server (e.g., "/data", "/exports/shared")
+    /// NFS export path on the server. Use "/" for NFSv4 pseudo-root.
     /// </summary>
     [StringLength(500, ErrorMessage = "נתיב הייצוא לא יכול להיות ארוך מ-500 תווים")]
-    public string ExportPath { get; set; } = "/data";
+    public string ExportPath { get; set; } = "/";
 
     /// <summary>
     /// How the NAS device is used in the data processing pipeline
@@ -68,8 +68,8 @@ public class CreateNasDeviceRequest
     public string ReclaimPolicy { get; set; } = "Retain";
 
     /// <summary>
-    /// NFS mount options for the PersistentVolume
-    /// Default: nfsvers=3, tcp, hard, intr
+    /// NFS mount options for the PersistentVolume.
+    /// Default: nfsvers=4, nolock (for cross-cluster NFS via NodePort).
     /// </summary>
     public List<string>? MountOptions { get; set; }
 }
@@ -105,10 +105,10 @@ public class UpdateNasDeviceRequest
     public int Port { get; set; } = 2049;
 
     /// <summary>
-    /// NFS export path on the server
+    /// NFS export path on the server. Use "/" for NFSv4 pseudo-root.
     /// </summary>
     [StringLength(500, ErrorMessage = "נתיב הייצוא לא יכול להיות ארוך מ-500 תווים")]
-    public string ExportPath { get; set; } = "/data";
+    public string ExportPath { get; set; } = "/";
 
     /// <summary>
     /// How the NAS device is used in the data processing pipeline

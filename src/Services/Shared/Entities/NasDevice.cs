@@ -67,10 +67,11 @@ public class NasDevice : DataProcessingBaseEntity
     public int Port { get; set; } = 2049;
 
     /// <summary>
-    /// NFS export path on the server (e.g., "/data", "/exports/shared")
+    /// NFS export path on the server.
+    /// For NFSv4 with pseudo-root (fsid=0), use "/" which maps to the server's exported directory.
     /// </summary>
     [StringLength(500)]
-    public string ExportPath { get; set; } = "/data";
+    public string ExportPath { get; set; } = "/";
 
     // ========== Role Classification ==========
 
@@ -123,10 +124,10 @@ public class NasDevice : DataProcessingBaseEntity
     public string ReclaimPolicy { get; set; } = "Retain";
 
     /// <summary>
-    /// NFS mount options for the PersistentVolume
-    /// Default: nfsvers=3 (explicit version), tcp, hard (retry on failure), intr (allow interrupt)
+    /// NFS mount options for the PersistentVolume.
+    /// Default: nfsvers=4 (required for cross-cluster NFS via NodePort), nolock (no NLM needed for NFSv4).
     /// </summary>
-    public List<string> MountOptions { get; set; } = new() { "nfsvers=3", "tcp", "hard", "intr" };
+    public List<string> MountOptions { get; set; } = new() { "nfsvers=4", "nolock" };
 
     // ========== Provisioning Status ==========
 
