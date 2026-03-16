@@ -241,7 +241,7 @@ export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
 
     connection.on('TraceUpdate', (raw: any) => {
       if (!isMountedRef.current) return;
-      setTrace(raw ? mapDistributedTrace(raw) : null);
+      setTrace(Array.isArray(raw) && raw.length > 0 ? mapDistributedTrace(raw[0]) : null);
       setLastUpdate(new Date());
     });
 
@@ -259,7 +259,7 @@ export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
       if (raw.Metrics) setMetrics(mapDashboardMetrics(raw.Metrics));
       if (raw.Queues) setQueues((raw.Queues as any[]).map(mapMessageQueue));
       if (raw.Alerts) setAlerts((raw.Alerts as any[]).map(mapAlert));
-      if (raw.Trace) setTrace(mapDistributedTrace(raw.Trace));
+      if (raw.Traces?.length) setTrace(mapDistributedTrace(raw.Traces[0]));
       if (raw.ClusterInfo) setClusterInfo(mapClusterInfo(raw.ClusterInfo));
       if (raw.PipelineEvents) {
         setEvents((raw.PipelineEvents as any[]).map(mapPipelineEvent).slice(0, 50));
