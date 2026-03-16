@@ -302,28 +302,54 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
             ? baseUrl
             : $"{baseUrl.TrimEnd('/')}/{path.TrimStart('/')}";
 
+        // Ensure trailing slash for directory listing
+        if (!fullUrl.EndsWith('/'))
+            fullUrl += '/';
+
         _logger.LogInformation("Listing files from HTTP API: {Url}", fullUrl);
 
         try
         {
-            ConfigureHttpClientForServer(server, credentials);
+            using var httpClient = CreateHttpClientForServer(server, credentials);
 
-            var response = await _httpClient.GetAsync(fullUrl, cancellationToken);
+            var response = await httpClient.GetAsync(fullUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            var files = JsonSerializer.Deserialize<List<string>>(content) ?? new List<string>();
+            var contentType = response.Content.Headers.ContentType?.MediaType ?? "";
 
-            // Convert string paths to DiscoveredFile objects
-            var discoveredFiles = files.Select(f => new DiscoveredFile
+            _logger.LogInformation("HTTP List response: StatusCode={StatusCode}, ContentType={ContentType}, ContentLength={ContentLength}, RequestUri={RequestUri}",
+                (int)response.StatusCode, contentType, content.Length, response.RequestMessage?.RequestUri);
+
+            List<string> files;
+
+            // Try JSON first, then fall back to HTML directory listing parsing
+            if (contentType.Contains("json"))
             {
-                FullPath = f,
-                FileName = Path.GetFileName(f),
-                SizeBytes = 0, // Unknown for HTTP listings
-                LastModifiedUtc = DateTime.UtcNow,
-                IsDirectory = false,
-                ContentType = "application/octet-stream"
-            }).ToList();
+                files = JsonSerializer.Deserialize<List<string>>(content) ?? new List<string>();
+            }
+            else
+            {
+                // Parse HTML directory listing (nginx autoindex, WebDAV, Apache)
+                // Matches <a href="filename">...</a> patterns
+                files = ParseHtmlDirectoryListing(content);
+                _logger.LogInformation("HTML parsing found {Count} raw file entries from {ContentLength} chars of HTML. First 300 chars: {Preview}",
+                    files.Count, content.Length, content.Length > 300 ? content[..300] : content);
+            }
+
+            // Apply pattern filter and convert to DiscoveredFile objects
+            var discoveredFiles = files
+                .Where(f => !f.EndsWith('/')) // Skip directories
+                .Where(f => MatchesPattern(Path.GetFileName(f), pattern))
+                .Select(f => new DiscoveredFile
+                {
+                    FullPath = f,
+                    FileName = Path.GetFileName(f),
+                    SizeBytes = 0,
+                    LastModifiedUtc = DateTime.UtcNow,
+                    IsDirectory = false,
+                    ContentType = "application/octet-stream"
+                }).ToList();
 
             _logger.LogInformation("Found {Count} files from HTTP API", discoveredFiles.Count);
             return discoveredFiles;
@@ -331,8 +357,40 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error listing files from HTTP API: {Url}", fullUrl);
-            return new List<DiscoveredFile>();
+            throw;
         }
+    }
+
+    private static List<string> ParseHtmlDirectoryListing(string html)
+    {
+        var files = new List<string>();
+        var regex = new System.Text.RegularExpressions.Regex(
+            @"<a\s+href=""([^""]+)""",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        foreach (System.Text.RegularExpressions.Match match in regex.Matches(html))
+        {
+            var href = match.Groups[1].Value;
+            // Skip parent directory and absolute links
+            if (href == "../" || href.StartsWith("/") || href.StartsWith("http://") || href.StartsWith("https://"))
+                continue;
+            files.Add(href.TrimEnd('/'));
+        }
+
+        return files;
+    }
+
+    private static bool MatchesPattern(string fileName, string pattern)
+    {
+        if (string.IsNullOrEmpty(pattern) || pattern == "*" || pattern == "*.*")
+            return true;
+
+        var regexPattern = "^" + System.Text.RegularExpressions.Regex.Escape(pattern)
+            .Replace("\\*", ".*")
+            .Replace("\\?", ".") + "$";
+
+        return System.Text.RegularExpressions.Regex.IsMatch(fileName, regexPattern,
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     }
 
     public async Task<byte[]> ReadFileAsync(
@@ -350,9 +408,9 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
 
         try
         {
-            ConfigureHttpClientForServer(server, credentials);
+            using var httpClient = CreateHttpClientForServer(server, credentials);
 
-            var response = await _httpClient.GetAsync(fullUrl, cancellationToken);
+            var response = await httpClient.GetAsync(fullUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadAsByteArrayAsync(cancellationToken);
@@ -380,12 +438,12 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
 
         try
         {
-            ConfigureHttpClientForServer(server, credentials);
+            using var httpClient = CreateHttpClientForServer(server, credentials);
 
             using var byteContent = new ByteArrayContent(content);
             byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
-            var response = await _httpClient.PutAsync(fullUrl, byteContent, cancellationToken);
+            var response = await httpClient.PutAsync(fullUrl, byteContent, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             _logger.LogInformation("File written successfully to HTTP: {Url}", fullUrl);
@@ -423,29 +481,28 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
         return server.BasePath ?? "http://localhost";
     }
 
-    private void ConfigureHttpClientForServer(AdminServer server, ServerCredentials? credentials)
+    private HttpClient CreateHttpClientForServer(AdminServer server, ServerCredentials? credentials)
     {
-        // Clear previous headers to avoid conflicts
-        _httpClient.DefaultRequestHeaders.Clear();
+        var httpClient = _httpClientFactory.CreateClient(nameof(HttpApiConnector));
 
         // Set authentication from ServerCredentials
         if (credentials != null)
         {
             if (!string.IsNullOrEmpty(credentials.BearerToken))
             {
-                _httpClient.DefaultRequestHeaders.Authorization =
+                httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", credentials.BearerToken);
             }
             else if (credentials.HasBasicAuth)
             {
                 var encoded = Convert.ToBase64String(
                     System.Text.Encoding.ASCII.GetBytes($"{credentials.Username}:{credentials.Password}"));
-                _httpClient.DefaultRequestHeaders.Authorization =
+                httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Basic", encoded);
             }
             else if (!string.IsNullOrEmpty(credentials.ApiKey))
             {
-                _httpClient.DefaultRequestHeaders.Add("X-API-Key", credentials.ApiKey);
+                httpClient.DefaultRequestHeaders.Add("X-API-Key", credentials.ApiKey);
             }
         }
 
@@ -453,7 +510,9 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
         var timeout = server.ConnectionTimeoutSeconds > 0
             ? server.ConnectionTimeoutSeconds
             : 30;
-        _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+        httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+
+        return httpClient;
     }
 
     #endregion

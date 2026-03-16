@@ -14,37 +14,41 @@ export const SIMULATOR_BASE = process.env.FILE_SIMULATOR_URL || 'http://172.17.8
 // ============================================================
 
 export interface SimulatorCredentials {
-  Username: string;
-  Password: string;
+  username: string;
+  password: string;
+  note?: string;
 }
 
 export interface SimulatorServer {
-  Name: string;
-  PodName: string;
-  Protocol: string;
-  ServiceName: string;
-  ClusterIp: string;
-  Port: number;
-  NodePort: number;
-  PodStatus: string;
-  PodReady: boolean;
-  IsDynamic: boolean;
-  Credentials?: SimulatorCredentials;
+  name: string;
+  podName: string;
+  protocol: string;
+  serviceName: string;
+  clusterIp: string;
+  port: number;
+  nodePort: number;
+  podStatus: string;
+  podReady: boolean;
+  isDynamic: boolean;
+  credentials?: SimulatorCredentials;
 }
 
 export interface SimulatorServerEndpoint {
-  Name: string;
-  Protocol: string;
-  Host: string;
-  Port: number;
-  NodePort: number;
-  ClusterIp: string;
-  Credentials?: SimulatorCredentials;
+  name: string;
+  protocol: string;
+  host: string;
+  port: number;
+  clusterIp: string;
+  clusterPort: number;
+  serviceName: string;
+  isDynamic: boolean;
+  status: string;
+  credentials?: SimulatorCredentials;
 }
 
 export interface SimulatorConnectionInfo {
-  ExternalHost: string;
-  Servers: SimulatorServerEndpoint[];
+  hostname: string;
+  servers: SimulatorServerEndpoint[];
 }
 
 // ============================================================
@@ -173,5 +177,5 @@ export async function deleteSimulatorServer(
  * Filter simulator servers by protocol
  */
 export function filterServersByProtocol(servers: SimulatorServer[], protocol: string): SimulatorServer[] {
-  return servers.filter((s) => s.Protocol.toLowerCase() === protocol.toLowerCase());
+  return servers.filter((s) => s.protocol.toLowerCase() === protocol.toLowerCase());
 }

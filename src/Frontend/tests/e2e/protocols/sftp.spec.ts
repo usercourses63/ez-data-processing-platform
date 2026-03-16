@@ -73,8 +73,8 @@ test.describe('SFTP - Scenario A: Static Devices', () => {
     );
     nodePort = serverEndpoint?.port || staticServer.nodePort;
 
-    // Determine base path from connection info or use default
-    basePath = '/upload';
+    // Determine base path - SFTP chroot jail: / is read-only, /data is writable
+    basePath = '/data';
 
     // Get credentials from the simulator server info
     const username = staticServer.credentials?.username || 'sftpuser';
@@ -126,7 +126,7 @@ test.describe('SFTP - Scenario A: Static Devices', () => {
   for (const format of FORMATS) {
     test.describe(`Format: ${format}`, () => {
       const fileName = `sftp-static-${testRunId}.${format}`;
-      // Paths are relative to server BasePath (/upload)
+      // Paths are relative to server BasePath (/)
       const filePath = fileName;
 
       test(`Write ${format} file - static SFTP`, async ({ request }) => {
@@ -232,7 +232,7 @@ test.describe('SFTP - Scenario B: Dynamic Devices', () => {
           username: username,
           password: password,
         },
-        basePath: '/upload',
+        basePath: '/data',
       });
     } finally {
       await page.close();
@@ -259,7 +259,7 @@ test.describe('SFTP - Scenario B: Dynamic Devices', () => {
       Direction: ServerDirection.Both,
       Host: SIMULATOR_HOST,
       Port: nodePort,
-      BasePath: '/upload',
+      BasePath: '/data',
       TypeSpecificConfig: {
         Username: username,
         Password: password,

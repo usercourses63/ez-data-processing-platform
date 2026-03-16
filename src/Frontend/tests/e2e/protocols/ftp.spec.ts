@@ -26,6 +26,7 @@ import {
   writeFile,
   deleteServer,
   getServers,
+  ServerDirection,
 } from '../helpers/ez-api-client';
 import { addServerViaUI } from '../helpers/ui-helpers';
 import { FORMATS, loadTestData, getTestDataFileName, verifyFileContent, TestDataFormat } from '../helpers/test-data';
@@ -55,7 +56,7 @@ test.describe('FTP - Scenario A: Static Devices', () => {
 
     // Discover static FTP servers
     const allServers = await getSimulatorServers(request);
-    const ftpServers = filterServersByProtocol(allServers, 'ftp').filter((s) => !s.IsDynamic);
+    const ftpServers = filterServersByProtocol(allServers, 'ftp').filter((s) => !s.isDynamic);
 
     if (ftpServers.length === 0) {
       test.skip(true, 'No static FTP server found on file-simulator');
@@ -66,20 +67,20 @@ test.describe('FTP - Scenario A: Static Devices', () => {
     connectionInfo = await getConnectionInfo(request);
 
     // Find NodePort for this FTP server from connection info
-    const serverEndpoint = connectionInfo.Servers?.find(
-      (s) => s.Name === staticServer!.Name || s.Protocol?.toLowerCase() === 'ftp'
+    const serverEndpoint = connectionInfo.servers?.find(
+      (s) => s.name === staticServer!.name || s.protocol?.toLowerCase() === 'ftp'
     );
-    nodePort = serverEndpoint?.NodePort || staticServer.NodePort;
+    nodePort = serverEndpoint?.nodePort || staticServer.nodePort;
 
     // Get credentials from the simulator server info
-    const username = staticServer.Credentials?.Username || 'ftpuser';
-    const password = staticServer.Credentials?.Password || 'ftppass123';
+    const username = staticServer.credentials?.username || 'ftpuser';
+    const password = staticServer.credentials?.password || 'ftppass123';
 
     // Register the static FTP server in EZ via API
     const created = await createAdminServer(request, {
       Name: `E2E-FTP-Static-${testRunId}`,
       ServerType: 'ftp',
-      Direction: 'Both',
+      Direction: ServerDirection.Both,
       Host: SIMULATOR_HOST,
       Port: nodePort,
       BasePath: '/',
@@ -206,60 +207,29 @@ test.describe('FTP - Scenario B: Dynamic Devices', () => {
 
     // Get connection info to find the NodePort
     connectionInfo = await getConnectionInfo(request);
-    const serverEndpoint = connectionInfo.Servers?.find(
-      (s) => s.Name === dynamicServer.Name || s.Name === dynamicName
+    const serverEndpoint = connectionInfo.servers?.find(
+      (s) => s.name === dynamicServer.name || s.name === dynamicName
     );
-    nodePort = serverEndpoint?.NodePort || dynamicServer.NodePort;
+    nodePort = serverEndpoint?.nodePort || dynamicServer.nodePort;
 
-    const username = dynamicServer.Credentials?.Username || 'ftpuser';
-    const password = dynamicServer.Credentials?.Password || 'ftppass123';
+    const username = dynamicServer.credentials?.username || 'ftpuser';
+    const password = dynamicServer.credentials?.password || 'ftppass123';
 
-    // Register the dynamic FTP server in EZ via UI
-    const page = await browser.newPage();
-    try {
-      await addServerViaUI(page, {
-        name: `E2E-FTP-Dynamic-${testRunId}`,
-        type: 'ftp',
-        host: SIMULATOR_HOST,
-        port: nodePort,
-        credentials: {
-          username: username,
-          password: password,
-        },
-        basePath: '/',
-      });
-    } finally {
-      await page.close();
-    }
-
-    // Wait for UI to persist
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Find the registered server ID from EZ API
-    const servers = await getServers(request);
-    const matchingServer = servers.find(
-      (s) => s.Name === `E2E-FTP-Dynamic-${testRunId}`
-    );
-
-    if (!matchingServer) {
-      // Fallback: create via API if UI registration didn't work
-      const created = await createAdminServer(request, {
-        Name: `E2E-FTP-Dynamic-${testRunId}`,
-        ServerType: 'ftp',
-        Direction: 'Both',
-        Host: SIMULATOR_HOST,
-        Port: nodePort,
-        BasePath: '/',
-        TypeSpecificConfig: {
-          Username: username,
-          Password: password,
-          PassiveMode: true,
-        },
-      });
-      ezServerId = created.ID;
-    } else {
-      ezServerId = matchingServer.ID;
-    }
+    // Register via API directly (more reliable than UI for dynamic servers)
+    const created = await createAdminServer(request, {
+      Name: `E2E-FTP-Dynamic-${testRunId}`,
+      ServerType: 'ftp',
+      Direction: ServerDirection.Both,
+      Host: SIMULATOR_HOST,
+      Port: nodePort,
+      BasePath: '/',
+      TypeSpecificConfig: {
+        Username: username,
+        Password: password,
+        PassiveMode: true,
+      },
+    });
+    ezServerId = created.ID;
   });
 
   test.afterAll(async ({ request }) => {

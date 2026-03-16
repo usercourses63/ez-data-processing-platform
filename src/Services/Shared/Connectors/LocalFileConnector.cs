@@ -214,7 +214,12 @@ public class LocalFileConnector : IDataSourceConnector, IServerConnector
         string pattern,
         CancellationToken cancellationToken = default)
     {
-        var basePath = Path.Combine(server.BasePath ?? "/", path ?? "");
+        // Strip leading separators from path to prevent Path.Combine from treating it as rooted
+        // (Path.Combine("base", "/sub") returns "/sub" in .NET, discarding the base)
+        var relativePath = (path ?? "").TrimStart('/', '\\');
+        var basePath = string.IsNullOrEmpty(relativePath)
+            ? server.BasePath ?? "/"
+            : Path.Combine(server.BasePath ?? "/", relativePath);
 
         _logger.LogInformation("Listing files in: {BasePath} with pattern: {Pattern}", basePath, pattern);
 

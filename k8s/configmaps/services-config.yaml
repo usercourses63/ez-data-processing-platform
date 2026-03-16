@@ -9,7 +9,7 @@ metadata:
   namespace: ez-platform
 data:
   # MongoDB Configuration - Single node with replica set
-  mongodb-connection: "mongodb://mongodb:27017"
+  mongodb-connection: "mongodb://mongodb:27017/?directConnection=true"
   database-name: "ezplatform"
 
   # Kafka Configuration - Using Service (not specific pod)

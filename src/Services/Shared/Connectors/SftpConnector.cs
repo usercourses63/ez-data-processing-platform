@@ -309,10 +309,11 @@ public class SftpConnector : IDataSourceConnector, IServerConnector
         try
         {
             await Task.Run(() => client.Connect(), cancellationToken);
-            _logger.LogInformation("Reading file from SFTP: {FilePath}", filePath);
+            var fullPath = CombinePath(server.BasePath, filePath);
+            _logger.LogInformation("Reading file from SFTP: {FilePath} (resolved: {FullPath})", filePath, fullPath);
 
             using var memoryStream = new MemoryStream();
-            client.DownloadFile(filePath, memoryStream);
+            client.DownloadFile(fullPath, memoryStream);
 
             return memoryStream.ToArray();
         }
@@ -335,24 +336,25 @@ public class SftpConnector : IDataSourceConnector, IServerConnector
         try
         {
             await Task.Run(() => client.Connect(), cancellationToken);
-            _logger.LogInformation("Writing file to SFTP: {FilePath} ({Size} bytes)",
-                filePath, content.Length);
+            var fullPath = CombinePath(server.BasePath, filePath);
+            _logger.LogInformation("Writing file to SFTP: {FilePath} (resolved: {FullPath}, {Size} bytes)",
+                filePath, fullPath, content.Length);
 
             // Ensure directory exists
-            var directory = Path.GetDirectoryName(filePath)?.Replace('\\', '/');
+            var directory = Path.GetDirectoryName(fullPath)?.Replace('\\', '/');
             if (!string.IsNullOrEmpty(directory) && !client.Exists(directory))
             {
                 CreateDirectoryRecursively(client, directory);
             }
 
             // Delete existing file if it exists (to emulate overwrite)
-            if (client.Exists(filePath))
+            if (client.Exists(fullPath))
             {
-                client.DeleteFile(filePath);
+                client.DeleteFile(fullPath);
             }
 
             using var stream = new MemoryStream(content);
-            client.UploadFile(stream, filePath);
+            client.UploadFile(stream, fullPath);
 
             _logger.LogInformation("Successfully wrote file to SFTP: {FilePath}", filePath);
         }

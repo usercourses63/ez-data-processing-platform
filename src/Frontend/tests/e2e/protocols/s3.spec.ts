@@ -30,6 +30,7 @@ import {
   writeFile,
   deleteServer,
   AdminServerResponse,
+  ServerDirection,
 } from '../helpers/ez-api-client';
 import { FORMATS, loadTestData, getTestDataFileName, verifyFileContent, TestDataFormat } from '../helpers/test-data';
 import { matrixReporter } from '../helpers/report-generator';
@@ -69,34 +70,34 @@ test.describe('S3 - Scenario A: Static Devices', () => {
 
     // 3. Get connection info for NodePort discovery
     connectionInfo = await getConnectionInfo(request);
-    const s3Endpoint = connectionInfo.Servers?.find(
-      (s) => s.Protocol.toLowerCase() === 's3' || s.Protocol.toLowerCase() === 'minio'
+    const s3Endpoint = connectionInfo.servers?.find(
+      (s) => s.protocol.toLowerCase() === 's3' || s.protocol.toLowerCase() === 'minio'
     );
-    nodePort = s3Endpoint?.NodePort || s3Server.NodePort;
+    nodePort = s3Endpoint?.nodePort || s3Server.nodePort;
     expect(nodePort, 'S3 NodePort must be discoverable').toBeGreaterThan(0);
 
-    console.log(`[s3.spec] Using static S3 server: ${s3Server.Name} at ${SIMULATOR_HOST}:${nodePort}`);
+    console.log(`[s3.spec] Using static S3 server: ${s3Server.name} at ${SIMULATOR_HOST}:${nodePort}`);
   });
 
   test('TestConnection - static S3', async ({ request }) => {
     test.setTimeout(60000);
 
     const timestamp = Date.now();
-    const credentials = s3Server.Credentials || { Username: 'minioadmin', Password: 'minioadmin' };
+    const credentials = s3Server.credentials || { username: 'minioadmin', password: 'minioadmin123' };
 
     // Create AdminServer in EZ with S3 config
     const server: AdminServerResponse = await createAdminServer(request, {
       Name: `E2E-S3-Static-${timestamp}`,
       ServerType: 's3',
-      Direction: 'Both',
+      Direction: ServerDirection.Both,
       Host: SIMULATOR_HOST,
       Port: nodePort,
       TypeSpecificConfig: {
         Region: 'us-east-1',
         UsePathStyle: true,
         Bucket: 'test-bucket',
-        AccessKey: credentials.Username,
-        SecretKey: credentials.Password,
+        AccessKey: credentials.username,
+        SecretKey: credentials.password,
         Endpoint: `http://${SIMULATOR_HOST}:${nodePort}`,
       },
     });

@@ -33,6 +33,7 @@ import {
   deleteServer,
   AdminServerResponse,
   EZ_API_BASE,
+  ServerDirection,
 } from '../helpers/ez-api-client';
 import { matrixReporter } from '../helpers/report-generator';
 
@@ -56,15 +57,15 @@ test.describe('Kafka - Scenario A: Local Kafka Cluster', () => {
     const timestamp = Date.now();
 
     // Create AdminServer pointing to local Kafka (EZ cluster's own Kafka)
-    // localhost:9094 is the external listener accessible via port-forward
+    // Use in-cluster service name since TestConnection runs inside the pod
     const server: AdminServerResponse = await createAdminServer(request, {
       Name: `E2E-Kafka-Local-${timestamp}`,
       ServerType: 'kafka',
-      Direction: 'Input',
-      Host: 'localhost',
-      Port: 9094,
+      Direction: ServerDirection.Input,
+      Host: 'kafka',
+      Port: 9092,
       KafkaConfig: {
-        BootstrapServers: 'localhost:9094',
+        BootstrapServers: 'kafka:9092',
         SecurityProtocol: 'PLAINTEXT',
       },
     });
@@ -135,22 +136,28 @@ test.describe('Kafka - Scenario A: Simulator Kafka Cluster', () => {
     const healthy = await getSimulatorHealth(request);
     expect(healthy, 'File-simulator must be reachable for Kafka simulator tests').toBeTruthy();
 
-    // 2. Discover Kafka servers on simulator
+    // 2. Try to discover Kafka servers via simulator API
     const allServers = await getSimulatorServers(request);
     kafkaServers = filterServersByProtocol(allServers, 'kafka');
-    expect(kafkaServers.length, 'At least one Kafka server must exist on simulator').toBeGreaterThan(0);
 
-    kafkaServer = kafkaServers[0];
+    if (kafkaServers.length > 0) {
+      kafkaServer = kafkaServers[0];
+      connectionInfo = await getConnectionInfo(request);
+      const kafkaEndpoint = connectionInfo.servers?.find(
+        (s) => s.protocol.toLowerCase() === 'kafka'
+      );
+      nodePort = kafkaEndpoint?.port || kafkaServer.nodePort;
+    } else {
+      // Simulator cluster has Kafka infrastructure but doesn't expose it
+      // via /api/servers. Use the known external listener NodePort (30094).
+      // Port 30092 is the internal listener; 30094 is the EXTERNAL listener
+      // required for cross-cluster access (same as file-simulator TestConsole).
+      nodePort = 30094;
+      console.log('[kafka.spec] No Kafka in simulator /api/servers, using known external NodePort 30094');
+    }
 
-    // 3. Get connection info for NodePort
-    connectionInfo = await getConnectionInfo(request);
-    const kafkaEndpoint = connectionInfo.Servers?.find(
-      (s) => s.Protocol.toLowerCase() === 'kafka'
-    );
-    nodePort = kafkaEndpoint?.NodePort || kafkaServer.NodePort;
     expect(nodePort, 'Kafka NodePort must be discoverable').toBeGreaterThan(0);
-
-    console.log(`[kafka.spec] Using simulator Kafka: ${kafkaServer.Name} at ${SIMULATOR_HOST}:${nodePort}`);
+    console.log(`[kafka.spec] Using simulator Kafka at ${SIMULATOR_HOST}:${nodePort}`);
   });
 
   test('TestConnection - simulator Kafka', async ({ request }) => {
@@ -162,7 +169,7 @@ test.describe('Kafka - Scenario A: Simulator Kafka Cluster', () => {
     const server: AdminServerResponse = await createAdminServer(request, {
       Name: `E2E-Kafka-Simulator-${timestamp}`,
       ServerType: 'kafka',
-      Direction: 'Input',
+      Direction: ServerDirection.Input,
       Host: SIMULATOR_HOST,
       Port: nodePort,
       KafkaConfig: {

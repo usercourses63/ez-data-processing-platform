@@ -23,6 +23,7 @@ import {
   readFile,
   writeFile,
   deleteServer,
+  ServerDirection,
 } from '../helpers/ez-api-client';
 import { FORMATS, loadTestData, getTestDataFileName, verifyFileContent, TestDataFormat } from '../helpers/test-data';
 import { matrixReporter } from '../helpers/report-generator';
@@ -49,36 +50,36 @@ test.describe('HTTP/WebDAV - Scenario A: Static Devices', () => {
     const healthy = await getSimulatorHealth(request);
     expect(healthy, 'File-simulator must be reachable for HTTP/WebDAV tests').toBeTruthy();
 
-    // Discover static HTTP servers
+    // Discover static servers - prefer WebDAV (supports full CRUD) over HTTP (read-only)
     const allServers = await getSimulatorServers(request);
-    const httpServers = filterServersByProtocol(allServers, 'http').filter((s) => !s.IsDynamic);
+    const webdavServers = filterServersByProtocol(allServers, 'webdav').filter((s) => !s.isDynamic);
+    const httpServers = filterServersByProtocol(allServers, 'http').filter((s) => !s.isDynamic);
 
-    // Also check for 'webdav' protocol label in case the simulator uses that
-    if (httpServers.length === 0) {
-      const webdavServers = filterServersByProtocol(allServers, 'webdav').filter((s) => !s.IsDynamic);
-      if (webdavServers.length > 0) {
-        staticServer = webdavServers[0];
-      }
-    } else {
+    // Prefer WebDAV for full read/write support; fall back to HTTP (read-only)
+    if (webdavServers.length > 0) {
+      staticServer = webdavServers[0];
+      console.log(`[http-webdav.spec] Using WebDAV server: ${staticServer.name} (supports full CRUD)`);
+    } else if (httpServers.length > 0) {
       staticServer = httpServers[0];
+      console.log(`[http-webdav.spec] Using HTTP server: ${staticServer.name} (may be read-only)`);
     }
 
     expect(staticServer, 'No static HTTP/WebDAV server found on file-simulator. HTTP tests require a pre-existing HTTP server.').toBeTruthy();
 
     connectionInfo = await getConnectionInfo(request);
 
-    // Find NodePort for this HTTP server from connection info
-    const serverEndpoint = connectionInfo.Servers?.find(
+    // Find NodePort for this server from connection info
+    const serverEndpoint = connectionInfo.servers?.find(
       (s) =>
-        s.Name === staticServer!.Name ||
-        s.Protocol?.toLowerCase() === 'http' ||
-        s.Protocol?.toLowerCase() === 'webdav'
+        s.name === staticServer!.name ||
+        s.protocol?.toLowerCase() === 'webdav' ||
+        s.protocol?.toLowerCase() === 'http'
     );
-    nodePort = serverEndpoint?.NodePort || staticServer!.NodePort;
+    nodePort = serverEndpoint?.nodePort || staticServer!.nodePort;
 
-    // Get credentials if the HTTP server requires auth
-    const username = staticServer!.Credentials?.Username;
-    const password = staticServer!.Credentials?.Password;
+    // Get credentials if the server requires auth
+    const username = staticServer!.credentials?.username;
+    const password = staticServer!.credentials?.password;
 
     // Build TypeSpecificConfig with auth if present
     const typeSpecificConfig: Record<string, unknown> = {};
@@ -88,11 +89,11 @@ test.describe('HTTP/WebDAV - Scenario A: Static Devices', () => {
       typeSpecificConfig.AuthType = 'basic';
     }
 
-    // Register the static HTTP server in EZ via API
+    // Register the server in EZ via API
     const created = await createAdminServer(request, {
       Name: `E2E-HTTP-Static-${testRunId}`,
       ServerType: 'http',
-      Direction: 'Both',
+      Direction: ServerDirection.Both,
       Host: SIMULATOR_HOST,
       Port: nodePort,
       BasePath: '/',

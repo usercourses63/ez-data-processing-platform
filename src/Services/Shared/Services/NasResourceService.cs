@@ -708,7 +708,9 @@ public class NasResourceService : INasResourceService
                     Path = device.ExportPath,
                     ReadOnlyProperty = device.Role == NasDeviceRole.Backup
                 },
-                MountOptions = device.MountOptions
+                MountOptions = device.MountOptions,
+                // Empty string for static binding — prevents default StorageClass from claiming this PV
+                StorageClassName = ""
             }
         };
     }
@@ -749,9 +751,11 @@ public class NasResourceService : INasResourceService
                     {
                         ["nas-device"] = device.Name.ToLowerInvariant().Replace(" ", "-")
                     }
-                }
-                // NOTE: StorageClassName is intentionally NULL for static binding
-                // Do NOT set to empty string - that has different semantics
+                },
+                // Empty string is required for static PV binding.
+                // null would use the default StorageClass (e.g., minikube-hostpath),
+                // which auto-provisions a new PV instead of binding to our NFS PV.
+                StorageClassName = ""
             }
         };
     }
