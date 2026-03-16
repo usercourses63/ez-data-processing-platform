@@ -23,7 +23,7 @@
 - [x] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices (completed 2026-02-25)
 - [x] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring (completed 2026-02-25)
 - [x] **Phase 15.1: Protocol File Operations Testing** - Test all device protocols against file-simulator (INSERTED) (completed 2026-03-16)
-- [ ] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page
+- [x] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page (completed 2026-03-16)
 - [ ] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration
 - [ ] **Phase 18: E2E Validation** - Full file flow tests, error tests, Playwright UI verification
 - [ ] **Phase 19: Documentation Update** - Docusaurus content update, container build, help link verification
@@ -233,7 +233,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
 | 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
 | 15.1. Protocol File Operations Testing | 3/4 | In Progress|  | - |
-| 16. SignalR Real-Time Updates | 1/2 | In Progress|  | - |
+| 16. SignalR Real-Time Updates | 2/2 | Complete   | 2026-03-16 | - |
 | 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
 | 18. E2E Validation | v0.2 | 0/4 | Not started | - |
 | 19. Documentation Update | v0.2 | 0/2 | Not started | - |

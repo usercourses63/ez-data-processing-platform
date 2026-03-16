@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
-stopped_at: Completed 16-01-PLAN.md (SignalR backend hub + broadcaster + monitoring services)
-last_updated: "2026-03-16T16:15:00.000Z"
-last_activity: 2026-03-16 — Completed 16-01-PLAN.md (SignalR backend)
+stopped_at: Completed 16-02-PLAN.md (SignalR frontend integration — Phase 16 done)
+last_updated: "2026-03-16T16:21:27.000Z"
+last_activity: 2026-03-16 — Completed 16-02-PLAN.md (SignalR frontend)
 progress:
   total_phases: 12
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 19
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 16 of 21 (SignalR Real-Time Updates) - IN PROGRESS
-Plan: 1 of 2 in current phase (DONE)
-Status: Plan 16-01 complete, Plan 16-02 pending
-Last activity: 2026-03-16 — Completed 16-01-PLAN.md (SignalR backend)
+Phase: 16 of 21 (SignalR Real-Time Updates) - COMPLETE
+Plan: 2 of 2 in current phase (DONE)
+Status: Phase 16 complete, Phase 17 next
+Last activity: 2026-03-16 — Completed 16-02-PLAN.md (SignalR frontend)
 
-Progress: [########################░░░░░░░░] 48/64 plans (v0.1: 32/32, v0.2: 16/32)
+Progress: [#########################░░░░░░░] 49/64 plans (v0.1: 32/32, v0.2: 17/32)
 
 ## Performance Metrics
 
@@ -56,8 +56,8 @@ Progress: [########################░░░░░░░░] 48/64 plans (v0.1: 
 | 15.1-protocol-testing | 4 | 62 min | 15.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 15.1-02 (5 min), 15.1-03 (4 min), 15.1-04 (45 min), 16-01 (6 min)
-- Trend: 16-01 back to normal pace after 15.1-04 NFS debugging
+- Last 5 plans: 15.1-03 (4 min), 15.1-04 (45 min), 16-01 (6 min), 16-02 (4 min)
+- Trend: Steady pace, Phase 16 complete in 10 min total (2 plans)
 
 *Updated after each plan completion*
 
@@ -86,6 +86,7 @@ Recent decisions affecting current work:
 - [15.1-03]: Folder-type AdminServer as bridge to NFS mount path for FileOperationsController; Kafka file ops reported as N/A (intentional design); NAS provisioning via API for reliability
 - [15.1-04]: File-based result persistence for cross-worker state; NAS tests use main NFS server (port 32149); port injection in BuildMountOptions(); 6 ECONNREFUSED failures are port-forward disruption not code bugs
 - [16-01]: Singleton+AddHostedService for MonitoringBroadcaster; CORS SetIsOriginAllowed+AllowCredentials for SignalR WebSocket; dual-speed 5s/30s broadcast; short-lived Kafka AdminClient per call
+- [16-02]: PascalCase mapper functions per type for backend-frontend bridge; conditional React Query polling fallback; connection dot in ClusterHeader Last Update stat
 
 ### Pending Todos
 
@@ -106,8 +107,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-16T16:15:00.000Z
-Stopped at: Completed 16-01-PLAN.md (SignalR backend hub + broadcaster + monitoring services)
+Last session: 2026-03-16T16:21:27.000Z
+Stopped at: Completed 16-02-PLAN.md (SignalR frontend integration — Phase 16 done)
 
 ## v0.2 Phase Summary
 
