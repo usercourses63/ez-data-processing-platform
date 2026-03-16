@@ -48,7 +48,7 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 ### File-Simulator Integration
 
 - [x] **SIM-01**: File-simulator docs/API understood and documented (REST endpoints, protocol configs)
-- [ ] **SIM-02**: DemoDataGenerator reads file-simulator config via API and creates matching EZ devices
+- [x] **SIM-02**: DemoDataGenerator reads file-simulator config via API and creates matching EZ devices
 - [x] **SIM-03**: DemoDataGenerator uploads files via multi-protocol using file-simulator endpoints
 
 ### Production Deployment
@@ -150,7 +150,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SIM-TEST-03 | Phase 15.1 | Complete |
 | SIM-TEST-04 | Phase 15.1 | Complete |
 | SIM-01 | Phase 17 | Complete |
-| SIM-02 | Phase 17 | Pending |
+| SIM-02 | Phase 17 | Complete |
 | SIM-03 | Phase 17 | Complete |
 | PROD-01 | Phase 20 | Pending |
 | PROD-02 | Phase 20 | Pending |

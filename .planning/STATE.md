@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
-stopped_at: Completed 17-01-PLAN.md (FileGeneratorService + FileUploadService + FileSimulatorClient docs)
-last_updated: "2026-03-16T18:05:33.000Z"
-last_activity: 2026-03-16 — Completed 17-01-PLAN.md (file generator and upload services)
+stopped_at: Completed 17-02-PLAN.md (CLI wiring and pipeline integration)
+last_updated: "2026-03-16T18:14:40.000Z"
+last_activity: 2026-03-16 — Completed 17-02-PLAN.md (CLI wiring, DI setup, FilePattern alignment)
 progress:
   total_phases: 13
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 17 of 21 (File-Simulator Integration) - IN PROGRESS
-Plan: 1 of 2 in current phase (17-01 DONE, 17-02 next)
-Status: Phase 17 plan 01 complete, plan 02 next
-Last activity: 2026-03-16 — Completed 17-01-PLAN.md (file generator and upload services)
+Phase: 17 of 21 (File-Simulator Integration) - COMPLETE
+Plan: 2 of 2 in current phase (17-01 DONE, 17-02 DONE)
+Status: Phase 17 complete, Phase 18 next
+Last activity: 2026-03-16 — Completed 17-02-PLAN.md (CLI wiring, DI setup, FilePattern alignment)
 
-Progress: [##########################░░░░░░] 50/64 plans (v0.1: 32/32, v0.2: 18/32)
+Progress: [##########################░░░░░░] 51/64 plans (v0.1: 32/32, v0.2: 19/32)
 
 ## Performance Metrics
 
@@ -55,11 +55,11 @@ Progress: [##########################░░░░░░] 50/64 plans (v0.1: 32/3
 
 | 15.1-protocol-testing | 4 | 62 min | 15.5 min |
 
-| 17-file-simulator-integration | 1 | 3 min | 3.0 min |
+| 17-file-simulator-integration | 2 | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 15.1-04 (45 min), 16-01 (6 min), 16-02 (4 min), 17-01 (3 min)
-- Trend: Steady pace, fast execution on service creation plans
+- Last 5 plans: 16-01 (6 min), 16-02 (4 min), 17-01 (3 min), 17-02 (4 min)
+- Trend: Steady pace, fast execution on service creation and wiring plans
 
 *Updated after each plan completion*
 
@@ -90,6 +90,7 @@ Recent decisions affecting current work:
 - [16-01]: Singleton+AddHostedService for MonitoringBroadcaster; CORS SetIsOriginAllowed+AllowCredentials for SignalR WebSocket; dual-speed 5s/30s broadcast; short-lived Kafka AdminClient per call
 - [16-02]: PascalCase mapper functions per type for backend-frontend bridge; conditional React Query polling fallback; connection dot in ClusterHeader Last Update stat
 - [17-01]: ServerCredentials.FromBsonDocument for credential resolution; NFS/local/folder skipped from host upload; NAS skipped with message; overwrite-by-design for demo data
+- [17-02]: DI container scoped to upload step only; simulatorFilePatterns (*.csv, *.json) for server-linked DataSources; CPM versions in Directory.Packages.props
 
 ### Pending Todos
 
@@ -110,8 +111,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-16T18:05:33.000Z
-Stopped at: Completed 17-01-PLAN.md (FileGeneratorService + FileUploadService + FileSimulatorClient docs)
+Last session: 2026-03-16T18:14:40.000Z
+Stopped at: Completed 17-02-PLAN.md (CLI wiring and pipeline integration — Phase 17 complete)
 
 ## v0.2 Phase Summary
 
