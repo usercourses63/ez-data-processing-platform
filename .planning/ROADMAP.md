@@ -134,11 +134,11 @@ Plans:
   1. SignalR hub broadcasts health status changes in real-time
   2. Frontend connects to SignalR hub and updates UI without refresh
   3. Connection recovery works after temporary disconnection
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 16-01; Wave 2: 16-02)
 
 Plans:
-- [ ] 16-01: SignalR hub implementation in DataSourceManagementService
-- [ ] 16-02: Frontend SignalR integration with real-time UI updates
+- [ ] 16-01-PLAN.md — Backend SignalR hub, MonitoringBroadcaster, K8s/Prometheus/Kafka data services, CORS + RBAC (MON-07)
+- [ ] 16-02-PLAN.md — Frontend useMonitoringHub hook, mock data removal, connection badge, polling fallback, i18n (MON-07)
 
 ### Phase 17: File-Simulator Integration
 **Goal**: Integrate DemoDataGenerator with file-simulator for multi-protocol testing
