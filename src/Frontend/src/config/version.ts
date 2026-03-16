@@ -1,12 +1,17 @@
 // Version information for the EZ Platform Frontend
-// This file is automatically updated during the build process
+// Values are injected at build time by Vite (see vite.config.ts `define`)
+
+declare const __APP_VERSION__: string;
+declare const __BUILD_DATE__: string;
+declare const __GIT_COMMIT__: string;
+declare const __GIT_BRANCH__: string;
 
 export const VERSION_INFO = {
-  version: 'v0.2.0',
-  buildDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+  version: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev',
+  buildDate: typeof __BUILD_DATE__ !== 'undefined' ? __BUILD_DATE__ : new Date().toISOString().split('T')[0],
   environment: import.meta.env.MODE || 'development',
-  gitCommit: import.meta.env.VITE_GIT_COMMIT || 'unknown',
-  gitBranch: import.meta.env.VITE_GIT_BRANCH || 'main',
+  gitCommit: typeof __GIT_COMMIT__ !== 'undefined' ? __GIT_COMMIT__ : 'unknown',
+  gitBranch: typeof __GIT_BRANCH__ !== 'undefined' ? __GIT_BRANCH__ : 'unknown',
 };
 
 export const getVersionString = (): string => {
@@ -21,10 +26,10 @@ export const getFullVersionInfo = (): string => {
   ];
 
   if (VERSION_INFO.gitCommit !== 'unknown') {
-    parts.push(`Commit: ${VERSION_INFO.gitCommit.substring(0, 7)}`);
+    parts.push(`Commit: ${VERSION_INFO.gitCommit}`);
   }
 
-  if (VERSION_INFO.gitBranch !== 'main') {
+  if (VERSION_INFO.gitBranch !== 'unknown' && VERSION_INFO.gitBranch !== 'main') {
     parts.push(`Branch: ${VERSION_INFO.gitBranch}`);
   }
 
