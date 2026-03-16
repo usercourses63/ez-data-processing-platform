@@ -2,12 +2,12 @@
  * File-simulator REST API client for discovery and dynamic server creation.
  * Used by protocol tests to interact with the file-simulator cluster.
  *
- * Environment: FILE_SIMULATOR_URL defaults to http://172.17.89.141:30500
+ * Environment: FILE_SIMULATOR_URL defaults to http://file-simulator.local:30500
  * (NodePort on Hyper-V minikube cluster - NOT port-forward, which hangs)
  */
 import { APIRequestContext } from '@playwright/test';
 
-export const SIMULATOR_BASE = process.env.FILE_SIMULATOR_URL || 'http://172.17.89.141:30500';
+export const SIMULATOR_BASE = process.env.FILE_SIMULATOR_URL || 'http://file-simulator.local:30500';
 
 // ============================================================
 // Type definitions

@@ -31,7 +31,7 @@ import { matrixReporter } from '../helpers/report-generator';
 // Enable file-based persistence so results survive Playwright worker isolation
 matrixReporter.enablePersistence('http-webdav');
 
-const SIMULATOR_HOST = '172.17.89.141';
+const SIMULATOR_HOST = 'file-simulator.local';
 
 // ============================================================
 // Scenario A: Static HTTP/WebDAV Devices

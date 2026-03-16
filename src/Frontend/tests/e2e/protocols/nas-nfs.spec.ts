@@ -62,7 +62,7 @@ import { matrixReporter } from '../helpers/report-generator';
 matrixReporter.enablePersistence('nas-nfs');
 
 const PROTOCOL = 'NAS/NFS';
-const SIMULATOR_HOST = '172.17.89.141';
+const SIMULATOR_HOST = 'file-simulator.local';
 
 /**
  * Wait for a NAS device to be provisioned (PVC bound and mounted).

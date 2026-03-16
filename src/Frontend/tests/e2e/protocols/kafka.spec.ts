@@ -42,7 +42,7 @@ matrixReporter.enablePersistence('kafka');
 
 const PROTOCOL_LOCAL = 'Kafka (local)';
 const PROTOCOL_SIMULATOR = 'Kafka (simulator)';
-const SIMULATOR_HOST = '172.17.89.141';
+const SIMULATOR_HOST = 'file-simulator.local';
 
 // ============================================================
 // Scenario A-1: Local Kafka Cluster

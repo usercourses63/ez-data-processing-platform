@@ -24,7 +24,7 @@ async function globalSetup() {
     return;
   }
 
-  const SIMULATOR_BASE = process.env.FILE_SIMULATOR_URL || 'http://172.17.89.141:30500';
+  const SIMULATOR_BASE = process.env.FILE_SIMULATOR_URL || 'http://file-simulator.local:30500';
   const EZ_API_BASE = process.env.EZ_API_URL || 'http://localhost:5001';
 
   // Clean up stale persisted results from previous runs
@@ -76,7 +76,7 @@ async function globalSetup() {
   console.log(`[Global Setup] Total simulator servers: ${servers.length}`);
 
   // Ensure S3/MinIO test-bucket exists
-  const S3_HOST = '172.17.89.141';
+  const S3_HOST = 'file-simulator.local';
   const S3_PORT = 30900;
   const S3_ACCESS_KEY = 'minioadmin';
   const S3_SECRET_KEY = 'minioadmin123';

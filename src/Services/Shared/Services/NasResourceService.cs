@@ -708,11 +708,30 @@ public class NasResourceService : INasResourceService
                     Path = device.ExportPath,
                     ReadOnlyProperty = device.Role == NasDeviceRole.Backup
                 },
-                MountOptions = device.MountOptions,
+                MountOptions = BuildMountOptions(device),
                 // Empty string for static binding — prevents default StorageClass from claiming this PV
                 StorageClassName = ""
             }
         };
+    }
+
+    /// <summary>
+    /// Build mount options for the PV, injecting port if non-default (NodePort NFS).
+    /// </summary>
+    private static IList<string> BuildMountOptions(NasDevice device)
+    {
+        var options = new List<string>(device.MountOptions ?? new List<string> { "nfsvers=4", "nolock" });
+
+        // For NFS via NodePort, the port must be in mount options since PV nfs spec has no port field.
+        // Default NFS port is 2049 — only inject if using a non-default port (e.g., NodePort).
+        if (device.Port != 2049 && device.Port > 0)
+        {
+            // Remove any existing port option to avoid duplicates
+            options.RemoveAll(o => o.StartsWith("port="));
+            options.Add($"port={device.Port}");
+        }
+
+        return options;
     }
 
     /// <summary>

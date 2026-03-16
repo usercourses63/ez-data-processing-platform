@@ -39,7 +39,7 @@ import { matrixReporter } from '../helpers/report-generator';
 matrixReporter.enablePersistence('s3');
 
 const PROTOCOL = 'S3';
-const SIMULATOR_HOST = '172.17.89.141';
+const SIMULATOR_HOST = 'file-simulator.local';
 
 // ============================================================
 // Scenario A: Static S3/MinIO Devices
