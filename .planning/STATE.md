@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
-stopped_at: Completed 18-01-PLAN.md (e2e-validation infrastructure and pipeline flow tests)
-last_updated: "2026-03-16T19:17:49Z"
-last_activity: 2026-03-16 — Completed 18-01-PLAN.md (Playwright e2e-validation project, pipeline-poller, validation-reporter, 5 pipeline flow tests)
+stopped_at: Completed 18-02-PLAN.md (negative tests and bad data fixtures)
+last_updated: "2026-03-16T19:19:36Z"
+last_activity: 2026-03-16 — Completed 18-02-PLAN.md (8 bad data fixtures, bad-data-loader, 5 negative E2E tests)
 progress:
   total_phases: 13
   completed_phases: 8
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 23
+  completed_plans: 23
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 18 of 21 (E2E Validation) - IN PROGRESS
-Plan: 1 of 4 in current phase (18-01 DONE)
-Status: Phase 18 in progress, 18-02 next
-Last activity: 2026-03-16 — Completed 18-01-PLAN.md (e2e-validation infrastructure and pipeline flow tests)
+Plan: 2 of 4 in current phase (18-01 DONE, 18-02 DONE)
+Status: Phase 18 in progress, 18-03 next
+Last activity: 2026-03-16 — Completed 18-02-PLAN.md (negative tests and bad data fixtures)
 
-Progress: [##########################░░░░░░] 52/64 plans (v0.1: 32/32, v0.2: 20/32)
+Progress: [###########################░░░░░] 53/64 plans (v0.1: 32/32, v0.2: 21/32)
 
 ## Performance Metrics
 
@@ -56,11 +56,11 @@ Progress: [##########################░░░░░░] 52/64 plans (v0.1: 32/3
 | 15.1-protocol-testing | 4 | 62 min | 15.5 min |
 
 | 17-file-simulator-integration | 2 | 7 min | 3.5 min |
-| 18-e2e-validation | 1 | 3 min | 3.0 min |
+| 18-e2e-validation | 2 | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 16-02 (4 min), 17-01 (3 min), 17-02 (4 min), 18-01 (3 min)
-- Trend: Steady pace, fast execution on test infrastructure and wiring plans
+- Last 5 plans: 17-01 (3 min), 17-02 (4 min), 18-01 (3 min), 18-02 (4 min)
+- Trend: Steady pace, fast execution on test infrastructure and fixture creation
 
 *Updated after each plan completion*
 
@@ -93,6 +93,7 @@ Recent decisions affecting current work:
 - [17-01]: ServerCredentials.FromBsonDocument for credential resolution; NFS/local/folder skipped from host upload; NAS skipped with message; overwrite-by-design for demo data
 - [17-02]: DI container scoped to upload step only; simulatorFilePatterns (*.csv, *.json) for server-linked DataSources; CPM versions in Directory.Packages.props
 - [18-01]: beforeAll/afterAll setup modules (not Playwright globalSetup); server discovery by API query not hardcoded IDs; FTP+SFTP+NAS protocol coverage
+- [18-02]: Fixture fields match DemoDataGenerator SimpleTransaction schema (transactionId, amount, date, status); .gitignore exception for static test fixtures
 
 ### Pending Todos
 
@@ -113,8 +114,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-16T19:17:49Z
-Stopped at: Completed 18-01-PLAN.md
+Last session: 2026-03-16T19:19:36Z
+Stopped at: Completed 18-02-PLAN.md
 
 ## v0.2 Phase Summary
 
