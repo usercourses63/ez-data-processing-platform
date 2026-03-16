@@ -1,0 +1,3 @@
+transactionId,amount,date,status,extraField1,extraField2
+TXN-00000020,100.00,2025-01-01,ממתין,unexpected1,unexpected2
+TXN-00000021,200.00,2025-01-02,אושר,extra1,extra2

@@ -67,8 +67,9 @@ test-results/
 **/playwright-report/
 **/test-results/
 
-# Test data directory (external mount)
-test-data/
+# Test data directory (external mount) — except e2e-validation fixtures
+test-data/*
+!test-data/e2e-validation/
 # Test artifacts
 e2e-*.json
 e2e-*.csv

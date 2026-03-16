@@ -1,0 +1,4 @@
+[
+  {"transactionId": "TXN-00000060", "amount": 100.00, "date": "2025-01-01", "status": "ממתין"},
+  {"transactionId": "TXN-00000061", "amount": 200.00, "date": "2025-01-02", "status": "אושר"}
+]
