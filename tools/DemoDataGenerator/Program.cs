@@ -1,10 +1,13 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Entities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using DemoDataGenerator.Services;
 using DemoDataGenerator.Generators;
 using DemoDataGenerator.Models;
 using DataProcessing.Shared.Entities;
+using DataProcessing.Shared.Connectors;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -18,6 +21,7 @@ bool useSimulator = args.Contains("--use-simulator");
 bool discoverOnly = args.Contains("--discover-only");
 bool createServers = args.Contains("--create-servers");
 bool provisionNas = args.Contains("--provision-nas");
+bool uploadFiles = args.Contains("--upload-files");
 
 // Parse MongoDB connection string (support both Docker Compose and K8s)
 string mongoHost = "localhost"; // Default for Docker Compose
@@ -88,6 +92,7 @@ if (useSimulator)
     Console.WriteLine($"Discover Only: {discoverOnly}");
     Console.WriteLine($"Create Servers: {createServers}");
     Console.WriteLine($"Provision NAS: {provisionNas}");
+    Console.WriteLine($"Upload Files: {uploadFiles}");
     if (provisionNas)
     {
         var apiUrl = apiUrlOverride ?? "http://datasource-management:5001";
@@ -169,6 +174,28 @@ try
         var (discoveredServers, nasDevices) = await seederService.SeedFromSimulatorAsync(createDynamic, provisionNas);
         servers = discoveredServers;
         seededNasDevices = nasDevices;
+
+        // Step 3b: Upload test files to seeded servers
+        if (uploadFiles)
+        {
+            Console.WriteLine("\n[3b/11] Uploading test files to servers...");
+
+            // Set up minimal DI for connector factory
+            var diServices = new ServiceCollection();
+            diServices.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Warning));
+            diServices.AddHttpClient();
+            diServices.AddConnectorFactory();
+            var diProvider = diServices.BuildServiceProvider();
+            var connectorFactory = diProvider.GetRequiredService<IConnectorFactory>();
+
+            var fileGen = new FileGeneratorService(random);
+            var uploadService = new FileUploadService(connectorFactory, fileGen, apiClient);
+            await uploadService.UploadFilesAsync(servers, seededNasDevices);
+
+            // Dispose DI container
+            diProvider.Dispose();
+            Console.WriteLine();
+        }
     }
     else
     {
