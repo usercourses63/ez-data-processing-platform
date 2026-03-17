@@ -63,8 +63,8 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 ### Documentation
 
 - [x] **DOC-06**: Docusaurus content updated for v0.2.0 release (all docs current)
-- [ ] **DOC-07**: Docusaurus built and deployed as container in release-package alongside other services
-- [ ] **DOC-08**: Frontend help link opens running Docusaurus — analyze existing implementation, verify connectivity, fix gaps
+- [x] **DOC-07**: Docusaurus built and deployed as container in release-package alongside other services
+- [x] **DOC-08**: Frontend help link opens running Docusaurus — analyze existing implementation, verify connectivity, fix gaps
 
 ### E2E Validation
 
@@ -159,8 +159,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROD-05 | Phase 20 | Pending |
 | PROD-06 | Phase 20 | Pending |
 | DOC-06 | Phase 19 | Complete |
-| DOC-07 | Phase 19 | Pending |
-| DOC-08 | Phase 19 | Pending |
+| DOC-07 | Phase 19 | Complete |
+| DOC-08 | Phase 19 | Complete |
 | E2E-01 | Phase 18 | Complete |
 | E2E-02 | Phase 18 | Complete |
 | E2E-03 | Phase 18 | Complete |
