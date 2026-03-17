@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # EZ Platform - Administrator Guide v0.2.0
 
-**Last Updated:** February 3, 2026
+**Last Updated:** March 2026
 **Audience:** System Administrators, DevOps Engineers
 **Version:** 0.2.0
 
@@ -16,11 +16,14 @@ sidebar_position: 2
 2. [NAS Device Management](#nas-device-management)
 3. [Category Management](#category-management)
 4. [Monitoring & Alerts](#monitoring--alerts)
-5. [Backup & Recovery](#backup--recovery)
-6. [Scaling Guidelines](#scaling-guidelines)
-7. [Performance Tuning](#performance-tuning)
-8. [Security Hardening](#security-hardening)
-9. [Troubleshooting](#troubleshooting)
+5. [SignalR Real-Time Monitoring](#signalr-real-time-monitoring)
+6. [Device Health Monitoring](#device-health-monitoring)
+7. [OTEL Observability](#otel-observability)
+8. [Backup & Recovery](#backup--recovery)
+9. [Scaling Guidelines](#scaling-guidelines)
+10. [Performance Tuning](#performance-tuning)
+11. [Security Hardening](#security-hardening)
+12. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -388,6 +391,225 @@ kube_pod_container_status_restarts_total{namespace="ez-platform"}
 - Processing latency > 5 seconds
 - Pod memory usage > 80%
 - Kafka lag > 1000 messages
+
+---
+
+## SignalR Real-Time Monitoring
+
+### Overview
+
+EZ Platform v0.2.0 introduces real-time monitoring via SignalR WebSocket connections. The `MonitoringBroadcaster` hosted service broadcasts system status to all connected frontend clients.
+
+### SignalR Hub
+
+- **Endpoint:** `/hubs/monitoring`
+- **Protocol:** WebSocket with automatic fallback
+- **Service:** `MonitoringBroadcaster` (singleton hosted service registered via `AddHostedService`)
+
+### CORS Configuration
+
+SignalR WebSocket requires specific CORS settings:
+
+```csharp
+// In Program.cs
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.SetIsOriginAllowed(_ => true)  // Required for WebSocket
+              .AllowCredentials()              // Required for SignalR
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+```
+
+**Important:** `SetIsOriginAllowed` + `AllowCredentials` is required for SignalR WebSocket transport to function across origins.
+
+### Dual-Speed Broadcast
+
+The `MonitoringBroadcaster` uses two broadcast intervals to balance responsiveness and resource usage:
+
+| Speed | Interval | Data Types | Rationale |
+|-------|----------|------------|-----------|
+| Fast  | 5 seconds | Services, Kafka queues, Pods, Metrics | Fast-changing operational data |
+| Slow  | 30 seconds | Traces, Events, Alerts, Device Health | Slower-changing analytical data |
+
+### Kafka AdminClient Pattern
+
+Each health check call creates a **short-lived Kafka AdminClient** to avoid connection pooling issues:
+
+```csharp
+// Short-lived AdminClient per call (not pooled)
+using var adminClient = new AdminClientBuilder(config).Build();
+var metadata = adminClient.GetMetadata(TimeSpan.FromSeconds(5));
+```
+
+This pattern avoids stale connections and broker handshake failures that occur with long-lived AdminClient instances.
+
+### Frontend Integration
+
+- **Connection status dot** in `ClusterHeader`: Green (connected), Yellow (reconnecting), Red (disconnected)
+- **PascalCase mapper functions** for backend-to-frontend data bridge (backend uses `PropertyNamingPolicy = null`)
+- **React Query conditional polling fallback** when SignalR is disconnected (30-second mock data refresh)
+- **Automatic reconnection** with backoff: `[0, 2000, 5000, 10000, 30000]` ms
+
+### Troubleshooting SignalR
+
+**Frontend shows "Disconnected":**
+```bash
+# Check if datasource-management pod is running
+kubectl get pods -l app=datasource-management -n ez-platform
+
+# Check SignalR endpoint
+curl -v http://localhost:5001/hubs/monitoring/negotiate
+
+# Check CORS headers
+curl -H "Origin: http://localhost:7000" -v http://localhost:5001/hubs/monitoring/negotiate
+```
+
+**Frequent reconnections:**
+- Check Kafka connectivity (short-lived AdminClient may timeout)
+- Verify pod memory limits (SignalR connections consume memory)
+- Check network stability between frontend and backend
+
+---
+
+## Device Health Monitoring
+
+### Overview
+
+EZ Platform v0.2.0 includes automated health monitoring for all configured NAS devices and admin servers. A Quartz.NET background job checks device connectivity every 30 seconds.
+
+### Health Check Job
+
+- **Scheduler:** Quartz.NET
+- **Interval:** Every 30 seconds
+- **Scope:** All active NAS devices and admin servers
+- **Storage:** MongoDB with TTL for historical health check results
+
+### Consecutive Failure Tracking
+
+Device health status is determined by the number of consecutive check failures:
+
+| Consecutive Failures | Status | Color | Description |
+|---------------------|--------|-------|-------------|
+| 0 | Healthy | Green | Device responding normally |
+| 1-2 | Degraded | Yellow | Intermittent failures or high latency |
+| 3+ | Down | Red | Device unreachable or consistently failing |
+
+### Latency Thresholds
+
+Even successful checks may result in Degraded status if latency exceeds thresholds:
+
+| Device Type | Degraded Threshold | Rationale |
+|-------------|-------------------|-----------|
+| NAS | 2000 ms | NFS mount and file system operations |
+| AdminServer | 5000 ms | Protocol connection (FTP, SFTP, HTTP, Kafka) |
+
+### MongoDB TTL History
+
+Health check results are stored in MongoDB with TTL for automatic cleanup:
+
+- Collection: `DeviceHealthHistory`
+- TTL: Configurable (default 7 days)
+- Purpose: Uptime percentage calculation and trend analysis
+
+### REST API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health-status` | All device health statuses (aggregated) |
+| GET | `/api/v1/health-status/{id}` | Single device health status |
+
+### Frontend
+
+- **Device Health tab** in System Monitoring page (HeartOutlined icon, positioned between Overview and Pods tabs)
+- **Status cards** with color-coded borders (green/yellow/red)
+- **Summary bar** showing total/healthy/degraded/down counts
+- **15-second React Query polling** as fallback when SignalR is disconnected
+
+### Troubleshooting Device Health
+
+**All devices showing "Down":**
+```bash
+# Check datasource-management pod health
+kubectl logs deployment/datasource-management -n ez-platform --tail=50
+
+# Verify Quartz.NET job is running
+kubectl logs deployment/datasource-management -n ez-platform | grep -i "health.*check"
+```
+
+**NAS device flapping (Healthy/Degraded):**
+- Check NFS server load and network latency
+- Consider increasing the NAS degraded threshold from 2000ms if network conditions are slow
+
+---
+
+## OTEL Observability
+
+### Overview
+
+All 8 deployed microservices are verified with 3 OpenTelemetry signals: structured logs, distributed traces, and metrics. Verification result: **24/24 checks pass** (8 services x 3 signals).
+
+### Three-Signal Architecture
+
+| Signal | Pipeline | Destination | Index/Endpoint |
+|--------|----------|-------------|----------------|
+| **Logs** | Serilog -> OTEL Collector | Elasticsearch | `dataprocessing-logs` |
+| **Traces** | OTEL SDK -> OTEL Collector | Jaeger | Port 16686 |
+| **Metrics** | OTEL SDK -> OTEL Collector | Prometheus System (9090) + Prometheus Business (9091) | - |
+
+### Kubernetes Configuration
+
+All k8s deployments include the `OpenTelemetry__OtlpEndpoint` environment variable:
+
+```yaml
+env:
+  - name: OpenTelemetry__OtlpEndpoint
+    value: "http://otel-collector:4317"
+```
+
+This ensures all services report telemetry to the OTEL Collector via gRPC (port 4317).
+
+### Service Images
+
+The DataSourceManagement service was rebuilt as `v0.2.0-otel` with Serilog logging to ensure consistent OTEL log export across all services.
+
+### Two-Tier Logging
+
+EZ Platform uses a two-tier logging architecture:
+
+| Tier | Source | Collector | Index |
+|------|--------|-----------|-------|
+| **Infrastructure** | MongoDB, Kafka, Elasticsearch, Hazelcast, Zookeeper | Fluent Bit DaemonSet | `ez-logs-YYYY.MM.DD` |
+| **Application** | FileProcessor, Validation, Output, Scheduling, etc. | Serilog -> OTEL Collector | `dataprocessing-logs` |
+
+### Verification
+
+Run the OTEL verification script to confirm all services are reporting:
+
+```bash
+# Verify all 24 checks (8 services x 3 signals)
+# Check Elasticsearch for logs
+curl 'http://localhost:9200/dataprocessing-logs*/_count'
+
+# Check Jaeger for traces
+curl 'http://localhost:16686/api/services'
+
+# Check Prometheus for metrics
+curl 'http://localhost:9090/api/v1/targets'
+```
+
+### Accessing Telemetry
+
+| Tool | URL | Data |
+|------|-----|------|
+| **Grafana** | http://localhost:3001 | Dashboards for all signals |
+| **Jaeger** | http://localhost:16686 | Distributed traces |
+| **Elasticsearch** | http://localhost:9200 | Structured logs |
+| **Prometheus System** | http://localhost:9090 | Infrastructure metrics |
+| **Prometheus Business** | http://localhost:9091 | Business KPIs |
 
 ---
 
@@ -1265,6 +1487,6 @@ kubectl describe pvc <name> -n ez-platform
 
 ---
 
-**Admin Guide Version:** 2.0
+**Admin Guide Version:** 2.1
 **Platform Version:** v0.2.0
-**Last Updated:** February 3, 2026
+**Last Updated:** March 2026
