@@ -1,0 +1,221 @@
+---
+sidebar_position: 5
+title: System Monitoring
+description: Real-time system monitoring with SignalR integration
+last_verified: 2026-03-17
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# System Monitoring Component
+
+Real-time system monitoring dashboard with SignalR WebSocket integration, providing live visibility into service health, Kafka queues, distributed traces, pipeline events, and device health.
+
+## Features
+
+- **Real-Time Updates**: SignalR WebSocket connection for live data streaming
+- **Dual-Speed Broadcast**: 5-second interval for fast-changing data (services, Kafka), 30-second for slow data (traces, events)
+- **Connection Recovery**: Automatic reconnection with configurable retry intervals
+- **Fallback Polling**: React Query polling when SignalR is unavailable
+- **Multi-Tab Dashboard**: Overview, Device Health, Pods, Traces, Queues, Alerts
+- **Connection Status Indicator**: Visual dot showing connected/disconnected/reconnecting state
+
+## Data Model
+
+### Connection State
+
+```typescript
+type ConnectionState = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
+```
+
+### MonitoringHubResult
+
+```typescript
+interface MonitoringHubResult {
+  connectionState: ConnectionState;
+  isConnected: boolean;
+  deviceHealth: DeviceHealthStatusResponse | null;
+  services: ServiceStatus[];
+  pods: PodStatus[];
+  metrics: DashboardMetrics | null;
+  queues: MessageQueue[];
+  alerts: Alert[];
+  trace: DistributedTrace | null;
+  clusterInfo: ClusterInfo | null;
+  events: PipelineEvent[];
+  lastUpdate: Date | null;
+}
+```
+
+### ServiceStatus
+
+```typescript
+interface ServiceStatus {
+  id: string;
+  name: string;
+  displayName: string;
+  status: string;       // 'healthy' | 'degraded' | 'down' | 'unknown'
+  port: number;
+  icon: string;
+  cpu: number;
+  memory: number;
+  throughput: number;
+  errorRate: number;
+  latency: number;
+  uptime: string;
+  restarts: number;
+  queueDepth: number;
+}
+```
+
+### DashboardMetrics
+
+```typescript
+interface DashboardMetrics {
+  totalThroughput: number;
+  successRate: number;
+  avgLatency: number;
+  activeJobs: number;
+  queueDepth: number;
+  errorRate: number;
+  throughputHistory: MetricDataPoint[];
+  latencyHistory: MetricDataPoint[];
+  errorHistory: MetricDataPoint[];
+}
+```
+
+## SignalR Integration
+
+### Connection Lifecycle
+
+The `useMonitoringHub` hook manages the full SignalR connection lifecycle:
+
+1. **Initial Connection**: Connects to `/hubs/monitoring` on mount
+2. **InitialState**: Receives full state snapshot on first connect
+3. **Live Updates**: Receives incremental updates for each data type
+4. **Reconnection**: Automatic retry with backoff: `[0, 2000, 5000, 10000, 30000]` ms
+5. **Cleanup**: Graceful disconnection on component unmount
+
+```typescript
+import { useMonitoringHub } from '../../hooks/useMonitoringHub';
+
+const hubUrl = `${window.location.protocol}//${window.location.host}/hubs/monitoring`;
+const {
+  connectionState, isConnected,
+  deviceHealth, services, pods, metrics,
+  queues, alerts, trace, clusterInfo,
+  events, lastUpdate
+} = useMonitoringHub(hubUrl);
+```
+
+### Dual-Speed Broadcast
+
+The backend `MonitoringBroadcaster` hosted service uses two broadcast intervals:
+
+| Speed | Interval | Data Types |
+|-------|----------|------------|
+| Fast  | 5 seconds | Services, Kafka queues, Pods, Metrics |
+| Slow  | 30 seconds | Traces, Events, Alerts, Device Health |
+
+### Connection Recovery
+
+- Automatic reconnection with exponential backoff
+- Toast notifications for connection lost/restored
+- `isMountedRef` guard prevents state updates after unmount
+- `wasConnectedRef` tracks whether initial connection succeeded (prevents false "reconnected" toasts)
+
+### PascalCase Mapper Functions
+
+Backend sends PascalCase JSON (due to `PropertyNamingPolicy = null`). The hook includes mapper functions for each data type:
+
+```typescript
+// Example: mapServiceStatus converts backend PascalCase to frontend camelCase
+function mapServiceStatus(raw: any): ServiceStatus {
+  return {
+    id: raw.Id,
+    name: raw.Name,
+    status: raw.Status?.toLowerCase?.() ?? 'unknown',
+    // ... etc
+  };
+}
+```
+
+Mapper functions exist for: `ServiceStatus`, `PodStatus`, `DashboardMetrics`, `MessageQueue`, `Alert`, `DistributedTrace`, `ClusterInfo`, `PipelineEvent`.
+
+## Tabs Overview
+
+The monitoring dashboard organizes data into six tabs:
+
+| Tab | Icon | Key | Description |
+|-----|------|-----|-------------|
+| Overview | `DashboardOutlined` | `overview` | Pipeline flow, event stream, service health grid, performance charts |
+| Device Health | `HeartOutlined` | `deviceHealth` | NAS and AdminServer health status cards |
+| Pods | `AppstoreOutlined` | `pods` | Kubernetes pod status table |
+| Traces | `BarChartOutlined` | `traces` | Distributed tracing visualization |
+| Queues | `InboxOutlined` | `queues` | Kafka/RabbitMQ message queue status |
+| Alerts | `BellOutlined` | `alerts` | Recent system alerts |
+
+## Connection Status
+
+The `ClusterHeader` component displays a connection status indicator:
+
+| State | Visual | Description |
+|-------|--------|-------------|
+| Connected | Green dot | Live SignalR data streaming |
+| Reconnecting | Yellow dot | Connection lost, attempting recovery |
+| Disconnected | Red dot | No SignalR connection, using polling fallback |
+
+## Fallback Behavior
+
+When SignalR is unavailable, the dashboard falls back to:
+
+1. **Mock data**: Generated locally for initial display
+2. **Polling interval**: 30-second refresh cycle for mock data
+3. **React Query polling**: 15-second interval for Device Health API (independent of SignalR)
+
+```typescript
+// Only run mock refresh when SignalR is NOT connected
+useEffect(() => {
+  loadDashboardData();
+  if (!isConnected) {
+    const interval = setInterval(loadDashboardData, 30000);
+    return () => clearInterval(interval);
+  }
+}, [isConnected]);
+```
+
+## API Reference
+
+| Endpoint | Type | Method | Description |
+|----------|------|--------|-------------|
+| `/hubs/monitoring` | SignalR Hub | WebSocket | Real-time monitoring data |
+| `ReceiveSystemStatus` | Hub Event | `ServiceStatusUpdate` | Service health updates (5s) |
+| `ReceiveKafkaStatus` | Hub Event | `QueueStatusUpdate` | Kafka queue status (5s) |
+| `ReceiveTraces` | Hub Event | `TraceUpdate` | Distributed trace data (30s) |
+| `ReceiveEvents` | Hub Event | `PipelineEventUpdate` | Pipeline event stream (30s) |
+| `ReceivePipelineStatus` | Hub Event | `MetricsUpdate` | Dashboard metrics (5s) |
+| `DeviceHealthUpdate` | Hub Event | `DeviceHealthUpdate` | Device health status (30s) |
+| `InitialState` | Hub Event | `InitialState` | Full state snapshot on connect |
+
+## Child Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| ClusterHeader | `/monitoring/components/` | Cluster info and connection status |
+| MetricsOverviewCards | `/monitoring/components/` | Top-level metric cards |
+| PipelineFlow | `/monitoring/components/` | Visual pipeline flow diagram |
+| EventStream | `/monitoring/components/` | Real-time event log |
+| ServiceHealthGrid | `/monitoring/components/` | Service status grid |
+| PerformanceCharts | `/monitoring/components/` | Throughput/latency/error charts |
+| PodStatusTable | `/monitoring/components/` | Kubernetes pod table |
+| DistributedTracing | `/monitoring/components/` | Trace visualization |
+| MessageQueues | `/monitoring/components/` | Queue depth and status |
+| RecentAlerts | `/monitoring/components/` | Alert list |
+| DeviceHealthTab | `/monitoring/components/` | Device health cards and summary |
+
+## See Also
+
+- [Device Health](device-health) - Device health monitoring details
+- [Admin Guide](/docs/admin) - SignalR and monitoring administration
+- [Component Library](index) - All components overview
