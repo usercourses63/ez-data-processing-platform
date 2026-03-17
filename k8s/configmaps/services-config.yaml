@@ -20,8 +20,8 @@ data:
 
   # Hazelcast TTL Configuration
   # Deduplication TTL: How long file hashes are cached to prevent reprocessing
-  # Set to 0.25 (15 minutes) for testing, recommend 4-24 hours for production
-  FileDiscovery__DeduplicationTTLHours: "0.25"
+  # Integer value required (hours). Set to 1 for testing, recommend 4-24 for production
+  FileDiscovery__DeduplicationTTLHours: "1"
 
   # Cache TTL: How long file content is cached during processing pipeline
   # Shorter is fine since content is consumed quickly
