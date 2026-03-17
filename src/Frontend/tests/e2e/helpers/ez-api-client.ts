@@ -170,7 +170,9 @@ export async function getDataSources(
     console.error(`[ez-api] GET /api/v1/datasource failed (${response.status()}): ${body}`);
     throw new Error(`Failed to get data sources: ${response.status()} ${body}`);
   }
-  return response.json();
+  const body = await response.json();
+  // API wraps response: { CorrelationId, Data: { Items: [...] } }
+  return body?.Data?.Items ?? body?.data?.items ?? (Array.isArray(body) ? body : []);
 }
 
 /**

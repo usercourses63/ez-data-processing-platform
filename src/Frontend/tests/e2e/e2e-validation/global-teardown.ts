@@ -7,7 +7,12 @@
  * 2. Generate combined E2E validation report
  * 3. Clean up persisted fragments
  */
+import * as fs from 'fs';
+import * as path from 'path';
 import { E2EValidationReporter } from './helpers/validation-reporter';
+
+const PROJECT_ROOT = process.env.PROJECT_ROOT || 'C:\\Users\\UserC\\source\\repos\\EZ';
+const LOCK_FILE = path.join(PROJECT_ROOT, 'test-results', '.e2e-validation-seeded');
 
 export async function e2eValidationTeardown(): Promise<void> {
   // Load all persisted results from all spec files
@@ -21,6 +26,7 @@ export async function e2eValidationTeardown(): Promise<void> {
     console.log('[e2e-validation] No results collected — skipping report generation');
   }
 
-  // Clean up persisted fragments
+  // Clean up persisted fragments and seeding lock file
   E2EValidationReporter.cleanPersistedResults();
+  try { fs.unlinkSync(LOCK_FILE); } catch { /* ignore */ }
 }

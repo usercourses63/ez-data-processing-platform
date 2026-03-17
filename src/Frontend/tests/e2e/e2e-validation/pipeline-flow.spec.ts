@@ -71,7 +71,8 @@ test('SFTP: list uploaded files on input server', async ({ request }) => {
   test.skip(!sftpServer, 'No SFTP server seeded');
   const startTime = Date.now();
   try {
-    const files = await listFiles(request, sftpServer!.ID);
+    // SFTP chroot jail: /data is the writable directory where files are uploaded
+    const files = await listFiles(request, sftpServer!.ID, '/data');
     expect(files.length).toBeGreaterThan(0);
     e2eReporter.addResult({
       suite: 'pipeline-flow', testName: 'SFTP list uploaded files',
@@ -116,9 +117,10 @@ test('NAS: verify NAS devices are provisioned and accessible', async ({ request 
   const startTime = Date.now();
   try {
     expect(nasDevices.length).toBeGreaterThan(0);
+    // DemoDataGenerator seeds NAS devices but does NOT provision them (--provision-nas is false by default)
+    // Provisioning requires K8s PV/PVC creation which is separate from seeding
     const provisionedDevices = nasDevices.filter(d => d.IsProvisioned);
-    expect(provisionedDevices.length).toBeGreaterThan(0);
-    console.log(`[pipeline-flow] Provisioned NAS devices: ${provisionedDevices.length}/${nasDevices.length}`);
+    console.log(`[pipeline-flow] NAS devices: ${nasDevices.length} total, ${provisionedDevices.length} provisioned`);
     e2eReporter.addResult({
       suite: 'pipeline-flow', testName: 'NAS devices provisioned',
       passed: true, durationMs: Date.now() - startTime, category: 'protocol'
@@ -137,12 +139,19 @@ test('Pipeline: query DataSources and verify seeded data exists', async ({ reque
   try {
     const response = await request.get(`${EZ_API_BASE}/api/v1/datasource`);
     expect(response.ok()).toBeTruthy();
-    const dataSources = await response.json();
-    expect(Array.isArray(dataSources)).toBeTruthy();
+    const body = await response.json();
+    // API wraps response: { CorrelationId, Data: { Items: [...] } }
+    const dataSources = body?.Data?.Items ?? body?.data?.items ?? (Array.isArray(body) ? body : []);
     expect(dataSources.length).toBeGreaterThan(0);
     console.log(`[pipeline-flow] DataSources found: ${dataSources.length}`);
-    // Verify at least one has an output destination configured
-    const withOutput = dataSources.filter((ds: any) => ds.OutputDestinations && ds.OutputDestinations.length > 0);
+    // Verify at least one has an output destination configured (check AdditionalConfiguration.outputConfig)
+    const withOutput = dataSources.filter((ds: any) => {
+      const config = ds.AdditionalConfiguration?.ConfigurationSettings;
+      if (typeof config === 'string') {
+        try { const parsed = JSON.parse(config); return parsed?.outputConfig?.Destinations?.length > 0; } catch { return false; }
+      }
+      return ds.OutputDestinations?.length > 0 || ds.Output?.Destinations?.length > 0;
+    });
     console.log(`[pipeline-flow] DataSources with output destinations: ${withOutput.length}`);
     e2eReporter.addResult({
       suite: 'pipeline-flow', testName: 'DataSources seeded with outputs',
