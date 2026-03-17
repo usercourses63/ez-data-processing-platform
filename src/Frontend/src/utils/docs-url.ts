@@ -44,7 +44,7 @@ export const isDevelopment = (): boolean => !isProduction();
 export const getDocsBaseUrl = (): string => {
   if (isDevelopment()) {
     // Dev: use same hostname (minikube IP) with docs NodePort
-    return `http://${window.location.hostname}:30800/docs`;
+    return `http://${window.location.hostname}:30800`;
   }
   // Production: path-based routing via ingress
   return '/docs';

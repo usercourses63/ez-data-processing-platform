@@ -13,8 +13,8 @@ const config = {
   // Set the production url of your site here
   url: process.env.DOCS_URL || 'https://ez-platform.example.com',
   // Set the /<baseUrl>/ pathname under which your site is served
-  // Deployed at /docs path in both K8s Ingress and OCP Route
-  baseUrl: '/docs/',
+  // Deployed on dedicated port (NodePort 30800) — no path prefix needed
+  baseUrl: '/',
 
   // Trailing slash configuration for consistent routing
   trailingSlash: false,
