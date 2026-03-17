@@ -182,11 +182,11 @@ Plans:
   1. Docusaurus content reflects all v0.2.0 features and changes
   2. Docusaurus container builds and deploys in release-package
   3. Frontend help link opens running Docusaurus portal
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 19-01; Wave 2: 19-02)
 
 Plans:
-- [ ] 19-01: Update Docusaurus content for v0.2.0
-- [ ] 19-02: Verify Docusaurus container build and help link integration
+- [ ] 19-01-PLAN.md — Update Docusaurus content, new component docs, sidebar restructuring (DOC-06)
+- [ ] 19-02-PLAN.md — Dockerfile nginx pin, k8s deployment update, ingress /docs route, docs-url.ts fix (DOC-07, DOC-08)
 
 ### Phase 20: CI/CD & Production Deployment
 **Goal**: Production-ready CI/CD pipeline and local deployment mode
@@ -273,4 +273,4 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-03-16 after Phase 18 gap closure planning*
+*Roadmap updated: 2026-03-17 after Phase 19 planning*
