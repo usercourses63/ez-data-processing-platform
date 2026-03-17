@@ -199,13 +199,12 @@ Plans:
   4. Local production mode deploys with single-pod replicas
   5. OCP resource requests/limits defined for all pods
   6. Release-package deploys locally and passes end-to-end validation
-**Plans**: TBD
+**Plans**: 3 plans (Wave 1: 20-01, 20-02 parallel; Wave 2: 20-03)
 
 Plans:
-- [ ] 20-01: CI/CD pipeline completion with Helm deployment
-- [ ] 20-02: Version injection and OCP resource configuration
-- [ ] 20-03: Local production deployment mode
-- [ ] 20-04: Release-package local validation
+- [ ] 20-01-PLAN.md — CI pipeline extension (tag trigger, version extraction, Helm validation) + frontend version injection fix (PROD-01, PROD-03)
+- [ ] 20-02-PLAN.md — values-local.yaml for local single-replica deployment + OCP resource config + image pinning (PROD-04, PROD-05)
+- [ ] 20-03-PLAN.md — Release-package install script updates + validation script (PROD-02, PROD-06)
 
 ### Phase 21: Release Package
 **Goal**: Create tagged release with offline deployment capability
@@ -265,12 +264,12 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 17. File-Simulator Integration | 2/2 | Complete    | 2026-03-16 | - |
 | 18. E2E Validation | 4/5 | Gap Closure | 2026-03-16 | - |
 | 19. Documentation Update | 2/2 | Complete    | 2026-03-17 | - |
-| 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
+| 20. CI/CD & Production Deployment | v0.2 | 0/3 | Planned | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
 | 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 12/33 plans complete (36%)
+**v0.2 Totals:** 12/32 plans complete (38%)
 **v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-03-17 after Phase 19 planning*
+*Roadmap updated: 2026-03-17 after Phase 20 planning*
