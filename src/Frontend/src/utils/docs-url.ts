@@ -2,21 +2,30 @@
  * Documentation URL Utility
  *
  * Runtime environment detection for Docusaurus documentation portal URLs.
- * Supports both development (localhost:3000) and production (/docs) environments.
+ * Supports both development and production environments.
  *
  * Per project decisions:
- * - Development: localhost:3000/docs (standalone Docusaurus dev server)
+ * - Development: {minikubeIP}:30800/docs (K8s-deployed Docusaurus container via NodePort)
  * - Production: /docs (path-based routing in K8s Ingress/OCP Route)
  */
+
+/**
+ * Check if hostname is in RFC1918 private IP range or localhost
+ */
+const isPrivateNetwork = (hostname: string): boolean => {
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+  if (hostname.startsWith('192.168.')) return true;
+  if (hostname.startsWith('10.')) return true;
+  // 172.16.0.0 - 172.31.255.255
+  if (/^172\.(1[6-9]|2[0-9]|3[01])\./.test(hostname)) return true;
+  return false;
+};
 
 /**
  * Environment detection based on hostname
  */
 export const isProduction = (): boolean => {
-  const hostname = window.location.hostname;
-  // Development environments: localhost, 127.0.0.1, or minikube IP patterns
-  const devPatterns = ['localhost', '127.0.0.1', '192.168.'];
-  return !devPatterns.some((pattern) => hostname.includes(pattern));
+  return !isPrivateNetwork(window.location.hostname);
 };
 
 /**
@@ -27,17 +36,17 @@ export const isDevelopment = (): boolean => !isProduction();
 /**
  * Get the base URL for documentation portal
  *
- * Development: http://localhost:3000/docs
+ * Development: http://{hostname}:30800/docs (K8s NodePort)
  * Production: /docs (relative path for path-based routing)
  *
  * @returns The base URL for the documentation portal
  */
 export const getDocsBaseUrl = (): string => {
   if (isDevelopment()) {
-    // In development, Docusaurus runs on port 3000 with baseUrl /docs/
-    return 'http://localhost:3000/docs';
+    // Dev: use same hostname (minikube IP) with docs NodePort
+    return `http://${window.location.hostname}:30800/docs`;
   }
-  // In production, docs are served at /docs path
+  // Production: path-based routing via ingress
   return '/docs';
 };
 
