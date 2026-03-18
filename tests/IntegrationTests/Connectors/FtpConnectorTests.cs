@@ -37,7 +37,7 @@ public class FtpConnectorTests : IClassFixture<FileSimulatorFixture>
         _fixture = fixture;
         _output = output;
         var registry = new ResiliencePipelineRegistry<string>();
-        registry.TryAddBuilder<object>("external-connector", (builder, _) => { });
+        registry.TryAddBuilder("external-connector", (builder, _) => { });
         _connector = new FtpConnector(NullLogger<FtpConnector>.Instance, registry);
         _testRunId = Guid.NewGuid().ToString("N")[..8];
     }

@@ -43,7 +43,7 @@ public class KafkaConnectorTests : IClassFixture<KafkaFixture>
         _kafka = kafka;
         _output = output;
         var registry = new ResiliencePipelineRegistry<string>();
-        registry.TryAddBuilder<object>("external-connector", (builder, _) => { });
+        registry.TryAddBuilder("external-connector", (builder, _) => { });
         _connector = new KafkaConnector(NullLogger<KafkaConnector>.Instance, registry);
         _testRunId = Guid.NewGuid().ToString("N")[..8];
     }

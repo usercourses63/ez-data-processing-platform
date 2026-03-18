@@ -37,7 +37,7 @@ public class HttpApiConnectorTests : IClassFixture<FileSimulatorFixture>
         _fixture = fixture;
         _output = output;
         var registry = new ResiliencePipelineRegistry<string>();
-        registry.TryAddBuilder<object>("external-connector", (builder, _) => { });
+        registry.TryAddBuilder("external-connector", (builder, _) => { });
         _connector = new HttpApiConnector(
             NullLogger<HttpApiConnector>.Instance,
             new TestHttpClientFactory(),
