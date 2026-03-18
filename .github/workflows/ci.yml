@@ -77,6 +77,52 @@ jobs:
           path: TestResults/**/*.trx
           retention-days: 30
 
+  performance:
+    name: k6 SLO Smoke Test
+    needs: test
+    # Only run on push/PR to main, never on tags
+    if: >
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (github.ref == 'refs/heads/main' || github.base_ref == 'main') &&
+      !startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    # Stack is not available in CI — record results but don't block the pipeline
+    continue-on-error: true
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring \
+            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] \
+            https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update -qq
+          sudo apt-get install -y k6
+
+      - name: Run k6 smoke test
+        run: |
+          mkdir -p k6-results
+          k6 run tests/performance/smoke.js \
+            -e BASE_URL=http://localhost:5001 \
+            -e METRICS_URL=http://localhost:5002 \
+            -e VALIDATION_URL=http://localhost:5003 \
+            --out json=k6-results/smoke-${{ github.run_number }}.json \
+            2>&1 | tee k6-results/smoke-${{ github.run_number }}.txt || true
+
+      - name: Upload k6 results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-smoke-results-${{ github.run_number }}
+          path: k6-results/
+          retention-days: 30
+
   docker:
     needs: test
     if: github.ref == 'refs/heads/main'
