@@ -79,7 +79,7 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 - [ ] **REL-02**: Offline Helm package for air-gapped OCP deployment (all images mirrored, tested)
 - [x] **REL-03**: CI produces a versioned, timestamped deployment folder (`deployment-{VERSION}-{YYYYMMDD}-{HHMMSS}/`) uploaded as artifact — contains all image tars, Helm chart, values files, and install scripts; self-contained for offline transfer
 - [x] **REL-04**: CI builds all application images from source on every run, loads them into the Minikube cluster via `minikube image load`, replacing any existing images
-- [ ] **REL-05**: CI runs `helm upgrade --install` with `values-local.yaml` after image load to deploy the full stack on the self-hosted runner cluster
+- [x] **REL-05**: CI runs `helm upgrade --install` with `values-local.yaml` after image load to deploy the full stack on the self-hosted runner cluster
 - [x] **REL-06**: CI seeds the cluster with `DemoDataGenerator` after deployment, then runs a `@Sanity` Playwright test suite as the final verification step; CI fails if any sanity test fails
 
 ## v0.3 Requirements
@@ -173,7 +173,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REL-02 | Phase 21 | Pending |
 | REL-03 | Phase 21 | Complete |
 | REL-04 | Phase 21 | Complete |
-| REL-05 | Phase 21 | Pending |
+| REL-05 | Phase 21 | Complete |
 | REL-06 | Phase 21 | Complete |
 | MON-08 | Phase 22 | Pending |
 | MON-09 | Phase 22 | Pending |
