@@ -103,6 +103,7 @@ Recent decisions affecting current work:
 - [Phase 20-02]: Hazelcast production memory reduced from 8Gi to 1Gi request (JVM only uses 256m-512m)
 - [Phase 20-03]: Offset ports (20000+) for validation health checks; Helm-first deployment in README replacing manual kubectl apply
 - [21-01]: Bash build scripts coexist with PowerShell; docker-build/package-release separate from existing docker job; 7-day intermediate / 90-day final artifact retention
+- [21-02]: Playwright APIRequestContext for API-level sanity tests; SANITY-07 uses page fixture for frontend title check; PascalCase payload keys matching backend convention
 
 ### Pending Todos
 
@@ -123,8 +124,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:10:08Z
-Stopped at: Completed 21-01-PLAN.md (Build scripts & CI pipeline)
+Last session: 2026-03-18T13:11:00Z
+Stopped at: Completed 21-02-PLAN.md (Sanity test suite)
 
 ## v0.2 Phase Summary
 
