@@ -103,6 +103,11 @@ public class FtpConnector : IDataSourceConnector, IServerConnector
                 return true;
             }, cancellationToken);
         }
+        catch (Polly.CircuitBreaker.BrokenCircuitException bcEx)
+        {
+            _logger.LogWarning(bcEx, "Circuit is open for {ConnectorType} — not attempting connection", ConnectorType);
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "FTP connection test failed");

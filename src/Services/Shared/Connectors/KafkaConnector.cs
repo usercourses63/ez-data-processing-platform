@@ -154,6 +154,11 @@ public class KafkaConnector : IDataSourceConnector
                 return ValueTask.FromResult(true);
             }, cancellationToken);
         }
+        catch (Polly.CircuitBreaker.BrokenCircuitException bcEx)
+        {
+            _logger.LogWarning(bcEx, "Circuit is open for {ConnectorType} — not attempting connection", ConnectorType);
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Kafka connection test failed");

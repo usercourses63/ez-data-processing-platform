@@ -45,9 +45,9 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
         {
             _logger.LogInformation("Reading data from HTTP API: {FilePath}", filePath);
 
+            ConfigureHttpClient(dataSource);
             return await _pipeline.ExecuteAsync(async ct =>
             {
-                ConfigureHttpClient(dataSource);
                 var response = await _httpClient.GetAsync(filePath, ct);
                 response.EnsureSuccessStatusCode();
 
@@ -78,10 +78,9 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
 
             _logger.LogInformation("Listing endpoints from HTTP API: {ApiUrl}", apiUrl);
 
+            ConfigureHttpClient(dataSource);
             return await _pipeline.ExecuteAsync(async ct =>
             {
-                ConfigureHttpClient(dataSource);
-
                 // If list endpoint is configured, use it
                 if (!string.IsNullOrEmpty(config.ListEndpoint))
                 {
@@ -115,15 +114,20 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
             var apiUrl = dataSource.FilePath;
             _logger.LogInformation("Testing HTTP API connection to: {ApiUrl}", apiUrl);
 
+            ConfigureHttpClient(dataSource);
             return await _pipeline.ExecuteAsync(async ct =>
             {
-                ConfigureHttpClient(dataSource);
                 var response = await _httpClient.GetAsync(apiUrl, ct);
 
                 var success = response.IsSuccessStatusCode;
                 _logger.LogInformation("HTTP API connection test {Result}", success ? "successful" : "failed");
                 return success;
             }, cancellationToken);
+        }
+        catch (Polly.CircuitBreaker.BrokenCircuitException bcEx)
+        {
+            _logger.LogWarning(bcEx, "Circuit is open for {ConnectorType} — not attempting connection", ConnectorType);
+            throw;
         }
         catch (Exception ex)
         {
