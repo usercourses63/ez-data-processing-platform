@@ -133,6 +133,23 @@ export default defineConfig({
       timeout: 180000, // 3 min per test (pipeline flow with polling)
       fullyParallel: false, // Sequential — tests depend on seeded state
     },
+
+    // Sanity suite — API-level fast checks for CI deployment gate
+    // Runs ONLY sanity.spec.ts, completes in < 5 minutes
+    // No NAS/SFTP/cross-cluster dependencies
+    {
+      name: 'sanity',
+      testMatch: ['**/sanity.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+        // API tests don't need a real browser — chromium is used only for SANITY-07 (frontend load)
+        baseURL: process.env.BASE_URL || 'http://localhost:7000',
+        actionTimeout: 15000,
+        navigationTimeout: 30000,
+      },
+      timeout: 60000, // 60s per test — API calls are fast
+      fullyParallel: false, // Sequential to avoid concurrent mutations on seeded data
+    },
   ],
 
   // Run local dev server before starting the tests

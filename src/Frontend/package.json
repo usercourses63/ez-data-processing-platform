@@ -45,6 +45,7 @@
     "test:e2e:report": "playwright show-report",
     "test:e2e:p0": "playwright test --grep @P0",
     "test:e2e:p1": "playwright test --grep \"@P0|@P1\"",
+    "test:e2e:sanity": "playwright test --project=sanity",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
