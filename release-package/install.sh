@@ -1,18 +1,16 @@
 #!/bin/bash
 # EZ Platform Installation Script
-# Version: 0.1.1-rc1
-# Date: January 1, 2026
+# Version: 0.2.0
+# Date: March 2026
 #
-# ⚠️  LEGACY SCRIPT WARNING ⚠️
-# This bash script is maintained for Linux compatibility only.
+# This bash script is maintained for Linux compatibility.
 # For Windows deployments, use the PowerShell version: install.ps1
-# PowerShell scripts are the primary and recommended installation method.
 #
 
 set -e
 
 echo "=========================================="
-echo "  EZ Platform v0.1.1-rc1 Installation"
+echo "  EZ Platform v0.2.0 Installation"
 echo "=========================================="
 echo ""
 
@@ -69,12 +67,18 @@ while [[ $# -gt 0 ]]; do
             WAIT_TIMEOUT="$2"
             shift 2
             ;;
+        -l|--local)
+            VALUES_FILE="helm/ez-platform/values-local.yaml"
+            echo "Using local deployment values (single replicas, reduced resources)"
+            shift
+            ;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]"
             echo ""
             echo "Options:"
             echo "  -n, --namespace NAME    Kubernetes namespace (default: ez-platform)"
             echo "  -f, --values FILE       Custom values.yaml file"
+            echo "  -l, --local             Use local dev values (single replicas, reduced resources)"
             echo "  -t, --timeout DURATION  Wait timeout (default: 15m)"
             echo "  -h, --help              Show this help"
             echo ""
@@ -124,13 +128,17 @@ if eval $HELM_CMD; then
     echo -e "${YELLOW}Access Instructions:${NC}"
     echo ""
     echo "1. Via Port-Forward (localhost):"
-    echo "   kubectl port-forward svc/frontend 3000:80 -n $NAMESPACE"
-    echo "   Then open: http://localhost:3000"
+    echo "   kubectl port-forward svc/frontend 7000:8080 -n $NAMESPACE"
+    echo "   Then open: http://localhost:7000"
     echo ""
     echo "2. Via LoadBalancer (if available):"
     echo "   kubectl get svc frontend -n $NAMESPACE"
     echo ""
-    echo "3. Monitoring Dashboards:"
+    echo "3. Documentation Portal:"
+    echo "   kubectl port-forward svc/docs 8080:8080 -n $NAMESPACE"
+    echo "   Then open: http://localhost:8080"
+    echo ""
+    echo "4. Monitoring Dashboards:"
     echo "   Grafana:    kubectl port-forward svc/grafana 3001:3000 -n $NAMESPACE"
     echo "   Prometheus: kubectl port-forward svc/prometheus-system 9090:9090 -n $NAMESPACE"
     echo "   Jaeger:     kubectl port-forward svc/jaeger 16686:16686 -n $NAMESPACE"

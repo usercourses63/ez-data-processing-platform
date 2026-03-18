@@ -1,11 +1,11 @@
 # EZ Platform Installation Script
-# Version: 0.1.1-rc1
-# Date: January 1, 2026
+# Version: 0.2.0
+# Date: March 2026
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "  EZ Platform v0.1.1-rc2 Installation" -ForegroundColor Cyan
+Write-Host "  EZ Platform v0.2.0 Installation" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -63,12 +63,18 @@ while ($i -lt $args.Count) {
             $WaitTimeout = $args[$i + 1]
             $i += 2
         }
+        { $_ -eq "-l" -or $_ -eq "--local" } {
+            $ValuesFile = "helm/ez-platform/values-local.yaml"
+            Write-Host "Using local deployment values (single replicas, reduced resources)" -ForegroundColor Yellow
+            $i += 1
+        }
         { $_ -eq "-h" -or $_ -eq "--help" } {
             Write-Host "Usage: install.ps1 [OPTIONS]"
             Write-Host ""
             Write-Host "Options:"
             Write-Host "  -n, --namespace NAME    Kubernetes namespace (default: ez-platform)"
             Write-Host "  -f, --values FILE       Custom values.yaml file"
+            Write-Host "  -l, --local             Use local dev values (single replicas, reduced resources)"
             Write-Host "  -t, --timeout DURATION  Wait timeout (default: 15m)"
             Write-Host "  -h, --help              Show this help"
             Write-Host ""
@@ -131,13 +137,17 @@ try {
     Write-Host "Access Instructions:" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "1. Via Port-Forward (localhost):" -ForegroundColor Cyan
-    Write-Host "   kubectl port-forward svc/frontend 3000:80 -n $Namespace"
-    Write-Host "   Then open: http://localhost:3000"
+    Write-Host "   kubectl port-forward svc/frontend 7000:8080 -n $Namespace"
+    Write-Host "   Then open: http://localhost:7000"
     Write-Host ""
     Write-Host "2. Via LoadBalancer (if available):" -ForegroundColor Cyan
     Write-Host "   kubectl get svc frontend -n $Namespace"
     Write-Host ""
-    Write-Host "3. Monitoring Dashboards:" -ForegroundColor Cyan
+    Write-Host "3. Documentation Portal:" -ForegroundColor Cyan
+    Write-Host "   kubectl port-forward svc/docs 8080:8080 -n $Namespace"
+    Write-Host "   Then open: http://localhost:8080"
+    Write-Host ""
+    Write-Host "4. Monitoring Dashboards:" -ForegroundColor Cyan
     Write-Host "   Grafana:    kubectl port-forward svc/grafana 3001:3000 -n $Namespace"
     Write-Host "   Prometheus: kubectl port-forward svc/prometheus-system 9090:9090 -n $Namespace"
     Write-Host "   Jaeger:     kubectl port-forward svc/jaeger 16686:16686 -n $Namespace"

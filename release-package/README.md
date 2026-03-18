@@ -1,4 +1,4 @@
-# EZ Platform v0.1.1-rc2 - Installation Package
+# EZ Platform v0.2.0 - Installation Package
 
 **Complete Offline Installation Package**
 
@@ -8,26 +8,22 @@
 
 This package contains everything needed for offline deployment:
 
-- ✅ **21 Docker Images** (4.1GB)
-  - 10 application services
+- **21 Docker Images** (~4.5GB)
+  - 10 application services (including Docusaurus docs portal)
   - 11 infrastructure services
   - See `IMAGE-MANIFEST.txt` for complete list
 
-- ✅ **Kubernetes Manifests** (33 files)
-  - All deployments, services, configmaps
-  - Infrastructure configurations
-  - Ready to deploy
-
-- ✅ **Helm Chart** (optional)
-  - Alternative deployment method
+- **Helm Chart**
+  - Primary deployment method
   - Located in `helm/ez-platform/`
+  - Includes `values-local.yaml` for dev PC deployment
 
-- ✅ **Documentation**
-  - MkDocs site (as Docker image)
+- **Documentation**
+  - Docusaurus docs portal (as Docker image)
   - All guides included in `docs/`
 
-- ✅ **Installation Scripts**
-  - Automated installation
+- **Installation Scripts**
+  - Automated installation (PowerShell + Bash)
   - Image loading script
 
 ---
@@ -38,22 +34,27 @@ This package contains everything needed for offline deployment:
 
 - Kubernetes cluster (v1.25+)
 - kubectl configured
-- Docker installed (for loading images)
+- Helm 3.8+
+- Docker or minikube (for loading images)
 - 16GB RAM, 50GB storage
 
 ### Install Steps
 
 ```bash
 # 1. Extract package
-tar -xzf ezplatform-v0.1.1-rc2.tar.gz
-cd ezplatform-v0.1.1-rc2
+tar -xzf ezplatform-v0.2.0.tar.gz
+cd ezplatform-v0.2.0
 
 # 2. Load Docker images (5-10 minutes)
 chmod +x scripts/*.sh
 ./scripts/load-images.sh
 
-# 3. Deploy to Kubernetes (5 minutes)
+# 3. Deploy to Kubernetes
+# For production:
 ./scripts/install.sh
+
+# For local dev PC (single replicas, reduced resources):
+./scripts/install.sh --local
 
 # 4. Get node IP and access
 kubectl get nodes -o wide
@@ -73,22 +74,21 @@ for img in *.tar; do
 done
 ```
 
-### 2. Deploy to Kubernetes
+### 2. Deploy via Helm
 
 ```bash
-# Create namespace
-kubectl create namespace ez-platform
+# Production deployment
+helm install ez-platform ./helm/ez-platform \
+    --namespace ez-platform \
+    --create-namespace \
+    --wait --timeout 15m
 
-# Deploy infrastructure
-kubectl apply -f k8s/infrastructure/
-
-# Wait for infrastructure
-kubectl wait --for=condition=ready pod -l app=mongodb -n ez-platform --timeout=300s
-
-# Deploy services
-kubectl apply -f k8s/configmaps/
-kubectl apply -f k8s/deployments/
-kubectl apply -f k8s/services/
+# Local dev PC deployment (single replicas, reduced resources)
+helm install ez-platform ./helm/ez-platform \
+    --namespace ez-platform \
+    --create-namespace \
+    --values helm/ez-platform/values-local.yaml \
+    --wait --timeout 15m
 ```
 
 ### 3. Verify Deployment
@@ -144,30 +144,25 @@ for img in images/*.tar; do
     docker load -i "$img"
 done
 # Tag and push images to internal registry
-docker tag ezplatform-frontend:v0.1.1-rc2 image-registry.openshift-image-registry.svc:5000/ez-platform/frontend:v0.1.1-rc2
-docker push image-registry.openshift-image-registry.svc:5000/ez-platform/frontend:v0.1.1-rc2
+docker tag frontend:v0.2.0 image-registry.openshift-image-registry.svc:5000/ez-platform/frontend:v0.2.0
+docker push image-registry.openshift-image-registry.svc:5000/ez-platform/frontend:v0.2.0
 # Repeat for all images...
 
-# Option B: Use external registry - update image references in deployments
+# Option B: Use external registry - update image references in Helm values
 
 # 4. Apply SCCs (see above)
 oc adm policy add-scc-to-user restricted-v2 -z default -n ez-platform
 
-# 5. Deploy infrastructure
-oc apply -f k8s/infrastructure/
+# 5. Deploy via Helm
+helm install ez-platform ./helm/ez-platform \
+    --namespace ez-platform \
+    --create-namespace \
+    --wait --timeout 15m
 
-# 6. Wait for infrastructure
-oc wait --for=condition=ready pod -l app=mongodb -n ez-platform --timeout=300s
-
-# 7. Deploy configmaps and services
-oc apply -f k8s/configmaps/
-oc apply -f k8s/deployments/
-oc apply -f k8s/services/
-
-# 8. Create Routes (instead of Ingress)
+# 6. Create Routes (instead of Ingress)
 oc apply -f k8s/ocp-routes.yaml
 
-# 9. Verify deployment
+# 7. Verify deployment
 oc get pods -n ez-platform
 oc get routes -n ez-platform
 ```
@@ -238,7 +233,7 @@ oc get route frontend -n ez-platform -o jsonpath='{.spec.host}'
 | Service | Container Port | Notes |
 |---------|---------------|-------|
 | Frontend | 8080 | Nginx configured for non-root |
-| Documentation | 8080 | MkDocs/nginx on non-privileged port |
+| Documentation | 8080 | Docusaurus on non-privileged port |
 | Backend Services | 5001-5009 | Already non-privileged |
 
 The frontend and docs containers are configured to run as non-root users and listen on port 8080 instead of port 80.
@@ -290,22 +285,16 @@ kubectl get nodes -o wide
 http://<NODE-IP>:30080
 ```
 
-**Documentation Site (Optional):**
+**Frontend (Port-Forward):**
 ```bash
-# Deploy docs
-kubectl run ezplatform-docs \
-  --image=ezplatform-docs:v0.1.1-rc2 \
-  --port=80 \
-  -n ez-platform
+kubectl port-forward svc/frontend 7000:8080 -n ez-platform
+# Access: http://localhost:7000
+```
 
-kubectl expose pod ezplatform-docs \
-  --type=NodePort \
-  --port=80 \
-  --target-port=80 \
-  -n ez-platform
-
-# Access
-http://<NODE-IP>:<DOCS-NODEPORT>
+**Documentation Portal:**
+```bash
+kubectl port-forward svc/docs 8080:8080 -n ez-platform
+# Access: http://localhost:8080
 ```
 
 ---
@@ -328,11 +317,10 @@ Included documentation:
 - **User Guide (Hebrew):** `docs/docs/user-guide-he.md`
 - **Release Notes:** `docs/docs/release-notes.md`
 
-View documentation:
+View documentation via the Docusaurus docs portal:
 ```bash
-cd docs
-mkdocs serve
-# Or deploy ezplatform-docs container
+kubectl port-forward svc/docs 8080:8080 -n ez-platform
+# Open: http://localhost:8080
 ```
 
 ---
@@ -340,23 +328,25 @@ mkdocs serve
 ## Package Structure
 
 ```
-ezplatform-v0.1.1-rc2/
-├── images/              # 21 Docker images (.tar files, 4.1GB)
-├── k8s/                 # Kubernetes manifests
+ezplatform-v0.2.0/
+├── images/              # 21 Docker images (.tar files, ~4.5GB)
+├── helm/                # Helm chart (primary deployment)
+│   └── ez-platform/
+│       ├── values.yaml          # Production values
+│       └── values-local.yaml    # Dev PC values (single replicas)
+├── k8s/                 # Kubernetes manifests (alternative)
 │   ├── deployments/     # Service deployments
 │   ├── services/        # Service definitions
 │   ├── infrastructure/  # MongoDB, Kafka, etc.
 │   ├── configmaps/      # Configuration
 │   └── namespace.yaml   # Namespace definition
-├── helm/                # Helm chart (optional)
-│   └── ez-platform/
-├── docs/                # MkDocs documentation site
+├── docs/                # Docusaurus documentation site
 │   ├── Dockerfile       # Docs site Docker image
-│   ├── mkdocs.yml       # MkDocs configuration
 │   └── docs/            # Documentation files
 ├── scripts/             # Installation scripts
 │   ├── load-images.sh   # Load all Docker images
-│   └── install.sh       # Complete installation
+│   ├── install.ps1      # PowerShell installer
+│   └── install.sh       # Bash installer
 ├── IMAGE-MANIFEST.txt   # List of all images
 └── README.md            # This file
 ```
@@ -374,10 +364,10 @@ kubectl describe pod <pod-name> -n ez-platform
 **Issue: Images not loading**
 ```bash
 # Verify Docker can see images
-docker images | grep v0.1.1-rc2
+docker images | grep v0.2.0
 
 # Verify minikube can see images (if using minikube)
-minikube image ls | grep v0.1.1-rc2
+minikube image ls | grep v0.2.0
 ```
 
 ---
@@ -390,6 +380,6 @@ minikube image ls | grep v0.1.1-rc2
 
 ---
 
-**Version:** v0.1.1-rc2
-**Release Date:** January 1, 2026
-**Package Size:** 4.1GB (images) + manifests + docs
+**Version:** v0.2.0
+**Release Date:** March 2026
+**Package Size:** ~4.5GB (images) + Helm chart + docs
