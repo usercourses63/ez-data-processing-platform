@@ -74,6 +74,9 @@ builder.Services.AddDataProcessingHealthChecks(builder.Configuration, serviceNam
 // Configure metrics
 builder.Services.AddSingleton<BusinessMetrics>();
 
+// Add rate limiting
+builder.Services.AddDataProcessingRateLimiting(builder.Configuration);
+
 // Configure CORS for development
 builder.Services.AddCors(options =>
 {
@@ -108,6 +111,9 @@ app.UseRouting();
 // CRITICAL: For endpoint routing, UseCors MUST be between UseRouting and MapControllers
 // This ensures OPTIONS preflight requests are handled correctly
 app.UseCors("AllowAll");
+
+// Add rate limiting (after CORS, before MapControllers)
+app.UseDataProcessingRateLimiting();
 
 app.UseAuthorization();
 

@@ -104,6 +104,9 @@ builder.Services.AddDataProcessingHealthChecks(builder.Configuration, serviceNam
 // Configure metrics (BusinessMetrics is the active metrics system)
 builder.Services.AddBusinessMetrics();
 
+// Add rate limiting
+builder.Services.AddDataProcessingRateLimiting(builder.Configuration);
+
 // Configure CORS for development
 builder.Services.AddCors(options =>
 {
@@ -130,6 +133,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseCors("AllowAll");
 }
+
+// Add rate limiting (after CORS, before routing/controllers)
+app.UseDataProcessingRateLimiting();
 
 app.UseHttpsRedirection();
 

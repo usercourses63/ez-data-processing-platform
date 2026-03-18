@@ -1,3 +1,4 @@
+using DataProcessing.Shared.Configuration;
 using DataProcessing.Shared.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -128,6 +129,9 @@ public static class ConnectorFactoryExtensions
     /// </summary>
     public static IServiceCollection AddConnectorFactory(this IServiceCollection services)
     {
+        // Register resilience pipeline used by external connectors
+        services.AddDataProcessingResilience();
+
         // Register the factory
         services.AddSingleton<IConnectorFactory, ConnectorFactory>();
 

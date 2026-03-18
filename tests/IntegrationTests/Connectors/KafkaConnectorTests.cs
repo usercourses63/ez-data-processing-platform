@@ -11,6 +11,8 @@ using DataProcessing.Shared.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Bson;
+using Polly;
+using Polly.Registry;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,7 +42,9 @@ public class KafkaConnectorTests : IClassFixture<KafkaFixture>
     {
         _kafka = kafka;
         _output = output;
-        _connector = new KafkaConnector(NullLogger<KafkaConnector>.Instance);
+        var registry = new ResiliencePipelineRegistry<string>();
+        registry.TryAddBuilder("external-connector", (builder, _) => { });
+        _connector = new KafkaConnector(NullLogger<KafkaConnector>.Instance, registry);
         _testRunId = Guid.NewGuid().ToString("N")[..8];
     }
 

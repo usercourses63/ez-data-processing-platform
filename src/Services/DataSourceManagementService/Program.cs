@@ -158,6 +158,9 @@ builder.Services.AddQuartz(q =>
 });
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
+// Add rate limiting
+services.AddDataProcessingRateLimiting(configuration);
+
 // Add CORS
 services.AddCors(options =>
 {
@@ -328,6 +331,9 @@ else
     app.UseCors("Production");
 }
 
+// Add rate limiting (after CORS, before routing)
+app.UseDataProcessingRateLimiting();
+
 // Add correlation ID middleware (simple version)
 app.Use(async (context, next) =>
 {
@@ -335,9 +341,9 @@ app.Use(async (context, next) =>
     {
         context.Request.Headers["X-Correlation-ID"] = Guid.NewGuid().ToString();
     }
-    
+
     context.Response.Headers["X-Correlation-ID"] = context.Request.Headers["X-Correlation-ID"].ToString();
-    
+
     await next();
 });
 

@@ -10,6 +10,8 @@ using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Polly;
+using Polly.Registry;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,7 +36,9 @@ public class FtpConnectorTests : IClassFixture<FileSimulatorFixture>
     {
         _fixture = fixture;
         _output = output;
-        _connector = new FtpConnector(NullLogger<FtpConnector>.Instance);
+        var registry = new ResiliencePipelineRegistry<string>();
+        registry.TryAddBuilder("external-connector", (builder, _) => { });
+        _connector = new FtpConnector(NullLogger<FtpConnector>.Instance, registry);
         _testRunId = Guid.NewGuid().ToString("N")[..8];
     }
 
