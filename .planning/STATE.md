@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
+stopped_at: Completed 21-04-PLAN.md (Release artifacts and GitHub release job)
+last_updated: "2026-03-18T13:18:20.683Z"
+last_activity: 2026-03-18 — Completed 21-03-PLAN.md (Sanity deploy CI job)
+progress:
+  total_phases: 13
+  completed_phases: 11
+  total_plans: 36
+  completed_plans: 35
+  percent: 97
+---
+
+---
+gsd_state_version: 1.0
+milestone: v0.2
+milestone_name: Production Validation & Release
+status: in_progress
 stopped_at: Completed 21-03-PLAN.md (Sanity deploy CI job)
 last_updated: "2026-03-18T13:14:25.142Z"
 last_activity: 2026-03-18 — Completed 21-02-PLAN.md (Sanity test suite)
 progress:
-  total_phases: 13
+  [██████████] 97%
   completed_phases: 10
   total_plans: 36
   completed_plans: 34
@@ -42,11 +58,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 21 of 21 (Release Package & CI Deployment Pipeline)
-Plan: 3 of 4 in current phase (21-01 DONE, 21-02 DONE, 21-03 DONE)
-Status: Phase 21 plan 03 complete
-Last activity: 2026-03-18 — Completed 21-03-PLAN.md (Sanity deploy CI job)
+Plan: 4 of 4 in current phase (21-01 DONE, 21-02 DONE, 21-03 DONE, 21-04 DONE)
+Status: Phase 21 complete - v0.2 milestone COMPLETE
+Last activity: 2026-03-18 — Completed 21-04-PLAN.md (Release artifacts and GitHub release job)
 
-Progress: [█████████░] 34/36 plans (v0.1: 32/32, v0.2: 34/36)
+Progress: [██████████] 36/36 plans (v0.1: 32/32, v0.2: 36/36)
 
 ## Performance Metrics
 
@@ -82,6 +98,7 @@ Progress: [█████████░] 34/36 plans (v0.1: 32/32, v0.2: 34/36
 
 *Updated after each plan completion*
 | Phase 21 P03 | 1 | 1 tasks | 1 files |
+| Phase 21 P04 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -122,6 +139,7 @@ Recent decisions affecting current work:
 - [21-01]: Bash build scripts coexist with PowerShell; docker-build/package-release separate from existing docker job; 7-day intermediate / 90-day final artifact retention
 - [21-02]: Playwright APIRequestContext for API-level sanity tests; SANITY-07 uses page fixture for frontend title check; PascalCase payload keys matching backend convention
 - [Phase 21]: Single package zip download for sanity-deploy (services+infra combined); parallel minikube image load with PID wait
+- [Phase 21]: release job needs: package-release (not sanity-deploy) so release is not blocked by optional self-hosted runner
 
 ### Pending Todos
 
@@ -142,8 +160,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:14:25.139Z
-Stopped at: Completed 21-03-PLAN.md (Sanity deploy CI job)
+Last session: 2026-03-18T13:18:20.679Z
+Stopped at: Completed 21-04-PLAN.md (Release artifacts and GitHub release job)
 
 ## v0.2 Phase Summary
 
