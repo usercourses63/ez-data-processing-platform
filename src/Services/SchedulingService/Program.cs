@@ -108,6 +108,9 @@ builder.Services.AddDataProcessingHealthChecks(builder.Configuration, serviceNam
 builder.Services.AddSingleton<BusinessMetrics>();
 builder.Services.AddBusinessMetrics();
 
+// Add rate limiting
+builder.Services.AddDataProcessingRateLimiting(builder.Configuration);
+
 // Configure CORS for development
 builder.Services.AddCors(options =>
 {
@@ -134,6 +137,9 @@ app.UseHttpsRedirection();
 
 // CORS must be BEFORE UseRouting
 app.UseCors("AllowAll");
+
+// Add rate limiting (after CORS, before routing/controllers)
+app.UseDataProcessingRateLimiting();
 
 // Add request logging - Disabled temporarily due to Serilog dependency issue
 // app.UseDataProcessingRequestLogging();

@@ -42,6 +42,9 @@ builder.Services.AddDataProcessingOpenTelemetry(builder.Configuration, serviceNa
 // Configure metrics (using OpenTelemetry-based BusinessMetrics)
 builder.Services.AddBusinessMetrics();
 
+// Add rate limiting
+builder.Services.AddDataProcessingRateLimiting(builder.Configuration);
+
 // CORS configuration
 builder.Services.AddCors(options =>
 {
@@ -153,6 +156,10 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseCors("AllowFrontend");
+
+// Add rate limiting (after CORS, before routing/controllers)
+app.UseDataProcessingRateLimiting();
+
 app.UseAuthorization();
 app.MapControllers();
 

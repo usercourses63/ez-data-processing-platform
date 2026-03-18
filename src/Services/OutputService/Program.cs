@@ -156,6 +156,9 @@ Log.Information("OpenTelemetry configured with OTLP endpoint: {Endpoint}",
 // Configure health checks using shared configuration
 builder.Services.AddDataProcessingHealthChecks(builder.Configuration, "DataProcessing.Output");
 
+// Add rate limiting
+builder.Services.AddDataProcessingRateLimiting(builder.Configuration);
+
 // Add Controllers and Swagger for API documentation
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -169,6 +172,9 @@ var app = builder.Build();
 
 // Configure HTTP request pipeline
 app.UseDataProcessingHealthChecks();
+
+// Add rate limiting (before controllers)
+app.UseDataProcessingRateLimiting();
 
 // Configure Swagger (Enabled for Beta - will disable in Production later)
 app.UseSwagger();
