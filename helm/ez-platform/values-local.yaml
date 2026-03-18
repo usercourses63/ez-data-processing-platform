@@ -91,6 +91,8 @@ services:
 
   frontend:
     replicas: 1
+    image:
+      pullPolicy: Never
     resources:
       requests:
         cpu: 50m
@@ -164,6 +166,10 @@ rabbitmq:
     limits:
       cpu: 250m
       memory: 512Mi
+
+storage:
+  externalData:
+    enabled: false
 
 config:
   environment: Production

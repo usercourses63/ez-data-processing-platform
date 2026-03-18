@@ -75,6 +75,8 @@ spec:
         volumeMounts:
         - name: mongodb-data
           mountPath: /data/db
+        - name: mongodb-tmp
+          mountPath: /tmp
         livenessProbe:
           exec:
             command:
@@ -93,6 +95,9 @@ spec:
           initialDelaySeconds: {{ .Values.mongodb.readinessProbe.initialDelaySeconds | default 30 }}
           periodSeconds: {{ .Values.mongodb.readinessProbe.periodSeconds | default 10 }}
           failureThreshold: {{ .Values.mongodb.readinessProbe.failureThreshold | default 3 }}
+      volumes:
+      - name: mongodb-tmp
+        emptyDir: {}
   volumeClaimTemplates:
   - metadata:
       name: mongodb-data

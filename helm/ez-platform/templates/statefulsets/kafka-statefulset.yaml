@@ -114,6 +114,19 @@ spec:
         volumeMounts:
         - name: kafka-data
           mountPath: /var/lib/kafka/data
+        - name: kafka-tmp
+          mountPath: /tmp
+        - name: kafka-etc
+          mountPath: /etc/kafka
+        - name: kafka-log
+          mountPath: /var/log/kafka
+      volumes:
+      - name: kafka-tmp
+        emptyDir: {}
+      - name: kafka-etc
+        emptyDir: {}
+      - name: kafka-log
+        emptyDir: {}
   volumeClaimTemplates:
   - metadata:
       name: kafka-data
@@ -202,6 +215,19 @@ spec:
         volumeMounts:
         - name: zookeeper-data
           mountPath: /var/lib/zookeeper/data
+        - name: zookeeper-tmp
+          mountPath: /tmp
+        - name: zookeeper-etc-kafka
+          mountPath: /etc/kafka
+        - name: zookeeper-log-kafka
+          mountPath: /var/log/kafka
+      volumes:
+      - name: zookeeper-tmp
+        emptyDir: {}
+      - name: zookeeper-etc-kafka
+        emptyDir: {}
+      - name: zookeeper-log-kafka
+        emptyDir: {}
   volumeClaimTemplates:
   - metadata:
       name: zookeeper-data

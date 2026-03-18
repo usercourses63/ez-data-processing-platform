@@ -294,10 +294,10 @@ services:
     enabled: true
     replicas: 2
     image:
-      repository: frontend
+      repository: ez-platform/frontend
       tag: v0.2.0
       pullPolicy: IfNotPresent
-    containerPort: 8080  # OCP requires non-privileged ports
+    containerPort: 80
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -329,7 +329,7 @@ services:
     enabled: true
     replicas: 1
     image:
-      repository: ezplatform/docs
+      repository: ez-platform/docusaurus
       tag: v0.2.0
     resources:
       requests:

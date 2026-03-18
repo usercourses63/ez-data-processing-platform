@@ -11,12 +11,12 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: database-init
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "-5"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   backoffLimit: 3
-  activeDeadlineSeconds: 300
+  activeDeadlineSeconds: 600
   template:
     metadata:
       labels:
@@ -27,17 +27,71 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       restartPolicy: Never
+      initContainers:
+      - name: wait-for-mongodb
+        image: {{ .Values.mongodb.image }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for MongoDB to be ready..."
+          for i in $(seq 1 60); do
+            if mongosh --host mongodb-0.mongodb-service:27017 --eval "db.adminCommand('ping')" --quiet 2>/dev/null; then
+              echo "MongoDB is responding to ping!"
+              echo "Initiating replica set..."
+              mongosh --host mongodb-0.mongodb-service:27017 --eval "
+                try {
+                  var status = rs.status();
+                  print('Replica set already initialized: ' + status.set);
+                } catch(e) {
+                  print('Initiating replica set...');
+                  rs.initiate({_id: '{{ .Values.mongodb.replicaSet | default "rs0" }}', members: [{_id: 0, host: 'mongodb-0.mongodb-service:27017'}]});
+                  print('Replica set initiated, waiting for primary...');
+                }
+              " 2>/dev/null
+              sleep 5
+              for j in $(seq 1 30); do
+                if mongosh --host mongodb-0.mongodb-service:27017 --eval "var s=rs.status(); if(s.myState!==1) throw 'not primary';" --quiet 2>/dev/null; then
+                  echo "MongoDB is primary and ready!"
+                  exit 0
+                fi
+                echo "Waiting for primary election... attempt $j/30"
+                sleep 2
+              done
+              echo "MongoDB did not become primary in time"
+              exit 1
+            fi
+            echo "Attempt $i/60 - MongoDB not ready yet, waiting 5s..."
+            sleep 5
+          done
+          echo "MongoDB did not become ready in time"
+          exit 1
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
       containers:
       - name: mongo-init
         image: {{ .Values.mongodb.image }}
-        {{- with .Values.securityContext.container }}
         securityContext:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
         command:
         - mongosh
         - --host
-        - mongodb-0.mongodb:27017
+        - mongodb-0.mongodb-service:27017
         - --eval
         - |
           // EZ Platform Database Initialization

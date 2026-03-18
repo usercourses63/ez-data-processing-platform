@@ -27,10 +27,10 @@ spec:
         tier: frontend
     spec:
       securityContext:
-        runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
-        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
-        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
-        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
       containers:

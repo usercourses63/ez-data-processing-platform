@@ -75,7 +75,7 @@ MongoDB connection string
 {{- if .Values.mongodb.external.enabled }}
 {{- .Values.mongodb.external.connectionString }}
 {{- else }}
-{{- printf "mongodb://mongodb-0.mongodb-service.%s.svc.cluster.local:27017,mongodb-1.mongodb-service.%s.svc.cluster.local:27017,mongodb-2.mongodb-service.%s.svc.cluster.local:27017/?replicaSet=rs0&directConnection=true" .Values.global.namespace .Values.global.namespace .Values.global.namespace }}
+{{- printf "mongodb://mongodb-0.mongodb-service.%s.svc.cluster.local:27017/?directConnection=true" .Values.global.namespace }}
 {{- end }}
 {{- end }}
 
@@ -86,7 +86,13 @@ Kafka bootstrap servers
 {{- if .Values.kafka.external.enabled }}
 {{- .Values.kafka.external.bootstrapServers }}
 {{- else }}
-{{- printf "kafka-0.kafka-service.%s.svc.cluster.local:9092,kafka-1.kafka-service.%s.svc.cluster.local:9092,kafka-2.kafka-service.%s.svc.cluster.local:9092" .Values.global.namespace .Values.global.namespace .Values.global.namespace }}
+{{- $ns := .Values.global.namespace }}
+{{- $replicas := int .Values.kafka.replicas }}
+{{- $servers := list }}
+{{- range $i := until $replicas }}
+{{- $servers = append $servers (printf "kafka-%d.kafka-service.%s.svc.cluster.local:9092" $i $ns) }}
+{{- end }}
+{{- join "," $servers }}
 {{- end }}
 {{- end }}
 
@@ -97,7 +103,13 @@ Hazelcast cluster members
 {{- if .Values.hazelcast.external.enabled }}
 {{- .Values.hazelcast.external.members }}
 {{- else }}
-{{- printf "hazelcast-0.hazelcast-service.%s.svc.cluster.local:5701,hazelcast-1.hazelcast-service.%s.svc.cluster.local:5701,hazelcast-2.hazelcast-service.%s.svc.cluster.local:5701" .Values.global.namespace .Values.global.namespace .Values.global.namespace }}
+{{- $ns := .Values.global.namespace }}
+{{- $replicas := int .Values.hazelcast.replicas }}
+{{- $members := list }}
+{{- range $i := until $replicas }}
+{{- $members = append $members (printf "hazelcast-%d.hazelcast-service.%s.svc.cluster.local:5701" $i $ns) }}
+{{- end }}
+{{- join "," $members }}
 {{- end }}
 {{- end }}
 
