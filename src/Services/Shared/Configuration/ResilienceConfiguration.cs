@@ -24,7 +24,7 @@ public static class ResilienceConfiguration
     /// <summary>
     /// Adds the shared <c>external-connector</c> resilience pipeline to the DI container.
     /// <list type="bullet">
-    ///   <item>Circuit breaker — opens after 5 consecutive failures, half-opens after 30 s, closes after 2 successes.</item>
+    ///   <item>Circuit breaker — opens when 5+ failures occur in a 10s window with no successes (approximates consecutive failure counting in Polly v8), half-opens after 30 s, closes after 2 successes.</item>
     ///   <item>Retry — 3 attempts with exponential back-off (2^n seconds) plus random jitter.</item>
     ///   <item>Timeout — 30 s per individual attempt.</item>
     /// </list>
@@ -55,9 +55,13 @@ public static class ResilienceConfiguration
                     Delay = TimeSpan.FromSeconds(1),   // base: 1 s → 2 s → 4 s
                     UseJitter = true,
                     Name = "ConnectorRetry",
-                    OnRetry = static args =>
+                    OnRetry = args =>
                     {
-                        // Logger is captured in the outer scope — no allocation on hot path.
+                        logger.LogWarning(
+                            "Retry attempt {Attempt} after {Delay:N1}s for {OperationKey}",
+                            args.AttemptNumber + 1,
+                            args.RetryDelay.TotalSeconds,
+                            args.Context.OperationKey);
                         return default;
                     }
                 })
@@ -67,7 +71,7 @@ public static class ResilienceConfiguration
                 {
                     FailureRatio = 1.0,          // all failures in the sampling window
                     MinimumThroughput = 5,        // need at least 5 calls before tripping
-                    SamplingDuration = TimeSpan.FromSeconds(30),
+                    SamplingDuration = TimeSpan.FromSeconds(10),
                     BreakDuration = TimeSpan.FromSeconds(30),
                     Name = "ConnectorCircuitBreaker",
 
