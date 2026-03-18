@@ -195,3 +195,87 @@ jobs:
             --values helm/ez-platform/values-local.yaml \
             > /dev/null
         continue-on-error: true
+
+  docker-build:
+    name: Build and Export Docker Images
+    needs: test
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Calculate version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION="v${{ env.SEMANTIC_VERSION }}-dev-${{ github.run_number }}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Calculated version: $VERSION"
+
+      - name: Build all application images and export tars
+        run: |
+          chmod +x scripts/build-all-images.sh
+          bash scripts/build-all-images.sh \
+            "${{ steps.version.outputs.VERSION }}" \
+            "${{ github.sha }}" \
+            "dist/images/services"
+
+      - name: Upload image tars artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-image-tars-${{ github.run_number }}
+          path: dist/images/services/
+          retention-days: 7
+
+  package-release:
+    name: Assemble Deployment Package
+    needs: docker-build
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      pkg_name: ${{ steps.assemble.outputs.PKG_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download app image tars
+        uses: actions/download-artifact@v4
+        with:
+          name: app-image-tars-${{ github.run_number }}
+          path: dist/images/services/
+
+      - name: Pull and export infrastructure images
+        run: |
+          chmod +x scripts/pull-infra-images.sh
+          bash scripts/pull-infra-images.sh "dist/images/infrastructure"
+
+      - name: Assemble deployment package
+        id: assemble
+        run: |
+          chmod +x scripts/assemble-package.sh
+          bash scripts/assemble-package.sh \
+            "${{ needs.docker-build.outputs.version }}" \
+            "dist"
+
+      - name: Zip deployment package
+        run: |
+          PKG_NAME="${{ steps.assemble.outputs.PKG_NAME }}"
+          cd dist && zip -r "${PKG_NAME}.zip" "${PKG_NAME}/"
+          echo "Created: dist/${PKG_NAME}.zip"
+          ls -lh "${PKG_NAME}.zip"
+
+      - name: Upload deployment package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.assemble.outputs.PKG_NAME }}
+          path: dist/${{ steps.assemble.outputs.PKG_NAME }}.zip
+          retention-days: 90
