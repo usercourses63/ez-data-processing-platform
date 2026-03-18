@@ -30,6 +30,9 @@ if ($env:COMMIT_SHA) {
 # Short SHA for tagging (first 7 characters)
 $ShortSha = $CommitSha.Substring(0, [Math]::Min(7, $CommitSha.Length))
 
+# Strip leading 'v' for .NET version strings (/p:Version does not accept 'v' prefix)
+$DotnetVersion = $Version -replace '^v', ''
+
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Building EZ Platform Docker Images" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
@@ -64,6 +67,7 @@ $startTime = Get-Date
 $services | ForEach-Object -Parallel {
     $service = $_
     $version = $using:Version
+    $dotnetVersion = $using:DotnetVersion
     $commitSha = $using:CommitSha
     $shortSha = $using:ShortSha
     $failedBuilds = $using:failedBuilds
@@ -80,7 +84,7 @@ $services | ForEach-Object -Parallel {
         # Build Docker image with version and commit SHA build arguments
         # Tags: version, latest, short SHA
         $buildResult = docker build `
-            --build-arg VERSION=$version `
+            --build-arg VERSION=$dotnetVersion `
             --build-arg COMMIT_SHA=$commitSha `
             -f $service.Dockerfile `
             -t "$($service.Image):$version" `

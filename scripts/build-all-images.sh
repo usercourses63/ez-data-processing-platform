@@ -6,10 +6,14 @@ COMMIT_SHA="${2:-unknown}"
 SHORT_SHA="${COMMIT_SHA:0:7}"
 OUTPUT_DIR="${3:-dist/images/services}"
 
+# Strip leading 'v' for .NET version strings (/p:Version does not accept 'v' prefix)
+DOTNET_VERSION="${VERSION#v}"
+
 echo "Building EZ Platform Docker images"
-echo "Version:   $VERSION"
-echo "Commit:    $COMMIT_SHA"
-echo "Output:    $OUTPUT_DIR"
+echo "Version:        $VERSION"
+echo ".NET Version:   $DOTNET_VERSION"
+echo "Commit:         $COMMIT_SHA"
+echo "Output:         $OUTPUT_DIR"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -36,7 +40,7 @@ for svc_line in "${SERVICES[@]}"; do
   if ! docker build \
     --file "$dockerfile" \
     --tag "$image:$VERSION" \
-    --build-arg VERSION="$VERSION" \
+    --build-arg VERSION="$DOTNET_VERSION" \
     --build-arg COMMIT_SHA="$COMMIT_SHA" \
     --build-arg SHORT_SHA="$SHORT_SHA" \
     .; then
