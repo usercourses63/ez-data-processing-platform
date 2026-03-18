@@ -25,7 +25,7 @@ builder.Services.AddSingleton(activitySource);
 builder.Services.AddDataProcessingOpenTelemetry(builder.Configuration, serviceName);
 
 // Configure metrics
-builder.Services.AddSingleton<DataProcessingMetrics>();
+builder.Services.AddSingleton<BusinessMetrics>();
 
 // CORS configuration
 builder.Services.AddCors(options =>
