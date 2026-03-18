@@ -11,11 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.2.0] - 2026-02-03
+## [0.2.0] - 2026-03-17
 
 ### Added
 
-#### NAS Device Management
+#### NAS Device Management (Phase 12)
 - NasDevice entity with role-based classification (Input/Output/Both/Backup)
 - NasDevicesController with full CRUD and provisioning endpoints
 - NasResourceService for dynamic Kubernetes PV/PVC creation
@@ -23,6 +23,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend NasDevicesTab for device management UI
 - RBAC manifests for Kubernetes API access (`k8s/rbac/nas-device-rbac.yaml`)
 - Connection testing and mount status monitoring
+
+#### OTEL Observability (Phase 14)
+- All 8 deployed microservices verified: structured logs, distributed traces, metrics
+- DataSourceManagement service rebuilt with Serilog OTEL logging (v0.2.0-otel)
+- Automated OTEL verification script: 24/24 checks pass (8 services x 3 signals)
+- OpenTelemetry__OtlpEndpoint env var added to all k8s deployments
+
+#### Device Health Monitoring (Phase 15)
+- Quartz.NET health check job (30-second interval)
+- Consecutive failure tracking: Healthy (0) / Degraded (1-2) / Down (3+)
+- Configurable latency thresholds: NAS 2000ms, AdminServer 5000ms
+- MongoDB TTL storage for health check history
+- REST API: GET /api/v1/health-status
+- Frontend Device Health tab with status cards, summary bar, 15s polling
+- HeartOutlined icon in System Monitoring page tab bar
+
+#### Protocol File Operations Testing (Phase 15.1)
+- Backend file operation REST proxy endpoints (List/Read/Write) for all server protocols
+- Playwright test infrastructure for protocol x format matrix testing
+- Static device testing (Scenario A): all protocols tested against file-simulator
+- Dynamic device testing (Scenario B): FTP, SFTP, NAS created via simulator API
+- Protocol x format matrix report with pass/fail per combination
+
+#### SignalR Real-Time Updates (Phase 16)
+- MonitoringBroadcaster singleton hosted service with dual-speed broadcast (5s/30s)
+- SignalR hub at /hubs/monitoring for WebSocket connections
+- CORS: SetIsOriginAllowed + AllowCredentials for SignalR WebSocket
+- Short-lived Kafka AdminClient per call (avoids connection pooling)
+- Frontend useMonitoringHub hook with connection recovery
+- Connection status dot indicator in ClusterHeader
+- React Query conditional polling fallback when SignalR disconnected
+- PascalCase mapper functions for backend-frontend data bridge
+
+#### File-Simulator Integration (Phase 17)
+- DemoDataGenerator --use-simulator mode for multi-protocol testing
+- FileSimulatorClient for REST API communication
+- FileGeneratorService for test data generation
+- FileUploadService for multi-protocol file upload
+- ServerCredentials.FromBsonDocument for credential resolution
+- Dynamic server creation via --create-servers flag
+
+#### E2E Validation (Phase 18)
+- Playwright E2E test infrastructure with beforeAll/afterAll setup modules
+- Protocol-aware test fixtures matching DemoDataGenerator SimpleTransaction schema
+- Ant Design RTL-safe tab interaction (dispatchEvent pattern)
+- Flexible assertions for loading/empty/data states
+- E2E validation report (E2E-VALIDATION-REPORT.md)
+- Pipeline completion and output comparison tests
 
 #### Protocol Testing
 - FileSimulatorFixture for unified protocol testing
@@ -44,10 +92,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Documentation
 - NAS/NFS architecture section in system-architecture.md
-- Component documentation (datasource-forms, schema-editor, nas-devices)
+- Component documentation (datasource-forms, schema-editor, nas-devices, system-monitoring, device-health)
 - Development guides (API coordination, React 19 patterns)
-- Hebrew user guide updated with NAS/archive sections
+- Hebrew user guide updated with NAS/archive/monitoring sections
 - Help button integration with docs portal
+- Sidebar restructured with Monitoring category, no Legacy labels
 
 #### Testing
 - E2E schema management tests (20+ test cases)

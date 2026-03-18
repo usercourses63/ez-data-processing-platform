@@ -159,6 +159,23 @@ export async function getServers(
 }
 
 /**
+ * Get all data sources
+ */
+export async function getDataSources(
+  request: APIRequestContext
+): Promise<any[]> {
+  const response = await request.get(`${EZ_API_BASE}/api/v1/datasource`);
+  if (!response.ok()) {
+    const body = await response.text();
+    console.error(`[ez-api] GET /api/v1/datasource failed (${response.status()}): ${body}`);
+    throw new Error(`Failed to get data sources: ${response.status()} ${body}`);
+  }
+  const body = await response.json();
+  // API wraps response: { CorrelationId, Data: { Items: [...] } }
+  return body?.Data?.Items ?? body?.data?.items ?? (Array.isArray(body) ? body : []);
+}
+
+/**
  * Get a server by ID
  */
 export async function getServerById(

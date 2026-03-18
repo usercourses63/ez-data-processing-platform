@@ -260,6 +260,17 @@
       "secondsAgo": "{{count}} seconds ago",
       "minutesAgo": "{{count}} minutes ago",
       "notAvailable": "N/A"
+    },
+    "connection": {
+      "connecting": "Connecting to monitoring hub...",
+      "connectingBody": "Establishing real-time connection to the cluster. This should take a few seconds.",
+      "live": "Live connection active",
+      "reconnecting": "Reconnecting...",
+      "disconnected": "Disconnected - using cached data",
+      "lost": "Real-time connection lost. Switching to periodic refresh.",
+      "restored": "Real-time connection restored.",
+      "error": "Unable to load monitoring data",
+      "errorBody": "Could not connect to the monitoring service. Check that DataSourceManagement is running and try refreshing the page."
     }
   },
   "schema": {

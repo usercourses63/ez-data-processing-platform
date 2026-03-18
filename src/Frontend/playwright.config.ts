@@ -120,6 +120,19 @@ export default defineConfig({
       timeout: 120000, // 2 min per test (network operations across clusters)
       fullyParallel: false, // Sequential to avoid resource contention
     },
+
+    // E2E validation suite — full pipeline flow tests (sequential, 3min timeout)
+    {
+      name: 'e2e-validation',
+      testDir: './tests/e2e/e2e-validation',
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 30000,
+        navigationTimeout: 60000,
+      },
+      timeout: 180000, // 3 min per test (pipeline flow with polling)
+      fullyParallel: false, // Sequential — tests depend on seeded state
+    },
   ],
 
   // Run local dev server before starting the tests

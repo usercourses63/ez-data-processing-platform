@@ -184,7 +184,7 @@ Files flow reliably from any source through validation to any destination, with 
 | Integration/E2E focus over unit tests | Microservices need interaction testing | ✓ Good — comprehensive E2E coverage |
 | NAS device management via K8s API | Dynamic PV/PVC provisioning | ✓ Good — full lifecycle implemented |
 
-| SignalR for real-time monitoring | File-simulator uses it, proven pattern | — Pending |
+| SignalR for real-time monitoring | File-simulator uses it, proven pattern | ⚠️ Infrastructure built in v0.2 (Phase 16), real data integration deferred to v0.3 (Phase 22) |
 
 ---
 *Last updated: 2026-02-11 after v0.2 milestone started*

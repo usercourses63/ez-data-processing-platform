@@ -33,6 +33,7 @@ import {
   generateRecentAlerts,
   generateClusterInfo,
 } from '../../services/kubernetes-mock-data';
+import { useMonitoringHub } from '../../hooks/useMonitoringHub';
 import ClusterHeader from './components/ClusterHeader';
 import MetricsOverviewCards from './components/MetricsOverviewCards';
 import PipelineFlow from './components/PipelineFlow';
@@ -46,59 +47,84 @@ import RecentAlerts from './components/RecentAlerts';
 import DeviceHealthTab from './components/DeviceHealthTab';
 import './SystemMonitoring.css';
 
-const { Title, Paragraph } = Typography;
+const { Paragraph } = Typography;
 
 const SystemMonitoring: React.FC = () => {
   const { t } = useTranslation();
-  const [services, setServices] = useState<ServiceStatus[]>([]);
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [events, setEvents] = useState<PipelineEvent[]>([]);
-  const [pods, setPods] = useState<PodStatus[]>([]);
-  const [trace, setTrace] = useState<DistributedTrace | null>(null);
-  const [queues, setQueues] = useState<MessageQueue[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [clusterInfo, setClusterInfo] = useState<ClusterInfo | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('overview');
 
-  // Load dashboard data
+  // Mock data state — used as fallback until SignalR provides real data
+  const [mockServices, setMockServices] = useState<ServiceStatus[]>([]);
+  const [mockMetrics, setMockMetrics] = useState<DashboardMetrics | null>(null);
+  const [mockEvents, setMockEvents] = useState<PipelineEvent[]>([]);
+  const [mockPods, setMockPods] = useState<PodStatus[]>([]);
+  const [mockTrace, setMockTrace] = useState<DistributedTrace | null>(null);
+  const [mockQueues, setMockQueues] = useState<MessageQueue[]>([]);
+  const [mockAlerts, setMockAlerts] = useState<Alert[]>([]);
+  const [mockClusterInfo, setMockClusterInfo] = useState<ClusterInfo | null>(null);
+  const [mockLastUpdate, setMockLastUpdate] = useState<Date>(new Date());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // SignalR real-time data
+  const hubUrl = `${window.location.protocol}//${window.location.host}/hubs/monitoring`;
+  const {
+    connectionState, isConnected,
+    deviceHealth,
+    services: signalRServices,
+    pods: signalRPods,
+    metrics: signalRMetrics,
+    queues: signalRQueues,
+    alerts: signalRAlerts,
+    trace: signalRTrace,
+    clusterInfo: signalRClusterInfo,
+    events: signalREvents,
+    lastUpdate: signalRLastUpdate
+  } = useMonitoringHub(hubUrl);
+
+  // Use SignalR data when available, fall back to mock data
+  const services = signalRServices.length > 0 ? signalRServices : mockServices;
+  const metrics = signalRMetrics ?? mockMetrics;
+  const events = signalREvents.length > 0 ? signalREvents : mockEvents;
+  const pods = signalRPods.length > 0 ? signalRPods : mockPods;
+  const trace = signalRTrace ?? mockTrace;
+  const queues = signalRQueues.length > 0 ? signalRQueues : mockQueues;
+  const alerts = signalRAlerts.length > 0 ? signalRAlerts : mockAlerts;
+  const clusterInfo = signalRClusterInfo ?? mockClusterInfo;
+  const lastUpdate = signalRLastUpdate ?? mockLastUpdate;
+
+  // Load mock data as initial fallback
   const loadDashboardData = () => {
     try {
       setError(null);
 
-      // Generate service statuses
       const newServices = generateServiceStatuses();
-      setServices(newServices);
+      setMockServices(newServices);
 
-      // Generate dashboard metrics
       const newMetrics = generateDashboardMetrics();
-      setMetrics(newMetrics);
+      setMockMetrics(newMetrics);
 
-      // Add new events (keep last 50)
-      setEvents(prev => {
-        const newEvents = generatePipelineEvents(2); // Add 2 new events per refresh
+      setMockEvents(prev => {
+        const newEvents = generatePipelineEvents(2);
         return [...newEvents, ...prev].slice(0, 50);
       });
 
-      // Generate Kubernetes data
       const newPods = generatePodStatuses();
-      setPods(newPods);
+      setMockPods(newPods);
 
       const newTrace = generateDistributedTrace();
-      setTrace(newTrace);
+      setMockTrace(newTrace);
 
       const newQueues = generateMessageQueues();
-      setQueues(newQueues);
+      setMockQueues(newQueues);
 
       const newAlerts = generateRecentAlerts();
-      setAlerts(newAlerts);
+      setMockAlerts(newAlerts);
 
       const newClusterInfo = generateClusterInfo();
-      setClusterInfo(newClusterInfo);
+      setMockClusterInfo(newClusterInfo);
 
-      setLastUpdate(new Date());
+      setMockLastUpdate(new Date());
 
       if (loading) {
         setLoading(false);
@@ -110,16 +136,16 @@ const SystemMonitoring: React.FC = () => {
     }
   };
 
-  // Initialize and set up auto-refresh
+  // Initialize mock data immediately, refresh as fallback when SignalR is disconnected
   useEffect(() => {
-    // Initial load
     loadDashboardData();
 
-    // Refresh every 30 seconds (matching existing Dashboard pattern)
-    const interval = setInterval(loadDashboardData, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+    // Only run mock refresh interval when SignalR is NOT connected
+    if (!isConnected) {
+      const interval = setInterval(loadDashboardData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isConnected]);
 
   // Loading state
   if (loading) {
@@ -181,7 +207,7 @@ const SystemMonitoring: React.FC = () => {
           {t('monitoring.deviceHealth.title')}
         </span>
       ),
-      children: <DeviceHealthTab />,
+      children: <DeviceHealthTab signalRData={deviceHealth} isSignalRConnected={isConnected} />,
     },
     {
       key: 'pods',
@@ -228,7 +254,7 @@ const SystemMonitoring: React.FC = () => {
   return (
     <div className="monitoring-dashboard">
       {/* Cluster Header - Common section */}
-      {clusterInfo && <ClusterHeader clusterInfo={clusterInfo} lastUpdate={lastUpdate} />}
+      {clusterInfo && <ClusterHeader clusterInfo={clusterInfo} lastUpdate={lastUpdate} connectionState={connectionState} />}
 
       {/* Top-level Metrics Overview - Common section */}
       <MetricsOverviewCards metrics={metrics} />

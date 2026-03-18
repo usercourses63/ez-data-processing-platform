@@ -49,6 +49,17 @@ const sidebars = {
         'components/datasource-forms',
         'components/schema-editor',
         'components/nas-devices',
+        'components/system-monitoring',
+        'components/device-health',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Monitoring',
+      collapsed: false,
+      items: [
+        'components/system-monitoring',
+        'components/device-health',
       ],
     },
     {
@@ -61,20 +72,9 @@ const sidebars = {
         'development/react19-patterns',
       ],
     },
-    // NOTE: Consolidated guides planned for future release
-    // {
-    //   type: 'category',
-    //   label: 'Guides',
-    //   collapsed: false,
-    //   items: [
-    //     'architecture/ARCHITECTURE',
-    //     'deployment/DEPLOYMENT',
-    //     'testing/TESTING',
-    //   ],
-    // },
     {
       type: 'category',
-      label: 'Architecture (Legacy)',
+      label: 'Architecture',
       collapsed: true,
       items: [
         'architecture/system-architecture',
@@ -83,7 +83,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Deployment (Legacy)',
+      label: 'Deployment',
       collapsed: true,
       items: [
         'deployment/deployment-plan',

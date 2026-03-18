@@ -85,6 +85,14 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "list", "update", "patch"]
+  # Pod and service monitoring (v0.2.0: MON-07 SignalR real-time updates)
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "list"]
+  # Metrics API for pod resource usage (optional - requires metrics-server)
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods"]
+    verbs: ["get", "list"]
 
 ---
 # RoleBinding to link Role to ServiceAccount in ez-platform namespace

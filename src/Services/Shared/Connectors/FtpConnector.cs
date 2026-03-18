@@ -1,8 +1,11 @@
+using DataProcessing.Shared.Configuration;
 using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Services;
 using FluentFTP;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
+using Polly;
+using Polly.Registry;
 using System.Diagnostics;
 
 namespace DataProcessing.Shared.Connectors;
@@ -15,12 +18,16 @@ namespace DataProcessing.Shared.Connectors;
 public class FtpConnector : IDataSourceConnector, IServerConnector
 {
     private readonly ILogger<FtpConnector> _logger;
+    private readonly ResiliencePipeline _pipeline;
 
     public string ConnectorType => "ftp";
 
-    public FtpConnector(ILogger<FtpConnector> logger)
+    public FtpConnector(
+        ILogger<FtpConnector> logger,
+        ResiliencePipelineProvider<string> pipelineProvider)
     {
         _logger = logger;
+        _pipeline = pipelineProvider.GetPipeline(ResilienceConfiguration.ExternalConnectorPipelineKey);
     }
 
     public async Task<Stream> ReadFileAsync(
@@ -28,18 +35,18 @@ public class FtpConnector : IDataSourceConnector, IServerConnector
         string filePath,
         CancellationToken cancellationToken = default)
     {
-        using var client = await CreateFtpClientAsync(dataSource, cancellationToken);
-        
         try
         {
             _logger.LogInformation("Reading file from FTP: {FilePath}", filePath);
 
-            // Download file to memory stream
-            var memoryStream = new MemoryStream();
-            await client.DownloadStream(memoryStream, filePath, token: cancellationToken);
-            
-            memoryStream.Position = 0;
-            return memoryStream;
+            return await _pipeline.ExecuteAsync(async ct =>
+            {
+                using var client = await CreateFtpClientAsync(dataSource, ct);
+                var memoryStream = new MemoryStream();
+                await client.DownloadStream(memoryStream, filePath, token: ct);
+                memoryStream.Position = 0;
+                return (Stream)memoryStream;
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -53,24 +60,25 @@ public class FtpConnector : IDataSourceConnector, IServerConnector
         string pattern,
         CancellationToken cancellationToken = default)
     {
-        using var client = await CreateFtpClientAsync(dataSource, cancellationToken);
-        
         try
         {
             var remotePath = dataSource.FilePath;
             _logger.LogInformation("Listing files from FTP: {RemotePath} with pattern: {Pattern}", remotePath, pattern);
 
-            // Get list of files matching pattern
-            var items = await client.GetListing(remotePath, cancellationToken);
-            
-            var files = items
-                .Where(item => item.Type == FtpObjectType.File)
-                .Where(item => MatchesPattern(item.Name, pattern))
-                .Select(item => item.FullName)
-                .ToList();
+            return await _pipeline.ExecuteAsync(async ct =>
+            {
+                using var client = await CreateFtpClientAsync(dataSource, ct);
+                var items = await client.GetListing(remotePath, ct);
 
-            _logger.LogInformation("Found {Count} files matching pattern on FTP", files.Count);
-            return files;
+                var files = items
+                    .Where(item => item.Type == FtpObjectType.File)
+                    .Where(item => MatchesPattern(item.Name, pattern))
+                    .Select(item => item.FullName)
+                    .ToList();
+
+                _logger.LogInformation("Found {Count} files matching pattern on FTP", files.Count);
+                return files;
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -86,14 +94,19 @@ public class FtpConnector : IDataSourceConnector, IServerConnector
         try
         {
             _logger.LogInformation("Testing FTP connection to: {Server}", GetFtpConfig(dataSource).Server);
-            
-            using var client = await CreateFtpClientAsync(dataSource, cancellationToken);
-            
-            // Try to get server features to verify connection
-            await client.GetWorkingDirectory(cancellationToken);
-            
-            _logger.LogInformation("FTP connection test successful");
-            return true;
+
+            return await _pipeline.ExecuteAsync(async ct =>
+            {
+                using var client = await CreateFtpClientAsync(dataSource, ct);
+                await client.GetWorkingDirectory(ct);
+                _logger.LogInformation("FTP connection test successful");
+                return true;
+            }, cancellationToken);
+        }
+        catch (Polly.CircuitBreaker.BrokenCircuitException bcEx)
+        {
+            _logger.LogWarning(bcEx, "Circuit is open for {ConnectorType} — not attempting connection", ConnectorType);
+            throw;
         }
         catch (Exception ex)
         {

@@ -6,7 +6,7 @@ sidebar_position: 1
 
 > **Executive Architecture Overview**
 > Data Processing & Validation Platform
-> Status: 92% Complete (Production Validation Phase)
+> Status: Production Release (v0.2.0)
 
 ---
 
@@ -603,7 +603,75 @@ When creating a data source with NAS protocol:
 - **Kubernetes-native deployment** with proper scaling strategies
 - **JSON Schema 2020-12** validation with Corvus validator
 - **Business metrics** extraction and alerting
+- **SignalR real-time monitoring** via WebSocket connections
+- **Device health monitoring** with automated Quartz.NET checks
+- **Full OTEL verification** across all 8 microservices (24/24 checks)
 
 ---
 
-*Generated: February 3, 2026 | EZ Platform v0.2.0 | Production Ready*
+## v0.2.0 Architecture Additions
+
+### SignalR Real-Time Communication
+
+In addition to REST APIs, RabbitMQ events, and Kafka messaging, v0.2.0 adds **SignalR WebSocket** as a fourth communication pattern:
+
+```
+Frontend (React) <──WebSocket──> MonitoringHub (/hubs/monitoring)
+                                      ^
+                                      |
+                              MonitoringBroadcaster
+                              (Hosted Service, Singleton)
+                                      |
+                    ┌─────────────────┼─────────────────┐
+                    v                 v                  v
+              Service Health     Kafka Status      Device Health
+              (5s interval)     (5s interval)     (30s interval)
+```
+
+The `MonitoringHub` receives broadcasts from the `MonitoringBroadcaster` hosted service, which gathers data from multiple sources at two speeds (5-second fast, 30-second slow).
+
+### OTEL Pipeline
+
+All 8 deployed microservices report telemetry through the OTEL Collector:
+
+```
+Application Services (Serilog + OTEL SDK)
+         |
+         v
+    OTEL Collector (4317 gRPC / 4318 HTTP)
+    ├── Prometheus System (9090)  → Infrastructure metrics
+    ├── Prometheus Business (9091) → Business KPIs
+    ├── Elasticsearch (9200)      → Structured logs (dataprocessing-logs index)
+    └── Jaeger (16686)            → Distributed traces
+
+Infrastructure Containers (MongoDB, Kafka, etc.)
+         |
+         v
+    Fluent Bit DaemonSet → Elasticsearch (ez-logs-YYYY.MM.DD index)
+```
+
+### Device Health Subsystem
+
+```
+Quartz.NET Job (30s interval)
+         |
+         v
+    DeviceHealthService
+    ├── Check NAS devices (NFS connectivity, latency)
+    └── Check AdminServers (protocol connectivity, latency)
+         |
+         v
+    MongoDB (TTL history for uptime calculation)
+         |
+         v
+    REST API: GET /api/v1/health-status
+         |
+         v
+    Frontend (15s React Query polling + SignalR real-time)
+```
+
+Consecutive failure tracking: 0 = Healthy, 1-2 = Degraded, 3+ = Down.
+
+---
+
+*Generated: March 2026 | EZ Platform v0.2.0 | Production Release*

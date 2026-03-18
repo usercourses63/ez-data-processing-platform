@@ -1,0 +1,234 @@
+---
+sidebar_position: 6
+title: Device Health
+description: Device health monitoring for NAS devices and admin servers
+last_verified: 2026-03-17
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Device Health Component
+
+Monitors the health status of NAS devices and admin servers with automatic health checks, latency tracking, and consecutive failure detection.
+
+## Features
+
+- **Automatic Health Checks**: Quartz.NET job running every 30 seconds
+- **Consecutive Failure Tracking**: Graduated status: Healthy / Degraded / Down
+- **Latency Monitoring**: Configurable degraded thresholds per device type
+- **Status Cards**: Color-coded health status cards with key metrics
+- **Summary Bar**: Aggregated health overview showing total/healthy/degraded/down counts
+- **SignalR + Polling**: Real-time updates via SignalR with React Query polling fallback (15s)
+
+## Data Model
+
+### DeviceHealthStatus
+
+```typescript
+type DeviceHealthStatus = 'Healthy' | 'Degraded' | 'Down' | 'Disabled';
+```
+
+### DeviceHealthInfo
+
+```typescript
+interface DeviceHealthInfo {
+  DeviceId: string;
+  DeviceName: string;
+  DeviceType: string;          // 'NAS' | 'AdminServer'
+  DeviceSubType?: string;      // 'FTP' | 'SFTP' | 'HTTP' | 'Kafka' etc.
+  Role: string;                // 'Input' | 'Output' | 'Backup' | 'Both'
+  Status: DeviceHealthStatus;
+  LatencyMs?: number;          // Last measured latency in milliseconds
+  LastCheckTime?: string;      // ISO 8601 timestamp
+  ErrorMessage?: string;       // Error details when Status is Down
+  UptimePercentage24h: number; // 0-100 uptime percentage
+  IsActive: boolean;
+}
+```
+
+### DeviceHealthStatusResponse
+
+```typescript
+interface DeviceHealthStatusResponse {
+  TotalDevices: number;
+  HealthyCount: number;
+  DegradedCount: number;
+  DownCount: number;
+  DisabledCount: number;
+  NasDevices: DeviceHealthInfo[];
+  AdminServers: DeviceHealthInfo[];
+}
+```
+
+## Health Check Configuration
+
+### Quartz.NET Job
+
+The backend runs a health check job every 30 seconds using Quartz.NET:
+
+- **Interval**: 30 seconds
+- **Scope**: All active NAS devices and admin servers
+- **Storage**: MongoDB with TTL for historical data
+- **Consecutive Failure Tracking**: Determines device status based on consecutive check failures
+
+### Status Determination
+
+| Consecutive Failures | Status | Description |
+|---------------------|--------|-------------|
+| 0 | Healthy | Device responding normally |
+| 1-2 | Degraded | Intermittent failures or high latency |
+| 3+ | Down | Device unreachable or consistently failing |
+
+### Latency Thresholds
+
+Devices are marked as Degraded when response latency exceeds the threshold, even if the check succeeds:
+
+| Device Type | Degraded Threshold | Description |
+|-------------|-------------------|-------------|
+| NAS | 2000 ms | NFS mount and file system operations |
+| AdminServer | 5000 ms | Protocol connection (FTP, SFTP, HTTP, Kafka) |
+
+## UI Components
+
+### DeviceHealthTab
+
+Main tab component displayed between Overview and Pods tabs in the System Monitoring page.
+
+```tsx
+import DeviceHealthTab from './components/DeviceHealthTab';
+
+<DeviceHealthTab
+  signalRData={deviceHealth}       // Real-time data from SignalR
+  isSignalRConnected={isConnected} // Controls polling fallback
+/>
+```
+
+### DeviceHealthCard
+
+Individual device status card with color coding:
+
+<Tabs>
+  <TabItem value="healthy" label="Healthy" default>
+
+| Element | Value |
+|---------|-------|
+| Border | Green |
+| Status Badge | Green "Healthy" |
+| Latency | Displayed in ms |
+| Uptime | Percentage (24h) |
+
+  </TabItem>
+  <TabItem value="degraded" label="Degraded">
+
+| Element | Value |
+|---------|-------|
+| Border | Yellow/Orange |
+| Status Badge | Yellow "Degraded" |
+| Latency | Highlighted if above threshold |
+| Error | May show warning message |
+
+  </TabItem>
+  <TabItem value="down" label="Down">
+
+| Element | Value |
+|---------|-------|
+| Border | Red |
+| Status Badge | Red "Down" |
+| Error | Error message displayed |
+| Last Check | Timestamp of last attempt |
+
+  </TabItem>
+</Tabs>
+
+### DeviceHealthSummaryBar
+
+Aggregated summary bar showing:
+- Total device count
+- Healthy count (green)
+- Degraded count (yellow)
+- Down count (red)
+- Disabled count (grey)
+
+### Data Fetching
+
+The component uses dual data sources:
+
+```typescript
+// SignalR: real-time updates when connected
+const { deviceHealth, isConnected } = useMonitoringHub(hubUrl);
+
+// React Query: polling fallback when SignalR disconnected
+const { data: polledData } = useQuery<DeviceHealthStatusResponse>({
+  queryKey: ['device-health-status'],
+  queryFn: getDeviceHealthStatus,
+  refetchInterval: isSignalRConnected ? false : 15000,  // 15s polling
+  enabled: !isSignalRConnected,
+  staleTime: 10000,
+});
+
+// Prefer SignalR data, fall back to polled data
+const data = signalRData ?? polledData;
+```
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health-status` | All device health statuses (aggregated response) |
+| GET | `/api/v1/health-status/{id}` | Single device health status |
+| SignalR | `DeviceHealthUpdate` | Real-time health updates via MonitoringHub (30s) |
+
+### Response Example
+
+```json
+{
+  "TotalDevices": 5,
+  "HealthyCount": 3,
+  "DegradedCount": 1,
+  "DownCount": 1,
+  "DisabledCount": 0,
+  "NasDevices": [
+    {
+      "DeviceId": "abc-123",
+      "DeviceName": "Production NAS",
+      "DeviceType": "NAS",
+      "Role": "Input",
+      "Status": "Healthy",
+      "LatencyMs": 45,
+      "LastCheckTime": "2026-03-17T12:00:00Z",
+      "UptimePercentage24h": 99.9,
+      "IsActive": true
+    }
+  ],
+  "AdminServers": [
+    {
+      "DeviceId": "def-456",
+      "DeviceName": "FTP Backup Server",
+      "DeviceType": "AdminServer",
+      "DeviceSubType": "FTP",
+      "Role": "Output",
+      "Status": "Degraded",
+      "LatencyMs": 5200,
+      "LastCheckTime": "2026-03-17T12:00:00Z",
+      "UptimePercentage24h": 95.2,
+      "IsActive": true
+    }
+  ]
+}
+```
+
+## Related Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| DeviceHealthTab | `/monitoring/components/` | Main tab container |
+| DeviceHealthCard | `/monitoring/components/` | Individual device card |
+| DeviceHealthSummaryBar | `/monitoring/components/` | Aggregated summary |
+
+## See Also
+
+- [System Monitoring](system-monitoring) - Full monitoring dashboard
+- [NAS Devices](nas-devices) - NAS device management
+- [Admin Guide](/docs/admin) - Device health administration
+- [Component Library](index) - All components overview

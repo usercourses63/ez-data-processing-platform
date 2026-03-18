@@ -64,11 +64,13 @@ backups/
 .playwright-mcp/
 playwright-report/
 test-results/
+!test-results/E2E-VALIDATION-REPORT.md
 **/playwright-report/
 **/test-results/
 
-# Test data directory (external mount)
-test-data/
+# Test data directory (external mount) — except e2e-validation fixtures
+test-data/*
+!test-data/e2e-validation/
 # Test artifacts
 e2e-*.json
 e2e-*.csv
@@ -106,3 +108,4 @@ release-package/images/*.tar
 
 # Deployment package binary images
 deployment-*/images/
+.worktrees/

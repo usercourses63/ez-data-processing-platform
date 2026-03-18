@@ -48,6 +48,15 @@ spec:
             port:
               number: 5002
 
+      # Documentation portal
+      - path: /docs
+        pathType: Prefix
+        backend:
+          service:
+            name: ezplatform-docs
+            port:
+              number: 80
+
       # Frontend - Must be LAST (catch-all)
       - path: /
         pathType: Prefix

@@ -36,7 +36,7 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 - [x] **MON-05**: System Monitoring page reflects real current system components (replace mock data generators)
 - [x] **MON-06**: File access device health/latency/keep-alive monitoring (NAS devices, AdminServers)
-- [ ] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator-suite patterns)
+- [x] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator-suite patterns)
 
 ### Protocol File Operations Testing (Phase 15.1 - INSERTED)
 
@@ -47,9 +47,9 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 ### File-Simulator Integration
 
-- [ ] **SIM-01**: File-simulator docs/API understood and documented (REST endpoints, protocol configs)
-- [ ] **SIM-02**: DemoDataGenerator reads file-simulator config via API and creates matching EZ devices
-- [ ] **SIM-03**: DemoDataGenerator uploads files via multi-protocol using file-simulator endpoints
+- [x] **SIM-01**: File-simulator docs/API understood and documented (REST endpoints, protocol configs)
+- [x] **SIM-02**: DemoDataGenerator reads file-simulator config via API and creates matching EZ devices
+- [x] **SIM-03**: DemoDataGenerator uploads files via multi-protocol using file-simulator endpoints
 
 ### Production Deployment
 
@@ -62,16 +62,16 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 
 ### Documentation
 
-- [ ] **DOC-06**: Docusaurus content updated for v0.2.0 release (all docs current)
-- [ ] **DOC-07**: Docusaurus built and deployed as container in release-package alongside other services
-- [ ] **DOC-08**: Frontend help link opens running Docusaurus — analyze existing implementation, verify connectivity, fix gaps
+- [x] **DOC-06**: Docusaurus content updated for v0.2.0 release (all docs current)
+- [x] **DOC-07**: Docusaurus built and deployed as container in release-package alongside other services
+- [x] **DOC-08**: Frontend help link opens running Docusaurus — analyze existing implementation, verify connectivity, fix gaps
 
 ### E2E Validation
 
-- [ ] **E2E-01**: Full file flow test (generate input -> ingest -> process -> output -> compare results)
-- [ ] **E2E-02**: Error/negative tests with intentional bad data verify filtering and error handling
-- [ ] **E2E-03**: Playwright UI verification of NAS devices, AdminServer, file protocols, all features
-- [ ] **E2E-04**: All existing E2E tests validated against file-simulator environment
+- [x] **E2E-01**: Full file flow test (generate input -> ingest -> process -> output -> compare results)
+- [x] **E2E-02**: Error/negative tests with intentional bad data verify filtering and error handling
+- [x] **E2E-03**: Playwright UI verification of NAS devices, AdminServer, file protocols, all features
+- [x] **E2E-04**: All existing E2E tests validated against file-simulator environment
 
 ### Release
 
@@ -87,6 +87,15 @@ Deferred to future release. Tracked but not in current roadmap.
 - **HA-01**: Redis backplane for SignalR multi-pod scaling
 - **HA-02**: Multi-replica deployment configuration for all services
 - **HA-03**: Horizontal Pod Autoscaler (HPA) configuration
+
+### Real-Time Monitoring Integration
+
+- **MON-08**: K8s monitoring service returns real pod/service status (fix RBAC binding, verify service account)
+- **MON-09**: Prometheus PromQL queries return real metrics (verify metric names, range queries, Prometheus connectivity)
+- **MON-10**: Kafka AdminClient returns real queue depths and consumer lag (verify internal bootstrap connectivity)
+- **MON-11**: Jaeger trace queries return real distributed traces (verify Jaeger API endpoint and response parsing)
+- **MON-12**: PipelineEventConsumer receives real MassTransit events and pushes to SignalR (verify Kafka topic subscription)
+- **MON-13**: System Monitoring page displays real data from SignalR instead of mock fallback (all mock generators removable)
 
 ### Advanced Features
 
@@ -135,34 +144,39 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OTEL-03 | Phase 14 | Complete |
 | MON-05 | Phase 15 | Complete |
 | MON-06 | Phase 15 | Complete |
-| MON-07 | Phase 16 | Pending |
+| MON-07 | Phase 16 | Complete |
 | SIM-TEST-01 | Phase 15.1 | Complete |
 | SIM-TEST-02 | Phase 15.1 | Complete |
 | SIM-TEST-03 | Phase 15.1 | Complete |
 | SIM-TEST-04 | Phase 15.1 | Complete |
-| SIM-01 | Phase 17 | Pending |
-| SIM-02 | Phase 17 | Pending |
-| SIM-03 | Phase 17 | Pending |
+| SIM-01 | Phase 17 | Complete |
+| SIM-02 | Phase 17 | Complete |
+| SIM-03 | Phase 17 | Complete |
 | PROD-01 | Phase 20 | Pending |
 | PROD-02 | Phase 20 | Pending |
 | PROD-03 | Phase 20 | Pending |
 | PROD-04 | Phase 20 | Pending |
 | PROD-05 | Phase 20 | Pending |
 | PROD-06 | Phase 20 | Pending |
-| DOC-06 | Phase 19 | Pending |
-| DOC-07 | Phase 19 | Pending |
-| DOC-08 | Phase 19 | Pending |
-| E2E-01 | Phase 18 | Pending |
-| E2E-02 | Phase 18 | Pending |
-| E2E-03 | Phase 18 | Pending |
-| E2E-04 | Phase 18 | Pending |
+| DOC-06 | Phase 19 | Complete |
+| DOC-07 | Phase 19 | Complete |
+| DOC-08 | Phase 19 | Complete |
+| E2E-01 | Phase 18 | Complete |
+| E2E-02 | Phase 18 | Complete |
+| E2E-03 | Phase 18 | Complete |
+| E2E-04 | Phase 18 | Complete |
 | REL-01 | Phase 21 | Pending |
 | REL-02 | Phase 21 | Pending |
+| MON-08 | Phase 22 | Pending |
+| MON-09 | Phase 22 | Pending |
+| MON-10 | Phase 22 | Pending |
+| MON-11 | Phase 22 | Pending |
+| MON-12 | Phase 22 | Pending |
+| MON-13 | Phase 22 | Pending |
 
 **Coverage:**
-- v0.2 requirements: 38 total
-- Mapped to phases: 38
-- Unmapped: 0
+- v0.2 requirements: 38 total, mapped: 38, unmapped: 0
+- v0.3 requirements: 6 total, mapped: 6, unmapped: 0
 
 ---
 *Requirements defined: 2026-02-11*

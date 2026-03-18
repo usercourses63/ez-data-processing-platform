@@ -861,3 +861,29 @@
 .monitoring-dashboard .ant-card-body {
   color: #e4e4e7;
 }
+
+/* Connection Status Badge (v0.2.0: MON-07 SignalR) */
+.connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-inline-end: 6px;
+  vertical-align: middle;
+  transition: background-color 300ms ease;
+}
+.connection-dot-connected {
+  background: #10b981;
+  animation: connectionPulse 2s ease-in-out infinite;
+}
+.connection-dot-reconnecting {
+  background: #fbbf24;
+  animation: connectionPulse 1s ease-in-out infinite;
+}
+.connection-dot-disconnected {
+  background: #ef4444;
+}
+@keyframes connectionPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

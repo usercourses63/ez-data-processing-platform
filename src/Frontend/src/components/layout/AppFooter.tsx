@@ -3,6 +3,7 @@ import { Layout, Typography, Space, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { VERSION_INFO, getFullVersionInfo } from '../../config/version';
+import { getDocsUrl } from '../../utils/docs-url';
 import './AppFooter.css';
 
 const { Footer } = Layout;
@@ -38,7 +39,7 @@ const AppFooter: React.FC = () => {
           )}
 
           <Link
-            href="http://localhost:30800"
+            href={getDocsUrl('docs')}
             target="_blank"
             className="footer-link"
           >

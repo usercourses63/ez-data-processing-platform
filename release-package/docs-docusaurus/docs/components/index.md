@@ -43,6 +43,15 @@ Admin panel components for system configuration.
 |-----------|---------|----------|
 | [NasDevicesTab](nas-devices#nasdevicestab) | NAS device management | `/admin/tabs/` |
 
+### Monitoring
+
+Real-time monitoring and device health components.
+
+| Component | Purpose | Location |
+|-----------|---------|----------|
+| [System Monitoring](system-monitoring) | Real-time dashboard with SignalR integration | `/pages/monitoring/` |
+| [Device Health](device-health) | NAS and AdminServer health monitoring | `/pages/monitoring/components/` |
+
 ## Design Principles
 
 ### RTL-First Design

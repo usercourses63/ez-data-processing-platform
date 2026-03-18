@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # Production stage - OCP compatible
-FROM nginx:alpine
+FROM nginx:1.28-alpine
 
 # Create non-root user for OCP compatibility and clear default content
 RUN addgroup -g 1001 -S nginx-group && \

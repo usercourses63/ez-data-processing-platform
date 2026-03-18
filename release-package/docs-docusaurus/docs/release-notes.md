@@ -6,30 +6,66 @@ sidebar_position: 2
 
 ---
 
-## v0.2.0 - External File Access (February 2026)
+## v0.2.0 - Production Release (March 2026)
 
 **Status:** Production Release
-**Type:** Feature Release - External File Access & NAS Support
+**Type:** Feature Release - NAS Management, OTEL Observability, Device Health, SignalR Real-Time Dashboard, File-Simulator Integration, E2E Validation
 
 ### Highlights
 
-This major release introduces **External File Access** capabilities with NAS device management, comprehensive protocol testing, and full CI/CD automation.
+This major release introduces **NAS device management**, **OTEL observability verification** across all 8 microservices, **device health monitoring** with automated Quartz.NET checks, **SignalR real-time dashboard** with WebSocket streaming, **file-simulator integration** for multi-protocol testing, and comprehensive **E2E validation** of the full data processing pipeline.
 
 ### New Features
 
-#### NAS Device Management
+#### NAS Device Management (Phase 12)
 
 - **Dynamic NAS provisioning**: Configure NAS devices via Admin UI with automatic Kubernetes PV/PVC creation
 - **Role-based devices**: Assign Input, Output, Both, or Backup roles to NAS devices with color-coded indicators
 - **Mount status monitoring**: Real-time display of PV/PVC provisioning status
 - **Connection testing**: Verify NAS connectivity before provisioning
-- **NFS protocol support**: Full NFS v3 support with configurable mount options
+- **NFS protocol support**: Full NFS v3/v4 support with configurable mount options
+
+#### OTEL Observability (Phase 14)
+
+- **Full OTEL verification**: All 8 deployed microservices verified with 3 signals (24/24 checks)
+- **Structured logs**: Serilog -> OTEL Collector -> Elasticsearch (`dataprocessing-logs` index)
+- **Distributed traces**: OTEL SDK -> OTEL Collector -> Jaeger (port 16686)
+- **Metrics**: OTEL SDK -> OTEL Collector -> Prometheus System (9090) + Business (9091)
+- **DataSourceManagement rebuilt**: v0.2.0-otel image with Serilog logging
+
+#### Device Health Monitoring (Phase 15)
+
+- **Automated health checks**: Quartz.NET job every 30 seconds for all NAS and AdminServer devices
+- **Status tracking**: Healthy (0 failures) / Degraded (1-2 failures) / Down (3+ failures)
+- **Latency thresholds**: NAS 2000ms, AdminServer 5000ms
+- **MongoDB TTL history**: Health check results with automatic cleanup
+- **Frontend UI**: Device Health tab with status cards, summary bar, 15s polling
+
+#### SignalR Real-Time Updates (Phase 16)
+
+- **WebSocket monitoring**: SignalR hub at `/hubs/monitoring` for live data streaming
+- **Dual-speed broadcast**: 5-second fast data (services, Kafka) / 30-second slow data (traces, events)
+- **Connection recovery**: Automatic reconnection with configurable backoff
+- **Frontend integration**: Connection status indicator, React Query polling fallback
+
+#### File-Simulator Integration (Phase 17)
+
+- **DemoDataGenerator integration**: `--use-simulator` mode for multi-protocol testing
+- **Dynamic server creation**: `--create-servers` flag creates FTP/SFTP/NAS via simulator API
+- **Multi-protocol upload**: FileUploadService supports all configured protocols
+
+#### E2E Validation (Phase 18)
+
+- **Playwright E2E infrastructure**: beforeAll/afterAll setup modules with protocol-aware fixtures
+- **Pipeline validation**: Full pipeline completion and output comparison tests
+- **RTL-safe interactions**: Ant Design tab clicks via dispatchEvent pattern
+- **Validation report**: E2E-VALIDATION-REPORT.md tracking all test results
 
 #### Enhanced Protocol Support
 
 - **Comprehensive protocol testing**: FTP, SFTP, HTTP, S3, SMB, NFS, Kafka, Local connectors
 - **File-simulator integration**: Unified testing environment for all protocols
-- **Graceful test skipping**: Tests skip cleanly when dependencies unavailable
+- **Protocol x format matrix**: Automated testing of all protocol and format combinations
 
 #### CI/CD Automation
 
@@ -41,9 +77,10 @@ This major release introduces **External File Access** capabilities with NAS dev
 #### Documentation Portal
 
 - **Docusaurus 3.x**: Full documentation portal with search
-- **Component documentation**: Detailed guides for all UI components
+- **Component documentation**: Detailed guides for all UI components including System Monitoring and Device Health
 - **Development guides**: API coordination, React 19 patterns
 - **Hebrew user guide**: Native Hebrew documentation with RTL support
+- **Sidebar restructured**: Monitoring category added, Legacy labels removed
 
 ### API Changes
 
@@ -59,6 +96,9 @@ This major release introduces **External File Access** capabilities with NAS dev
 | `/api/v1/nasdevices/{id}/provision` | POST | Provision K8s resources |
 | `/api/v1/nasdevices/{id}/deprovision` | POST | Remove K8s resources |
 | `/api/v1/nasdevices/{id}/test` | POST | Test NFS connection |
+| `/api/v1/health-status` | GET | All device health statuses |
+| `/api/v1/health-status/{id}` | GET | Single device health |
+| `/hubs/monitoring` | SignalR | Real-time monitoring WebSocket hub |
 
 #### Changed Endpoints
 

@@ -10,6 +10,8 @@ using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Polly;
+using Polly.Registry;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,9 +36,12 @@ public class HttpApiConnectorTests : IClassFixture<FileSimulatorFixture>
     {
         _fixture = fixture;
         _output = output;
+        var registry = new ResiliencePipelineRegistry<string>();
+        registry.TryAddBuilder("external-connector", (builder, _) => { });
         _connector = new HttpApiConnector(
             NullLogger<HttpApiConnector>.Instance,
-            new TestHttpClientFactory());
+            new TestHttpClientFactory(),
+            registry);
         _testRunId = Guid.NewGuid().ToString("N")[..8];
     }
 

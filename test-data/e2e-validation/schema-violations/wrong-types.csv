@@ -1,0 +1,4 @@
+transactionId,amount,date,status
+not-matching-pattern,abc,2025-01-01,ממתין
+TXN-00000001,not-a-number,2025-01-02,אושר
+TXN-00000002,150.00,not-a-date,נדחה

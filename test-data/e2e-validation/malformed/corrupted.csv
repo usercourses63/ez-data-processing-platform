@@ -1,0 +1,6 @@
+transactionId,amount,date,status
+TXN-00000030,100.00,2025-01-01,ממתין
+"TXN-00000031,broken,quote
+TXN-00000032,200.00,2025-01-02
+,,,
+garbage data not csv at all

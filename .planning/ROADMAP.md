@@ -4,6 +4,7 @@
 
 - v0.1 **Testing Foundation + Infrastructure** — Phases 1-10 (shipped 2026-02-11) — [archive](milestones/v0.1-ROADMAP.md)
 - v0.2 **Production Validation & Release** — Phases 11-21 (in progress)
+- v0.3 **Real-Time Monitoring & Scaling** — Phase 22+ (planned)
 
 ## Next Milestone
 
@@ -23,12 +24,13 @@
 - [x] **Phase 14: OTEL Verification** - Verify logs, traces, metrics for all 9 microservices (completed 2026-02-25)
 - [x] **Phase 15: Device Health Monitoring** - Real monitoring data, device health/latency monitoring (completed 2026-02-25)
 - [x] **Phase 15.1: Protocol File Operations Testing** - Test all device protocols against file-simulator (INSERTED) (completed 2026-03-16)
-- [ ] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page
-- [ ] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration
-- [ ] **Phase 18: E2E Validation** - Full file flow tests, error tests, Playwright UI verification
-- [ ] **Phase 19: Documentation Update** - Docusaurus content update, container build, help link verification
+- [x] **Phase 16: SignalR Real-Time Updates** - SignalR hub for System Monitoring page (completed 2026-03-16)
+- [x] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration (completed 2026-03-16)
+- [ ] **Phase 18: E2E Validation** - Full file flow tests, error tests, Playwright UI verification (gap closure in progress)
+- [x] **Phase 19: Documentation Update** - Docusaurus content update, container build, help link verification (completed 2026-03-17)
 - [ ] **Phase 20: CI/CD & Production Deployment** - Pipeline, version display, local prod mode, OCP resources
 - [ ] **Phase 21: Release Package** - Tagged release, offline Helm package
+- [ ] **Phase 22: SignalR Monitoring Data Integration** - Replace mock data with real K8s/Prometheus/Kafka/Jaeger data (v0.3)
 
 ## Phase Details
 
@@ -134,11 +136,11 @@ Plans:
   1. SignalR hub broadcasts health status changes in real-time
   2. Frontend connects to SignalR hub and updates UI without refresh
   3. Connection recovery works after temporary disconnection
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 16-01; Wave 2: 16-02)
 
 Plans:
-- [ ] 16-01: SignalR hub implementation in DataSourceManagementService
-- [ ] 16-02: Frontend SignalR integration with real-time UI updates
+- [ ] 16-01-PLAN.md — Backend SignalR hub, MonitoringBroadcaster, K8s/Prometheus/Kafka data services, CORS + RBAC (MON-07)
+- [ ] 16-02-PLAN.md — Frontend useMonitoringHub hook, mock data removal, connection badge, polling fallback, i18n (MON-07)
 
 ### Phase 17: File-Simulator Integration
 **Goal**: Integrate DemoDataGenerator with file-simulator for multi-protocol testing
@@ -148,11 +150,11 @@ Plans:
   1. File-simulator API endpoints documented and understood
   2. DemoDataGenerator reads file-simulator config and creates matching EZ devices
   3. DemoDataGenerator uploads files via file-simulator for all supported protocols
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 17-01; Wave 2: 17-02)
 
 Plans:
-- [ ] 17-01: Document file-simulator API and create client library
-- [ ] 17-02: DemoDataGenerator integration with file-simulator config and upload
+- [x] 17-01-PLAN.md — FileGeneratorService, FileUploadService, and FileSimulatorClient API docs (SIM-01, SIM-03)
+- [ ] 17-02-PLAN.md — Wire --upload-files flag, DI container, and upload step into Program.cs (SIM-02, SIM-03)
 
 ### Phase 18: E2E Validation
 **Goal**: Comprehensive E2E test coverage including file-simulator environment
@@ -163,13 +165,14 @@ Plans:
   2. Error/negative tests verify filtering and error handling with bad data
   3. Playwright UI tests cover NAS devices, AdminServer, all file protocols
   4. All existing E2E tests pass against file-simulator environment
-**Plans**: TBD
+**Plans**: 5 plans (Wave 1: 18-01, 18-02 parallel; Wave 2: 18-03; Wave 3: 18-04; Wave 4: 18-05 gap closure)
 
 Plans:
-- [ ] 18-01: Full file flow E2E test with comparison validation
-- [ ] 18-02: Error handling and negative E2E tests
-- [ ] 18-03: Playwright UI tests for NAS, AdminServer, protocols
-- [ ] 18-04: Validate all E2E tests against file-simulator
+- [x] 18-01-PLAN.md — Pipeline infrastructure + full flow E2E tests with DemoDataGenerator seeding (E2E-01)
+- [x] 18-02-PLAN.md — Static bad data fixtures + error/negative E2E tests via InvalidRecords API (E2E-02)
+- [x] 18-03-PLAN.md — Playwright UI tests for NAS, AdminServer, monitoring, cross-feature workflows (E2E-03)
+- [x] 18-04-PLAN.md — Run all existing tests against file-simulator + E2E validation report (E2E-04)
+- [ ] 18-05-PLAN.md — Gap closure: add pipeline wait/compare tests, verify report against live cluster (E2E-01, E2E-04)
 
 ### Phase 19: Documentation Update
 **Goal**: Update Docusaurus documentation for v0.2.0 release
@@ -179,11 +182,11 @@ Plans:
   1. Docusaurus content reflects all v0.2.0 features and changes
   2. Docusaurus container builds and deploys in release-package
   3. Frontend help link opens running Docusaurus portal
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 19-01; Wave 2: 19-02)
 
 Plans:
-- [ ] 19-01: Update Docusaurus content for v0.2.0
-- [ ] 19-02: Verify Docusaurus container build and help link integration
+- [ ] 19-01-PLAN.md — Update Docusaurus content, new component docs, sidebar restructuring (DOC-06)
+- [ ] 19-02-PLAN.md — Dockerfile nginx pin, k8s deployment update, ingress /docs route, docs-url.ts fix (DOC-07, DOC-08)
 
 ### Phase 20: CI/CD & Production Deployment
 **Goal**: Production-ready CI/CD pipeline and local deployment mode
@@ -196,13 +199,12 @@ Plans:
   4. Local production mode deploys with single-pod replicas
   5. OCP resource requests/limits defined for all pods
   6. Release-package deploys locally and passes end-to-end validation
-**Plans**: TBD
+**Plans**: 3 plans (Wave 1: 20-01, 20-02 parallel; Wave 2: 20-03)
 
 Plans:
-- [ ] 20-01: CI/CD pipeline completion with Helm deployment
-- [ ] 20-02: Version injection and OCP resource configuration
-- [ ] 20-03: Local production deployment mode
-- [ ] 20-04: Release-package local validation
+- [ ] 20-01-PLAN.md — CI pipeline extension (tag trigger, version extraction, Helm validation) + frontend version injection fix (PROD-01, PROD-03)
+- [ ] 20-02-PLAN.md — values-local.yaml for local single-replica deployment + OCP resource config + image pinning (PROD-04, PROD-05)
+- [ ] 20-03-PLAN.md — Release-package install script updates + validation script (PROD-02, PROD-06)
 
 ### Phase 21: Release Package
 **Goal**: Create tagged release with offline deployment capability
@@ -218,10 +220,35 @@ Plans:
 - [ ] 21-01: Tagged GitHub release v0.2.0 with CHANGELOG
 - [ ] 21-02: Offline Helm package for air-gapped OCP deployment
 
+---
+
+## v0.3 Real-Time Monitoring & Scaling
+
+**Milestone Goal:** Replace all mock data on System Monitoring page with real data from K8s, Prometheus, Kafka, and MassTransit pipeline events via SignalR. Prepare for multi-pod scaling.
+
+### Phase 22: SignalR Monitoring Data Integration
+**Goal**: Debug and integrate all SignalR backend data services against the live cluster so System Monitoring page displays real data instead of mock fallback
+**Depends on**: Phase 21 (v0.2 released)
+**Requirements**: MON-08, MON-09, MON-10, MON-11, MON-12, MON-13
+**Success Criteria** (what must be TRUE):
+  1. KubernetesMonitoringService returns real pod/service status (RBAC verified, service account bound)
+  2. PrometheusQueryService returns real metrics and time-series history from PromQL instant + range queries
+  3. KafkaMonitoringService returns real topic depths and consumer lag via AdminClient
+  4. Jaeger trace queries return real distributed traces on the Traces tab
+  5. PipelineEventConsumer pushes real MassTransit events (FileDiscovered, ValidationCompleted, etc.) to EventStream
+  6. All mock data generators can be removed — every tab shows real data from SignalR
+**Plans**: TBD
+
+Plans:
+- [ ] 22-01: Debug and fix K8s + Prometheus + Kafka + Jaeger backend services against live cluster
+- [ ] 22-02: Verify real data on all monitoring tabs, remove mock fallback, E2E validation
+
+---
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21
+Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21 -> 22
 
 Note: Phases 14 and 17 can run in parallel with earlier phases as they have no strict dependencies.
 
@@ -233,14 +260,16 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
 | 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
 | 15.1. Protocol File Operations Testing | 3/4 | In Progress|  | - |
-| 16. SignalR Real-Time Updates | v0.2 | 0/2 | Not started | - |
-| 17. File-Simulator Integration | v0.2 | 0/2 | Not started | - |
-| 18. E2E Validation | v0.2 | 0/4 | Not started | - |
-| 19. Documentation Update | v0.2 | 0/2 | Not started | - |
-| 20. CI/CD & Production Deployment | v0.2 | 0/4 | Not started | - |
+| 16. SignalR Real-Time Updates | 2/2 | Complete    | 2026-03-16 | - |
+| 17. File-Simulator Integration | 2/2 | Complete    | 2026-03-16 | - |
+| 18. E2E Validation | 4/5 | Gap Closure | 2026-03-16 | - |
+| 19. Documentation Update | 2/2 | Complete    | 2026-03-17 | - |
+| 20. CI/CD & Production Deployment | v0.2 | 0/3 | Planned | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
+| 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 10/32 plans complete (31%)
+**v0.2 Totals:** 12/32 plans complete (38%)
+**v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-02-26 after Phase 15.1 planning complete*
+*Roadmap updated: 2026-03-17 after Phase 20 planning*

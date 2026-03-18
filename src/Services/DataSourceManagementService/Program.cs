@@ -13,6 +13,8 @@ using System.Diagnostics;
 using MassTransit;
 using Quartz;
 using DataProcessing.DataSourceManagement.Jobs;
+using DataProcessing.DataSourceManagement.Hubs;
+using DataProcessing.DataSourceManagement.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +67,9 @@ var rabbitMqPass = configuration.GetValue<string>("RabbitMQ:Password") ?? "guest
 
 services.AddMassTransit(x =>
 {
+    // Register pipeline event consumer for SignalR broadcasting (v0.2.0: MON-07)
+    x.AddConsumer<PipelineEventConsumer>();
+
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMqHost, "/", h =>
@@ -128,6 +133,16 @@ services.AddScoped<IDeviceHealthService, DeviceHealthService>();
 services.AddScoped<DeviceHealthCheckJob>();
 services.AddHostedService<DeviceHealthService>();
 
+// Register monitoring data services (v0.2.0: SignalR Real-Time Updates, MON-07)
+services.AddScoped<IKubernetesMonitoringService, KubernetesMonitoringService>();
+services.AddScoped<IPrometheusQueryService, PrometheusQueryService>();
+services.AddScoped<IKafkaMonitoringService, KafkaMonitoringService>();
+
+// Register SignalR hub and monitoring broadcaster
+services.AddSignalR();
+services.AddSingleton<MonitoringBroadcaster>();
+services.AddHostedService(sp => sp.GetRequiredService<MonitoringBroadcaster>());
+
 // Configure Quartz.NET for device health check scheduling
 builder.Services.AddQuartz(q =>
 {
@@ -143,14 +158,19 @@ builder.Services.AddQuartz(q =>
 });
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
+// Add rate limiting
+services.AddDataProcessingRateLimiting(configuration);
+
 // Add CORS
 services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(origin =>
+                new Uri(origin).Host is "localhost" or "127.0.0.1" or "172.17.80.157" or "172.17.86.71" or "172.17.89.141")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials(); // Required for SignalR WebSocket transport
     });
 
     options.AddPolicy("Production", policy =>
@@ -311,6 +331,9 @@ else
     app.UseCors("Production");
 }
 
+// Add rate limiting (after CORS, before routing)
+app.UseDataProcessingRateLimiting();
+
 // Add correlation ID middleware (simple version)
 app.Use(async (context, next) =>
 {
@@ -318,9 +341,9 @@ app.Use(async (context, next) =>
     {
         context.Request.Headers["X-Correlation-ID"] = Guid.NewGuid().ToString();
     }
-    
+
     context.Response.Headers["X-Correlation-ID"] = context.Request.Headers["X-Correlation-ID"].ToString();
-    
+
     await next();
 });
 
@@ -376,6 +399,9 @@ app.UseHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthC
 {
     Predicate = _ => false // No checks, just returns healthy
 });
+
+// Map SignalR monitoring hub (v0.2.0: MON-07)
+app.MapHub<MonitoringHub>("/hubs/monitoring");
 
 // Map controllers
 app.MapControllers();

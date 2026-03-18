@@ -1,3 +1,34 @@
+---
+gsd_state_version: 1.0
+milestone: v0.2
+milestone_name: Production Validation & Release
+status: in_progress
+stopped_at: Phase 20 planned (3 plans, 2 waves)
+last_updated: "2026-03-17T17:05:44.285Z"
+last_activity: 2026-03-17 — Completed 19-02-PLAN.md (documentation infrastructure)
+progress:
+  total_phases: 13
+  completed_phases: 10
+  total_plans: 31
+  completed_plans: 28
+---
+
+---
+gsd_state_version: 1.0
+milestone: v0.2
+milestone_name: Production Validation & Release
+status: in_progress
+stopped_at: Completed 19-02-PLAN.md (documentation infrastructure)
+last_updated: "2026-03-17T13:11:00Z"
+last_activity: 2026-03-17 — Completed 19-02-PLAN.md (documentation infrastructure)
+progress:
+  total_phases: 13
+  completed_phases: 10
+  total_plans: 28
+  completed_plans: 28
+  percent: 100
+---
+
 # Project State
 
 ## Project Reference
@@ -9,12 +40,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 15.1 of 21 (Protocol File Operations Testing) - COMPLETE
-Plan: 4 of 4 in current phase (DONE)
-Status: Phase Complete - Ready for Phase 16
-Last activity: 2026-03-16 — Completed 15.1-04-PLAN.md (Global setup/teardown + protocol matrix report)
+Phase: 19 of 21 (Documentation Update) - COMPLETE
+Plan: 2 of 2 in current phase (19-01 DONE, 19-02 DONE)
+Status: Phase 19 complete, Phase 20 next
+Last activity: 2026-03-17 — Completed 19-02-PLAN.md (documentation infrastructure)
 
-Progress: [#######################░░░░░░░░░] 47/64 plans (v0.1: 32/32, v0.2: 15/32)
+Progress: [################################] 58/64 plans (v0.1: 32/32, v0.2: 26/32)
 
 ## Performance Metrics
 
@@ -40,9 +71,13 @@ Progress: [#######################░░░░░░░░░] 47/64 plans (v0.1
 
 | 15.1-protocol-testing | 4 | 62 min | 15.5 min |
 
+| 17-file-simulator-integration | 2 | 7 min | 3.5 min |
+| 18-e2e-validation | 4 | 14 min | 3.5 min |
+| 19-documentation-update | 2 | 11 min | 5.5 min |
+
 **Recent Trend:**
-- Last 5 plans: 15.1-01 (8 min), 15.1-02 (5 min), 15.1-03 (4 min), 15.1-04 (45 min)
-- Trend: 15.1-04 longer due to multi-session checkpoint with NFS debugging
+- Last 5 plans: 18-01 (3 min), 18-02 (4 min), 18-03 (4 min), 18-04 (3 min)
+- Trend: Steady pace, fast execution on test infrastructure and fixture creation
 
 *Updated after each plan completion*
 
@@ -70,6 +105,16 @@ Recent decisions affecting current work:
 - [15.1-02]: Credentials via TypeSpecificConfig PascalCase keys (Username, Password) for FromBsonDocument; FTP PassiveMode for NAT compat; SFTP /upload base path; HTTP Scenario B N/A (no dynamic creation); UI registration with API fallback
 - [15.1-03]: Folder-type AdminServer as bridge to NFS mount path for FileOperationsController; Kafka file ops reported as N/A (intentional design); NAS provisioning via API for reliability
 - [15.1-04]: File-based result persistence for cross-worker state; NAS tests use main NFS server (port 32149); port injection in BuildMountOptions(); 6 ECONNREFUSED failures are port-forward disruption not code bugs
+- [16-01]: Singleton+AddHostedService for MonitoringBroadcaster; CORS SetIsOriginAllowed+AllowCredentials for SignalR WebSocket; dual-speed 5s/30s broadcast; short-lived Kafka AdminClient per call
+- [16-02]: PascalCase mapper functions per type for backend-frontend bridge; conditional React Query polling fallback; connection dot in ClusterHeader Last Update stat
+- [17-01]: ServerCredentials.FromBsonDocument for credential resolution; NFS/local/folder skipped from host upload; NAS skipped with message; overwrite-by-design for demo data
+- [17-02]: DI container scoped to upload step only; simulatorFilePatterns (*.csv, *.json) for server-linked DataSources; CPM versions in Directory.Packages.props
+- [18-01]: beforeAll/afterAll setup modules (not Playwright globalSetup); server discovery by API query not hardcoded IDs; FTP+SFTP+NAS protocol coverage
+- [18-02]: Fixture fields match DemoDataGenerator SimpleTransaction schema (transactionId, amount, date, status); .gitignore exception for static test fixtures
+- [18-03]: dispatchEvent for all Ant Design tab clicks (RTL safety); flexible assertions accepting loading/empty/data states for real-environment resilience
+- [18-04]: execSync orchestration for existing chromium+backend tests; .gitignore exception for E2E-VALIDATION-REPORT.md tracking
+- [19-01]: Component docs use MDX format matching nas-devices.mdx style; sidebar gets both Components entries and separate Monitoring category; Legacy labels removed from Architecture/Deployment
+- [19-02]: Pin nginx to 1.28-alpine for OCP compliance; replace outdated release-package k8s manifest with redirect comment rather than deleting
 
 ### Pending Todos
 
@@ -90,8 +135,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-16 (session 12)
-Stopped at: Completed 15.1-04-PLAN.md. Phase 15.1 complete (4/4 plans). Protocol matrix report generated with 42/86 tests pass, 19/20 combinations PASS. Ready for Phase 16 (SignalR Real-Time Updates).
+Last session: 2026-03-17T17:05:44.280Z
+Stopped at: Phase 20 planned (3 plans, 2 waves)
 
 ## v0.2 Phase Summary
 

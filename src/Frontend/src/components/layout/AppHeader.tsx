@@ -100,13 +100,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({ collapsed = false, onCollapse }) 
           />
         </Space>
 
-        {/* Help - Opens Docusaurus documentation portal in new tab */}
-        <Tooltip title={isRTL ? 'עזרה' : 'Help'}>
+        {/* Help - Opens Hebrew user guide in new tab */}
+        <Tooltip title={isRTL ? 'מדריך למשתמש' : 'User Guide'}>
           <Button
             type="text"
             icon={<QuestionCircleOutlined />}
-            onClick={() => openDocsInNewTab()}
-            aria-label={isRTL ? 'פתח תיעוד במעבר חדש' : 'Open documentation in new tab'}
+            onClick={() => openDocsInNewTab('docs/user-guide-he')}
+            aria-label={isRTL ? 'פתח מדריך למשתמש' : 'Open user guide'}
             style={{
               fontSize: '16px',
               width: 40,
