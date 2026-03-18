@@ -57,13 +57,10 @@ const params = {
 };
 
 // ── Test body for test-connection endpoint ─────────────────────────────────
-// Minimal payload — the service validates the schema, we just need a 400/422
-// response (not a 5xx), which proves the service is alive and parsing correctly.
+// Minimal folder connection test payload — expects 400/422 (bad path),
+// any non-5xx proves the endpoint is alive and parsing correctly.
 const testConnectionPayload = JSON.stringify({
-  Type: 'Local',
-  ConnectionDetails: {
-    Path: '/tmp/nonexistent-smoke-test-path',
-  },
+  Path: '/tmp/nonexistent-smoke-test-path',
 });
 
 // ── Main VU function ───────────────────────────────────────────────────────
@@ -81,8 +78,8 @@ export default function () {
 
     sleep(0.1);
 
-    // GET /api/v1/datasources
-    const listRes = http.get(`${BASE_URL}/api/v1/datasources`, params);
+    // GET /api/v1/datasource
+    const listRes = http.get(`${BASE_URL}/api/v1/datasource`, params);
     const listOk = check(listRes, {
       'list datasources 200': (r) => r.status === 200,
     });
@@ -90,12 +87,13 @@ export default function () {
 
     sleep(0.1);
 
-    // POST /api/v1/datasources/test-connection
-    // Expects 400/422 (invalid path) — any non-5xx means the endpoint is alive.
+    // POST /api/v1/test-connection/folder
+    // Intentionally sends a bad path — expects 400/422, NOT a 5xx.
+    // responseCallback marks 400/422 as non-failures so http_req_failed stays clean.
     const testConnRes = http.post(
-      `${BASE_URL}/api/v1/datasources/test-connection`,
+      `${BASE_URL}/api/v1/test-connection/folder`,
       testConnectionPayload,
-      params,
+      { ...params, responseCallback: http.expectedStatuses(200, 400, 422) },
     );
     const testConnOk = check(testConnRes, {
       'test-connection not 5xx': (r) => r.status < 500,
