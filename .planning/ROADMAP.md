@@ -206,19 +206,24 @@ Plans:
 - [ ] 20-02-PLAN.md — values-local.yaml for local single-replica deployment + OCP resource config + image pinning (PROD-04, PROD-05)
 - [ ] 20-03-PLAN.md — Release-package install script updates + validation script (PROD-02, PROD-06)
 
-### Phase 21: Release Package
-**Goal**: Create tagged release with offline deployment capability
+### Phase 21: Release Package & CI Deployment Pipeline
+**Goal**: CI produces versioned offline deployment packages, deploys to cluster from source, and validates with sanity tests
 **Depends on**: Phase 20 (production validation complete)
-**Requirements**: REL-01, REL-02
+**Requirements**: REL-01, REL-02, REL-03, REL-04, REL-05, REL-06
 **Success Criteria** (what must be TRUE):
   1. GitHub release v0.2.0 tagged with complete CHANGELOG
-  2. Offline Helm package includes all mirrored images
-  3. Air-gapped OCP deployment tested and documented
+  2. CI produces `deployment-{VERSION}-{YYYYMMDD}-{HHMMSS}/` artifact with all images as tars, Helm chart, and install scripts
+  3. CI builds all application images from source and loads them into the Minikube cluster, replacing existing
+  4. CI deploys full stack via `helm upgrade --install` with `values-local.yaml`
+  5. DemoDataGenerator seeds the deployed cluster and `@Sanity` test suite passes as final CI gate
+  6. Offline deployment folder is self-contained — transfer to air-gapped network and run `install.ps1` to deploy
 **Plans**: TBD
 
 Plans:
-- [ ] 21-01: Tagged GitHub release v0.2.0 with CHANGELOG
-- [ ] 21-02: Offline Helm package for air-gapped OCP deployment
+- [ ] 21-01: CI package-release job — build scripts + versioned deployment folder assembly
+- [ ] 21-02: Sanity test suite — `@Sanity` Playwright tests + DemoDataGenerator integration
+- [ ] 21-03: CI sanity-deploy job — image load + Helm deploy + seed + sanity gate (self-hosted runner)
+- [ ] 21-04: GitHub release v0.2.0 with CHANGELOG + offline Helm package documentation
 
 ---
 
