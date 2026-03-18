@@ -56,8 +56,8 @@ Requirements for v0.2.0 Production Validation & Release. Each maps to roadmap ph
 - [ ] **PROD-01**: CI/CD pipeline builds, tests, and deploys all services via Helm
 - [ ] **PROD-02**: All services healthy in production-like deployment
 - [ ] **PROD-03**: Frontend footer displays correct version number injected by CI/CD build pipeline
-- [ ] **PROD-04**: Local production deployment mode — single-pod replicas for all services (ours + infrastructure) on dev PC
-- [ ] **PROD-05**: OCP resource configuration — proper resource requests/limits defined for every pod in release-package Helm charts
+- [x] **PROD-04**: Local production deployment mode — single-pod replicas for all services (ours + infrastructure) on dev PC
+- [x] **PROD-05**: OCP resource configuration — proper resource requests/limits defined for every pod in release-package Helm charts
 - [ ] **PROD-06**: Release-package local validation — deploy release-package locally with single replicas to verify end-to-end functionality
 
 ### Documentation
@@ -155,8 +155,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROD-01 | Phase 20 | Pending |
 | PROD-02 | Phase 20 | Pending |
 | PROD-03 | Phase 20 | Pending |
-| PROD-04 | Phase 20 | Pending |
-| PROD-05 | Phase 20 | Pending |
+| PROD-04 | Phase 20 | Complete |
+| PROD-05 | Phase 20 | Complete |
 | PROD-06 | Phase 20 | Pending |
 | DOC-06 | Phase 19 | Complete |
 | DOC-07 | Phase 19 | Complete |

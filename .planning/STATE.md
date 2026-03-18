@@ -3,30 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
-stopped_at: Phase 20 planned (3 plans, 2 waves)
-last_updated: "2026-03-17T17:05:44.285Z"
-last_activity: 2026-03-17 — Completed 19-02-PLAN.md (documentation infrastructure)
+stopped_at: Completed 20-02-PLAN.md (Helm values & image pinning)
+last_updated: "2026-03-18T12:05:37Z"
+last_activity: 2026-03-18 — Completed 20-02-PLAN.md (Helm values & image pinning)
 progress:
   total_phases: 13
   completed_phases: 10
   total_plans: 31
-  completed_plans: 28
----
-
----
-gsd_state_version: 1.0
-milestone: v0.2
-milestone_name: Production Validation & Release
-status: in_progress
-stopped_at: Completed 19-02-PLAN.md (documentation infrastructure)
-last_updated: "2026-03-17T13:11:00Z"
-last_activity: 2026-03-17 — Completed 19-02-PLAN.md (documentation infrastructure)
-progress:
-  total_phases: 13
-  completed_phases: 10
-  total_plans: 28
-  completed_plans: 28
-  percent: 100
+  completed_plans: 30
 ---
 
 # Project State
@@ -40,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 19 of 21 (Documentation Update) - COMPLETE
-Plan: 2 of 2 in current phase (19-01 DONE, 19-02 DONE)
-Status: Phase 19 complete, Phase 20 next
-Last activity: 2026-03-17 — Completed 19-02-PLAN.md (documentation infrastructure)
+Phase: 20 of 21 (CI/CD & Production Deployment)
+Plan: 2 of 4 in current phase (20-01 DONE, 20-02 DONE)
+Status: Phase 20 in progress, 20-03 next
+Last activity: 2026-03-18 — Completed 20-02-PLAN.md (Helm values & image pinning)
 
-Progress: [################################] 58/64 plans (v0.1: 32/32, v0.2: 26/32)
+Progress: [##############################--] 60/64 plans (v0.1: 32/32, v0.2: 28/32)
 
 ## Performance Metrics
 
@@ -115,6 +99,7 @@ Recent decisions affecting current work:
 - [18-04]: execSync orchestration for existing chromium+backend tests; .gitignore exception for E2E-VALIDATION-REPORT.md tracking
 - [19-01]: Component docs use MDX format matching nas-devices.mdx style; sidebar gets both Components entries and separate Monitoring category; Legacy labels removed from Architecture/Deployment
 - [19-02]: Pin nginx to 1.28-alpine for OCP compliance; replace outdated release-package k8s manifest with redirect comment rather than deleting
+- [Phase 20-02]: Hazelcast production memory reduced from 8Gi to 1Gi request (JVM only uses 256m-512m)
 
 ### Pending Todos
 
@@ -135,8 +120,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-17T17:05:44.280Z
-Stopped at: Phase 20 planned (3 plans, 2 waves)
+Last session: 2026-03-18T12:05:37.535Z
+Stopped at: Completed 20-02-PLAN.md
 
 ## v0.2 Phase Summary
 
