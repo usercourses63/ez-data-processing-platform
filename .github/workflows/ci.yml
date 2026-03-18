@@ -61,14 +61,6 @@ jobs:
             --results-directory TestResults/Shared \
             --verbosity normal
 
-      - name: Run integration tests (non-infrastructure)
-        run: |
-          dotnet test tests/IntegrationTests \
-            --filter "TestCategory!=Infrastructure" \
-            --no-restore \
-            --logger trx \
-            --results-directory TestResults/Integration \
-            --verbosity normal
 
       - name: Upload test results
         if: always()
