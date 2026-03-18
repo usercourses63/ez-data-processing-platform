@@ -1,29 +1,29 @@
-# EZ Platform v0.1.1-rc1 - Complete Image Manifest
+# EZ Platform v0.2.0 - Complete Image Manifest
 # All Docker images required for offline installation
 
 ## Application Services (10 images)
-datasource-management:v0.1.1-rc1
-filediscovery:v0.1.1-rc1
-fileprocessor:v0.1.1-rc1
-validation:v0.1.1-rc1
-output:v0.1.1-rc1
-invalidrecords:v0.1.1-rc1
-scheduling:v0.1.1-rc1
-metrics-configuration:v0.1.1-rc1
-frontend:v0.1.1-rc1
-ezplatform-docs:v0.1.1-rc1
+ez-platform/datasource-management:v0.2.0
+ez-platform/filediscovery:v0.2.0
+ez-platform/fileprocessor:v0.2.0
+ez-platform/validation:v0.2.0
+ez-platform/output:v0.2.0
+ez-platform/invalidrecords:v0.2.0
+ez-platform/scheduling:v0.2.0
+ez-platform/metrics-configuration:v0.2.0
+frontend:v0.2.0
+ez-platform/docusaurus:v0.2.0
 
 ## Infrastructure Services (11 images)
 mongo:8.0
-rabbitmq:3-management-alpine
+rabbitmq:3.12-management-alpine
 confluentinc/cp-kafka:7.5.0
 confluentinc/cp-zookeeper:7.5.0
 hazelcast/hazelcast:5.6
 docker.elastic.co/elasticsearch/elasticsearch:8.17.0
-prom/prometheus:latest
-grafana/grafana:latest
-jaegertracing/all-in-one:latest
-otel/opentelemetry-collector-contrib:latest
-fluent/fluent-bit:latest
+prom/prometheus:v2.51.0
+grafana/grafana:10.4.0
+jaegertracing/all-in-one:1.54
+otel/opentelemetry-collector-contrib:0.96.0
+fluent/fluent-bit:3.0
 
 # Total: 21 images (10 application + 11 infrastructure)
