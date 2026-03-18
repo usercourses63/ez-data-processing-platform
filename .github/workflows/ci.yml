@@ -422,3 +422,66 @@ jobs:
           echo "- Namespace: ez-platform" >> $GITHUB_STEP_SUMMARY
           echo "- Tests: @Sanity (SANITY-01 through SANITY-07)" >> $GITHUB_STEP_SUMMARY
           kubectl get pods -n ez-platform >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
+
+  release:
+    name: Create GitHub Release
+    needs: package-release
+    # Only runs on version tags, never on branch pushes
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Extract CHANGELOG excerpt for release body
+        id: changelog
+        run: |
+          # Extract the [VERSION] section from CHANGELOG.md
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          # Remove leading 'v' for CHANGELOG lookup (CHANGELOG uses [v0.2.0] format)
+          SECTION_HEADER="## \[${VERSION}\]"
+          # Extract from the matching header to the next ## header (or EOF)
+          BODY=$(awk "/^${SECTION_HEADER}/,/^## \[/" release-package/CHANGELOG.md \
+            | head -n -1 \
+            | tail -n +2)
+          if [ -z "$BODY" ]; then
+            BODY="See release-package/CHANGELOG.md for full release notes."
+          fi
+          # Write to file (avoids quoting issues with multiline in GITHUB_OUTPUT)
+          echo "$BODY" > /tmp/release-body.md
+          echo "Release body extracted (${#BODY} chars)"
+
+      - name: Download deployment package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.package-release.outputs.pkg_name }}
+          path: release-assets/
+
+      - name: Create GitHub release
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          ZIP_FILE=$(ls release-assets/*.zip | head -1)
+          echo "Creating release $VERSION with asset: $ZIP_FILE"
+
+          gh release create "$VERSION" \
+            --title "EZ Platform $VERSION" \
+            --notes-file /tmp/release-body.md \
+            "$ZIP_FILE"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          echo "## GitHub Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "- Tag: $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "- Release: https://github.com/${{ github.repository }}/releases/tag/$VERSION" >> $GITHUB_STEP_SUMMARY
