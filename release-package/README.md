@@ -380,6 +380,69 @@ minikube image ls | grep v0.2.0
 
 ---
 
+---
+
+## Offline / Air-Gapped Deployment
+
+The CI pipeline produces a self-contained deployment folder on every successful build. This folder can be physically transferred to an air-gapped network and deployed without internet access.
+
+### CI Package Structure
+
+```
+deployment-{VERSION}-{YYYYMMDD}-{HHMMSS}/
+├── images/
+│   ├── services/           # 10 application image .tar files (built from source)
+│   └── infrastructure/     # 11 infrastructure image .tar files
+├── helm/
+│   └── ez-platform/        # Full Helm chart
+├── values-local.yaml       # Single-replica deployment config
+├── install.ps1             # PowerShell installer (Windows)
+├── install.sh              # Bash installer (Linux/macOS)
+├── IMAGE-MANIFEST.txt      # All 21 images with versions
+└── DEPLOYMENT-GUIDE.md     # Install instructions
+```
+
+### Offline Install Steps
+
+**Prerequisites:** kubectl, helm 3.8+, minikube (or any Kubernetes cluster)
+
+**Windows (PowerShell):**
+```powershell
+# 1. Load all images into your cluster
+foreach ($tar in Get-ChildItem images\services\*.tar, images\infrastructure\*.tar) {
+    minikube image load $tar.FullName
+}
+
+# 2. Deploy
+.\install.ps1 --local
+```
+
+**Linux/macOS (Bash):**
+```bash
+# 1. Load all images into your cluster
+for tar in images/services/*.tar images/infrastructure/*.tar; do
+    minikube image load "$tar"
+done
+
+# 2. Deploy
+bash install.sh ez-platform 15m
+```
+
+### OCP / OpenShift Air-Gapped
+
+For OpenShift Container Platform (OCP) air-gapped environments:
+1. Mirror images using `oc image mirror` or `skopeo copy` from the .tar files
+2. Update `values-local.yaml` with your internal registry URLs
+3. Apply OCP-specific resources: `kubectl apply -f helm/ez-platform/templates/ocp-routes.yaml`
+
+See `DEPLOYMENT-GUIDE.md` in the package for full OCP instructions.
+
+### Obtaining the Deployment Package
+
+CI artifacts are available under **Actions -> package-release** in GitHub for 90 days after each build. Tagged releases attach the package as a release asset on the GitHub Releases page.
+
+---
+
 **Version:** v0.2.0
 **Release Date:** March 2026
 **Package Size:** ~4.5GB (images) + Helm chart + docs
