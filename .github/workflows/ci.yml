@@ -279,3 +279,146 @@ jobs:
           name: ${{ steps.assemble.outputs.PKG_NAME }}
           path: dist/${{ steps.assemble.outputs.PKG_NAME }}.zip
           retention-days: 90
+
+  sanity-deploy:
+    name: Deploy and Sanity Test
+    needs: package-release
+    # Only runs on self-hosted runner with Minikube cluster access
+    if: >
+      vars.EZ_K8S_RUNNER == 'true' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET (for DemoDataGenerator)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Node.js (for Playwright sanity tests)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.package-release.outputs.pkg_name }}
+          path: dist-pkg/
+
+      - name: Unzip deployment package
+        run: |
+          cd dist-pkg
+          ZIP_FILE=$(ls *.zip | head -1)
+          echo "Unzipping $ZIP_FILE ..."
+          unzip -q "$ZIP_FILE"
+          PKG_DIR=$(ls -d deployment-*/ | head -1)
+          echo "PKG_DIR=$PKG_DIR" >> $GITHUB_ENV
+          echo "Package extracted: $PKG_DIR"
+
+      - name: Load application images into Minikube
+        run: |
+          echo "Loading application service images..."
+          PIDS=()
+          for tar in dist-pkg/${PKG_DIR}images/services/*.tar; do
+            echo "  Loading $tar ..."
+            minikube image load "$tar" &
+            PIDS+=($!)
+          done
+          for pid in "${PIDS[@]}"; do
+            wait "$pid" || { echo "ERROR: image load failed (pid $pid)"; exit 1; }
+          done
+          echo "All service images loaded."
+
+      - name: Load infrastructure images into Minikube
+        run: |
+          echo "Loading infrastructure images..."
+          PIDS=()
+          for tar in dist-pkg/${PKG_DIR}images/infrastructure/*.tar; do
+            echo "  Loading $tar ..."
+            minikube image load "$tar" &
+            PIDS+=($!)
+          done
+          for pid in "${PIDS[@]}"; do
+            wait "$pid" || { echo "ERROR: image load failed (pid $pid)"; exit 1; }
+          done
+          echo "All infrastructure images loaded."
+
+      - name: Deploy via Helm
+        run: |
+          helm upgrade --install ez-platform ./helm/ez-platform \
+            --namespace ez-platform \
+            --create-namespace \
+            --values helm/ez-platform/values-local.yaml \
+            --wait \
+            --timeout 15m
+          echo "Helm deploy complete."
+          kubectl get pods -n ez-platform
+
+      - name: Wait for all pods ready
+        run: |
+          echo "Waiting for all pods to be Ready..."
+          kubectl wait --for=condition=Ready pod --all \
+            -n ez-platform \
+            --timeout=300s || {
+            echo "Pod readiness timeout — current state:"
+            kubectl get pods -n ez-platform
+            kubectl get events -n ez-platform --sort-by='.lastTimestamp' | tail -20
+            exit 1
+          }
+
+      - name: Start port-forwards
+        run: |
+          # Start each required port-forward in background
+          kubectl port-forward svc/datasource-management 5001:5001 -n ez-platform &
+          kubectl port-forward svc/metrics-configuration 5002:5002 -n ez-platform &
+          kubectl port-forward svc/validation 5003:5003 -n ez-platform &
+          kubectl port-forward svc/scheduling 5004:5004 -n ez-platform &
+          kubectl port-forward svc/invalidrecords 5007:5007 -n ez-platform &
+          kubectl port-forward svc/fileprocessor 5008:5008 -n ez-platform &
+          kubectl port-forward svc/output 5009:5009 -n ez-platform &
+          kubectl port-forward svc/frontend 7000:8080 -n ez-platform &
+          # Allow port-forwards to establish
+          sleep 10
+          echo "Port-forwards established."
+
+      - name: Seed cluster with DemoDataGenerator
+        run: |
+          dotnet run --project tools/DemoDataGenerator \
+            -- \
+            --direct-connection \
+            --api-url http://localhost:5001
+          echo "DemoDataGenerator seeding complete."
+
+      - name: Install Playwright dependencies
+        run: |
+          cd src/Frontend
+          npm ci
+          npx playwright install chromium --with-deps
+
+      - name: Run @Sanity test suite
+        run: |
+          cd src/Frontend
+          npm run test:e2e:sanity
+        env:
+          BASE_URL: http://localhost:7000
+          CI: 'true'
+
+      - name: Upload sanity test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanity-test-results-${{ github.run_number }}
+          path: src/Frontend/test-results/
+          retention-days: 30
+
+      - name: Sanity test summary
+        if: always()
+        run: |
+          echo "## Sanity Deploy Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ needs.package-release.outputs.pkg_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Namespace: ez-platform" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests: @Sanity (SANITY-01 through SANITY-07)" >> $GITHUB_STEP_SUMMARY
+          kubectl get pods -n ez-platform >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
