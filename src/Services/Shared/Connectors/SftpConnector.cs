@@ -1,7 +1,10 @@
+using DataProcessing.Shared.Configuration;
 using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Services;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
+using Polly;
+using Polly.Registry;
 using Renci.SshNet;
 using System.Diagnostics;
 using System.Text;
@@ -16,12 +19,16 @@ namespace DataProcessing.Shared.Connectors;
 public class SftpConnector : IDataSourceConnector, IServerConnector
 {
     private readonly ILogger<SftpConnector> _logger;
+    private readonly ResiliencePipeline _pipeline;
 
     public string ConnectorType => "sftp";
 
-    public SftpConnector(ILogger<SftpConnector> logger)
+    public SftpConnector(
+        ILogger<SftpConnector> logger,
+        ResiliencePipelineProvider<string> pipelineProvider)
     {
         _logger = logger;
+        _pipeline = pipelineProvider.GetPipeline(ResilienceConfiguration.ExternalConnectorPipelineKey);
     }
 
     public async Task<Stream> ReadFileAsync(
@@ -29,18 +36,21 @@ public class SftpConnector : IDataSourceConnector, IServerConnector
         string filePath,
         CancellationToken cancellationToken = default)
     {
-        using var client = CreateSftpClient(dataSource);
-        
         try
         {
-            await Task.Run(() => client.Connect(), cancellationToken);
             _logger.LogInformation("Reading file from SFTP: {FilePath}", filePath);
 
-            var memoryStream = new MemoryStream();
-            client.DownloadFile(filePath, memoryStream);
-            
-            memoryStream.Position = 0;
-            return memoryStream;
+            return await _pipeline.ExecuteAsync(async ct =>
+            {
+                using var client = CreateSftpClient(dataSource);
+                await Task.Run(() => client.Connect(), ct);
+
+                var memoryStream = new MemoryStream();
+                client.DownloadFile(filePath, memoryStream);
+
+                memoryStream.Position = 0;
+                return (Stream)memoryStream;
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -54,22 +64,25 @@ public class SftpConnector : IDataSourceConnector, IServerConnector
         string pattern,
         CancellationToken cancellationToken = default)
     {
-        using var client = CreateSftpClient(dataSource);
-        
         try
         {
-            await Task.Run(() => client.Connect(), cancellationToken);
             var remotePath = dataSource.FilePath;
             _logger.LogInformation("Listing files from SFTP: {RemotePath} with pattern: {Pattern}", remotePath, pattern);
 
-            var files = client.ListDirectory(remotePath)
-                .Where(f => f.IsRegularFile)
-                .Where(f => MatchesPattern(f.Name, pattern))
-                .Select(f => f.FullName)
-                .ToList();
+            return await _pipeline.ExecuteAsync(async ct =>
+            {
+                using var client = CreateSftpClient(dataSource);
+                await Task.Run(() => client.Connect(), ct);
 
-            _logger.LogInformation("Found {Count} files matching pattern on SFTP", files.Count);
-            return files;
+                var files = client.ListDirectory(remotePath)
+                    .Where(f => f.IsRegularFile)
+                    .Where(f => MatchesPattern(f.Name, pattern))
+                    .Select(f => f.FullName)
+                    .ToList();
+
+                _logger.LogInformation("Found {Count} files matching pattern on SFTP", files.Count);
+                return files;
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -82,16 +95,18 @@ public class SftpConnector : IDataSourceConnector, IServerConnector
         DataProcessingDataSource dataSource,
         CancellationToken cancellationToken = default)
     {
-        using var client = CreateSftpClient(dataSource);
-        
         try
         {
             _logger.LogInformation("Testing SFTP connection to: {Server}", GetSftpConfig(dataSource).Server);
-            await Task.Run(() => client.Connect(), cancellationToken);
-            client.Disconnect();
-            
-            _logger.LogInformation("SFTP connection test successful");
-            return true;
+
+            return await _pipeline.ExecuteAsync(async ct =>
+            {
+                using var client = CreateSftpClient(dataSource);
+                await Task.Run(() => client.Connect(), ct);
+                client.Disconnect();
+                _logger.LogInformation("SFTP connection test successful");
+                return true;
+            }, cancellationToken);
         }
         catch (Exception ex)
         {

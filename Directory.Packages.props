@@ -19,6 +19,7 @@
     <PackageVersion Include="Hazelcast.Net" Version="5.5.1" />
     <!-- Resilience -->
     <PackageVersion Include="Polly" Version="8.5.2" />
+    <PackageVersion Include="Polly.Extensions" Version="8.5.2" />
     <!-- Messaging -->
     <PackageVersion Include="MassTransit" Version="8.5.7" />
     <PackageVersion Include="MassTransit.Kafka" Version="8.5.7" />

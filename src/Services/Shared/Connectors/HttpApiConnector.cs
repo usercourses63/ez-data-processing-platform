@@ -1,7 +1,10 @@
+using DataProcessing.Shared.Configuration;
 using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Services;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
+using Polly;
+using Polly.Registry;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -16,15 +19,20 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
 {
     private readonly ILogger<HttpApiConnector> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ResiliencePipeline _pipeline;
     private readonly Lazy<HttpClient> _lazyHttpClient;
     private HttpClient _httpClient => _lazyHttpClient.Value;
 
     public string ConnectorType => "http";
 
-    public HttpApiConnector(ILogger<HttpApiConnector> logger, IHttpClientFactory httpClientFactory)
+    public HttpApiConnector(
+        ILogger<HttpApiConnector> logger,
+        IHttpClientFactory httpClientFactory,
+        ResiliencePipelineProvider<string> pipelineProvider)
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _pipeline = pipelineProvider.GetPipeline(ResilienceConfiguration.ExternalConnectorPipelineKey);
         _lazyHttpClient = new Lazy<HttpClient>(() => _httpClientFactory.CreateClient(nameof(HttpApiConnector)));
     }
 
@@ -36,17 +44,20 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
         try
         {
             _logger.LogInformation("Reading data from HTTP API: {FilePath}", filePath);
-            
-            ConfigureHttpClient(dataSource);
-            var response = await _httpClient.GetAsync(filePath, cancellationToken);
-            response.EnsureSuccessStatusCode();
 
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream, cancellationToken);
-            
-            memoryStream.Position = 0;
-            return memoryStream;
+            return await _pipeline.ExecuteAsync(async ct =>
+            {
+                ConfigureHttpClient(dataSource);
+                var response = await _httpClient.GetAsync(filePath, ct);
+                response.EnsureSuccessStatusCode();
+
+                var stream = await response.Content.ReadAsStreamAsync(ct);
+                var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream, ct);
+
+                memoryStream.Position = 0;
+                return (Stream)memoryStream;
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -64,26 +75,29 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
         {
             var config = GetHttpConfig(dataSource);
             var apiUrl = dataSource.FilePath;
-            
+
             _logger.LogInformation("Listing endpoints from HTTP API: {ApiUrl}", apiUrl);
-            
-            ConfigureHttpClient(dataSource);
-            
-            // If list endpoint is configured, use it
-            if (!string.IsNullOrEmpty(config.ListEndpoint))
+
+            return await _pipeline.ExecuteAsync(async ct =>
             {
-                var response = await _httpClient.GetAsync(config.ListEndpoint, cancellationToken);
-                response.EnsureSuccessStatusCode();
-                
-                var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                var endpoints = JsonSerializer.Deserialize<List<string>>(content) ?? new List<string>();
-                
-                _logger.LogInformation("Found {Count} endpoints from API", endpoints.Count);
-                return endpoints;
-            }
-            
-            // Otherwise return the main endpoint
-            return new List<string> { apiUrl };
+                ConfigureHttpClient(dataSource);
+
+                // If list endpoint is configured, use it
+                if (!string.IsNullOrEmpty(config.ListEndpoint))
+                {
+                    var response = await _httpClient.GetAsync(config.ListEndpoint, ct);
+                    response.EnsureSuccessStatusCode();
+
+                    var content = await response.Content.ReadAsStringAsync(ct);
+                    var endpoints = JsonSerializer.Deserialize<List<string>>(content) ?? new List<string>();
+
+                    _logger.LogInformation("Found {Count} endpoints from API", endpoints.Count);
+                    return endpoints;
+                }
+
+                // Otherwise return the main endpoint
+                return new List<string> { apiUrl };
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -100,14 +114,16 @@ public class HttpApiConnector : IDataSourceConnector, IServerConnector
         {
             var apiUrl = dataSource.FilePath;
             _logger.LogInformation("Testing HTTP API connection to: {ApiUrl}", apiUrl);
-            
-            ConfigureHttpClient(dataSource);
-            var response = await _httpClient.GetAsync(apiUrl, cancellationToken);
-            
-            var success = response.IsSuccessStatusCode;
-            _logger.LogInformation("HTTP API connection test {Result}", success ? "successful" : "failed");
-            
-            return success;
+
+            return await _pipeline.ExecuteAsync(async ct =>
+            {
+                ConfigureHttpClient(dataSource);
+                var response = await _httpClient.GetAsync(apiUrl, ct);
+
+                var success = response.IsSuccessStatusCode;
+                _logger.LogInformation("HTTP API connection test {Result}", success ? "successful" : "failed");
+                return success;
+            }, cancellationToken);
         }
         catch (Exception ex)
         {
