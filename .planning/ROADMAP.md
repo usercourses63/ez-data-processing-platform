@@ -217,13 +217,13 @@ Plans:
   4. CI deploys full stack via `helm upgrade --install` with `values-local.yaml`
   5. DemoDataGenerator seeds the deployed cluster and `@Sanity` test suite passes as final CI gate
   6. Offline deployment folder is self-contained — transfer to air-gapped network and run `install.ps1` to deploy
-**Plans**: TBD
+**Plans**: 4 plans (Wave 1: 21-01, 21-02 parallel; Wave 2: 21-03; Wave 3: 21-04)
 
 Plans:
-- [ ] 21-01: CI package-release job — build scripts + versioned deployment folder assembly
-- [ ] 21-02: Sanity test suite — `@Sanity` Playwright tests + DemoDataGenerator integration
-- [ ] 21-03: CI sanity-deploy job — image load + Helm deploy + seed + sanity gate (self-hosted runner)
-- [ ] 21-04: GitHub release v0.2.0 with CHANGELOG + offline Helm package documentation
+- [ ] 21-01-PLAN.md — Build scripts (build-all-images.sh, pull-infra-images.sh, assemble-package.sh) + CI docker-build + package-release jobs (REL-03, REL-04)
+- [ ] 21-02-PLAN.md — Sanity test suite (@Sanity, SANITY-01 through SANITY-07) + sanity Playwright project + test:e2e:sanity script (REL-06)
+- [ ] 21-03-PLAN.md — CI sanity-deploy job: image load + Helm deploy + seed + sanity gate (self-hosted runner) (REL-05, REL-06)
+- [ ] 21-04-PLAN.md — GitHub release v0.2.0 (release job in CI, CHANGELOG v0.2.0 entry, offline README) (REL-01, REL-02)
 
 ---
 
@@ -270,11 +270,11 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 18. E2E Validation | 4/5 | Gap Closure | 2026-03-16 | - |
 | 19. Documentation Update | 2/2 | Complete    | 2026-03-17 | - |
 | 20. CI/CD & Production Deployment | 3/3 | Complete   | 2026-03-18 | - |
-| 21. Release Package | v0.2 | 0/2 | Not started | - |
+| 21. Release Package & CI Pipeline | v0.2 | 0/4 | Planned | - |
 | 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
 
-**v0.2 Totals:** 12/32 plans complete (38%)
+**v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 0/2 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-03-17 after Phase 20 planning*
+*Roadmap updated: 2026-03-18 after Phase 21 planning*
