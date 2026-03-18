@@ -28,7 +28,7 @@
 - [x] **Phase 17: File-Simulator Integration** - API documentation, DemoDataGenerator integration (completed 2026-03-16)
 - [ ] **Phase 18: E2E Validation** - Full file flow tests, error tests, Playwright UI verification (gap closure in progress)
 - [x] **Phase 19: Documentation Update** - Docusaurus content update, container build, help link verification (completed 2026-03-17)
-- [ ] **Phase 20: CI/CD & Production Deployment** - Pipeline, version display, local prod mode, OCP resources
+- [x] **Phase 20: CI/CD & Production Deployment** - Pipeline, version display, local prod mode, OCP resources (completed 2026-03-18)
 - [ ] **Phase 21: Release Package** - Tagged release, offline Helm package
 - [ ] **Phase 22: SignalR Monitoring Data Integration** - Replace mock data with real K8s/Prometheus/Kafka/Jaeger data (v0.3)
 
@@ -264,7 +264,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 17. File-Simulator Integration | 2/2 | Complete    | 2026-03-16 | - |
 | 18. E2E Validation | 4/5 | Gap Closure | 2026-03-16 | - |
 | 19. Documentation Update | 2/2 | Complete    | 2026-03-17 | - |
-| 20. CI/CD & Production Deployment | 2/3 | In Progress|  | - |
+| 20. CI/CD & Production Deployment | 3/3 | Complete   | 2026-03-18 | - |
 | 21. Release Package | v0.2 | 0/2 | Not started | - |
 | 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
 

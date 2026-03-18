@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
-stopped_at: Completed 20-02-PLAN.md (Helm values & image pinning)
-last_updated: "2026-03-18T12:05:37Z"
-last_activity: 2026-03-18 — Completed 20-02-PLAN.md (Helm values & image pinning)
+stopped_at: Completed 20-03-PLAN.md (Release scripts & validation)
+last_updated: "2026-03-18T12:11:14Z"
+last_activity: 2026-03-18 — Completed 20-03-PLAN.md (Release scripts & validation)
 progress:
   total_phases: 13
   completed_phases: 10
   total_plans: 31
-  completed_plans: 30
+  completed_plans: 31
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 20 of 21 (CI/CD & Production Deployment)
-Plan: 2 of 4 in current phase (20-01 DONE, 20-02 DONE)
-Status: Phase 20 in progress, 20-03 next
-Last activity: 2026-03-18 — Completed 20-02-PLAN.md (Helm values & image pinning)
+Plan: 3 of 3 in current phase (20-01 DONE, 20-02 DONE, 20-03 DONE)
+Status: Phase 20 complete, Phase 21 next
+Last activity: 2026-03-18 — Completed 20-03-PLAN.md (Release scripts & validation)
 
-Progress: [##############################--] 60/64 plans (v0.1: 32/32, v0.2: 28/32)
+Progress: [##############################-] 61/64 plans (v0.1: 32/32, v0.2: 29/32)
 
 ## Performance Metrics
 
@@ -100,6 +100,7 @@ Recent decisions affecting current work:
 - [19-01]: Component docs use MDX format matching nas-devices.mdx style; sidebar gets both Components entries and separate Monitoring category; Legacy labels removed from Architecture/Deployment
 - [19-02]: Pin nginx to 1.28-alpine for OCP compliance; replace outdated release-package k8s manifest with redirect comment rather than deleting
 - [Phase 20-02]: Hazelcast production memory reduced from 8Gi to 1Gi request (JVM only uses 256m-512m)
+- [Phase 20-03]: Offset ports (20000+) for validation health checks; Helm-first deployment in README replacing manual kubectl apply
 
 ### Pending Todos
 
@@ -120,8 +121,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-18T12:05:37.535Z
-Stopped at: Completed 20-02-PLAN.md
+Last session: 2026-03-18T12:11:14Z
+Stopped at: Completed 20-03-PLAN.md
 
 ## v0.2 Phase Summary
 
