@@ -28,7 +28,7 @@ concurrency:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
 
 # ---------------------------------------------------------------------------
 # Job 1: .NET unit / integration tests (matrix across all 8 test projects)
