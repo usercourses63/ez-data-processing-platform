@@ -108,3 +108,4 @@ release-package/images/*.tar
 
 # Deployment package binary images
 deployment-*/images/
+.worktrees/
