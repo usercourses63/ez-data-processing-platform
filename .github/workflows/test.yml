@@ -1,0 +1,302 @@
+# Test Pipeline for EZ Platform
+# Triggers on push to main and all pull requests targeting main
+#
+# Jobs:
+#   unit-tests      — .NET test projects (ubuntu-latest, matrix)
+#   e2e-p0-gate     — Playwright P0 smoke suite (self-hosted k8s, conditional)
+#   burn-in         — P0 x3 flakiness detection on main (self-hosted k8s, conditional)
+#   test-report     — TRX → GitHub summary via dorny/test-reporter
+#
+# Requirements addressed:
+#   - TEST-05: Test quality gates in CI pipeline
+#   - TEST-P0: P0 smoke suite as required merge gate
+#   - TEST-BURN: Flakiness burn-in on main branch
+
+name: Test Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Cancel in-flight runs for the same PR/branch to avoid queue pile-up.
+# Pushes to main are NOT cancelled (group includes run_id).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'push' && github.run_id || 'pr' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '22'
+
+# ---------------------------------------------------------------------------
+# Job 1: .NET unit / integration tests (matrix across all 8 test projects)
+# ---------------------------------------------------------------------------
+jobs:
+  unit-tests:
+    name: .NET Tests — ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false   # Run all matrix legs even if one fails
+      matrix:
+        include:
+          - name: Shared
+            path: tests/Shared.Tests/DataProcessing.Shared.Tests.csproj
+
+          - name: Integration
+            path: tests/IntegrationTests/DataProcessing.IntegrationTests.csproj
+            # Skip tests that need live infrastructure (MongoDB, Kafka, etc.)
+            filter: 'TestCategory!=Infrastructure'
+
+          - name: ValidationService
+            path: tests/ValidationService.Tests/DataProcessing.Validation.Tests.csproj
+
+          - name: OutputService
+            path: tests/OutputService.Tests/DataProcessing.Output.Tests.csproj
+
+          - name: SchedulingService
+            path: tests/SchedulingService.Tests/DataProcessing.Scheduling.Tests.csproj
+
+          - name: DataSourceManagement
+            path: tests/DataSourceManagement.Tests/DataProcessing.DataSourceManagement.Tests.csproj
+
+          - name: InvalidRecordsService
+            path: tests/InvalidRecordsService.Tests/InvalidRecordsService.Tests.csproj
+
+          - name: MetricsConfiguration
+            path: tests/MetricsConfiguration.Tests/MetricsConfiguration.Tests.csproj
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      # Cache NuGet packages keyed on the lock files so cache is invalidated
+      # only when dependencies actually change.
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ matrix.path }}
+
+      - name: Run tests — ${{ matrix.name }}
+        # --filter is only set for the Integration leg; all other legs omit it.
+        run: |
+          dotnet test "${{ matrix.path }}" \
+            --no-restore \
+            --configuration Release \
+            ${{ matrix.filter && format('--filter "{0}"', matrix.filter) || '' }} \
+            --logger trx \
+            --results-directory TestResults/${{ matrix.name }} \
+            --verbosity normal
+
+      - name: Upload TRX results — ${{ matrix.name }}
+        if: always()  # Always upload so failures are visible in the report job
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-${{ matrix.name }}-${{ github.run_number }}
+          path: TestResults/${{ matrix.name }}/**/*.trx
+          retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Playwright P0 gate (requires self-hosted runner with live k8s cluster)
+  # ---------------------------------------------------------------------------
+  e2e-p0-gate:
+    name: E2E — P0 Smoke Gate (k8s)
+    # Only run when a self-hosted k8s runner is registered and available.
+    # Set the repository variable EZ_K8S_RUNNER=true to enable.
+    if: vars.EZ_K8S_RUNNER == 'true'
+    runs-on: [self-hosted, k8s]
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/Frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: src/Frontend
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ hashFiles('src/Frontend/package-lock.json') }}
+          restore-keys: playwright-chromium-
+
+      # Install only the Chromium browser to minimise download size.
+      # All P0 tests are authored for Chromium.
+      - name: Install Playwright — Chromium only
+        working-directory: src/Frontend
+        run: npx playwright install chromium --with-deps
+
+      - name: Run P0 smoke suite
+        working-directory: src/Frontend
+        env:
+          # Endpoints injected via repository/environment variables.
+          # Never interpolate github.event.* directly into run: blocks.
+          BASE_URL: http://localhost:7000
+          EZ_API_URL: ${{ vars.EZ_API_URL || 'http://localhost:5001' }}
+          SCHEDULING_API_URL: http://localhost:5004
+        run: npm run test:e2e:p0
+
+      - name: Upload Playwright HTML report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-p0-${{ github.run_number }}
+          path: src/Frontend/playwright-report/
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Burn-in — run P0 suite 3× on main to surface flaky tests
+  # Separate runs with --retries=0 means any non-deterministic failure is visible.
+  # ---------------------------------------------------------------------------
+  burn-in:
+    name: E2E — Burn-in (P0 × 3, main only)
+    if: vars.EZ_K8S_RUNNER == 'true' && github.ref == 'refs/heads/main'
+    needs: e2e-p0-gate
+    runs-on: [self-hosted, k8s]
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2, 3]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/Frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: src/Frontend
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ hashFiles('src/Frontend/package-lock.json') }}
+          restore-keys: playwright-chromium-
+
+      - name: Install Playwright — Chromium only
+        working-directory: src/Frontend
+        run: npx playwright install chromium --with-deps
+
+      - name: Run P0 suite — attempt ${{ matrix.run }} of 3 (retries=0)
+        working-directory: src/Frontend
+        env:
+          BASE_URL: http://localhost:7000
+          EZ_API_URL: ${{ vars.EZ_API_URL || 'http://localhost:5001' }}
+          SCHEDULING_API_URL: http://localhost:5004
+        # --retries=0 is intentional: we want flaky tests to fail, not auto-heal.
+        run: npm run test:e2e:p0 -- --retries=0
+
+      - name: Upload Playwright report — run ${{ matrix.run }}
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-burn-in-run${{ matrix.run }}-${{ github.run_number }}
+          path: src/Frontend/playwright-report/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Aggregate TRX results and post a GitHub check / step summary
+  # Runs even when unit-tests fail so the report is always published.
+  # ---------------------------------------------------------------------------
+  test-report:
+    name: Test Report
+    needs: unit-tests
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Download all TRX artifacts
+        uses: actions/download-artifact@v4
+        with:
+          # Download only the TRX artifacts produced by the unit-tests job.
+          pattern: trx-*-${{ github.run_number }}
+          merge-multiple: true
+          path: TestResults/
+
+      - name: Publish test report
+        uses: dorny/test-reporter@v1
+        with:
+          name: .NET Test Results
+          path: 'TestResults/**/*.trx'
+          reporter: dotnet-trx
+          fail-on-error: false   # Report generation should not fail the workflow
+          list-suites: all
+          list-tests: failed
+
+  # ---------------------------------------------------------------------------
+  # CONTRACT TESTS (commented out — pact scripts not yet implemented)
+  #
+  # TODO: Uncomment and implement when Pact contract tests are added.
+  #       Required additions before enabling:
+  #         1. Add pact scripts to package.json (e.g. "test:contract": "pact ...")
+  #         2. Add consumer contracts under src/Frontend/pact/
+  #         3. Configure PACT_BROKER_URL / PACT_BROKER_TOKEN secrets
+  #         4. Add provider verification to relevant backend test projects
+  #
+  # contract-tests:
+  #   name: Contract Tests (Pact)
+  #   needs: unit-tests
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 10
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: 'npm'
+  #         cache-dependency-path: src/Frontend/package-lock.json
+  #
+  #     - name: Install frontend dependencies
+  #       working-directory: src/Frontend
+  #       run: npm ci
+  #
+  #     - name: Run consumer contract tests
+  #       working-directory: src/Frontend
+  #       env:
+  #         PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+  #         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+  #       run: npm run test:contract
+  #
+  #     - name: Publish pacts to broker
+  #       working-directory: src/Frontend
+  #       env:
+  #         PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+  #         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+  #       run: npm run pact:publish
+  # ---------------------------------------------------------------------------

@@ -21,12 +21,9 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY src/Frontend/ ./
 
-# Inject version information into version.ts
-RUN sed -i "s/__VERSION__/${VERSION}/g" src/version.ts && \
-    sed -i "s/__COMMIT_SHA__/${COMMIT_SHA}/g" src/version.ts
-
-# Debug: verify version injection
-RUN echo "Version injection result:" && cat src/version.ts
+# Set version env vars for Vite build (read by vite.config.ts via process.env)
+ENV VERSION=${VERSION}
+ENV COMMIT_SHA=${COMMIT_SHA}
 
 # Debug: List public folder to verify docs exist
 RUN ls -la ./public/docs/ || echo "docs folder missing!"

@@ -20,9 +20,9 @@ export default defineConfig({
   ],
 
   define: {
-    __APP_VERSION__: JSON.stringify(`v${pkg.version}`),
+    __APP_VERSION__: JSON.stringify(process.env.VERSION || `v${pkg.version}`),
     __BUILD_DATE__: JSON.stringify(buildDate),
-    __GIT_COMMIT__: JSON.stringify(gitCommit),
+    __GIT_COMMIT__: JSON.stringify(process.env.COMMIT_SHA?.substring(0, 7) || gitCommit),
     __GIT_BRANCH__: JSON.stringify(gitBranch),
   },
 
