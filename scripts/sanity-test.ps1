@@ -28,8 +28,9 @@ if ([string]::IsNullOrEmpty($PkgDir)) {
 if ([string]::IsNullOrEmpty($PkgDir)) {
     Write-Error "No deployment package found in dist/"
     Write-Host "Run these commands first:"
-    Write-Host "  bash scripts/build-all-images.sh"
-    Write-Host "  bash scripts/assemble-package.sh"
+    Write-Host "  pwsh -File scripts/build-all-images.ps1"
+    Write-Host "  pwsh -File scripts/pull-infra-images.ps1"
+    Write-Host "  pwsh -File scripts/assemble-package.ps1"
     exit 1
 }
 
