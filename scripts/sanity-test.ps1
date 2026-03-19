@@ -116,14 +116,13 @@ if (Test-Path $infraDir) {
 }
 
 # ---------------------------------------------------------------------------
-# Step 6 - Helm deploy
+# Step 6 - Helm deploy (no --wait: we manage readiness manually below)
 # ---------------------------------------------------------------------------
 Write-Host "==> Deploying via Helm..." -ForegroundColor Cyan
 helm upgrade --install ez-platform "$RepoRoot\helm\ez-platform" `
     --namespace $Namespace `
     --create-namespace `
     --values "$RepoRoot\helm\ez-platform\values-local.yaml" `
-    --wait `
     --timeout 15m
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Helm deploy failed"
@@ -131,12 +130,39 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ---------------------------------------------------------------------------
-# Step 7 - Wait for pods
+# Step 6a - Wait for MongoDB pod, then initiate replica set
+# post-install hooks only fire after --wait succeeds, creating a deadlock:
+# services crash waiting for RS primary, --wait times out, hook never runs.
+# We break the cycle by initiating RS explicitly here.
+# ---------------------------------------------------------------------------
+Write-Host "==> Waiting for MongoDB pod to be ready..." -ForegroundColor Cyan
+kubectl wait --for=condition=Ready pod -l app=mongodb -n $Namespace --timeout=180s
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "MongoDB pod did not become ready:" -ForegroundColor Red
+    kubectl get pods -n $Namespace -l app=mongodb
+    exit 1
+}
+
+Write-Host "==> Initiating MongoDB replica set..." -ForegroundColor Cyan
+$rsScript = @"
+try {
+  var s = rs.status();
+  print('RS already initialized: ' + s.set);
+} catch(e) {
+  rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb-0.mongodb-service.$Namespace.svc.cluster.local:27017'}]});
+  print('RS initiated');
+}
+"@
+kubectl exec -n $Namespace mongodb-0 -- mongosh --quiet --eval $rsScript
+Start-Sleep -Seconds 8
+
+# ---------------------------------------------------------------------------
+# Step 7 - Wait for all pods
 # ---------------------------------------------------------------------------
 Write-Host "==> Waiting for all pods to be Ready..." -ForegroundColor Cyan
 kubectl wait --for=condition=Ready pod --all -n $Namespace --timeout=300s
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Pod readiness timeout:" -ForegroundColor Red
+    Write-Host "Pod readiness timeout — current state:" -ForegroundColor Red
     kubectl get pods -n $Namespace
     exit 1
 }
@@ -154,7 +180,8 @@ $portForwardArgs = @(
     "port-forward -n $Namespace svc/fileprocessor 5008:5008",
     "port-forward -n $Namespace svc/output 5009:5009",
     "port-forward -n $Namespace svc/frontend 7000:8080",
-    "port-forward -n $Namespace svc/docs 30800:80"
+    "port-forward -n $Namespace svc/docs 30800:80",
+    "port-forward -n $Namespace svc/mongodb-service 27017:27017"
 )
 foreach ($args in $portForwardArgs) {
     Start-Process -WindowStyle Hidden kubectl -ArgumentList $args
