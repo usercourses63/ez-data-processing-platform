@@ -181,7 +181,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MON-10 | Phase 22 | Complete |
 | MON-11 | Phase 22 | Complete |
 | MON-12 | Phase 22 | Complete |
-| MON-13 | Phase 22 | Pending |
+| MON-13 | Phase 22 | Complete |
 | MON-14 | Phase 22 | Pending |
 
 **Coverage:**
