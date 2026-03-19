@@ -162,7 +162,7 @@ Start-Sleep -Seconds 8
 Write-Host "==> Waiting for all pods to be Ready..." -ForegroundColor Cyan
 kubectl wait --for=condition=Ready pod --all -n $Namespace --timeout=300s
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Pod readiness timeout — current state:" -ForegroundColor Red
+    Write-Host "Pod readiness timeout - current state:" -ForegroundColor Red
     kubectl get pods -n $Namespace
     exit 1
 }
