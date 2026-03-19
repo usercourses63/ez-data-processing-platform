@@ -253,7 +253,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21 -> 22
+Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21 -> 22 -> 23
 
 Note: Phases 14 and 17 can run in parallel with earlier phases as they have no strict dependencies.
 
@@ -272,9 +272,28 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 20. CI/CD & Production Deployment | 3/3 | Complete   | 2026-03-18 | - |
 | 21. Release Package & CI Pipeline | 4/4 | Complete    | 2026-03-18 | - |
 | 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
+| 23. Local Sanity Deploy & Extended Tests | v0.2 | 0/2 | Planned | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 0/2 plans complete (0%)
 
+### Phase 23: Local sanity deploy script and extended sanity tests with browser UI docs and help validation
+
+**Goal:** Single-command local sanity deploy script and extended sanity test suite with docs portal and help button verification
+**Requirements**: SANITY-08, SANITY-09, SANITY-10, SANITY-HEADED, SANITY-SCRIPT-BASH, SANITY-SCRIPT-PS1, SANITY-PORTFWD-DOCS, SANITY-CONSISTENCY
+**Depends on:** Phase 21 (release package scripts must exist)
+**Success Criteria** (what must be TRUE):
+  1. Sanity test suite extended to 10 tests (SANITY-01 through SANITY-10) with docs homepage, Hebrew guide, and Help button tests
+  2. `npm run test:e2e:sanity:headed` opens visible browser for sanity tests
+  3. `scripts/sanity-test.sh` performs full clean deploy from dist/ and runs headed sanity tests twice
+  4. `scripts/sanity-test.ps1` mirrors the bash script for Windows
+  5. `scripts/start-port-forwards.ps1` includes docs service on port 30800
+  6. Script exits 0 only if both sanity runs pass
+**Plans**: 2 plans (Wave 1: 23-01, 23-02 parallel)
+
+Plans:
+- [ ] 23-01-PLAN.md — Extended sanity tests (SANITY-08, 09, 10) + headed npm script
+- [ ] 23-02-PLAN.md — Local sanity deploy scripts (bash + PowerShell) + docs port-forward
+
 ---
-*Roadmap updated: 2026-03-18 after Phase 21 planning*
+*Roadmap updated: 2026-03-19 after Phase 23 planning*
