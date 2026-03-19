@@ -172,16 +172,16 @@ if ($LASTEXITCODE -ne 0) {
 # ---------------------------------------------------------------------------
 Write-Host "==> Starting port-forwards..." -ForegroundColor Cyan
 $portForwardArgs = @(
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/datasource-management 5001:5001",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/metrics-configuration 5002:5002",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/validation 5003:5003",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/scheduling 5004:5004",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/invalidrecords 5007:5007",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/fileprocessor 5008:5008",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/output 5009:5009",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/frontend 7000:8080",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/docs 30800:80",
-    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/mongodb-service 27017:27017"
+    "port-forward --address 127.0.0.1 -n $Namespace svc/datasource-management 5001:5001",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/metrics-configuration 5002:5002",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/validation 5003:5003",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/scheduling 5004:5004",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/invalidrecords 5007:5007",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/fileprocessor 5008:5008",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/output 5009:5009",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/frontend 7000:8080",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/docs 30800:80",
+    "port-forward --address 127.0.0.1 -n $Namespace svc/mongodb-service 27017:27017"
 )
 foreach ($args in $portForwardArgs) {
     Start-Process -WindowStyle Hidden kubectl -ArgumentList $args
@@ -239,8 +239,8 @@ npx playwright install chromium
 # Step 10a - Open frontend and docs in browser for user observation
 # ---------------------------------------------------------------------------
 Write-Host "==> Opening frontend and docs in default browser..." -ForegroundColor Cyan
-Start-Process "http://localhost:7000"
-Start-Process "http://localhost:30800/docs/user-guide-he"
+Start-Process "http://127.0.0.1:7000"
+Start-Process "http://127.0.0.1:30800/docs/user-guide-he"
 Write-Host "    Waiting 5 seconds for pages to load..." -ForegroundColor Gray
 Start-Sleep -Seconds 5
 

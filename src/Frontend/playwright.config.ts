@@ -52,7 +52,7 @@ export default defineConfig({
   use: {
     // Base URL to use in actions like `await page.goto('/')`
     // Default to port 7000 for K8s port-forwarded frontend, fallback to 3000 for local dev
-    baseURL: process.env.BASE_URL || 'http://localhost:7000',
+    baseURL: process.env.BASE_URL || 'http://127.0.0.1:7000',
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -143,7 +143,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         // API tests don't need a real browser — chromium is used only for SANITY-07 (frontend load)
-        baseURL: process.env.BASE_URL || 'http://localhost:7000',
+        baseURL: process.env.BASE_URL || 'http://127.0.0.1:7000',
         actionTimeout: 15000,
         navigationTimeout: 30000,
       },
@@ -157,7 +157,7 @@ export default defineConfig({
       testMatch: ['**/sanity.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.BASE_URL || 'http://localhost:7000',
+        baseURL: process.env.BASE_URL || 'http://127.0.0.1:7000',
         actionTimeout: 30000,
         navigationTimeout: 60000,
         launchOptions: { slowMo: 1200 },

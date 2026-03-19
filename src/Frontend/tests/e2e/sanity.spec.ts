@@ -8,15 +8,15 @@
  */
 import { test, expect, APIRequestContext, request } from '@playwright/test';
 
-const DATASOURCE_API = 'http://localhost:5001';
-const METRICS_API    = 'http://localhost:5002';
-const VALIDATION_API = 'http://localhost:5003';
-const SCHEDULING_API = 'http://localhost:5004';
-const INVALID_API    = 'http://localhost:5007';
-const FILEPROCESSOR_API = 'http://localhost:5008';
-const OUTPUT_API     = 'http://localhost:5009';
-const FRONTEND_URL   = 'http://localhost:7000';
-const DOCS_URL       = process.env.DOCS_URL || 'http://localhost:30800';
+const DATASOURCE_API = 'http://127.0.0.1:5001';
+const METRICS_API    = 'http://127.0.0.1:5002';
+const VALIDATION_API = 'http://127.0.0.1:5003';
+const SCHEDULING_API = 'http://127.0.0.1:5004';
+const INVALID_API    = 'http://127.0.0.1:5007';
+const FILEPROCESSOR_API = 'http://127.0.0.1:5008';
+const OUTPUT_API     = 'http://127.0.0.1:5009';
+const FRONTEND_URL   = 'http://127.0.0.1:7000';
+const DOCS_URL       = process.env.DOCS_URL || 'http://127.0.0.1:30800';
 
 // Services with accessible health endpoints (port-forwarded)
 const HEALTH_ENDPOINTS = [
