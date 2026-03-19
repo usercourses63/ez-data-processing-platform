@@ -232,7 +232,7 @@ Plans:
 **Milestone Goal:** Replace all mock data on System Monitoring page with real data from K8s, Prometheus, Kafka, and MassTransit pipeline events via SignalR. Prepare for multi-pod scaling.
 
 ### Phase 22: SignalR Monitoring Data Integration
-**Goal**: Debug and integrate all SignalR backend data services against the live cluster so System Monitoring page displays real data instead of mock fallback
+**Goal**: Debug and integrate all SignalR backend data services against the live cluster so System Monitoring page displays real data instead of mock fallback, with multi-user CRUD broadcast and optimistic locking
 **Depends on**: Phase 21 (v0.2 released)
 **Requirements**: MON-08, MON-09, MON-10, MON-11, MON-12, MON-13
 **Success Criteria** (what must be TRUE):
@@ -242,11 +242,13 @@ Plans:
   4. Jaeger trace queries return real distributed traces on the Traces tab
   5. PipelineEventConsumer pushes real MassTransit events (FileDiscovered, ValidationCompleted, etc.) to EventStream
   6. All mock data generators can be removed — every tab shows real data from SignalR
-**Plans**: TBD
+  7. CRUD operations broadcast to all connected clients via SignalR with optimistic locking
+**Plans**: 3 plans (Wave 1: 22-01; Wave 2: 22-02, 22-03 parallel)
 
 Plans:
-- [ ] 22-01: Debug and fix K8s + Prometheus + Kafka + Jaeger backend services against live cluster
-- [ ] 22-02: Verify real data on all monitoring tabs, remove mock fallback, E2E validation
+- [ ] 22-01-PLAN.md — Helm RBAC + env var config + deploy and verify all 5 backend monitoring services (MON-08, MON-09, MON-10, MON-11, MON-12)
+- [ ] 22-02-PLAN.md — Remove mock data, add skeleton loading, verify real data in UI (MON-13)
+- [ ] 22-03-PLAN.md — CRUD broadcast via SignalR + optimistic locking on DataSource and NAS controllers (MON-13)
 
 ---
 
@@ -271,11 +273,11 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 19. Documentation Update | 2/2 | Complete    | 2026-03-17 | - |
 | 20. CI/CD & Production Deployment | 3/3 | Complete   | 2026-03-18 | - |
 | 21. Release Package & CI Pipeline | 4/4 | Complete    | 2026-03-18 | - |
-| 22. SignalR Monitoring Data Integration | v0.3 | 0/2 | Not started | - |
+| 22. SignalR Monitoring Data Integration | v0.3 | 0/3 | Not started | - |
 | 23. Local Sanity Deploy & Extended Tests | 2/2 | Complete    | 2026-03-19 | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
-**v0.3 Totals:** 0/2 plans complete (0%)
+**v0.3 Totals:** 0/3 plans complete (0%)
 
 ### Phase 23: Local sanity deploy script and extended sanity tests with browser UI docs and help validation
 
@@ -296,4 +298,4 @@ Plans:
 - [ ] 23-02-PLAN.md — Local sanity deploy scripts (bash + PowerShell) + docs port-forward
 
 ---
-*Roadmap updated: 2026-03-19 after Phase 23 planning*
+*Roadmap updated: 2026-03-19 after Phase 22 planning*
