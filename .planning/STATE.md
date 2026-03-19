@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
+stopped_at: Completed 23-02-PLAN.md (Local sanity deploy scripts)
+last_updated: "2026-03-19T08:32:29.212Z"
+last_activity: 2026-03-19 — Completed 23-01-PLAN.md (Docs/Help browser sanity tests)
+progress:
+  total_phases: 14
+  completed_phases: 12
+  total_plans: 38
+  completed_plans: 37
+  percent: 97
+---
+
+---
+gsd_state_version: 1.0
+milestone: v0.2
+milestone_name: Production Validation & Release
+status: in_progress
 stopped_at: Completed 21-04-PLAN.md (Release artifacts and GitHub release job)
 last_updated: "2026-03-18T13:22:54.352Z"
 last_activity: 2026-03-18 — Completed 21-04-PLAN.md (Release artifacts and GitHub release job)
 progress:
-  total_phases: 13
+  [██████████] 97%
   completed_phases: 11
   total_plans: 36
   completed_plans: 35
@@ -72,12 +88,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 21 of 21 (Release Package & CI Deployment Pipeline)
-Plan: 4 of 4 in current phase (21-01 DONE, 21-02 DONE, 21-03 DONE, 21-04 DONE)
-Status: Phase 21 complete - v0.2 milestone COMPLETE
-Last activity: 2026-03-18 — Completed 21-04-PLAN.md (Release artifacts and GitHub release job)
+Phase: 23 of 23 (Local Sanity Deploy Script & Extended Sanity Tests)
+Plan: 1 of 2 in current phase (23-01 DONE)
+Status: Phase 23 in progress
+Last activity: 2026-03-19 — Completed 23-01-PLAN.md (Docs/Help browser sanity tests)
 
-Progress: [██████████] 36/36 plans (v0.1: 32/32, v0.2: 36/36)
+Progress: [██████████] 37/38 plans (v0.1: 32/32, v0.2: 37/38)
 
 ## Performance Metrics
 
@@ -114,6 +130,7 @@ Progress: [██████████] 36/36 plans (v0.1: 32/32, v0.2: 36/36
 *Updated after each plan completion*
 | Phase 21 P03 | 1 | 1 tasks | 1 files |
 | Phase 21 P04 | 2min | 2 tasks | 3 files |
+| Phase 23 P02 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -155,6 +172,8 @@ Recent decisions affecting current work:
 - [21-02]: Playwright APIRequestContext for API-level sanity tests; SANITY-07 uses page fixture for frontend title check; PascalCase payload keys matching backend convention
 - [Phase 21]: Single package zip download for sanity-deploy (services+infra combined); parallel minikube image load with PID wait
 - [Phase 21]: release job needs: package-release (not sanity-deploy) so release is not blocked by optional self-hosted runner
+- [23-01]: DOCS_URL configurable via env var (default localhost:30800); waitForEvent('popup') for window.open new-tab testing
+- [Phase 23]: Bash and PowerShell sanity scripts mirror same deploy+test sequence for cross-platform parity
 
 ### Pending Todos
 
@@ -163,6 +182,7 @@ None - starting fresh with v0.2 milestone.
 ### Roadmap Evolution
 
 - Phase 15.1 inserted after Phase 15: Test all system devices (NAS and protocols) file operations against simulator (URGENT)
+- Phase 23 added: Local sanity deploy script and extended sanity tests with browser UI docs and help validation
 
 ### Blockers/Concerns
 
@@ -175,8 +195,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:18:20.679Z
-Stopped at: Completed 21-04-PLAN.md (Release artifacts and GitHub release job)
+Last session: 2026-03-19T08:32:29.206Z
+Stopped at: Completed 23-02-PLAN.md (Local sanity deploy scripts)
 
 ## v0.2 Phase Summary
 
