@@ -34,7 +34,9 @@ $portForwards = @(
     @{Name="MongoDB"; Port=27017; Service="mongodb"; TargetPort=27017},
     @{Name="Kafka"; Port=9094; Service="kafka-external"; TargetPort=9094},
     @{Name="RabbitMQ"; Port=5672; Service="rabbitmq"; TargetPort=5672},
-    @{Name="Hazelcast"; Port=5701; Service="hazelcast"; TargetPort=5701}
+    @{Name="Hazelcast"; Port=5701; Service="hazelcast"; TargetPort=5701},
+    # Documentation Portal
+    @{Name="Docs Portal"; Port=30800; Service="docs"; TargetPort=80}
 )
 
 # Start each port forward in background
@@ -67,6 +69,8 @@ Write-Host "  Prometheus Business:  http://localhost:9091" -ForegroundColor Whit
 Write-Host "  Elasticsearch:        http://localhost:9200" -ForegroundColor White
 Write-Host "  Jaeger UI:            http://localhost:16686" -ForegroundColor White
 Write-Host "  OTEL Collector:       http://localhost:4318 (HTTP) / localhost:4317 (gRPC)" -ForegroundColor White
+Write-Host "`nDocumentation:" -ForegroundColor Cyan
+Write-Host "  Docs Portal:          http://localhost:30800" -ForegroundColor White
 Write-Host "`nAPIs:" -ForegroundColor Cyan
 Write-Host "  Datasource API:       http://localhost:5001/api/v1/datasource" -ForegroundColor White
 Write-Host "  Invalid Records API:  http://localhost:5007/api/v1/invalid-records" -ForegroundColor White
