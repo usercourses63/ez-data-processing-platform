@@ -206,6 +206,15 @@ Set-Location "$RepoRoot\src\Frontend"
 npx playwright install chromium
 
 # ---------------------------------------------------------------------------
+# Step 10a - Open frontend and docs in browser for user observation
+# ---------------------------------------------------------------------------
+Write-Host "==> Opening frontend and docs in default browser..." -ForegroundColor Cyan
+Start-Process "http://localhost:7000"
+Start-Process "http://localhost:30800/docs/user-guide-he"
+Write-Host "    Waiting 5 seconds for pages to load..." -ForegroundColor Gray
+Start-Sleep -Seconds 5
+
+# ---------------------------------------------------------------------------
 # Step 11 - Run sanity tests twice
 # ---------------------------------------------------------------------------
 Write-Host "==> Running sanity tests (Run 1 of 2)..." -ForegroundColor Cyan
