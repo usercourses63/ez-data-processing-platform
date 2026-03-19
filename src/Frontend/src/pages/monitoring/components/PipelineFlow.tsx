@@ -6,7 +6,7 @@ import {
   PIPELINE_CONNECTIONS,
   getServicePositions,
   simulateDataFlow,
-} from '../../../services/monitoring-mock-data';
+} from '../../../services/pipeline-constants';
 
 interface PipelineFlowProps {
   services: ServiceStatus[];
