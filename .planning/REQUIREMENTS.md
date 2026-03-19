@@ -176,11 +176,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REL-04 | Phase 21 | Complete |
 | REL-05 | Phase 21 | Complete |
 | REL-06 | Phase 21 | Complete |
-| MON-08 | Phase 22 | Pending |
-| MON-09 | Phase 22 | Pending |
-| MON-10 | Phase 22 | Pending |
-| MON-11 | Phase 22 | Pending |
-| MON-12 | Phase 22 | Pending |
+| MON-08 | Phase 22 | Complete |
+| MON-09 | Phase 22 | Complete |
+| MON-10 | Phase 22 | Complete |
+| MON-11 | Phase 22 | Complete |
+| MON-12 | Phase 22 | Complete |
 | MON-13 | Phase 22 | Pending |
 | MON-14 | Phase 22 | Pending |
 

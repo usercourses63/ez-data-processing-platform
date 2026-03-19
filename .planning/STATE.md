@@ -3,14 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: in_progress
-stopped_at: Phase 22 context gathered
-last_updated: "2026-03-19T10:57:20.429Z"
-last_activity: 2026-03-19 — Completed 23-01-PLAN.md (Docs/Help browser sanity tests)
+stopped_at: Completed 22-01-PLAN.md (RBAC and monitoring data integration)
+last_updated: "2026-03-19T11:36:59.401Z"
 progress:
-  total_phases: 14
-  completed_phases: 12
-  total_plans: 38
-  completed_plans: 37
+  total_phases: 12
+  completed_phases: 11
+  total_plans: 36
+  completed_plans: 35
 ---
 
 ---
@@ -99,20 +98,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** Files flow reliably from any source through validation to any destination, with complete visibility and traceability
-**Current focus:** v0.2 Production Validation & Release
+**Current focus:** Phase 22 — signalr-monitoring-data-integration
 
 ## Current Position
 
-Phase: 23 of 23 (Local Sanity Deploy Script & Extended Sanity Tests)
-Plan: 1 of 2 in current phase (23-01 DONE)
-Status: Phase 23 in progress
-Last activity: 2026-03-19 — Completed 23-01-PLAN.md (Docs/Help browser sanity tests)
-
-Progress: [██████████] 37/38 plans (v0.1: 32/32, v0.2: 37/38)
+Phase: 22 (signalr-monitoring-data-integration) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 32 (v0.1 milestone)
 - Average duration: 4.8 min
 - Total execution time: 2.56 hours
@@ -139,6 +135,7 @@ Progress: [██████████] 37/38 plans (v0.1: 32/32, v0.2: 37/38
 | 19-documentation-update | 2 | 11 min | 5.5 min |
 
 **Recent Trend:**
+
 - Last 5 plans: 18-01 (3 min), 18-02 (4 min), 18-03 (4 min), 18-04 (3 min)
 - Trend: Steady pace, fast execution on test infrastructure and fixture creation
 
@@ -147,6 +144,7 @@ Progress: [██████████] 37/38 plans (v0.1: 32/32, v0.2: 37/38
 | Phase 21 P04 | 2min | 2 tasks | 3 files |
 | Phase 23 P01 | 2min | 2 tasks | 2 files |
 | Phase 23 P02 | 3min | 2 tasks | 3 files |
+| Phase 22 P01 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -190,6 +188,7 @@ Recent decisions affecting current work:
 - [Phase 21]: release job needs: package-release (not sanity-deploy) so release is not blocked by optional self-hosted runner
 - [23-01]: DOCS_URL configurable via env var (default localhost:30800); waitForEvent('popup') for window.open new-tab testing
 - [Phase 23]: Bash and PowerShell sanity scripts mirror same deploy+test sequence for cross-platform parity
+- [22-01]: Ported RBAC from k8s/rbac/ to Helm template; Prometheus business port 9091 correct (K8s Service port vs container port)
 
 ### Pending Todos
 
@@ -203,6 +202,7 @@ None - starting fresh with v0.2 milestone.
 ### Blockers/Concerns
 
 Carried from v0.1 milestone audit:
+
 - ~~Hebrew/RTL layout regressions (addressed in Phase 11)~~ FIXED in 11-01
 - ~~Unwanted English translations (addressed in Phase 11)~~ Translation parity achieved in 11-02
 - ~~NFS->NAS dropdown fix needed (addressed in Phase 11)~~ FIXED in 11-02
@@ -211,8 +211,8 @@ Carried from v0.1 milestone audit:
 
 ## Session Continuity
 
-Last session: 2026-03-19T10:57:20.425Z
-Stopped at: Phase 22 context gathered
+Last session: 2026-03-19T11:40:32Z
+Stopped at: Completed 22-01-PLAN.md (RBAC and monitoring data integration)
 
 ## v0.2 Phase Summary
 
