@@ -182,7 +182,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MON-11 | Phase 22 | Complete |
 | MON-12 | Phase 22 | Complete |
 | MON-13 | Phase 22 | Complete |
-| MON-14 | Phase 22 | Pending |
+| MON-14 | Phase 22 | Complete |
 
 **Coverage:**
 - v0.2 requirements: 38 total, mapped: 38, unmapped: 0
