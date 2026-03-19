@@ -189,6 +189,36 @@ foreach ($args in $portForwardArgs) {
 Start-Sleep -Seconds 10
 
 # ---------------------------------------------------------------------------
+# Step 8a - Wait for critical port-forwards to be ready
+# ---------------------------------------------------------------------------
+Write-Host "==> Waiting for port-forwards to be ready..." -ForegroundColor Cyan
+$portsToCheck = @(5001, 27017)
+foreach ($port in $portsToCheck) {
+    $maxWait = 30
+    $waited = 0
+    $ready = $false
+    while ($waited -lt $maxWait) {
+        $tcp = New-Object System.Net.Sockets.TcpClient
+        try {
+            $tcp.Connect("localhost", $port)
+            $tcp.Close()
+            Write-Host "  Port $port ready"
+            $ready = $true
+            break
+        } catch {
+            Start-Sleep -Seconds 2
+            $waited += 2
+        } finally {
+            $tcp.Dispose()
+        }
+    }
+    if (-not $ready) {
+        Write-Error "Port $port did not become ready after ${maxWait}s - port-forward may have failed"
+        exit 1
+    }
+}
+
+# ---------------------------------------------------------------------------
 # Step 9 - Seed with DemoDataGenerator
 # ---------------------------------------------------------------------------
 Write-Host "==> Seeding cluster with DemoDataGenerator..." -ForegroundColor Cyan
