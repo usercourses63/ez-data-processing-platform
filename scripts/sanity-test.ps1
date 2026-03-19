@@ -172,16 +172,16 @@ if ($LASTEXITCODE -ne 0) {
 # ---------------------------------------------------------------------------
 Write-Host "==> Starting port-forwards..." -ForegroundColor Cyan
 $portForwardArgs = @(
-    "port-forward -n $Namespace svc/datasource-management 5001:5001",
-    "port-forward -n $Namespace svc/metrics-configuration 5002:5002",
-    "port-forward -n $Namespace svc/validation 5003:5003",
-    "port-forward -n $Namespace svc/scheduling 5004:5004",
-    "port-forward -n $Namespace svc/invalidrecords 5007:5007",
-    "port-forward -n $Namespace svc/fileprocessor 5008:5008",
-    "port-forward -n $Namespace svc/output 5009:5009",
-    "port-forward -n $Namespace svc/frontend 7000:8080",
-    "port-forward -n $Namespace svc/docs 30800:80",
-    "port-forward -n $Namespace svc/mongodb-service 27017:27017"
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/datasource-management 5001:5001",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/metrics-configuration 5002:5002",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/validation 5003:5003",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/scheduling 5004:5004",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/invalidrecords 5007:5007",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/fileprocessor 5008:5008",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/output 5009:5009",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/frontend 7000:8080",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/docs 30800:80",
+    "port-forward --address 127.0.0.1,::1 -n $Namespace svc/mongodb-service 27017:27017"
 )
 foreach ($args in $portForwardArgs) {
     Start-Process -WindowStyle Hidden kubectl -ArgumentList $args
@@ -200,7 +200,7 @@ foreach ($port in $portsToCheck) {
     while ($waited -lt $maxWait) {
         $tcp = New-Object System.Net.Sockets.TcpClient
         try {
-            $tcp.Connect("localhost", $port)
+            $tcp.Connect("127.0.0.1", $port)
             $tcp.Close()
             Write-Host "  Port $port ready"
             $ready = $true
