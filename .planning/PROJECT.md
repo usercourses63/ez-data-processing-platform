@@ -99,6 +99,13 @@ Files flow reliably from any source through validation to any destination, with 
 - [ ] **MON-05**: System Monitoring page reflects real current system components
 - [ ] **MON-06**: File access device health/latency/keep-alive monitoring
 - [ ] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator)
+- [x] **MON-08**: KubernetesMonitoringService returns real pod/service data (RBAC fix) — Validated in Phase 22: SignalR Monitoring Data Integration
+- [x] **MON-09**: PrometheusQueryService reads real metrics (env var config) — Validated in Phase 22
+- [x] **MON-10**: KafkaMonitoringService reads real queue depths — Validated in Phase 22
+- [x] **MON-11**: JaegerService reads real traces — Validated in Phase 22
+- [x] **MON-12**: PipelineEventConsumer receives real MassTransit events — Validated in Phase 22
+- [x] **MON-13**: Mock data removed, skeleton loading on System Monitoring page — Validated in Phase 22
+- [x] **MON-14**: Multi-user CRUD broadcast via SignalR + optimistic locking (Version/409) — Validated in Phase 22
 
 #### File-Simulator Integration
 - [ ] **SIM-01**: File-simulator docs/API understood and documented
@@ -187,4 +194,4 @@ Files flow reliably from any source through validation to any destination, with 
 | SignalR for real-time monitoring | File-simulator uses it, proven pattern | ⚠️ Infrastructure built in v0.2 (Phase 16), real data integration deferred to v0.3 (Phase 22) |
 
 ---
-*Last updated: 2026-02-11 after v0.2 milestone started*
+*Last updated: 2026-03-19 after Phase 22 complete*
