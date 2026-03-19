@@ -16,6 +16,7 @@ const INVALID_API    = 'http://localhost:5007';
 const FILEPROCESSOR_API = 'http://localhost:5008';
 const OUTPUT_API     = 'http://localhost:5009';
 const FRONTEND_URL   = 'http://localhost:7000';
+const DOCS_URL       = process.env.DOCS_URL || 'http://localhost:30800';
 
 // Services with accessible health endpoints (port-forwarded)
 const HEALTH_ENDPOINTS = [
@@ -121,4 +122,33 @@ test('@Sanity SANITY-07: Frontend loads and contains expected title', async ({ p
   const title = await page.title();
   // Title may be Hebrew ("מערכת עיבוד נתונים") or English ("EZ Platform")
   expect(title.length, 'Page title should not be empty').toBeGreaterThan(0);
+});
+
+// SANITY-08: Docs homepage opens and contains expected content
+test('@Sanity SANITY-08: Docs homepage opens and contains expected content', async ({ page }) => {
+  const response = await page.goto(DOCS_URL + '/docs/');
+  expect(response?.status(), 'Docs homepage HTTP status').toBe(200);
+  const content = await page.textContent('body');
+  expect(content, 'Docs homepage should contain EZ or documentation').toMatch(/ez|documentation/i);
+});
+
+// SANITY-09: Hebrew user guide loads with Hebrew content
+test('@Sanity SANITY-09: Hebrew user guide loads with Hebrew content', async ({ page }) => {
+  const response = await page.goto(DOCS_URL + '/docs/user-guide-he');
+  expect(response?.status(), 'Hebrew user guide HTTP status').toBe(200);
+  const content = await page.textContent('body');
+  expect(content, 'Hebrew user guide should contain Hebrew characters').toMatch(/[\u05D0-\u05EA]/);
+});
+
+// SANITY-10: Frontend Help button navigates to docs
+test('@Sanity SANITY-10: Frontend Help button navigates to docs', async ({ page }) => {
+  await page.goto(FRONTEND_URL);
+  const helpButton = page.locator('button[aria-label="Open user guide"], button[aria-label="פתח מדריך למשתמש"]');
+  await expect(helpButton).toBeVisible();
+  const [popup] = await Promise.all([
+    page.waitForEvent('popup'),
+    helpButton.click(),
+  ]);
+  await popup.waitForLoadState();
+  expect(popup.url(), 'Help button should open docs portal').toContain(':30800');
 });
