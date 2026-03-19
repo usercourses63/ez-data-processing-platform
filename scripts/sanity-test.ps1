@@ -68,7 +68,7 @@ foreach ($tar in $serviceTars) {
     Write-Host "  Loading $($tar.FullName) ..."
     $jobs += Start-Job -ScriptBlock {
         param($tarPath)
-        minikube image load $tarPath
+        minikube image load $tarPath 2>$null
     } -ArgumentList $tar.FullName
 }
 if ($jobs.Count -gt 0) {
@@ -80,7 +80,7 @@ if ($jobs.Count -gt 0) {
             exit 1
         }
     }
-    $jobs | Receive-Job | Out-Null
+    $jobs | Receive-Job 2>$null | Out-Null
     $jobs | Remove-Job -Force
 }
 
@@ -97,7 +97,7 @@ if (Test-Path $infraDir) {
             Write-Host "  Loading $($tar.FullName) ..."
             $jobs += Start-Job -ScriptBlock {
                 param($tarPath)
-                minikube image load $tarPath
+                minikube image load $tarPath 2>$null
             } -ArgumentList $tar.FullName
         }
         if ($jobs.Count -gt 0) {
@@ -109,7 +109,7 @@ if (Test-Path $infraDir) {
                     exit 1
                 }
             }
-            $jobs | Receive-Job | Out-Null
+            $jobs | Receive-Job 2>$null | Out-Null
             $jobs | Remove-Job -Force
         }
     }
