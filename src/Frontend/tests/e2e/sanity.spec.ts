@@ -64,34 +64,123 @@ test('@Sanity SANITY-02: Seeded datasources are visible in DataSource API', asyn
   expect(items.length, 'Expected seeded datasources to exist').toBeGreaterThan(0);
 });
 
-// SANITY-03: Create and delete a datasource round-trip
-test('@Sanity SANITY-03: Create and delete datasource round-trip', async () => {
-  const uniqueName = `sanity-test-${Date.now()}`;
-  const createPayload = {
-    Name: uniqueName,
-    SupplierName: 'Sanity Test Supplier',
-    ConnectionString: '/tmp/sanity',
-    FilePath: '/tmp/sanity',
-    FileType: 'CSV',
-    Category: 'Sales',
-    IsActive: false,
+// SANITY-03: Create and delete datasource via UI — all 8 tabs, no API calls
+test('@Sanity SANITY-03: Create and delete datasource via UI (all tabs)', async ({ page }) => {
+  const dsName = `Sanity-UI-${Date.now()}`;
+
+  // Helper: open an Ant Design Select and click an option in the visible dropdown
+  const antSelect = async (inputId: string, optionMatcher?: string | RegExp, optionIndex = 0) => {
+    await page.locator('.ant-select').filter({ has: page.locator(`input#${inputId}`) }).click();
+    await page.waitForSelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden)');
+    await page.waitForTimeout(200);
+    const opts = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option:visible');
+    if (optionMatcher) {
+      await opts.filter({ hasText: optionMatcher }).first().click();
+    } else {
+      await opts.nth(optionIndex).click();
+    }
+    await page.waitForTimeout(300);
   };
 
-  const createResponse = await apiContext.post(`${DATASOURCE_API}/api/v1/datasource`, {
-    data: createPayload,
-  });
-  expect(createResponse.status(), 'Create datasource failed').toBe(201);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${FRONTEND_URL}/datasources`);
+  await page.waitForLoadState('networkidle');
 
-  const created = await createResponse.json();
-  const id = created?.Data?.ID ?? created?.Data?.Id ?? created?.data?.id ?? created?.id ?? created?.Id;
-  expect(id, 'Created datasource must have an id').toBeTruthy();
+  // Click "Add new datasource" button
+  await page.getByRole('button', { name: /הוסף מקור נתונים חדש/i }).click();
+  await page.waitForURL(/\/datasources\/new/);
+  await page.waitForLoadState('networkidle');
 
-  const deleteResponse = await apiContext.delete(`${DATASOURCE_API}/api/v1/datasource/${id}?deletedBy=SanityTest`);
-  const deleteStatus = deleteResponse.status();
-  expect(
-    deleteStatus === 200 || deleteStatus === 204,
-    `Delete datasource ${id} failed with status ${deleteStatus}`
-  ).toBe(true);
+  // ── TAB 1: Basic Info (מידע בסיסי) ──────────────────────────────────────
+  await page.locator('input#name').fill(dsName);
+  await page.locator('input#supplierName').fill('Sanity Test Supplier');
+  await page.locator('textarea#description').fill('Created by automated UI sanity test');
+  await antSelect('category');           // pick first available category
+  await page.locator('input#retentionDays').fill('60');
+
+  // ── TAB 2: Connection (הגדרות קלט) ───────────────────────────────────────
+  await page.locator('[id$="-tab-connection"]').click();
+  await page.waitForLoadState('networkidle');
+
+  await antSelect('connectionType', /^FTP - /);   // FTP - File Transfer Protocol
+
+  // Server select appears after protocol chosen
+  await page.waitForTimeout(1000);
+  if (await page.locator('.ant-select').filter({ has: page.locator('input#inputServerId') }).isVisible({ timeout: 3000 }).catch(() => false)) {
+    await antSelect('inputServerId');              // first seeded FTP server
+  }
+
+  // File pattern
+  if (await page.locator('input#filePattern').isVisible({ timeout: 2000 }).catch(() => false)) {
+    await page.locator('input#filePattern').fill('*.csv');
+  }
+
+  // ── TAB 3: File Settings (הגדרות קובץ) ────────────────────────────────────
+  await page.locator('[id$="-tab-file"]').click();
+  await page.waitForLoadState('networkidle');
+
+  await antSelect('fileType', 'CSV');
+  await page.waitForTimeout(500);
+
+  if (await page.locator('input#csvDelimiter').isVisible({ timeout: 2000 }).catch(() => false)) {
+    await antSelect('csvDelimiter');               // comma (first option)
+  }
+  if (await page.locator('input#encoding').isVisible({ timeout: 2000 }).catch(() => false)) {
+    await antSelect('encoding', 'UTF-8');
+  }
+
+  // ── TAB 4: Schema (הגדרת Schema) ─────────────────────────────────────────
+  await page.locator('[id$="-tab-schema"]').click();
+  await page.waitForTimeout(1500);
+
+  // ── TAB 5: Schedule (תזמון) ───────────────────────────────────────────────
+  await page.locator('[id$="-tab-schedule"]').click();
+  await page.waitForLoadState('networkidle');
+
+  if (await page.locator('input#scheduleFrequency').isVisible({ timeout: 2000 }).catch(() => false)) {
+    await antSelect('scheduleFrequency', undefined, 2);  // 3rd option (Every5Minutes)
+  }
+
+  // ── TAB 6: Validation (כללי אימות) ────────────────────────────────────────
+  await page.locator('[id$="-tab-validation"]').click();
+  await page.waitForLoadState('networkidle');
+
+  if (await page.locator('input#maxErrorsAllowed').isVisible({ timeout: 2000 }).catch(() => false)) {
+    await page.locator('input#maxErrorsAllowed').fill('100');
+  }
+
+  // ── TAB 7: Notifications (התראות) ─────────────────────────────────────────
+  await page.locator('[id$="-tab-notifications"]').click();
+  await page.waitForLoadState('networkidle');
+
+  const notifySwitch = page.locator('.ant-form-item').filter({ hasText: /התראה בהצלחה/ }).locator('.ant-switch');
+  if (await notifySwitch.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if ((await notifySwitch.getAttribute('aria-checked')) !== 'true') await notifySwitch.click();
+  }
+  if (await page.locator('input#notificationRecipients').isVisible({ timeout: 2000 }).catch(() => false)) {
+    await page.locator('input#notificationRecipients').fill('sanity@test.com');
+  }
+
+  // ── TAB 8: Output (פלט) ───────────────────────────────────────────────────
+  await page.locator('[id$="-tab-output"]').click();
+  await page.waitForTimeout(1000);
+
+  // ── Submit (Create) ───────────────────────────────────────────────────────
+  // Button renders as type="submit" via Ant Design htmlType="submit" (text = "צור" in Hebrew)
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL(`${FRONTEND_URL}/datasources`, { timeout: 15000 });
+  await page.waitForLoadState('networkidle');
+
+  // Verify new datasource appears in list
+  await expect(page.getByText(dsName)).toBeVisible({ timeout: 10000 });
+
+  // ── Delete via UI ─────────────────────────────────────────────────────────
+  const row = page.locator('tr').filter({ hasText: dsName });
+  await row.getByRole('button', { name: /מחק/i }).click();
+  await page.getByRole('button', { name: /אישור|OK/i }).filter({ hasNotText: /ביטול/ }).last().click();
+
+  // Verify deleted
+  await expect(page.getByText(dsName)).not.toBeVisible({ timeout: 10000 });
 });
 
 // SANITY-04: Categories seeded

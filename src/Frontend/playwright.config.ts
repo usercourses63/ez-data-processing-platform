@@ -160,7 +160,7 @@ export default defineConfig({
         baseURL: process.env.BASE_URL || 'http://127.0.0.1:7000',
         actionTimeout: 30000,
         navigationTimeout: 60000,
-        launchOptions: { slowMo: 1200 },
+        launchOptions: { slowMo: 2500 },
       },
       timeout: 120000,
       fullyParallel: false,
