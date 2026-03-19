@@ -150,6 +150,21 @@ export default defineConfig({
       timeout: 60000, // 60s per test — API calls are fast
       fullyParallel: false, // Sequential to avoid concurrent mutations on seeded data
     },
+
+    // Sanity watch — same tests but headed with slow-mo so developer can observe each step
+    {
+      name: 'sanity-watch',
+      testMatch: ['**/sanity.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.BASE_URL || 'http://localhost:7000',
+        actionTimeout: 30000,
+        navigationTimeout: 60000,
+        launchOptions: { slowMo: 1200 },
+      },
+      timeout: 120000,
+      fullyParallel: false,
+    },
   ],
 
   // Run local dev server before starting the tests

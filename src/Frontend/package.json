@@ -47,6 +47,7 @@
     "test:e2e:p1": "playwright test --grep \"@P0|@P1\"",
     "test:e2e:sanity": "playwright test --project=sanity",
     "test:e2e:sanity:headed": "playwright test --project=sanity --headed",
+    "test:e2e:sanity:watch": "playwright test --project=sanity-watch --headed",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },

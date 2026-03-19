@@ -210,12 +210,12 @@ npx playwright install chromium
 # ---------------------------------------------------------------------------
 Write-Host "==> Running sanity tests (Run 1 of 2)..." -ForegroundColor Cyan
 $Run1Exit = 0
-npm run test:e2e:sanity:headed
+npm run test:e2e:sanity:watch
 if ($LASTEXITCODE -ne 0) { $Run1Exit = $LASTEXITCODE }
 
 Write-Host "==> Running sanity tests (Run 2 of 2)..." -ForegroundColor Cyan
 $Run2Exit = 0
-npm run test:e2e:sanity:headed
+npm run test:e2e:sanity:watch
 if ($LASTEXITCODE -ne 0) { $Run2Exit = $LASTEXITCODE }
 
 # ---------------------------------------------------------------------------
