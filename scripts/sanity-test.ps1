@@ -189,10 +189,10 @@ foreach ($args in $portForwardArgs) {
 Start-Sleep -Seconds 10
 
 # ---------------------------------------------------------------------------
-# Step 8a - Wait for critical port-forwards to be ready
+# Step 8a - Wait for all port-forwards to be ready
 # ---------------------------------------------------------------------------
 Write-Host "==> Waiting for port-forwards to be ready..." -ForegroundColor Cyan
-$portsToCheck = @(5001, 27017)
+$portsToCheck = @(5001, 5002, 5003, 5004, 5007, 5008, 5009, 7000, 30800, 27017)
 foreach ($port in $portsToCheck) {
     $maxWait = 30
     $waited = 0
@@ -222,7 +222,7 @@ foreach ($port in $portsToCheck) {
 # Step 9 - Seed with DemoDataGenerator
 # ---------------------------------------------------------------------------
 Write-Host "==> Seeding cluster with DemoDataGenerator..." -ForegroundColor Cyan
-dotnet run --project "$RepoRoot\tools\DemoDataGenerator" -- --direct-connection --api-url http://localhost:5001
+dotnet run --project "$RepoRoot\tools\DemoDataGenerator" -- --direct-connection --mongodb-connection=127.0.0.1 --api-url http://127.0.0.1:5001
 if ($LASTEXITCODE -ne 0) {
     Write-Error "DemoDataGenerator seeding failed"
     exit 1
