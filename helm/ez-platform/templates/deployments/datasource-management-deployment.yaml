@@ -30,6 +30,7 @@ spec:
         prometheus.io/port: "5001"
         prometheus.io/path: "/metrics"
     spec:
+      serviceAccountName: nas-device-manager
       securityContext:
         runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
         runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
@@ -83,6 +84,26 @@ spec:
             configMapKeyRef:
               name: services-config
               key: otlp-endpoint
+        - name: Kafka__Brokers
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: kafka-server
+        - name: Prometheus__BusinessEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: prometheus-business-endpoint
+        - name: Prometheus__SystemEndpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: prometheus-endpoint
+        - name: Jaeger__Endpoint
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: jaeger-endpoint
         {{- with .Values.services.datasourceManagement.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

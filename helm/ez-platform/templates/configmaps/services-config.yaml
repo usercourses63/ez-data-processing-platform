@@ -28,6 +28,9 @@ data:
   prometheus-business-endpoint: {{ printf "http://prometheus-business.%s.svc.cluster.local:9091" .Values.global.namespace | quote }}
   prometheus-pushgateway: {{ printf "http://prometheus-pushgateway.%s.svc.cluster.local:9091" .Values.global.namespace | quote }}
 
+  # Jaeger Configuration
+  jaeger-endpoint: {{ printf "http://jaeger.%s.svc.cluster.local:16686" .Values.global.namespace | quote }}
+
   # OpenTelemetry Configuration
   otlp-endpoint: {{ include "ez-platform.otelEndpoint" . | quote }}
 
