@@ -275,6 +275,23 @@ public class DataSourceService : IDataSourceService
                 return ApiResponse<object>.Failure(errorResponse.Error, correlationId);
             }
 
+            // Optimistic concurrency check
+            if (existingDataSource.Version != request.Version)
+            {
+                _logger.LogWarning(
+                    "Optimistic concurrency conflict for DataSource {Id}. Expected version {Expected}, current version {Current}. CorrelationId: {CorrelationId}",
+                    request.Id, request.Version, existingDataSource.Version, correlationId);
+                var conflictError = new ErrorDetail
+                {
+                    Code = "VERSION_CONFLICT",
+                    Message = "\u05d4\u05e8\u05e9\u05d5\u05de\u05d4 \u05e9\u05d5\u05e0\u05ea\u05d4 \u05e2\u05dc \u05d9\u05d3\u05d9 \u05de\u05e9\u05ea\u05de\u05e9 \u05d0\u05d7\u05e8. \u05d0\u05e0\u05d0 \u05e8\u05e2\u05e0\u05df \u05d5\u05e0\u05e1\u05d4 \u05e9\u05d5\u05d1.",
+                    Details = $"Expected version {request.Version}, current version {existingDataSource.Version}",
+                    StatusCode = 409,
+                    Timestamp = DateTime.UtcNow
+                };
+                return ApiResponse<object>.Failure(conflictError, correlationId);
+            }
+
             _logger.LogInformation("Updating data source. ID: {Id}, Name: {Name}, CorrelationId: {CorrelationId}",
                 request.Id, request.Name, correlationId);
 

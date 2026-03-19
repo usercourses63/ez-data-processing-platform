@@ -147,4 +147,10 @@ public class UpdateDataSourceRequest
     /// </summary>
     [StringLength(500)]
     public string? NasSubPath { get; set; }
+
+    /// <summary>
+    /// Entity version for optimistic concurrency control (v0.3.0).
+    /// Must match the current stored version or the update will be rejected with HTTP 409 Conflict.
+    /// </summary>
+    public long Version { get; set; }
 }

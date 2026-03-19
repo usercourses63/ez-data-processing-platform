@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.ComponentModel.DataAnnotations;
 using DataProcessing.Shared.Entities;
+using DataProcessing.DataSourceManagement.Hubs;
 using DataProcessing.DataSourceManagement.Models.Requests;
 using DataProcessing.DataSourceManagement.Models.Responses;
 using DataProcessing.DataSourceManagement.Models.Queries;
@@ -20,18 +22,22 @@ namespace DataProcessing.DataSourceManagement.Controllers;
 public class DataSourceController : ControllerBase
 {
     private readonly IDataSourceService _dataSourceService;
+    private readonly IHubContext<MonitoringHub> _hubContext;
     private readonly ILogger<DataSourceController> _logger;
 
     /// <summary>
     /// Constructor for DataSourceController
     /// </summary>
     /// <param name="dataSourceService">Data source service for business logic</param>
+    /// <param name="hubContext">SignalR hub context for real-time broadcasts</param>
     /// <param name="logger">Logger for request tracking</param>
     public DataSourceController(
         IDataSourceService dataSourceService,
+        IHubContext<MonitoringHub> hubContext,
         ILogger<DataSourceController> logger)
     {
         _dataSourceService = dataSourceService;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -211,10 +217,17 @@ public class DataSourceController : ControllerBase
 
         if (result.IsSuccess)
         {
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "DataSource",
+                EntityId = result.Data!.ID,
+                Action = "created",
+                Version = result.Data.Version
+            });
             return CreatedAtAction(nameof(GetById), new { id = result.Data!.ID }, result);
         }
 
-        return StatusCode(result.Error!.StatusCode, 
+        return StatusCode(result.Error!.StatusCode,
             ErrorResponse.Create(correlationId, result.Error));
     }
 
@@ -254,10 +267,17 @@ public class DataSourceController : ControllerBase
 
         if (result.IsSuccess)
         {
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "DataSource",
+                EntityId = id,
+                Action = "updated",
+                Version = result.Data
+            });
             return Ok(result);
         }
 
-        return StatusCode(result.Error!.StatusCode, 
+        return StatusCode(result.Error!.StatusCode,
             ErrorResponse.Create(correlationId, result.Error));
     }
 
@@ -287,10 +307,17 @@ public class DataSourceController : ControllerBase
 
         if (result.IsSuccess)
         {
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "DataSource",
+                EntityId = id,
+                Action = "deleted",
+                Version = 0
+            });
             return Ok(result);
         }
 
-        return StatusCode(result.Error!.StatusCode, 
+        return StatusCode(result.Error!.StatusCode,
             ErrorResponse.Create(correlationId, result.Error));
     }
 

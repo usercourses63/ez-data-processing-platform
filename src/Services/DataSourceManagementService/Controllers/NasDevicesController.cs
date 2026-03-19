@@ -1,7 +1,9 @@
+using DataProcessing.DataSourceManagement.Hubs;
 using DataProcessing.DataSourceManagement.Models.Requests;
 using DataProcessing.DataSourceManagement.Services;
 using DataProcessing.Shared.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DataProcessing.DataSourceManagement.Controllers;
 
@@ -15,13 +17,16 @@ namespace DataProcessing.DataSourceManagement.Controllers;
 public class NasDevicesController : ControllerBase
 {
     private readonly INasDeviceService _nasDeviceService;
+    private readonly IHubContext<MonitoringHub> _hubContext;
     private readonly ILogger<NasDevicesController> _logger;
 
     public NasDevicesController(
         INasDeviceService nasDeviceService,
+        IHubContext<MonitoringHub> hubContext,
         ILogger<NasDevicesController> logger)
     {
         _nasDeviceService = nasDeviceService;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -146,6 +151,14 @@ public class NasDevicesController : ControllerBase
 
             var created = await _nasDeviceService.CreateNasDeviceAsync(device, cancellationToken);
 
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "NasDevice",
+                EntityId = created.ID,
+                Action = "created",
+                Version = created.Version
+            });
+
             return CreatedAtAction(nameof(GetById), new { id = created.ID }, created);
         }
         catch (Exception ex)
@@ -178,34 +191,61 @@ public class NasDevicesController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var device = new NasDevice
+            // Load existing device for optimistic concurrency check
+            var existing = await _nasDeviceService.GetNasDeviceByIdAsync(id, cancellationToken);
+            if (existing == null)
             {
-                Name = request.Name,
-                Description = request.Description,
-                Host = request.Host,
-                Port = request.Port,
-                ExportPath = request.ExportPath,
-                Role = request.Role,
-                StorageCapacity = request.StorageCapacity,
-                AccessMode = request.AccessMode,
-                ReclaimPolicy = request.ReclaimPolicy,
-                MountOptions = request.MountOptions ?? new List<string>(),
-                IsActive = request.IsActive
-            };
+                return NotFound(new { message = $"\u05d4\u05ea\u05e7\u05df NAS \u05dc\u05d0 \u05e0\u05de\u05e6\u05d0: {id}" });
+            }
 
-            var updated = await _nasDeviceService.UpdateNasDeviceAsync(id, device, cancellationToken);
+            // Optimistic concurrency check
+            if (existing.Version != request.Version)
+            {
+                return Conflict(new
+                {
+                    error = "conflict",
+                    message = "\u05d4\u05e8\u05e9\u05d5\u05de\u05d4 \u05e9\u05d5\u05e0\u05ea\u05d4 \u05e2\u05dc \u05d9\u05d3\u05d9 \u05de\u05e9\u05ea\u05de\u05e9 \u05d0\u05d7\u05e8. \u05d0\u05e0\u05d0 \u05e8\u05e2\u05e0\u05df \u05d5\u05e0\u05e1\u05d4 \u05e9\u05d5\u05d1.",
+                    currentVersion = existing.Version
+                });
+            }
+
+            // Merge request fields onto existing entity (preserve Version for correct increment)
+            existing.Name = request.Name;
+            existing.Description = request.Description;
+            existing.Host = request.Host;
+            existing.Port = request.Port;
+            existing.ExportPath = request.ExportPath;
+            existing.Role = request.Role;
+            existing.StorageCapacity = request.StorageCapacity;
+            existing.AccessMode = request.AccessMode;
+            existing.ReclaimPolicy = request.ReclaimPolicy;
+            existing.IsActive = request.IsActive;
+            if (request.MountOptions != null && request.MountOptions.Count > 0)
+            {
+                existing.MountOptions = request.MountOptions;
+            }
+
+            var updated = await _nasDeviceService.UpdateNasDeviceAsync(id, existing, cancellationToken);
 
             if (updated == null)
             {
-                return NotFound(new { message = $"התקן NAS לא נמצא: {id}" });
+                return NotFound(new { message = $"\u05d4\u05ea\u05e7\u05df NAS \u05dc\u05d0 \u05e0\u05de\u05e6\u05d0: {id}" });
             }
+
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "NasDevice",
+                EntityId = id,
+                Action = "updated",
+                Version = updated.Version
+            });
 
             return Ok(updated);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "שגיאה בעדכון התקן NAS: {DeviceId}", id);
-            return StatusCode(500, new { message = "שגיאה בעדכון התקן NAS", error = ex.Message });
+            _logger.LogError(ex, "\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e2\u05d3\u05db\u05d5\u05df \u05d4\u05ea\u05e7\u05df NAS: {DeviceId}", id);
+            return StatusCode(500, new { message = "\u05e9\u05d2\u05d9\u05d0\u05d4 \u05d1\u05e2\u05d3\u05db\u05d5\u05df \u05d4\u05ea\u05e7\u05df NAS", error = ex.Message });
         }
     }
 
@@ -260,10 +300,18 @@ public class NasDevicesController : ControllerBase
 
             if (!deleted)
             {
-                return NotFound(new { message = $"התקן NAS לא נמצא: {id}" });
+                return NotFound(new { message = $"\u05d4\u05ea\u05e7\u05df NAS \u05dc\u05d0 \u05e0\u05de\u05e6\u05d0: {id}" });
             }
 
-            return Ok(new { message = "התקן NAS נמחק בהצלחה" });
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "NasDevice",
+                EntityId = id,
+                Action = "deleted",
+                Version = 0
+            });
+
+            return Ok(new { message = "\u05d4\u05ea\u05e7\u05df NAS \u05e0\u05de\u05d7\u05e7 \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4" });
         }
         catch (InvalidOperationException ex)
         {
