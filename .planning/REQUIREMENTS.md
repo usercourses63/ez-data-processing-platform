@@ -100,6 +100,7 @@ Deferred to future release. Tracked but not in current roadmap.
 - **MON-11**: Jaeger trace queries return real distributed traces (verify Jaeger API endpoint and response parsing)
 - **MON-12**: PipelineEventConsumer receives real MassTransit events and pushes to SignalR (verify Kafka topic subscription)
 - **MON-13**: System Monitoring page displays real data from SignalR instead of mock fallback (all mock generators removable)
+- **MON-14**: Multi-user CRUD broadcast via SignalR + optimistic locking (Version field 409 Conflict) for DataSource and NAS device entities
 
 ### Advanced Features
 
@@ -181,11 +182,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MON-11 | Phase 22 | Pending |
 | MON-12 | Phase 22 | Pending |
 | MON-13 | Phase 22 | Pending |
+| MON-14 | Phase 22 | Pending |
 
 **Coverage:**
 - v0.2 requirements: 38 total, mapped: 38, unmapped: 0
-- v0.3 requirements: 6 total, mapped: 6, unmapped: 0
+- v0.3 requirements: 7 total, mapped: 7, unmapped: 0
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-26 after Phase 15.1 planning (added SIM-TEST-01 through SIM-TEST-04)*
+*Last updated: 2026-03-19 after Phase 22 revision (added MON-14)*

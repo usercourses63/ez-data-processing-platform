@@ -234,7 +234,7 @@ Plans:
 ### Phase 22: SignalR Monitoring Data Integration
 **Goal**: Debug and integrate all SignalR backend data services against the live cluster so System Monitoring page displays real data instead of mock fallback, with multi-user CRUD broadcast and optimistic locking
 **Depends on**: Phase 21 (v0.2 released)
-**Requirements**: MON-08, MON-09, MON-10, MON-11, MON-12, MON-13
+**Requirements**: MON-08, MON-09, MON-10, MON-11, MON-12, MON-13, MON-14
 **Success Criteria** (what must be TRUE):
   1. KubernetesMonitoringService returns real pod/service status (RBAC verified, service account bound)
   2. PrometheusQueryService returns real metrics and time-series history from PromQL instant + range queries
@@ -248,7 +248,7 @@ Plans:
 Plans:
 - [ ] 22-01-PLAN.md — Helm RBAC + env var config + deploy and verify all 5 backend monitoring services (MON-08, MON-09, MON-10, MON-11, MON-12)
 - [ ] 22-02-PLAN.md — Remove mock data, add skeleton loading, verify real data in UI (MON-13)
-- [ ] 22-03-PLAN.md — CRUD broadcast via SignalR + optimistic locking on DataSource and NAS controllers (MON-13)
+- [ ] 22-03-PLAN.md — CRUD broadcast via SignalR + optimistic locking on DataSource and NAS controllers (MON-14)
 
 ---
 
@@ -298,4 +298,4 @@ Plans:
 - [ ] 23-02-PLAN.md — Local sanity deploy scripts (bash + PowerShell) + docs port-forward
 
 ---
-*Roadmap updated: 2026-03-19 after Phase 22 planning*
+*Roadmap updated: 2026-03-19 after Phase 22 revision (added MON-14)*
