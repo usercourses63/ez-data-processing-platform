@@ -332,7 +332,8 @@ const DataSourceEditEnhanced: React.FC = () => {
         ValidationRules: null,
         Metadata: null,
         FileFormat: mergedConfig.fileConfig.type || null,
-        RetentionDays: values.retentionDays ?? dataSource.AdditionalConfiguration?.RetentionDays
+        RetentionDays: values.retentionDays ?? dataSource.AdditionalConfiguration?.RetentionDays,
+        Version: dataSource.Version ?? 1
       };
 
       if (jsonSchema && Object.keys(jsonSchema).length > 0) {
@@ -356,6 +357,10 @@ const DataSourceEditEnhanced: React.FC = () => {
         body: JSON.stringify(requestPayload),
       });
 
+      if (response.status === 409) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.Error?.Message || errorData.message || '\u05d4\u05e8\u05e9\u05d5\u05de\u05d4 \u05e9\u05d5\u05e0\u05ea\u05d4 \u05e2\u05dc \u05d9\u05d3\u05d9 \u05de\u05e9\u05ea\u05de\u05e9 \u05d0\u05d7\u05e8. \u05d0\u05e0\u05d0 \u05e8\u05e2\u05e0\u05df \u05d5\u05e0\u05e1\u05d4 \u05e9\u05d5\u05d1.');
+      }
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const data: ApiResponse<any> = await response.json();

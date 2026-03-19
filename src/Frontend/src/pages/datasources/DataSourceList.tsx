@@ -41,6 +41,7 @@ interface DataSource {
   ScheduleFrequency?: string;
   ScheduleEnabled?: boolean;
   CronExpression?: string;
+  Version?: number;
 }
 
 interface PagedResult<T> {
@@ -163,7 +164,8 @@ const DataSourceList: React.FC = () => {
           ValidationRules: currentDataSource.ValidationRules,
           Metadata: currentDataSource.Metadata,
           FileFormat: currentDataSource.FileFormat,
-          RetentionDays: currentDataSource.RetentionDays
+          RetentionDays: currentDataSource.RetentionDays,
+          Version: currentDataSource.Version ?? 1
         })
       });
 

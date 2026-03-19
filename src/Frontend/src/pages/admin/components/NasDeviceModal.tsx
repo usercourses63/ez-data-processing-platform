@@ -116,7 +116,12 @@ const NasDeviceModal: React.FC<NasDeviceModalProps> = ({
       };
 
       if (isEditing) {
-        updateMutation.mutate({ id: device.ID, data: requestData });
+        const updateData: UpdateNasDeviceRequest = {
+          ...requestData,
+          IsActive: device.IsActive ?? true,
+          Version: device.Version ?? 1,
+        };
+        updateMutation.mutate({ id: device.ID, data: updateData });
       } else {
         createMutation.mutate(requestData);
       }

@@ -11,6 +11,7 @@ import { useEffect, useState, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { message } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ServiceStatus,
   PipelineEvent,
@@ -176,6 +177,7 @@ function mapPipelineEvent(raw: any): PipelineEvent {
  */
 export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const [connectionState, setConnectionState] = useState<ConnectionState>('connecting');
   const [deviceHealth, setDeviceHealth] = useState<DeviceHealthStatusResponse | null>(null);
@@ -251,6 +253,23 @@ export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
       setLastUpdate(new Date());
     });
 
+    connection.on('EntityChanged', (data: { EntityType: string; EntityId: string; Action: string; Version: number }) => {
+      if (!isMountedRef.current) return;
+      console.log(`[SignalR] EntityChanged: ${data.EntityType} ${data.EntityId} ${data.Action} v${data.Version}`);
+
+      // Invalidate React Query cache for the changed entity type
+      const queryKeyMap: Record<string, string[]> = {
+        'DataSource': ['datasources', 'datasource'],
+        'NasDevice': ['nasDevices', 'nasdevices'],
+        'AdminServer': ['adminservers', 'servers'],
+      };
+
+      const keysToInvalidate = queryKeyMap[data.EntityType] || [data.EntityType.toLowerCase()];
+      keysToInvalidate.forEach(key => {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      });
+    });
+
     connection.on('InitialState', (raw: any) => {
       if (!isMountedRef.current) return;
       if (raw.DeviceHealth) setDeviceHealth(raw.DeviceHealth);
@@ -306,11 +325,12 @@ export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
 
     return () => {
       isMountedRef.current = false;
+      connection.off('EntityChanged');
       connection.stop().catch((err) => {
         console.warn('Error stopping SignalR connection:', err);
       });
     };
-  }, [hubUrl, t]);
+  }, [hubUrl, t, queryClient]);
 
   return {
     connectionState,

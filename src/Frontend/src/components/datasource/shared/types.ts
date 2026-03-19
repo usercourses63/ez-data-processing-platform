@@ -32,6 +32,8 @@ export interface DataSource {
   cronExpression?: string;
   // Output configuration
   Output?: OutputConfiguration;
+  // Optimistic concurrency
+  Version?: number;
 }
 
 export interface ApiResponse<T> {
