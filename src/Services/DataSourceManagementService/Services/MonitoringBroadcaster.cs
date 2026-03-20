@@ -113,6 +113,23 @@ public class MonitoringBroadcaster : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Fetch data from a monitoring service with isolated error handling.
+    /// Returns fallback value on failure so other broadcasts continue.
+    /// </summary>
+    private async Task<T> SafeFetchAsync<T>(string name, Func<Task<T>> fetch, T fallback)
+    {
+        try
+        {
+            return await fetch();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Failed to fetch {Source} — using empty fallback", name);
+            return fallback;
+        }
+    }
+
     private async Task RunInfrastructureBroadcastLoop(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -124,24 +141,15 @@ public class MonitoringBroadcaster : BackgroundService
                 var promService = scope.ServiceProvider.GetRequiredService<IPrometheusQueryService>();
                 var kafkaService = scope.ServiceProvider.GetRequiredService<IKafkaMonitoringService>();
 
-                // Fetch all data in parallel
-                var servicesTask = k8sService.GetServiceStatusesAsync(stoppingToken);
-                var podsTask = k8sService.GetPodStatusesAsync(stoppingToken);
-                var clusterInfoTask = k8sService.GetClusterInfoAsync(stoppingToken);
-                var metricsTask = promService.GetDashboardMetricsAsync(stoppingToken);
-                var alertsTask = promService.GetActiveAlertsAsync(stoppingToken);
-                var tracesTask = promService.GetRecentTracesAsync(stoppingToken);
-                var queuesTask = kafkaService.GetQueueStatusesAsync(stoppingToken);
-
-                await Task.WhenAll(servicesTask, podsTask, clusterInfoTask, metricsTask, alertsTask, tracesTask, queuesTask);
-
-                var services = servicesTask.Result;
-                var pods = podsTask.Result;
-                var clusterInfo = clusterInfoTask.Result;
-                var metrics = metricsTask.Result;
-                var alerts = alertsTask.Result;
-                var traces = tracesTask.Result;
-                var queues = queuesTask.Result;
+                // Fetch all data independently — each service failure is isolated
+                // so e.g. Kafka DNS failure doesn't block K8s/Prometheus broadcasts
+                var services = await SafeFetchAsync("K8s services", () => k8sService.GetServiceStatusesAsync(stoppingToken), new List<ServiceStatusDto>());
+                var pods = await SafeFetchAsync("K8s pods", () => k8sService.GetPodStatusesAsync(stoppingToken), new List<PodStatusDto>());
+                var clusterInfo = await SafeFetchAsync<ClusterInfoDto?>("cluster info", async () => await k8sService.GetClusterInfoAsync(stoppingToken), null);
+                var metrics = await SafeFetchAsync<DashboardMetricsDto?>("Prometheus metrics", async () => await promService.GetDashboardMetricsAsync(stoppingToken), null);
+                var alerts = await SafeFetchAsync("Prometheus alerts", () => promService.GetActiveAlertsAsync(stoppingToken), new List<AlertDto>());
+                var traces = await SafeFetchAsync("Jaeger traces", () => promService.GetRecentTracesAsync(stoppingToken), new List<TraceDto>());
+                var queues = await SafeFetchAsync("Kafka queues", () => kafkaService.GetQueueStatusesAsync(stoppingToken), new List<QueueStatusDto>());
 
                 // Broadcast 6 event types
                 await _hubContext.Clients.All.SendAsync("ServiceStatusUpdate", services, stoppingToken);
@@ -163,8 +171,8 @@ public class MonitoringBroadcaster : BackgroundService
                     _latestState ??= new MonitoringInitialState();
                     _latestState.Services = services;
                     _latestState.Pods = pods;
-                    _latestState.ClusterInfo = clusterInfo;
-                    _latestState.Metrics = metrics;
+                    if (clusterInfo != null) _latestState.ClusterInfo = clusterInfo;
+                    if (metrics != null) _latestState.Metrics = metrics;
                     _latestState.Alerts = alerts;
                     _latestState.Traces = traces;
                     _latestState.Queues = queues;

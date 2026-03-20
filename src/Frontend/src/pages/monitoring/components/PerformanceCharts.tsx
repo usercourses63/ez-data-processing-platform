@@ -18,33 +18,9 @@ import {
   Legend,
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import { DashboardMetrics, LatencyDistribution, SuccessFailureMetrics } from '../../../types/monitoring.types';
+import { DashboardMetrics } from '../../../types/monitoring.types';
+import { generateLatencyDistribution, generateSuccessFailureMetrics } from '../../../services/monitoring-mock-data';
 import { format } from 'date-fns';
-
-function randomInRange(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function generateLatencyDistribution(): LatencyDistribution {
-  return {
-    p50: randomInRange(40, 60),
-    p75: randomInRange(70, 90),
-    p90: randomInRange(110, 140),
-    p95: randomInRange(160, 200),
-    p99: randomInRange(250, 350),
-  };
-}
-
-function generateSuccessFailureMetrics(): SuccessFailureMetrics {
-  const successCount = randomInRange(9500, 9900);
-  const failureCount = randomInRange(100, 500);
-  const total = successCount + failureCount;
-  return {
-    successCount,
-    failureCount,
-    successRate: Number(((successCount / total) * 100).toFixed(2)),
-  };
-}
 
 interface PerformanceChartsProps {
   metrics: DashboardMetrics | null;
