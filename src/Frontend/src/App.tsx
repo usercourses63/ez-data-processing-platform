@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider, Layout, theme } from 'antd';
+import { ConfigProvider, Layout, theme, App as AntApp } from 'antd';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import heIL from 'antd/locale/he_IL';
@@ -116,6 +116,7 @@ const App: React.FC = () => {
         },
       }}
     >
+      <AntApp>
       <RegexHelperProvider>
         <Router>
           <Layout className={`app-layout ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -157,6 +158,7 @@ const App: React.FC = () => {
         </Layout>
       </Router>
       </RegexHelperProvider>
+      </AntApp>
     </ConfigProvider>
     </EntitySyncProvider>
     </QueryClientProvider>

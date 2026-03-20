@@ -3,7 +3,7 @@
  * v0.2.0: NAS/NFS Architecture Support
  */
 import React, { useState } from 'react';
-import { Button, message, Space, Badge, Typography, Alert, Modal } from 'antd';
+import { Button, Space, Badge, Typography, Alert, Modal } from 'antd';
 import { PlusOutlined, HddOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,19 @@ import NasDeviceModal from '../components/NasDeviceModal';
 const NasDevicesTab: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+
+  const showToast = (type: 'success' | 'error' | 'info', title: string, desc: string) => {
+    const colors = { success: '#52c41a', error: '#ff4d4f', info: '#1677ff' };
+    const icons = { success: '✓', error: '✗', info: '⏳' };
+    const existing = document.getElementById('nas-toast');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'nas-toast';
+    el.style.cssText = `position:fixed;top:24px;right:24px;z-index:99999;min-width:320px;max-width:450px;background:white;border-radius:8px;padding:16px 20px;box-shadow:0 6px 16px rgba(0,0,0,0.15);border-right:4px solid ${colors[type]};font-family:inherit;direction:rtl;animation:slideIn 0.3s ease`;
+    el.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;color:${colors[type]}">${icons[type]}</span><div><strong style="font-size:14px">${title}</strong><br/><span style="font-size:13px;color:#666">${desc}</span></div></div>`;
+    document.body.appendChild(el);
+    if (type !== 'info') setTimeout(() => el.remove(), 6000);
+  };
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingDevice, setEditingDevice] = useState<NasDevice | null>(null);
 
@@ -33,28 +46,28 @@ const NasDevicesTab: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: deleteNasDevice,
     onSuccess: () => {
-      message.success(t('admin.nas.deleteSuccess') || 'NAS device deleted successfully');
+      showToast('success', t('common.delete') || 'Delete', t('admin.nas.deleteSuccess') || 'NAS device deleted successfully');
       queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.all });
     },
     onError: (error: Error) => {
-      message.error(error.message || t('admin.nas.deleteError') || 'Error deleting NAS device');
+      showToast('error', t('common.error') || 'Error', error.message || t('admin.nas.deleteError') || 'Error deleting NAS device');
     },
   });
 
   // Provision — use async handler with explicit loading message
   const handleProvisionExec = async (id: string) => {
     const key = `provision-${id}`;
-    message.loading({ content: t('admin.nas.provisioning') || 'Provisioning Kubernetes resources...', key, duration: 0 });
+    showToast('info', t('admin.nas.provision') || 'Provisioning', t('admin.nas.provisioning') || 'Creating Kubernetes resources...');
     try {
       const result = await provisionNasDevice(id);
       if (result.Success) {
-        message.success({ content: t('admin.nas.provisionSuccess') || 'Kubernetes resources created successfully', key, duration: 5 });
+        showToast('success', t('admin.nas.provision') || 'Provisioning', t('admin.nas.provisionSuccess') || 'Kubernetes resources created successfully');
       } else {
-        message.error({ content: result.ErrorMessage || t('admin.nas.provisionError') || 'Error provisioning', key, duration: 8 });
+        showToast('error', t('admin.nas.provision') || 'Provisioning', result.ErrorMessage || t('admin.nas.provisionError') || 'Error provisioning');
       }
       queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.all });
     } catch (error: any) {
-      message.error({ content: error.message || t('admin.nas.provisionError') || 'Error provisioning', key, duration: 8 });
+      showToast('error', t('admin.nas.provision') || 'Provisioning', error.message || t('admin.nas.provisionError') || 'Error provisioning');
     }
   };
 
@@ -85,7 +98,7 @@ const NasDevicesTab: React.FC = () => {
 
   const handleTestConnection = (device: NasDevice) => {
     // Test connection is handled in NasDeviceTable component
-    message.info(t('admin.nas.testingConnection') || 'Testing connection...');
+    // Test connection handled in NasDeviceTable component
   };
 
   const handleModalClose = () => {

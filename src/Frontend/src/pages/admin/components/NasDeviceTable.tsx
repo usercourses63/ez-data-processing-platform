@@ -3,7 +3,7 @@
  * v0.2.0: NAS/NFS Architecture Support
  */
 import React, { useState } from 'react';
-import { Table, Button, Space, Tag, Popconfirm, Tooltip, message } from 'antd';
+import { Table, Button, Space, Tag, Popconfirm, Tooltip } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -60,22 +60,36 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
   const queryClient = useQueryClient();
   const [testingDeviceId, setTestingDeviceId] = useState<string | null>(null);
 
+  // Custom toast — Ant Design 5.x static message/notification API broken without App wrapper
+  const showToast = (type: 'success' | 'error' | 'info', title: string, desc: string) => {
+    const colors = { success: '#52c41a', error: '#ff4d4f', info: '#1677ff' };
+    const icons = { success: '✓', error: '✗', info: '⏳' };
+    const existing = document.getElementById('nas-toast');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'nas-toast';
+    el.style.cssText = `position:fixed;top:24px;right:24px;z-index:99999;min-width:320px;max-width:450px;background:white;border-radius:8px;padding:16px 20px;box-shadow:0 6px 16px rgba(0,0,0,0.15);border-right:4px solid ${colors[type]};font-family:inherit;direction:rtl;animation:slideIn 0.3s ease`;
+    el.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;color:${colors[type]}">${icons[type]}</span><div><strong style="font-size:14px">${title}</strong><br/><span style="font-size:13px;color:#666">${desc}</span></div></div>`;
+    document.body.appendChild(el);
+    if (type !== 'info') setTimeout(() => el.remove(), 6000);
+  };
+
   // Test connection — use async/await with explicit message to survive re-renders
   const handleTestConnection = async (device: NasDevice) => {
+    console.log('[NAS] Test connection clicked:', device.Name, device.ID);
     setTestingDeviceId(device.ID);
-    const key = `test-conn-${device.ID}`;
-    message.loading({ content: t('admin.nas.testingConnection') || 'Testing connection...', key, duration: 0 });
+    showToast('info', device.Name, t('admin.nas.testingConnection') || 'Testing connection...');
 
     try {
       const result = await testNasDeviceConnection(device.ID);
       if (result.Success) {
-        message.success({ content: `${t('admin.nas.connectionSuccess') || 'Connection successful'} (${result.DurationMs}ms)`, key, duration: 5 });
+        showToast('success', device.Name, `${t('admin.nas.connectionSuccess') || 'Connection OK'} (${result.DurationMs}ms)`);
       } else {
-        message.error({ content: `${t('admin.nas.connectionFailed') || 'Connection failed'}: ${result.ErrorMessage}`, key, duration: 8 });
+        showToast('error', device.Name, result.ErrorMessage || t('admin.nas.connectionFailed') || 'Connection failed');
       }
       queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.all });
     } catch (error: any) {
-      message.error({ content: error.message || t('admin.nas.connectionFailed') || 'Connection failed', key, duration: 8 });
+      showToast('error', device.Name, error.message || 'Connection failed');
     } finally {
       setTestingDeviceId(null);
     }
