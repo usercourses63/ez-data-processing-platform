@@ -172,6 +172,35 @@ function mapPipelineEvent(raw: any): PipelineEvent {
 }
 
 /**
+ * Normalize DeviceHealthStatusResponse from camelCase (SignalR) or PascalCase (HTTP API)
+ */
+function normalizeHealthResponse(raw: any): DeviceHealthStatusResponse {
+  const normalizeDevice = (d: any): any => ({
+    DeviceId: d.DeviceId || d.deviceId,
+    DeviceName: d.DeviceName || d.deviceName,
+    DeviceType: d.DeviceType || d.deviceType,
+    DeviceSubType: d.DeviceSubType || d.deviceSubType,
+    Role: d.Role || d.role,
+    Status: d.Status || d.status,
+    LatencyMs: d.LatencyMs ?? d.latencyMs,
+    LastCheckTime: d.LastCheckTime || d.lastCheckTime,
+    ErrorMessage: d.ErrorMessage || d.errorMessage,
+    UptimePercentage24h: d.UptimePercentage24h ?? d.uptimePercentage24h ?? 0,
+    IsActive: d.IsActive ?? d.isActive ?? true,
+  });
+
+  return {
+    TotalDevices: raw.TotalDevices ?? raw.totalDevices ?? 0,
+    HealthyCount: raw.HealthyCount ?? raw.healthyCount ?? 0,
+    DegradedCount: raw.DegradedCount ?? raw.degradedCount ?? 0,
+    DownCount: raw.DownCount ?? raw.downCount ?? 0,
+    DisabledCount: raw.DisabledCount ?? raw.disabledCount ?? 0,
+    NasDevices: (raw.NasDevices || raw.nasDevices || []).map(normalizeDevice),
+    AdminServers: (raw.AdminServers || raw.adminServers || []).map(normalizeDevice),
+  };
+}
+
+/**
  * Multi-event SignalR hook for the monitoring dashboard.
  * Connects to the MonitoringHub and manages all real-time data streams.
  */
@@ -204,65 +233,69 @@ export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
       .build();
 
     // --- Event handlers ---
+    // Register both PascalCase and lowercase names (SignalR .NET may send either)
+    const onEvent = (name: string, handler: (raw: any) => void) => {
+      connection.on(name, handler);
+      const lower = name.charAt(0).toLowerCase() + name.slice(1);
+      if (lower !== name) connection.on(lower, handler);
+    };
 
-    connection.on('DeviceHealthUpdate', (raw: any) => {
+    onEvent('DeviceHealthUpdate', (raw: any) => {
       if (!isMountedRef.current) return;
-      setDeviceHealth(raw);
+      setDeviceHealth(normalizeHealthResponse(raw));
       setLastUpdate(new Date());
     });
 
-    connection.on('ServiceStatusUpdate', (raw: any[]) => {
+    onEvent('ServiceStatusUpdate', (raw: any[]) => {
       if (!isMountedRef.current) return;
       setServices((raw ?? []).map(mapServiceStatus));
       setLastUpdate(new Date());
     });
 
-    connection.on('PodStatusUpdate', (raw: any[]) => {
+    onEvent('PodStatusUpdate', (raw: any[]) => {
       if (!isMountedRef.current) return;
       setPods((raw ?? []).map(mapPodStatus));
       setLastUpdate(new Date());
     });
 
-    connection.on('MetricsUpdate', (raw: any) => {
+    onEvent('MetricsUpdate', (raw: any) => {
       if (!isMountedRef.current) return;
       setMetrics(mapDashboardMetrics(raw));
       setLastUpdate(new Date());
     });
 
-    connection.on('QueueStatusUpdate', (raw: any[]) => {
+    onEvent('QueueStatusUpdate', (raw: any[]) => {
       if (!isMountedRef.current) return;
       setQueues((raw ?? []).map(mapMessageQueue));
       setLastUpdate(new Date());
     });
 
-    connection.on('AlertUpdate', (raw: any[]) => {
+    onEvent('AlertUpdate', (raw: any[]) => {
       if (!isMountedRef.current) return;
       setAlerts((raw ?? []).map(mapAlert));
       setLastUpdate(new Date());
     });
 
-    connection.on('TraceUpdate', (raw: any) => {
+    onEvent('TraceUpdate', (raw: any) => {
       if (!isMountedRef.current) return;
       setTrace(Array.isArray(raw) && raw.length > 0 ? mapDistributedTrace(raw[0]) : null);
       setLastUpdate(new Date());
     });
 
-    connection.on('PipelineEventUpdate', (raw: any) => {
+    onEvent('PipelineEventUpdate', (raw: any) => {
       if (!isMountedRef.current) return;
       setEvents(prev => [mapPipelineEvent(raw), ...prev].slice(0, 50));
       setLastUpdate(new Date());
     });
 
-    connection.on('EntityChanged', (raw: any) => {
+    onEvent('EntityChanged', (raw: any) => {
       if (!isMountedRef.current) return;
-      // SignalR .NET serializes with camelCase by default
       const entityType = raw.entityType || raw.EntityType || '';
       const entityId = raw.entityId || raw.EntityId || '';
       const action = raw.action || raw.Action || '';
       const version = raw.version || raw.Version || 0;
       console.log(`[SignalR] EntityChanged: ${entityType} ${entityId} ${action} v${version}`);
 
-      // Invalidate React Query cache for the changed entity type
       const queryKeyMap: Record<string, string[]> = {
         'DataSource': ['datasources', 'datasource'],
         'NasDevice': ['nasDevices', 'nasdevices'],
@@ -275,21 +308,32 @@ export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
       });
     });
 
-    connection.on('InitialState', (raw: any) => {
+    const handleInitialState = (raw: any) => {
       if (!isMountedRef.current) return;
-      if (raw.DeviceHealth) setDeviceHealth(raw.DeviceHealth);
-      if (raw.Services) setServices((raw.Services as any[]).map(mapServiceStatus));
-      if (raw.Pods) setPods((raw.Pods as any[]).map(mapPodStatus));
-      if (raw.Metrics) setMetrics(mapDashboardMetrics(raw.Metrics));
-      if (raw.Queues) setQueues((raw.Queues as any[]).map(mapMessageQueue));
-      if (raw.Alerts) setAlerts((raw.Alerts as any[]).map(mapAlert));
-      if (raw.Traces?.length) setTrace(mapDistributedTrace(raw.Traces[0]));
-      if (raw.ClusterInfo) setClusterInfo(mapClusterInfo(raw.ClusterInfo));
-      if (raw.PipelineEvents) {
-        setEvents((raw.PipelineEvents as any[]).map(mapPipelineEvent).slice(0, 50));
+      const dh = raw.DeviceHealth || raw.deviceHealth;
+      if (dh) setDeviceHealth(normalizeHealthResponse(dh));
+      const svc = raw.Services || raw.services;
+      if (svc) setServices((svc as any[]).map(mapServiceStatus));
+      const p = raw.Pods || raw.pods;
+      if (p) setPods((p as any[]).map(mapPodStatus));
+      const m = raw.Metrics || raw.metrics;
+      if (m) setMetrics(mapDashboardMetrics(m));
+      const q = raw.Queues || raw.queues;
+      if (q) setQueues((q as any[]).map(mapMessageQueue));
+      const a = raw.Alerts || raw.alerts;
+      if (a) setAlerts((a as any[]).map(mapAlert));
+      const tr = raw.Traces || raw.traces;
+      if (tr?.length) setTrace(mapDistributedTrace(tr[0]));
+      const ci = raw.ClusterInfo || raw.clusterInfo;
+      if (ci) setClusterInfo(mapClusterInfo(ci));
+      const pe = raw.PipelineEvents || raw.pipelineEvents;
+      if (pe) {
+        setEvents((pe as any[]).map(mapPipelineEvent).slice(0, 50));
       }
       setLastUpdate(new Date());
-    });
+    };
+    connection.on('InitialState', handleInitialState);
+    connection.on('initialState', handleInitialState);
 
     // --- Connection lifecycle ---
 

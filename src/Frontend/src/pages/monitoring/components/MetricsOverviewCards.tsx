@@ -49,7 +49,7 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
         <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.totalThroughput', 'Total Throughput')}
-            value={metrics.totalThroughput.toLocaleString()}
+            value={(metrics.totalThroughput ?? 0).toLocaleString()}
             suffix="rec/s"
             prefix={<ThunderboltOutlined />}
             valueStyle={{ color: '#f1f5f9', fontSize: '1.5rem', fontWeight: 600 }}
@@ -65,7 +65,7 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
             suffix="%"
             precision={1}
             prefix={<CheckCircleOutlined />}
-            valueStyle={{ color: getSuccessRateColor(metrics.successRate) }}
+            valueStyle={{ color: getSuccessRateColor(metrics.successRate ?? 0) }}
           />
         </Card>
       </Col>
@@ -77,7 +77,7 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
             value={metrics.avgLatency}
             suffix="ms"
             prefix={<ClockCircleOutlined />}
-            valueStyle={{ color: getLatencyColor(metrics.avgLatency) }}
+            valueStyle={{ color: getLatencyColor(metrics.avgLatency ?? 0) }}
           />
         </Card>
       </Col>
@@ -97,7 +97,7 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
         <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.queueDepth', 'Queue Depth')}
-            value={metrics.queueDepth.toLocaleString()}
+            value={(metrics.queueDepth ?? 0).toLocaleString()}
             prefix={<InboxOutlined />}
             valueStyle={{ color: '#13c2c2' }}
           />

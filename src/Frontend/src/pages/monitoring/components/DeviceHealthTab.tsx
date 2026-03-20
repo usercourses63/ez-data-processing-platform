@@ -17,16 +17,16 @@ interface DeviceHealthTabProps {
 const DeviceHealthTab: React.FC<DeviceHealthTabProps> = ({ signalRData, isSignalRConnected }) => {
   const { t } = useTranslation();
 
-  // Polling fallback: only poll when SignalR is disconnected
+  // Always fetch initial data via HTTP, then reduce polling frequency when SignalR is active
   const { data: polledData, isLoading, error } = useQuery<DeviceHealthStatusResponse>({
     queryKey: ['device-health-status'],
     queryFn: getDeviceHealthStatus,
-    refetchInterval: isSignalRConnected ? false : 15000,
-    enabled: !isSignalRConnected,
+    refetchInterval: isSignalRConnected ? 60000 : 15000,
     refetchIntervalInBackground: false,
     staleTime: 10000,
   });
 
+  // Prefer SignalR real-time data, fall back to HTTP polling
   const data = signalRData ?? polledData;
 
   if (isLoading && !signalRData) {
@@ -50,7 +50,10 @@ const DeviceHealthTab: React.FC<DeviceHealthTabProps> = ({ signalRData, isSignal
     );
   }
 
-  if (!data || (data.NasDevices.length === 0 && data.AdminServers.length === 0)) {
+  const nasDevices = data?.NasDevices ?? [];
+  const adminServers = data?.AdminServers ?? [];
+
+  if (!data || (nasDevices.length === 0 && adminServers.length === 0)) {
     return (
       <Alert
         message={t('monitoring.deviceHealth.initializing')}
@@ -69,9 +72,9 @@ const DeviceHealthTab: React.FC<DeviceHealthTabProps> = ({ signalRData, isSignal
       <Title level={5} style={{ marginBottom: 12, color: '#f1f5f9' }}>
         {t('monitoring.deviceHealth.nasDevices')}
       </Title>
-      {data.NasDevices.length > 0 ? (
+      {nasDevices.length > 0 ? (
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-          {data.NasDevices.map((device) => (
+          {nasDevices.map((device) => (
             <Col key={device.DeviceId} xs={24} sm={12} lg={8} xl={6}>
               <DeviceHealthCard device={device} />
             </Col>
@@ -87,9 +90,9 @@ const DeviceHealthTab: React.FC<DeviceHealthTabProps> = ({ signalRData, isSignal
       <Title level={5} style={{ marginBottom: 12, color: '#f1f5f9' }}>
         {t('monitoring.deviceHealth.adminServers')}
       </Title>
-      {data.AdminServers.length > 0 ? (
+      {adminServers.length > 0 ? (
         <Row gutter={[16, 16]}>
-          {data.AdminServers.map((device) => (
+          {adminServers.map((device) => (
             <Col key={device.DeviceId} xs={24} sm={12} lg={8} xl={6}>
               <DeviceHealthCard device={device} />
             </Col>

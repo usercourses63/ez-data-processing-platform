@@ -10,7 +10,7 @@ interface DeviceHealthSummaryBarProps {
 const DeviceHealthSummaryBar: React.FC<DeviceHealthSummaryBarProps> = ({ data }) => {
   const { t } = useTranslation();
 
-  const activeDevices = data.TotalDevices - data.DisabledCount;
+  const activeDevices = (data.TotalDevices ?? 0) - (data.DisabledCount ?? 0);
 
   return (
     <div style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
