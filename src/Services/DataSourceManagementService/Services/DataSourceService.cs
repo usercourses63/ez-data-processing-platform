@@ -807,6 +807,9 @@ public class DataSourceService : IDataSourceService
             }
         }
         
+        // Extract FileServerId from ConfigurationSettings JSON (frontend sends as connectionConfig.inputServerId)
+        var fileServerId = ExtractFileServerIdFromConfig(request.ConfigurationSettings);
+
         return new DataProcessingDataSource
         {
             Name = request.Name,
@@ -826,7 +829,8 @@ public class DataSourceService : IDataSourceService
             Output = request.Output ?? new DataProcessing.Shared.Entities.OutputConfiguration(),
             ArchiveSettings = request.ArchiveSettings,
             NasDeviceId = request.NasDeviceId,
-            NasSubPath = request.NasSubPath
+            NasSubPath = request.NasSubPath,
+            FileServerId = fileServerId
         };
     }
 
@@ -936,8 +940,39 @@ public class DataSourceService : IDataSourceService
         entity.NasDeviceId = request.NasDeviceId;
         entity.NasSubPath = request.NasSubPath;
 
+        // Extract FileServerId from ConfigurationSettings JSON (frontend sends as connectionConfig.inputServerId)
+        var fileServerId = ExtractFileServerIdFromConfig(request.ConfigurationSettings);
+        if (!string.IsNullOrEmpty(fileServerId))
+        {
+            entity.FileServerId = fileServerId;
+        }
+
         // Mark entity as modified to ensure MongoDB saves the changes
         entity.MarkAsModified();
+    }
+
+    /// <summary>
+    /// Extracts FileServerId from the ConfigurationSettings JSON blob.
+    /// Frontend stores it as: {"connectionConfig":{"inputServerId":"abc123",...},...}
+    /// </summary>
+    private static string? ExtractFileServerIdFromConfig(string? configurationSettings)
+    {
+        if (string.IsNullOrEmpty(configurationSettings))
+            return null;
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(configurationSettings);
+            if (doc.RootElement.TryGetProperty("connectionConfig", out var connConfig) &&
+                connConfig.TryGetProperty("inputServerId", out var serverId) &&
+                serverId.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                return serverId.GetString();
+            }
+        }
+        catch { /* Invalid JSON — ignore */ }
+
+        return null;
     }
 
     /// <summary>
