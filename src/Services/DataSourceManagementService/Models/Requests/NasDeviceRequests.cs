@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using DataProcessing.Shared.Entities;
 
 namespace DataProcessing.DataSourceManagement.Models.Requests;
@@ -43,6 +44,7 @@ public class CreateNasDeviceRequest
     /// How the NAS device is used in the data processing pipeline
     /// </summary>
     [Required]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public NasDeviceRole Role { get; set; } = NasDeviceRole.Input;
 
     // ========== Storage Configuration ==========
@@ -114,6 +116,7 @@ public class UpdateNasDeviceRequest
     /// How the NAS device is used in the data processing pipeline
     /// </summary>
     [Required]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public NasDeviceRole Role { get; set; } = NasDeviceRole.Input;
 
     // ========== Storage Configuration ==========
