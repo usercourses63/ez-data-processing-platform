@@ -1,10 +1,18 @@
 import React from 'react';
+import { Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { DistributedTrace } from '../../../types/kubernetes.types';
 
 interface DistributedTracingProps {
   trace: DistributedTrace;
 }
+
+/** Strip common prefixes from Jaeger service names for compact display */
+const shortServiceName = (name: string): string => {
+  return name
+    .replace(/^DataProcessing\./, '')
+    .replace(/^Processing\./, '');
+};
 
 const DistributedTracing: React.FC<DistributedTracingProps> = ({ trace }) => {
   const { t } = useTranslation();
@@ -32,7 +40,7 @@ const DistributedTracing: React.FC<DistributedTracingProps> = ({ trace }) => {
         </div>
         <div className="trace-info">
           <span className="trace-label">{t('monitoring.totalDuration')}:</span>
-          <span className="trace-duration">{trace.totalDuration}ms</span>
+          <span className="trace-duration">{Math.round(trace.totalDuration * 100) / 100}ms</span>
         </div>
       </div>
 
@@ -41,7 +49,7 @@ const DistributedTracing: React.FC<DistributedTracingProps> = ({ trace }) => {
           <div className="timeline-header-service">{t('monitoring.service')}</div>
           <div className="timeline-header-bar">
             <span className="timeline-marker">0ms</span>
-            <span className="timeline-marker timeline-marker-end">{trace.totalDuration}ms</span>
+            <span className="timeline-marker timeline-marker-end">{Math.round(trace.totalDuration * 100) / 100}ms</span>
           </div>
         </div>
 
@@ -49,19 +57,24 @@ const DistributedTracing: React.FC<DistributedTracingProps> = ({ trace }) => {
           const startPercent = (span.start / trace.totalDuration) * 100;
           const widthPercent = (span.duration / trace.totalDuration) * 100;
 
+          const displayName = shortServiceName(span.serviceName);
+          const durationRounded = Math.round(span.duration * 100) / 100;
+
           return (
             <div key={`${span.service}-${index}`} className="trace-span">
-              <div className="trace-service-name">{span.serviceName}</div>
+              <Tooltip title={span.serviceName}>
+                <div className="trace-service-name">{displayName}</div>
+              </Tooltip>
               <div className="trace-bar-container">
                 <div
                   className="trace-bar"
                   style={{
                     left: `${startPercent}%`,
-                    width: `${widthPercent}%`,
+                    width: `${Math.max(widthPercent, 1)}%`,
                     background: getSpanColor(index),
                   }}
                 >
-                  <span className="trace-bar-duration">{span.duration}ms</span>
+                  <span className="trace-bar-duration">{durationRounded}ms</span>
                 </div>
               </div>
             </div>
