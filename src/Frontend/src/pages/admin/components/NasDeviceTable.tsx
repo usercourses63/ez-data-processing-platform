@@ -83,7 +83,8 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
     try {
       const result = await testNasDeviceConnection(device.ID);
       if (result.Success) {
-        showToast('success', device.Name, `${t('admin.nas.connectionSuccess') || 'Connection OK'} (${result.DurationMs}ms)`);
+        const isNetworkOnly = result.Message?.includes('בדיקת רשת') || result.Message?.includes('network');
+        showToast(isNetworkOnly ? 'info' : 'success', device.Name, `${result.Message || t('admin.nas.connectionSuccess') || 'Connection OK'} (${result.DurationMs}ms)`);
       } else {
         showToast('error', device.Name, result.ErrorMessage || t('admin.nas.connectionFailed') || 'Connection failed');
       }
