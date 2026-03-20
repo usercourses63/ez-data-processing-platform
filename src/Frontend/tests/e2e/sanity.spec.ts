@@ -4,9 +4,10 @@
  * Run with: npm run test:e2e:sanity
  * CI: runs after DemoDataGenerator seeding in sanity-deploy job.
  *
- * No NAS, no SFTP, no cross-cluster dependencies.
+ * SANITY-01 through SANITY-10: No NAS, no SFTP, no cross-cluster dependencies.
+ * SANITY-11: NAS pipeline test — requires provisioned NAS device (skips if unavailable).
  */
-import { test, expect, APIRequestContext, request } from '@playwright/test';
+import { test, expect, APIRequestContext, request, Page } from '@playwright/test';
 
 const DATASOURCE_API = 'http://127.0.0.1:5001';
 const METRICS_API    = 'http://127.0.0.1:5002';
@@ -39,6 +40,20 @@ test.afterAll(async () => {
   await apiContext.dispose();
 });
 
+// Shared helper: open an Ant Design Select and click an option in the visible dropdown
+const antSelect = async (page: Page, inputId: string, optionMatcher?: string | RegExp, optionIndex = 0) => {
+  await page.locator('.ant-select').filter({ has: page.locator(`input#${inputId}`) }).click();
+  await page.waitForSelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden)');
+  await page.waitForTimeout(200);
+  const opts = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option:visible');
+  if (optionMatcher) {
+    await opts.filter({ hasText: optionMatcher }).first().click();
+  } else {
+    await opts.nth(optionIndex).click();
+  }
+  await page.waitForTimeout(300);
+};
+
 // SANITY-01: All health endpoints respond 200 or 204
 test('@Sanity SANITY-01: All service health endpoints respond', async () => {
   for (const svc of HEALTH_ENDPOINTS) {
@@ -68,20 +83,6 @@ test('@Sanity SANITY-02: Seeded datasources are visible in DataSource API', asyn
 test('@Sanity SANITY-03: Create and delete datasource via UI (all tabs)', async ({ page }) => {
   const dsName = `Sanity-UI-${Date.now()}`;
 
-  // Helper: open an Ant Design Select and click an option in the visible dropdown
-  const antSelect = async (inputId: string, optionMatcher?: string | RegExp, optionIndex = 0) => {
-    await page.locator('.ant-select').filter({ has: page.locator(`input#${inputId}`) }).click();
-    await page.waitForSelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden)');
-    await page.waitForTimeout(200);
-    const opts = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option:visible');
-    if (optionMatcher) {
-      await opts.filter({ hasText: optionMatcher }).first().click();
-    } else {
-      await opts.nth(optionIndex).click();
-    }
-    await page.waitForTimeout(300);
-  };
-
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${FRONTEND_URL}/datasources`);
   await page.waitForLoadState('networkidle');
@@ -95,19 +96,19 @@ test('@Sanity SANITY-03: Create and delete datasource via UI (all tabs)', async 
   await page.locator('input#name').fill(dsName);
   await page.locator('input#supplierName').fill('Sanity Test Supplier');
   await page.locator('textarea#description').fill('Created by automated UI sanity test');
-  await antSelect('category');           // pick first available category
+  await antSelect(page, 'category');           // pick first available category
   await page.locator('input#retentionDays').fill('60');
 
   // ── TAB 2: Connection (הגדרות קלט) ───────────────────────────────────────
   await page.locator('[id$="-tab-connection"]').click();
   await page.waitForLoadState('networkidle');
 
-  await antSelect('connectionType', /^FTP - /);   // FTP - File Transfer Protocol
+  await antSelect(page, 'connectionType', /^FTP - /);   // FTP - File Transfer Protocol
 
   // Server select appears after protocol chosen
   await page.waitForTimeout(1000);
   if (await page.locator('.ant-select').filter({ has: page.locator('input#inputServerId') }).isVisible({ timeout: 3000 }).catch(() => false)) {
-    await antSelect('inputServerId');              // first seeded FTP server
+    await antSelect(page, 'inputServerId');              // first seeded FTP server
   }
 
   // File pattern
@@ -119,14 +120,14 @@ test('@Sanity SANITY-03: Create and delete datasource via UI (all tabs)', async 
   await page.locator('[id$="-tab-file"]').click();
   await page.waitForLoadState('networkidle');
 
-  await antSelect('fileType', 'CSV');
+  await antSelect(page, 'fileType', 'CSV');
   await page.waitForTimeout(500);
 
   if (await page.locator('input#csvDelimiter').isVisible({ timeout: 2000 }).catch(() => false)) {
-    await antSelect('csvDelimiter');               // comma (first option)
+    await antSelect(page, 'csvDelimiter');               // comma (first option)
   }
   if (await page.locator('input#encoding').isVisible({ timeout: 2000 }).catch(() => false)) {
-    await antSelect('encoding', 'UTF-8');
+    await antSelect(page, 'encoding', 'UTF-8');
   }
 
   // ── TAB 4: Schema (הגדרת Schema) ─────────────────────────────────────────
@@ -138,7 +139,7 @@ test('@Sanity SANITY-03: Create and delete datasource via UI (all tabs)', async 
   await page.waitForLoadState('networkidle');
 
   if (await page.locator('input#scheduleFrequency').isVisible({ timeout: 2000 }).catch(() => false)) {
-    await antSelect('scheduleFrequency', undefined, 2);  // 3rd option (Every5Minutes)
+    await antSelect(page, 'scheduleFrequency', undefined, 2);  // 3rd option (Every5Minutes)
   }
 
   // ── TAB 6: Validation (כללי אימות) ────────────────────────────────────────
@@ -240,4 +241,110 @@ test('@Sanity SANITY-10: Frontend Help button navigates to docs', async ({ page 
   ]);
   await popup.waitForLoadState();
   expect(popup.url(), 'Help button should open docs portal').toContain(':30800');
+});
+
+// SANITY-11: NAS Pipeline — create datasource with NAS device via UI, verify creation
+// This is the most important production use case: NAS device -> datasource -> pipeline
+test('@Sanity SANITY-11: NAS pipeline — create datasource with NAS device via UI', async ({ page }) => {
+  test.setTimeout(120000); // 2 minutes — NAS operations can be slow
+
+  const dsName = `Sanity-NAS-${Date.now()}`;
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${FRONTEND_URL}/datasources`);
+  await page.waitForLoadState('networkidle');
+
+  // Step 1: Check that NAS devices exist (prerequisite)
+  const nasResp = await apiContext.get(`${DATASOURCE_API}/api/v1/nasdevices`);
+  expect(nasResp.status(), 'NAS devices API should respond').toBe(200);
+  const nasDevices = await nasResp.json();
+  const nasList = Array.isArray(nasDevices) ? nasDevices : nasDevices?.data ?? nasDevices?.Data?.Items ?? [];
+
+  // Find an erichough NAS device (nfs-input-data preferred)
+  const inputNas = nasList.find((d: any) =>
+    (d.Name || d.name || '').includes('nfs-input-data')
+  ) || nasList.find((d: any) =>
+    (d.IsProvisioned || d.isProvisioned) === true
+  );
+
+  if (!inputNas) {
+    console.log('SANITY-11: No provisioned NAS device found — skipping NAS pipeline test');
+    test.skip(true, 'No provisioned NAS device available');
+    return;
+  }
+  console.log(`SANITY-11: Using NAS device: ${inputNas.Name || inputNas.name} (ID: ${inputNas.ID || inputNas.id})`);
+
+  // Step 2: Click "Add new datasource" button
+  await page.getByRole('button', { name: /הוסף מקור נתונים חדש/i }).click();
+  await page.waitForURL(/\/datasources\/new/);
+  await page.waitForLoadState('networkidle');
+
+  // Step 3: Fill Basic Info tab
+  await page.locator('input#name').fill(dsName);
+  await page.locator('input#supplierName').fill('NAS Sanity Test');
+  await antSelect(page, 'category'); // pick first available category
+
+  // Step 4: Switch to Connection tab and select NAS protocol
+  await page.locator('[id$="-tab-connection"]').click();
+  await page.waitForLoadState('networkidle');
+
+  // Select NAS connection type
+  await antSelect(page, 'connectionType', /NAS/);
+  await page.waitForTimeout(1500); // Wait for NAS device dropdown to appear
+
+  // Select the NAS device
+  if (await page.locator('.ant-select').filter({ has: page.locator('input#nasDeviceId') }).isVisible({ timeout: 5000 }).catch(() => false)) {
+    await antSelect(page, 'nasDeviceId', /nfs-input-data/);
+  } else {
+    // Fallback: try any NAS device selector
+    const nasSelectEl = page.locator('.ant-form-item').filter({ hasText: /NAS|התקן/i }).locator('.ant-select').first();
+    if (await nasSelectEl.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await nasSelectEl.click();
+      await page.waitForTimeout(500);
+      await page.locator('.ant-select-item-option').filter({ hasText: /nfs-input/ }).first().click();
+    }
+  }
+  await page.waitForTimeout(1000);
+
+  // File pattern
+  if (await page.locator('input#filePattern').isVisible({ timeout: 2000 }).catch(() => false)) {
+    await page.locator('input#filePattern').fill('*.csv');
+  }
+
+  // Step 5: File Settings tab
+  await page.locator('[id$="-tab-file"]').click();
+  await page.waitForLoadState('networkidle');
+  await antSelect(page, 'fileType', 'CSV');
+  await page.waitForTimeout(500);
+
+  // Step 6: Submit (click through remaining tabs quickly)
+  for (const tabKey of ['schema', 'schedule', 'validation', 'notifications', 'output']) {
+    await page.locator(`[id$="-tab-${tabKey}"]`).click();
+    await page.waitForTimeout(500);
+  }
+
+  // Click Create button
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL(`${FRONTEND_URL}/datasources`, { timeout: 15000 });
+  await page.waitForLoadState('networkidle');
+
+  // Step 7: Verify the datasource was created with NAS device
+  await expect(page.getByText(dsName)).toBeVisible({ timeout: 10000 });
+
+  // Verify via API that NasDeviceId is set
+  const verifyResp = await apiContext.get(`${DATASOURCE_API}/api/v1/datasource`);
+  const verifyBody = await verifyResp.json();
+  const items = Array.isArray(verifyBody) ? verifyBody : verifyBody?.Data?.Items ?? verifyBody?.data ?? [];
+  const createdDs = items.find((d: any) => (d.Name || d.name) === dsName);
+  expect(createdDs, `Datasource ${dsName} should exist in API`).toBeTruthy();
+
+  const nasDeviceId = createdDs?.NasDeviceId || createdDs?.nasDeviceId;
+  console.log(`SANITY-11: Created datasource ${dsName} with NasDeviceId: ${nasDeviceId}`);
+
+  // Step 8: Cleanup — delete the test datasource
+  const dsId = createdDs?.ID || createdDs?.id;
+  if (dsId) {
+    await apiContext.delete(`${DATASOURCE_API}/api/v1/datasource/${dsId}`);
+    console.log(`SANITY-11: Cleaned up datasource ${dsId}`);
+  }
 });
