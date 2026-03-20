@@ -84,16 +84,16 @@ const EVENT_TEMPLATES = {
  * - Database Write: Data persistence operations
  */
 export const PIPELINE_CONNECTIONS: ServiceConnection[] = [
-  // PRIMARY KAFKA EVENT FLOW
-  { from: 'datasource', to: 'scheduling' },      // DataSourceCreated/Updated/Deleted Event
-  { from: 'scheduling', to: 'filediscovery' },   // FilePollingEvent
-  { from: 'filediscovery', to: 'fileprocessor' }, // FileDiscoveredEvent
-  { from: 'fileprocessor', to: 'validation' },    // ValidationRequestEvent
-  { from: 'validation', to: 'output' },           // ValidationCompletedEvent
+  // PRIMARY MASSTRANSIT/RABBITMQ EVENT FLOW
+  { from: 'datasource-management', to: 'scheduling' },      // DataSourceCreated/Updated/Deleted Event
+  { from: 'scheduling', to: 'filediscovery' },              // FilePollingEvent
+  { from: 'filediscovery', to: 'fileprocessor' },           // FileDiscoveredEvent
+  { from: 'fileprocessor', to: 'validation' },              // ValidationRequestEvent
+  { from: 'validation', to: 'output' },                     // ValidationCompletedEvent
 
   // SIDE FLOWS
-  { from: 'validation', to: 'invalidrecords' },   // Database Write (MongoDB)
-  { from: 'invalidrecords', to: 'validation' },   // Reprocess Event
+  { from: 'validation', to: 'invalid-records' },            // Database Write (MongoDB)
+  { from: 'invalid-records', to: 'validation' },            // Reprocess Event
 
   // Note: Validation ↔ Metrics Config is HTTP API (not included in particle animation)
 ];
@@ -342,8 +342,8 @@ export function generateSuccessFailureMetrics(): SuccessFailureMetrics {
  */
 export function getServicePositions(): Array<{ id: string; name: string; displayName: string; x: number; y: number; icon: string }> {
   return [
-    // PRIMARY FLOW (Top to Bottom, then Left to Right)
-    { id: 'datasource', name: 'DataSourceManagement', displayName: 'Data Source Mgmt', x: 100, y: 60, icon: '🗂️' },
+    // PRIMARY FLOW — IDs match K8s deployment names
+    { id: 'datasource-management', name: 'DataSourceManagement', displayName: 'Data Source Mgmt', x: 100, y: 60, icon: '🗂️' },
     { id: 'scheduling', name: 'Scheduling', displayName: 'Scheduling', x: 100, y: 220, icon: '⏰' },
     { id: 'filediscovery', name: 'FileDiscovery', displayName: 'File Discovery', x: 280, y: 220, icon: '📥' },
     { id: 'fileprocessor', name: 'FileProcessor', displayName: 'File Processor', x: 460, y: 220, icon: '⚙️' },
@@ -351,7 +351,7 @@ export function getServicePositions(): Array<{ id: string; name: string; display
     { id: 'output', name: 'Output', displayName: 'Output', x: 820, y: 220, icon: '📤' },
 
     // SUPPORTING SERVICES (Top row)
-    { id: 'metrics', name: 'MetricsConfiguration', displayName: 'Metrics Config', x: 640, y: 60, icon: '📊' },
-    { id: 'invalidrecords', name: 'InvalidRecords', displayName: 'Invalid Records', x: 820, y: 60, icon: '⚠️' },
+    { id: 'metrics-configuration', name: 'MetricsConfiguration', displayName: 'Metrics Config', x: 640, y: 60, icon: '📊' },
+    { id: 'invalid-records', name: 'InvalidRecords', displayName: 'Invalid Records', x: 820, y: 60, icon: '⚠️' },
   ];
 }

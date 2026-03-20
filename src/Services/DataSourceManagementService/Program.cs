@@ -136,7 +136,7 @@ services.AddHostedService<DeviceHealthService>();
 // Register monitoring data services (v0.2.0: SignalR Real-Time Updates, MON-07)
 services.AddScoped<IKubernetesMonitoringService, KubernetesMonitoringService>();
 services.AddScoped<IPrometheusQueryService, PrometheusQueryService>();
-services.AddScoped<IKafkaMonitoringService, KafkaMonitoringService>();
+services.AddScoped<IKafkaMonitoringService, RabbitMqMonitoringService>();
 
 // Register SignalR hub and monitoring broadcaster
 services.AddSignalR();

@@ -102,12 +102,12 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({ services }) => {
   // Determine connection type and style
   const getConnectionStyle = (from: string, to: string): { color: string; dashPattern: number[]; lineWidth: number } => {
     // Database write (Validation → Invalid Records)
-    if (from === 'validation' && to === 'invalidrecords') {
+    if (from === 'validation' && to === 'invalid-records') {
       return { color: '#8b5cf6', dashPattern: [2, 4], lineWidth: 2 }; // Purple dotted
     }
 
     // Reprocess flow (Invalid Records → Validation)
-    if (from === 'invalidrecords' && to === 'validation') {
+    if (from === 'invalid-records' && to === 'validation') {
       return { color: '#10b981', dashPattern: [6, 3], lineWidth: 2 }; // Green dashed
     }
 
@@ -301,7 +301,7 @@ const PipelineFlow: React.FC<PipelineFlowProps> = ({ services }) => {
 
     // Draw HTTP API connection (Validation ↔ Metrics Config)
     const validationPos = servicePositions.find(s => s.id === 'validation');
-    const metricsPos = servicePositions.find(s => s.id === 'metrics');
+    const metricsPos = servicePositions.find(s => s.id === 'metrics-configuration');
     if (validationPos && metricsPos) {
       drawHTTPConnection(ctx, validationPos, metricsPos);
     }
