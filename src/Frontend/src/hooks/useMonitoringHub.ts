@@ -253,9 +253,14 @@ export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
       setLastUpdate(new Date());
     });
 
-    connection.on('EntityChanged', (data: { EntityType: string; EntityId: string; Action: string; Version: number }) => {
+    connection.on('EntityChanged', (raw: any) => {
       if (!isMountedRef.current) return;
-      console.log(`[SignalR] EntityChanged: ${data.EntityType} ${data.EntityId} ${data.Action} v${data.Version}`);
+      // SignalR .NET serializes with camelCase by default
+      const entityType = raw.entityType || raw.EntityType || '';
+      const entityId = raw.entityId || raw.EntityId || '';
+      const action = raw.action || raw.Action || '';
+      const version = raw.version || raw.Version || 0;
+      console.log(`[SignalR] EntityChanged: ${entityType} ${entityId} ${action} v${version}`);
 
       // Invalidate React Query cache for the changed entity type
       const queryKeyMap: Record<string, string[]> = {
@@ -264,7 +269,7 @@ export function useMonitoringHub(hubUrl: string): MonitoringHubResult {
         'AdminServer': ['adminservers', 'servers'],
       };
 
-      const keysToInvalidate = queryKeyMap[data.EntityType] || [data.EntityType.toLowerCase()];
+      const keysToInvalidate = queryKeyMap[entityType] || [entityType.toLowerCase()];
       keysToInvalidate.forEach(key => {
         queryClient.invalidateQueries({ queryKey: [key] });
       });

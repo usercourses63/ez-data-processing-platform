@@ -15,6 +15,13 @@ import AppSidebar from './components/layout/AppSidebar';
 import AppFooter from './components/layout/AppFooter';
 import RegexHelperProvider from './components/schema/RegexHelperProvider';
 import { LoadingState, ErrorBoundary } from './components/shared';
+import { useEntitySync } from './hooks/useEntitySync';
+
+// Invisible component that maintains global SignalR connection for CRUD sync
+const EntitySyncProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useEntitySync();
+  return <>{children}</>;
+};
 
 // Lazy load all page components for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -76,6 +83,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
+      <EntitySyncProvider>
       <ConfigProvider
         locale={antdLocale}
         direction={isRTL ? 'rtl' : 'ltr'}
@@ -150,6 +158,7 @@ const App: React.FC = () => {
       </Router>
       </RegexHelperProvider>
     </ConfigProvider>
+    </EntitySyncProvider>
     </QueryClientProvider>
     </ErrorBoundary>
   );
