@@ -114,9 +114,9 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
               <Tag color="default" style={{ margin: 0 }}>{t('admin.nas.status.notProvisioned') || 'לא הוקצה'}</Tag>
             )}
             {record.LastConnectionSuccess === true ? (
-              <Tag color="green" style={{ margin: 0 }}>{'מחובר'}</Tag>
+              <Tag color="green" style={{ margin: 0 }}>{t('admin.nas.status.connected') || 'מחובר'}</Tag>
             ) : record.LastConnectionSuccess === false ? (
-              <Tag color="red" style={{ margin: 0 }}>{'לא מחובר'}</Tag>
+              <Tag color="red" style={{ margin: 0 }}>{t('admin.nas.status.disconnected') || 'לא מחובר'}</Tag>
             ) : null}
           </Space>
         </Space>

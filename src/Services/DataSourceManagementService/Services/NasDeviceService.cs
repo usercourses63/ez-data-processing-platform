@@ -184,6 +184,20 @@ public class NasDeviceService : INasDeviceService
             return false;
         }
 
+        // Deprovision K8s resources (PV/PVC + unmount) before soft-deleting
+        if (existing.IsPvCreated || existing.IsPvcBound)
+        {
+            _logger.LogInformation("Deprovisioning K8s resources before deleting NAS device {Name}", existing.Name);
+            try
+            {
+                await DeprovisionNasDeviceAsync(id, "ez-platform", ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to deprovision NAS device {Id} during delete, proceeding with soft-delete", id);
+            }
+        }
+
         // Soft delete
         existing.IsDeleted = true;
         existing.IsActive = false;

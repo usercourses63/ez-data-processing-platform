@@ -1,0 +1,294 @@
+{
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+        "annotations": {
+            "deployment.kubernetes.io/revision": "7",
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"filediscovery\",\"component\":\"processing\",\"tier\":\"backend\"},\"name\":\"filediscovery\",\"namespace\":\"ez-platform\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"filediscovery\"}},\"strategy\":{\"rollingUpdate\":{\"maxSurge\":1,\"maxUnavailable\":0},\"type\":\"RollingUpdate\"},\"template\":{\"metadata\":{\"labels\":{\"app\":\"filediscovery\",\"component\":\"processing\",\"tier\":\"backend\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"ASPNETCORE_ENVIRONMENT\",\"value\":\"Production\"},{\"name\":\"ASPNETCORE_URLS\",\"value\":\"http://+:5007\"},{\"name\":\"ConnectionStrings__MongoDB\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"mongodb-connection\",\"name\":\"services-config\"}}},{\"name\":\"MassTransit__UseKafka\",\"value\":\"true\"},{\"name\":\"MassTransit__Kafka__Server\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"kafka-server\",\"name\":\"services-config\"}}},{\"name\":\"OpenTelemetry__OtlpEndpoint\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"otlp-endpoint\",\"name\":\"services-config\"}}},{\"name\":\"FileDiscovery__DeduplicationTTLHours\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"FileDiscovery__DeduplicationTTLHours\",\"name\":\"services-config\"}}},{\"name\":\"Hazelcast__Server\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"hazelcast-server\",\"name\":\"services-config\"}}},{\"name\":\"Hazelcast__ClusterName\",\"value\":\"data-processing-cluster\"}],\"envFrom\":[{\"configMapRef\":{\"name\":\"file-simulator-config\",\"optional\":true}}],\"image\":\"ez-platform/filediscovery:v0.1.1-rc3\",\"imagePullPolicy\":\"IfNotPresent\",\"livenessProbe\":{\"failureThreshold\":3,\"httpGet\":{\"path\":\"/health\",\"port\":5007},\"initialDelaySeconds\":30,\"periodSeconds\":10,\"timeoutSeconds\":5},\"name\":\"filediscovery\",\"ports\":[{\"containerPort\":5007,\"name\":\"http\",\"protocol\":\"TCP\"}],\"readinessProbe\":{\"failureThreshold\":2,\"httpGet\":{\"path\":\"/health\",\"port\":5007},\"initialDelaySeconds\":15,\"periodSeconds\":5,\"timeoutSeconds\":3},\"resources\":{\"limits\":{\"cpu\":\"500m\",\"memory\":\"1Gi\"},\"requests\":{\"cpu\":\"50m\",\"memory\":\"256Mi\"}},\"securityContext\":{\"allowPrivilegeEscalation\":false,\"capabilities\":{\"drop\":[\"ALL\"]}},\"volumeMounts\":[{\"mountPath\":\"/data/input\",\"name\":\"data-input\",\"readOnly\":true},{\"mountPath\":\"/mnt/external-test-data\",\"name\":\"external-data\",\"readOnly\":true}]}],\"restartPolicy\":\"Always\",\"securityContext\":{\"fsGroup\":1000,\"runAsGroup\":1000,\"runAsNonRoot\":true,\"runAsUser\":1000,\"seccompProfile\":{\"type\":\"RuntimeDefault\"}},\"volumes\":[{\"name\":\"data-input\",\"persistentVolumeClaim\":{\"claimName\":\"data-input-pvc\"}},{\"emptyDir\":{},\"name\":\"external-data\"}]}}}}\n"
+        },
+        "creationTimestamp": "2026-02-26T15:18:45Z",
+        "generation": 7,
+        "labels": {
+            "app": "filediscovery",
+            "component": "processing",
+            "tier": "backend"
+        },
+        "name": "filediscovery",
+        "namespace": "ez-platform",
+        "resourceVersion": "81206",
+        "uid": "1221138e-9e2f-4c98-802a-8d2a212ace0e"
+    },
+    "spec": {
+        "progressDeadlineSeconds": 600,
+        "replicas": 1,
+        "revisionHistoryLimit": 10,
+        "selector": {
+            "matchLabels": {
+                "app": "filediscovery"
+            }
+        },
+        "strategy": {
+            "rollingUpdate": {
+                "maxSurge": 1,
+                "maxUnavailable": 0
+            },
+            "type": "RollingUpdate"
+        },
+        "template": {
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/restartedAt": "2026-02-26T17:26:58+02:00"
+                },
+                "labels": {
+                    "app": "filediscovery",
+                    "component": "processing",
+                    "tier": "backend"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "ASPNETCORE_ENVIRONMENT",
+                                "value": "Production"
+                            },
+                            {
+                                "name": "ASPNETCORE_URLS",
+                                "value": "http://+:5007"
+                            },
+                            {
+                                "name": "ConnectionStrings__MongoDB",
+                                "valueFrom": {
+                                    "configMapKeyRef": {
+                                        "key": "mongodb-connection",
+                                        "name": "services-config"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "MassTransit__UseKafka",
+                                "value": "true"
+                            },
+                            {
+                                "name": "MassTransit__Kafka__Server",
+                                "valueFrom": {
+                                    "configMapKeyRef": {
+                                        "key": "kafka-server",
+                                        "name": "services-config"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "OpenTelemetry__OtlpEndpoint",
+                                "valueFrom": {
+                                    "configMapKeyRef": {
+                                        "key": "otlp-endpoint",
+                                        "name": "services-config"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "FileDiscovery__DeduplicationTTLHours",
+                                "valueFrom": {
+                                    "configMapKeyRef": {
+                                        "key": "FileDiscovery__DeduplicationTTLHours",
+                                        "name": "services-config"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "Hazelcast__Server",
+                                "valueFrom": {
+                                    "configMapKeyRef": {
+                                        "key": "hazelcast-server",
+                                        "name": "services-config"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "Hazelcast__ClusterName",
+                                "value": "data-processing-cluster"
+                            }
+                        ],
+                        "envFrom": [
+                            {
+                                "configMapRef": {
+                                    "name": "file-simulator-config",
+                                    "optional": true
+                                }
+                            }
+                        ],
+                        "image": "ez-platform/filediscovery:v0.1.1-rc3",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/health",
+                                "port": 5007,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 5
+                        },
+                        "name": "filediscovery",
+                        "ports": [
+                            {
+                                "containerPort": 5007,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 2,
+                            "httpGet": {
+                                "path": "/health",
+                                "port": 5007,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 15,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 3
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "500m",
+                                "memory": "1Gi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "256Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "capabilities": {
+                                "drop": [
+                                    "ALL"
+                                ]
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/data/input",
+                                "name": "data-input",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/external-test-data",
+                                "name": "external-data",
+                                "readOnly": true
+                            },
+                            {
+                                "mountPath": "/mnt/e2e-nas-static-1772119975243",
+                                "name": "nas-e2e-nas-static-1772119975243"
+                            },
+                            {
+                                "mountPath": "/mnt/e2e-nas-dynamic-1772119988184",
+                                "name": "nas-e2e-nas-dynamic-1772119988184"
+                            },
+                            {
+                                "mountPath": "/mnt/e2e-nas-dynamic-1772119996635",
+                                "name": "nas-e2e-nas-dynamic-1772119996635"
+                            },
+                            {
+                                "mountPath": "/mnt/e2e-nas-dynamic-1772120004945",
+                                "name": "nas-e2e-nas-dynamic-1772120004945"
+                            },
+                            {
+                                "mountPath": "/mnt/e2e-nas-dynamic-1772120013198",
+                                "name": "nas-e2e-nas-dynamic-1772120013198"
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1000,
+                    "runAsGroup": 1000,
+                    "runAsNonRoot": true,
+                    "runAsUser": 1000,
+                    "seccompProfile": {
+                        "type": "RuntimeDefault"
+                    }
+                },
+                "terminationGracePeriodSeconds": 30,
+                "volumes": [
+                    {
+                        "name": "data-input",
+                        "persistentVolumeClaim": {
+                            "claimName": "data-input-pvc"
+                        }
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "external-data"
+                    },
+                    {
+                        "name": "nas-e2e-nas-static-1772119975243",
+                        "persistentVolumeClaim": {
+                            "claimName": "e2e-nas-static-1772119975243-pvc"
+                        }
+                    },
+                    {
+                        "name": "nas-e2e-nas-dynamic-1772119988184",
+                        "persistentVolumeClaim": {
+                            "claimName": "e2e-nas-dynamic-1772119988184-pvc"
+                        }
+                    },
+                    {
+                        "name": "nas-e2e-nas-dynamic-1772119996635",
+                        "persistentVolumeClaim": {
+                            "claimName": "e2e-nas-dynamic-1772119996635-pvc"
+                        }
+                    },
+                    {
+                        "name": "nas-e2e-nas-dynamic-1772120004945",
+                        "persistentVolumeClaim": {
+                            "claimName": "e2e-nas-dynamic-1772120004945-pvc"
+                        }
+                    },
+                    {
+                        "name": "nas-e2e-nas-dynamic-1772120013198",
+                        "persistentVolumeClaim": {
+                            "claimName": "e2e-nas-dynamic-1772120013198-pvc"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "status": {
+        "availableReplicas": 1,
+        "conditions": [
+            {
+                "lastTransitionTime": "2026-02-26T15:27:17Z",
+                "lastUpdateTime": "2026-02-26T15:27:17Z",
+                "message": "Deployment has minimum availability.",
+                "reason": "MinimumReplicasAvailable",
+                "status": "True",
+                "type": "Available"
+            },
+            {
+                "lastTransitionTime": "2026-02-26T15:43:38Z",
+                "lastUpdateTime": "2026-02-26T15:43:38Z",
+                "message": "ReplicaSet \"filediscovery-695f878fcb\" has timed out progressing.",
+                "reason": "ProgressDeadlineExceeded",
+                "status": "False",
+                "type": "Progressing"
+            }
+        ],
+        "observedGeneration": 7,
+        "readyReplicas": 1,
+        "replicas": 2,
+        "unavailableReplicas": 1,
+        "updatedReplicas": 1
+    }
+}

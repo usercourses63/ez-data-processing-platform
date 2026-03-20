@@ -548,7 +548,9 @@
         "pvPending": "PV Pending",
         "pvcBound": "PVC Bound",
         "pvcPending": "PVC Pending",
-        "notProvisioned": "Not Provisioned"
+        "notProvisioned": "Not Provisioned",
+        "connected": "Connected",
+        "disconnected": "Disconnected"
       },
       "sections": {
         "connection": "Connection Settings",

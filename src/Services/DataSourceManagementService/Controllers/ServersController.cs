@@ -1,7 +1,9 @@
+using DataProcessing.DataSourceManagement.Hubs;
 using DataProcessing.DataSourceManagement.Models.Requests;
 using DataProcessing.DataSourceManagement.Services;
 using DataProcessing.Shared.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
 using System.Text.Json;
 
@@ -15,13 +17,16 @@ namespace DataProcessing.DataSourceManagement.Controllers;
 public class ServersController : ControllerBase
 {
     private readonly IServerService _serverService;
+    private readonly IHubContext<MonitoringHub> _hubContext;
     private readonly ILogger<ServersController> _logger;
 
     public ServersController(
         IServerService serverService,
+        IHubContext<MonitoringHub> hubContext,
         ILogger<ServersController> logger)
     {
         _serverService = serverService;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -213,6 +218,14 @@ public class ServersController : ControllerBase
 
             var created = await _serverService.CreateServerAsync(server, cancellationToken);
 
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "AdminServer",
+                EntityId = created.ID,
+                Action = "created",
+                Version = created.Version
+            });
+
             return CreatedAtAction(nameof(GetById), new { id = created.ID }, created);
         }
         catch (Exception ex)
@@ -269,6 +282,14 @@ public class ServersController : ControllerBase
                 return NotFound(new { message = $"שרת לא נמצא: {id}" });
             }
 
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "AdminServer",
+                EntityId = id,
+                Action = "updated",
+                Version = updated.Version
+            });
+
             return Ok(updated);
         }
         catch (Exception ex)
@@ -299,6 +320,14 @@ public class ServersController : ControllerBase
             {
                 return NotFound(new { message = $"שרת לא נמצא: {id}" });
             }
+
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "AdminServer",
+                EntityId = id,
+                Action = "deleted",
+                Version = 0
+            });
 
             return NoContent();
         }
@@ -363,6 +392,14 @@ public class ServersController : ControllerBase
             {
                 return NotFound(new { message = $"שרת לא נמצא: {id}" });
             }
+
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "AdminServer",
+                EntityId = id,
+                Action = "updated",
+                Version = server.Version
+            });
 
             return Ok(server);
         }

@@ -1,7 +1,9 @@
+using DataProcessing.DataSourceManagement.Hubs;
 using DataProcessing.DataSourceManagement.Models.Requests;
 using DataProcessing.DataSourceManagement.Services;
 using DataProcessing.Shared.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DataProcessing.DataSourceManagement.Controllers;
 
@@ -13,13 +15,16 @@ namespace DataProcessing.DataSourceManagement.Controllers;
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryService _categoryService;
+    private readonly IHubContext<MonitoringHub> _hubContext;
     private readonly ILogger<CategoriesController> _logger;
 
     public CategoriesController(
         ICategoryService categoryService,
+        IHubContext<MonitoringHub> hubContext,
         ILogger<CategoriesController> logger)
     {
         _categoryService = categoryService;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -109,6 +114,14 @@ public class CategoriesController : ControllerBase
 
             var created = await _categoryService.CreateCategoryAsync(category, cancellationToken);
 
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "Category",
+                EntityId = created.ID,
+                Action = "created",
+                Version = 0
+            });
+
             return CreatedAtAction(nameof(GetById), new { id = created.ID }, created);
         }
         catch (Exception ex)
@@ -157,6 +170,14 @@ public class CategoriesController : ControllerBase
                 return NotFound(new { message = $"קטגוריה לא נמצאה: {id}" });
             }
 
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "Category",
+                EntityId = id,
+                Action = "updated",
+                Version = 0
+            });
+
             return Ok(updated);
         }
         catch (Exception ex)
@@ -188,6 +209,14 @@ public class CategoriesController : ControllerBase
                 return NotFound(new { message = $"קטגוריה לא נמצאה: {id}" });
             }
 
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "Category",
+                EntityId = id,
+                Action = "deleted",
+                Version = 0
+            });
+
             return NoContent();
         }
         catch (Exception ex)
@@ -218,6 +247,14 @@ public class CategoriesController : ControllerBase
             }
 
             await _categoryService.ReorderCategoriesAsync(request.CategoryIds, cancellationToken);
+
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "Category",
+                EntityId = "",
+                Action = "reordered",
+                Version = 0
+            });
 
             return Ok(new { message = "קטגוריות סודרו מחדש בהצלחה" });
         }
@@ -251,6 +288,14 @@ public class CategoriesController : ControllerBase
             {
                 return NotFound(new { message = $"קטגוריה לא נמצאה: {id}" });
             }
+
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "Category",
+                EntityId = id,
+                Action = "updated",
+                Version = 0
+            });
 
             return Ok(category);
         }
