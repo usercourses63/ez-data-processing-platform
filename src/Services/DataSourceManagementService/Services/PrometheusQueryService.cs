@@ -147,74 +147,99 @@ public class PrometheusQueryService : IPrometheusQueryService
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(5);
 
-            var url = $"{JaegerUrl}/api/traces?service=DataProcessing.DataSourceManagement&limit=5&lookback=1h";
-            var response = await client.GetAsync(url, ct);
-            if (!response.IsSuccessStatusCode)
-                return new List<TraceDto>();
+            // Query multiple services to find multi-span pipeline traces
+            var services = new[] {
+                "DataProcessing.DataSourceManagement",
+                "DataProcessing.Scheduling",
+                "DataProcessing.FileDiscovery",
+                "DataProcessing.FileProcessor",
+                "DataProcessing.Validation",
+                "DataProcessing.Output"
+            };
 
-            var json = await response.Content.ReadAsStringAsync(ct);
-            using var doc = JsonDocument.Parse(json);
+            var allTraces = new List<TraceDto>();
 
-            var traces = new List<TraceDto>();
-            if (!doc.RootElement.TryGetProperty("data", out var data))
-                return traces;
-
-            foreach (var trace in data.EnumerateArray())
+            foreach (var service in services)
             {
-                var traceId = trace.TryGetProperty("traceID", out var tid) ? tid.GetString() ?? "" : "";
-                var spans = new List<TraceSpanDto>();
-                double totalDuration = 0;
-                DateTime timestamp = DateTime.UtcNow;
+                var url = $"{JaegerUrl}/api/traces?service={service}&limit=3&lookback=1h";
+                var response = await client.GetAsync(url, ct);
+                if (!response.IsSuccessStatusCode)
+                    continue;
 
-                if (trace.TryGetProperty("spans", out var spansArray))
+                var json = await response.Content.ReadAsStringAsync(ct);
+                using var doc = JsonDocument.Parse(json);
+
+                if (!doc.RootElement.TryGetProperty("data", out var data))
+                    continue;
+
+                foreach (var trace in data.EnumerateArray())
                 {
-                    foreach (var span in spansArray.EnumerateArray())
-                    {
-                        var duration = span.TryGetProperty("duration", out var dur) ? dur.GetDouble() / 1000.0 : 0; // microseconds to ms
-                        var startTime = span.TryGetProperty("startTime", out var st) ? st.GetDouble() / 1000.0 : 0;
+                    var traceId = trace.TryGetProperty("traceID", out var tid) ? tid.GetString() ?? "" : "";
 
-                        var processId = span.TryGetProperty("processID", out var pid) ? pid.GetString() ?? "" : "";
-                        var serviceName = "";
-                        if (trace.TryGetProperty("processes", out var processes) &&
-                            processes.TryGetProperty(processId, out var process) &&
-                            process.TryGetProperty("serviceName", out var sn))
+                    // Skip duplicates (same trace from multiple services)
+                    if (allTraces.Any(t => t.TraceId == traceId))
+                        continue;
+
+                    var spans = new List<TraceSpanDto>();
+                    double traceStartUs = double.MaxValue;
+                    double traceEndUs = 0;
+                    DateTime timestamp = DateTime.UtcNow;
+
+                    if (trace.TryGetProperty("spans", out var spansArray))
+                    {
+                        // First pass: find trace start time
+                        foreach (var span in spansArray.EnumerateArray())
                         {
-                            serviceName = sn.GetString() ?? "";
+                            var startUs = span.TryGetProperty("startTime", out var st) ? st.GetDouble() : 0;
+                            var durationUs = span.TryGetProperty("duration", out var dur) ? dur.GetDouble() : 0;
+                            if (startUs < traceStartUs) traceStartUs = startUs;
+                            if (startUs + durationUs > traceEndUs) traceEndUs = startUs + durationUs;
                         }
 
-                        spans.Add(new TraceSpanDto
+                        // Second pass: build spans with relative start times
+                        foreach (var span in spansArray.EnumerateArray())
                         {
-                            Service = serviceName,
-                            ServiceName = serviceName,
-                            Start = startTime,
-                            Duration = duration
-                        });
+                            var startUs = span.TryGetProperty("startTime", out var st) ? st.GetDouble() : 0;
+                            var durationUs = span.TryGetProperty("duration", out var dur) ? dur.GetDouble() : 0;
 
-                        if (duration > totalDuration)
-                            totalDuration = duration;
-                    }
+                            var processId = span.TryGetProperty("processID", out var pid) ? pid.GetString() ?? "" : "";
+                            var serviceName = "";
+                            if (trace.TryGetProperty("processes", out var processes) &&
+                                processes.TryGetProperty(processId, out var process) &&
+                                process.TryGetProperty("serviceName", out var sn))
+                            {
+                                serviceName = sn.GetString() ?? "";
+                            }
 
-                    if (spansArray.GetArrayLength() > 0)
-                    {
-                        var firstSpan = spansArray[0];
-                        if (firstSpan.TryGetProperty("startTime", out var firstStart))
+                            spans.Add(new TraceSpanDto
+                            {
+                                Service = serviceName,
+                                ServiceName = serviceName,
+                                Start = (startUs - traceStartUs) / 1000.0, // relative ms from trace start
+                                Duration = durationUs / 1000.0 // microseconds to ms
+                            });
+                        }
+
+                        if (traceStartUs < double.MaxValue)
                         {
-                            var microseconds = firstStart.GetDouble();
-                            timestamp = DateTimeOffset.FromUnixTimeMilliseconds((long)(microseconds / 1000)).UtcDateTime;
+                            timestamp = DateTimeOffset.FromUnixTimeMilliseconds((long)(traceStartUs / 1000)).UtcDateTime;
                         }
                     }
+
+                    var totalDuration = (traceEndUs - traceStartUs) / 1000.0; // ms
+
+                    allTraces.Add(new TraceDto
+                    {
+                        TraceId = traceId,
+                        TotalDuration = Math.Max(totalDuration, 0.001), // avoid zero division
+                        Spans = spans.OrderBy(s => s.Start).ToList(),
+                        Timestamp = timestamp
+                    });
                 }
-
-                traces.Add(new TraceDto
-                {
-                    TraceId = traceId,
-                    TotalDuration = totalDuration,
-                    Spans = spans,
-                    Timestamp = timestamp
-                });
             }
 
-            return traces;
+            // Return traces sorted by most spans first (richer pipeline traces)
+            return allTraces.OrderByDescending(t => t.Spans.Count).Take(5).ToList();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
