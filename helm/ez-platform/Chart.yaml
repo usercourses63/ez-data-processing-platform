@@ -2,8 +2,8 @@ apiVersion: v2
 name: ez-platform
 description: EZ Data Processing Platform - Complete microservices deployment with full OCP compatibility
 type: application
-version: 0.2.0
-appVersion: "v0.2.0"
+version: 0.3.0
+appVersion: "v0.3.0"
 keywords:
   - data-processing
   - microservices

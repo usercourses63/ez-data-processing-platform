@@ -68,7 +68,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/filediscovery
-      tag: v0.2.0
+      tag: v0.3.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -96,7 +96,7 @@ services:
     replicas: 5
     image:
       repository: ez-platform/fileprocessor
-      tag: v0.2.0
+      tag: v0.3.0
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -127,7 +127,7 @@ services:
     replicas: 3
     image:
       repository: ez-platform/validation
-      tag: v0.2.0
+      tag: v0.3.0
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -155,7 +155,7 @@ services:
     replicas: 3
     image:
       repository: ez-platform/output
-      tag: v0.2.0
+      tag: v0.3.0
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -183,7 +183,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/datasource-management
-      tag: v0.2.0
+      tag: v0.3.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -211,7 +211,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/metrics-configuration
-      tag: v0.2.0
+      tag: v0.3.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -239,7 +239,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/invalidrecords
-      tag: v0.2.0
+      tag: v0.3.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -267,7 +267,7 @@ services:
     replicas: 1
     image:
       repository: ez-platform/scheduling
-      tag: v0.2.0
+      tag: v0.3.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -295,7 +295,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/frontend
-      tag: v0.2.0
+      tag: v0.3.0
       pullPolicy: IfNotPresent
     containerPort: 80
     strategy:
@@ -330,7 +330,7 @@ services:
     replicas: 1
     image:
       repository: ez-platform/docusaurus
-      tag: v0.2.0
+      tag: v0.3.0
     resources:
       requests:
         cpu: 50m
@@ -511,7 +511,7 @@ config:
 
   # File Discovery Configuration
   fileDiscovery:
-    deduplicationTTLHours: "0.25"  # 15 min for testing, 4-24 hours for production
+    deduplicationTTLHours: "1"  # 1 hour default, 4-24 hours for production
 
   # Hazelcast Configuration
   hazelcast:
