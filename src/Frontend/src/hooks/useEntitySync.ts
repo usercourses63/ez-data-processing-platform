@@ -43,6 +43,9 @@ export function useEntitySync() {
       keysToInvalidate.forEach(key => {
         queryClient.invalidateQueries({ queryKey: [key] });
       });
+
+      // Also dispatch a DOM event for pages that use raw fetch (not React Query)
+      window.dispatchEvent(new CustomEvent('entity-changed', { detail: data }));
     });
 
     connection.start().catch(err => {

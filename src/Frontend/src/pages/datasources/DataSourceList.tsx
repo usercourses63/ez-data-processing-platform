@@ -106,6 +106,18 @@ const DataSourceList: React.FC = () => {
     }
   }, [categoryFilter, statusFilter]);
 
+  // Auto-refresh when another user changes a DataSource (SignalR EntityChanged)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.entityType === 'DataSource') {
+        fetchDataSources(pagination.current, pagination.pageSize);
+      }
+    };
+    window.addEventListener('entity-changed', handler);
+    return () => window.removeEventListener('entity-changed', handler);
+  }, [pagination.current, pagination.pageSize]);
+
   // Handle manual trigger
   const handleManualTrigger = async (id: string, name: string) => {
     setTriggeringMap(prev => ({ ...prev, [id]: true }));
