@@ -3,7 +3,7 @@
  * v0.2.0: NAS/NFS Architecture Support
  */
 import React, { useState } from 'react';
-import { Button, Space, Badge, Typography, Alert, Modal } from 'antd';
+import { Button, Space, Badge, Typography, Alert } from 'antd';
 import { PlusOutlined, HddOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -86,14 +86,7 @@ const NasDevicesTab: React.FC = () => {
   };
 
   const handleProvision = (device: NasDevice) => {
-    Modal.confirm({
-      title: t('admin.nas.confirmProvision') || 'Confirm Provisioning',
-      content: t('admin.nas.provisionDescription', { name: device.Name }) ||
-        `Create PersistentVolume and PersistentVolumeClaim for ${device.Name}?`,
-      okText: t('common.yes') || 'Yes',
-      cancelText: t('common.no') || 'No',
-      onOk: () => handleProvisionExec(device.ID),
-    });
+    handleProvisionExec(device.ID);
   };
 
   const handleTestConnection = (device: NasDevice) => {

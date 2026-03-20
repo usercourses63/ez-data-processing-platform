@@ -204,14 +204,21 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
               disabled={testingDeviceId === record.ID}
             />
           </Tooltip>
-          <Tooltip title={!record.IsPvCreated ? t('admin.nas.provision') : t('admin.nas.reprovision')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<CloudUploadOutlined />}
-              onClick={() => onProvision(record)}
-            />
-          </Tooltip>
+          <Popconfirm
+            title={!record.IsPvCreated ? t('admin.nas.provision') || 'Provision' : t('admin.nas.reprovision') || 'Re-provision'}
+            description={`${t('admin.nas.provisionDescription', { name: record.Name }) || `Create PV/PVC for ${record.Name}?`}`}
+            onConfirm={() => onProvision(record)}
+            okText={t('common.yes') || 'Yes'}
+            cancelText={t('common.no') || 'No'}
+          >
+            <Tooltip title={!record.IsPvCreated ? t('admin.nas.provision') || 'Provision' : t('admin.nas.reprovision') || 'Re-provision'}>
+              <Button
+                type="text"
+                size="small"
+                icon={<CloudUploadOutlined />}
+              />
+            </Tooltip>
+          </Popconfirm>
           <Tooltip title={t('common.edit') || 'Edit'}>
             <Button
               type="text"
