@@ -54,12 +54,12 @@ public class PrometheusQueryService : IPrometheusQueryService
 
             await Task.WhenAll(throughputTask, successRateTask, latencyTask, activeJobsTask, queueDepthTask, errorRateTask);
 
-            metrics.TotalThroughput = throughputTask.Result;
-            metrics.SuccessRate = double.IsNaN(successRateTask.Result) ? 100 : successRateTask.Result;
-            metrics.AvgLatency = latencyTask.Result * 1000; // seconds to ms
-            metrics.ActiveJobs = (int)activeJobsTask.Result;
-            metrics.QueueDepth = (int)queueDepthTask.Result;
-            metrics.ErrorRate = double.IsNaN(errorRateTask.Result) ? 0 : errorRateTask.Result;
+            metrics.TotalThroughput = SanitizeDouble(throughputTask.Result);
+            metrics.SuccessRate = SanitizeDouble(successRateTask.Result, fallback: 100);
+            metrics.AvgLatency = SanitizeDouble(latencyTask.Result * 1000); // seconds to ms
+            metrics.ActiveJobs = SafeCastToInt(activeJobsTask.Result);
+            metrics.QueueDepth = SafeCastToInt(queueDepthTask.Result);
+            metrics.ErrorRate = SanitizeDouble(errorRateTask.Result);
 
             // Fetch time-series history via range queries (last 30 min, step 1m ~ 30 data points)
             var now = DateTimeOffset.UtcNow;
@@ -224,6 +224,19 @@ public class PrometheusQueryService : IPrometheusQueryService
     }
 
     /// <summary>
+    /// Sanitize a double value for JSON serialization.
+    /// System.Text.Json throws on NaN/Infinity which causes SignalR to send truncated JSON.
+    /// </summary>
+    private static double SanitizeDouble(double value, double fallback = 0)
+        => double.IsFinite(value) ? value : fallback;
+
+    /// <summary>
+    /// Safely cast a double to int, handling NaN/Infinity which produce undefined behavior with (int) cast.
+    /// </summary>
+    private static int SafeCastToInt(double value)
+        => double.IsFinite(value) ? (int)value : 0;
+
+    /// <summary>
     /// Execute a Prometheus instant query and return the scalar result.
     /// Returns 0 on failure or empty result.
     /// </summary>
@@ -247,7 +260,9 @@ public class PrometheusQueryService : IPrometheusQueryService
                 return 0;
 
             var value = result[0].GetProperty("value")[1].GetString();
-            return double.TryParse(value, CultureInfo.InvariantCulture, out var d) ? d : 0;
+            if (double.TryParse(value, CultureInfo.InvariantCulture, out var d) && double.IsFinite(d))
+                return d;
+            return 0;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
