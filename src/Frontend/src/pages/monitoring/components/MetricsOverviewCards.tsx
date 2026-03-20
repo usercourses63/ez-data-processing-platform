@@ -74,8 +74,9 @@ const MetricsOverviewCards: React.FC<MetricsOverviewCardsProps> = ({ metrics }) 
         <Card style={{ background: '#1e293b', border: '1px solid #334155' }}>
           <Statistic
             title={t('monitoring.avgLatency', 'Avg Latency')}
-            value={metrics.avgLatency}
+            value={Math.round((metrics.avgLatency ?? 0) * 100) / 100}
             suffix="ms"
+            precision={1}
             prefix={<ClockCircleOutlined />}
             valueStyle={{ color: getLatencyColor(metrics.avgLatency ?? 0) }}
           />
