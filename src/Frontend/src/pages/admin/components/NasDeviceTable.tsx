@@ -103,15 +103,22 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
       key: 'name',
       width: 200,
       render: (name: string, record: NasDevice) => (
-        <Space>
+        <Space direction="vertical" size={2}>
           <span style={{ fontWeight: 500 }}>{name}</span>
-          {record.IsPvCreated && record.IsPvcBound ? (
-            <Tag color="success">{t('admin.nas.status.pvcBound')}</Tag>
-          ) : record.IsPvCreated ? (
-            <Tag color="processing">{t('admin.nas.status.pvCreated')}</Tag>
-          ) : (
-            <Tag color="default">{t('admin.nas.status.notProvisioned')}</Tag>
-          )}
+          <Space size={4}>
+            {record.IsPvCreated && record.IsPvcBound ? (
+              <Tag color="success" style={{ margin: 0 }}>{t('admin.nas.status.pvcBound') || 'PVC מחובר'}</Tag>
+            ) : record.IsPvCreated ? (
+              <Tag color="processing" style={{ margin: 0 }}>{t('admin.nas.status.pvCreated') || 'PV נוצר'}</Tag>
+            ) : (
+              <Tag color="default" style={{ margin: 0 }}>{t('admin.nas.status.notProvisioned') || 'לא הוקצה'}</Tag>
+            )}
+            {record.LastConnectionSuccess === true ? (
+              <Tag color="green" style={{ margin: 0 }}>{t('admin.nas.status.connected') || 'מחובר'}</Tag>
+            ) : record.LastConnectionSuccess === false ? (
+              <Tag color="red" style={{ margin: 0 }}>{t('admin.nas.status.disconnected') || 'לא מחובר'}</Tag>
+            ) : null}
+          </Space>
         </Space>
       ),
     },
@@ -205,11 +212,11 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
             />
           </Tooltip>
           <Popconfirm
-            title={!record.IsPvCreated ? t('admin.nas.provision') || 'Allocate' : t('admin.nas.reprovision') || 'Re-allocate'}
-            description={`Create PV/PVC for ${record.Name}?`}
+            title={!record.IsPvCreated ? (t('admin.nas.provision') || 'הקצאת משאבים') : (t('admin.nas.reprovision') || 'הקצאה מחדש')}
+            description={`ליצור PersistentVolume ו-PersistentVolumeClaim עבור ${record.Name}?`}
             onConfirm={() => onProvision(record)}
-            okText={t('common.yes') || 'Yes'}
-            cancelText={t('common.no') || 'No'}
+            okText={t('common.yes') || 'כן'}
+            cancelText={t('common.no') || 'לא'}
           >
             <Button
               type="text"
@@ -226,11 +233,11 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
             />
           </Tooltip>
           <Popconfirm
-            title={t('admin.nas.deleteDevice') || 'Delete NAS Device?'}
-            description={t('admin.nas.deleteConfirm') || 'Are you sure you want to delete this device?'}
+            title={t('admin.nas.deleteDevice') || 'מחיקת התקן NAS'}
+            description={t('admin.nas.deleteConfirm') || `האם למחוק את ${record.Name}?`}
             onConfirm={() => onDelete(record)}
-            okText={t('common.yes') || 'Yes'}
-            cancelText={t('common.no') || 'No'}
+            okText={t('common.yes') || 'כן'}
+            cancelText={t('common.no') || 'לא'}
             okButtonProps={{ danger: true }}
           >
             <Tooltip title={t('common.delete') || 'Delete'}>
