@@ -37,9 +37,8 @@ public class CreateDataSourceRequest
     /// <summary>
     /// Connection string or path to data source
     /// </summary>
-    [Required(ErrorMessage = "נתיב החיבור נדרש")]
     [StringLength(1000, ErrorMessage = "נתיב החיבור לא יכול להיות ארוך מ-1000 תווים")]
-    public string ConnectionString { get; set; } = string.Empty;
+    public string? ConnectionString { get; set; }
 
     /// <summary>
     /// Whether the data source is active

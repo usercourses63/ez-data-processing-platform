@@ -816,8 +816,9 @@ public class DataSourceService : IDataSourceService
             }
         }
         
-        // Extract FileServerId from ConfigurationSettings JSON (frontend sends as connectionConfig.inputServerId)
+        // Extract FileServerId and NasDeviceId from ConfigurationSettings JSON
         var fileServerId = ExtractFileServerIdFromConfig(request.ConfigurationSettings);
+        var (nasDeviceId, nasSubPath) = ExtractNasFieldsFromConfig(request.ConfigurationSettings);
 
         return new DataProcessingDataSource
         {
@@ -825,7 +826,7 @@ public class DataSourceService : IDataSourceService
             SupplierName = request.SupplierName,
             Category = request.Category,
             Description = request.Description,
-            FilePath = request.FilePath ?? request.ConnectionString,
+            FilePath = request.FilePath ?? request.ConnectionString ?? string.Empty,
             IsActive = request.IsActive,
             FilePattern = request.FilePattern ?? request.FileFormat ?? "*.*",
             JsonSchema = jsonSchema,
@@ -837,8 +838,8 @@ public class DataSourceService : IDataSourceService
             AdditionalConfiguration = additionalConfig.ElementCount > 0 ? additionalConfig : null,
             Output = request.Output ?? new DataProcessing.Shared.Entities.OutputConfiguration(),
             ArchiveSettings = request.ArchiveSettings,
-            NasDeviceId = request.NasDeviceId,
-            NasSubPath = request.NasSubPath,
+            NasDeviceId = request.NasDeviceId ?? nasDeviceId,
+            NasSubPath = request.NasSubPath ?? nasSubPath,
             FileServerId = fileServerId
         };
     }
@@ -945,9 +946,10 @@ public class DataSourceService : IDataSourceService
             entity.ArchiveSettings = request.ArchiveSettings;
         }
 
-        // Map NAS device reference (v0.2.0)
-        entity.NasDeviceId = request.NasDeviceId;
-        entity.NasSubPath = request.NasSubPath;
+        // Map NAS device reference (v0.2.0) — check both top-level and ConfigurationSettings
+        var (nasDeviceIdFromConfig, nasSubPathFromConfig) = ExtractNasFieldsFromConfig(request.ConfigurationSettings);
+        entity.NasDeviceId = request.NasDeviceId ?? nasDeviceIdFromConfig;
+        entity.NasSubPath = request.NasSubPath ?? nasSubPathFromConfig;
 
         // Extract FileServerId from ConfigurationSettings JSON (frontend sends as connectionConfig.inputServerId)
         var fileServerId = ExtractFileServerIdFromConfig(request.ConfigurationSettings);
@@ -982,6 +984,39 @@ public class DataSourceService : IDataSourceService
         catch { /* Invalid JSON — ignore */ }
 
         return null;
+    }
+
+    /// <summary>
+    /// Extracts NasDeviceId and NasSubPath from the ConfigurationSettings JSON blob.
+    /// Frontend stores them as: {"connectionConfig":{"nasDeviceId":"abc123","nasSubPath":"/sub",...},...}
+    /// </summary>
+    private static (string? NasDeviceId, string? NasSubPath) ExtractNasFieldsFromConfig(string? configurationSettings)
+    {
+        if (string.IsNullOrEmpty(configurationSettings))
+            return (null, null);
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(configurationSettings);
+            if (doc.RootElement.TryGetProperty("connectionConfig", out var connConfig))
+            {
+                string? nasDeviceId = null;
+                string? nasSubPath = null;
+
+                if (connConfig.TryGetProperty("nasDeviceId", out var did) &&
+                    did.ValueKind == System.Text.Json.JsonValueKind.String)
+                    nasDeviceId = did.GetString();
+
+                if (connConfig.TryGetProperty("nasSubPath", out var sp) &&
+                    sp.ValueKind == System.Text.Json.JsonValueKind.String)
+                    nasSubPath = sp.GetString();
+
+                return (nasDeviceId, nasSubPath);
+            }
+        }
+        catch { /* Invalid JSON — ignore */ }
+
+        return (null, null);
     }
 
     /// <summary>
