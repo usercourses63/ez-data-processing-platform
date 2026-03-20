@@ -280,10 +280,10 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 21. Release Package & CI Pipeline | 4/4 | Complete    | 2026-03-18 | - |
 | 22. SignalR Monitoring Data Integration | 3/3 | Complete    | 2026-03-19 | - |
 | 23. Local Sanity Deploy & Extended Tests | 2/2 | Complete    | 2026-03-19 | - |
-| 24. v0.3.0 Release Package & Deploy | 0/3 | Planned    | - | - |
+| 24. v0.3.0 Release Package & Deploy | 1/3 | In Progress | - | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
-**v0.3 Totals:** 0/3 plans complete (0%)
+**v0.3 Totals:** 1/3 plans complete (33%)
 
 ### Phase 23: Local sanity deploy script and extended sanity tests with browser UI docs and help validation
 
@@ -316,7 +316,7 @@ Plans:
 **Plans**: 3 plans (Wave 1: 24-01, 24-02 parallel; Wave 2: 24-03)
 
 Plans:
-- [ ] 24-01-PLAN.md — Version update (package.json, CLAUDE.md) + CHANGELOG v0.3.0 + Docusaurus release notes (REL-03, REL-04)
+- [x] 24-01-PLAN.md — Version update (package.json, CLAUDE.md) + CHANGELOG v0.3.0 + Docusaurus release notes (REL-03, REL-04)
 - [ ] 24-02-PLAN.md — Sanity test updates: SANITY-11 NAS pipeline test + NAS E2E test hardening (REL-07)
 - [ ] 24-03-PLAN.md — Build all images v0.3.0, Helm deploy, sanity tests, assemble deployment package (REL-05, REL-06)
 
