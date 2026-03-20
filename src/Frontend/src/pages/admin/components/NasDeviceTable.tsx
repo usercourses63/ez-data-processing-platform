@@ -114,9 +114,9 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
               <Tag color="default" style={{ margin: 0 }}>{t('admin.nas.status.notProvisioned') || 'לא הוקצה'}</Tag>
             )}
             {record.LastConnectionSuccess === true ? (
-              <Tag color="green" style={{ margin: 0 }}>{t('admin.nas.status.connected') || 'מחובר'}</Tag>
+              <Tag color="green" style={{ margin: 0 }}>{'מחובר'}</Tag>
             ) : record.LastConnectionSuccess === false ? (
-              <Tag color="red" style={{ margin: 0 }}>{t('admin.nas.status.disconnected') || 'לא מחובר'}</Tag>
+              <Tag color="red" style={{ margin: 0 }}>{'לא מחובר'}</Tag>
             ) : null}
           </Space>
         </Space>
@@ -212,8 +212,8 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
             />
           </Tooltip>
           <Popconfirm
-            title={!record.IsPvCreated ? (t('admin.nas.provision') || 'הקצאת משאבים') : (t('admin.nas.reprovision') || 'הקצאה מחדש')}
-            description={`ליצור PersistentVolume ו-PersistentVolumeClaim עבור ${record.Name}?`}
+            title={!record.IsPvCreated ? (t('admin.nas.confirmProvision') || 'אישור יצירת משאבים') : (t('admin.nas.reprovision') || 'הקצאה מחדש')}
+            description={t('admin.nas.provisionDescription', { name: record.Name }) || `האם ליצור PersistentVolume ו-PersistentVolumeClaim עבור ${record.Name}?`}
             onConfirm={() => onProvision(record)}
             okText={t('common.yes') || 'כן'}
             cancelText={t('common.no') || 'לא'}

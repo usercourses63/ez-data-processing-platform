@@ -1141,7 +1141,9 @@
         "pvPending": "PV ממתין",
         "pvcBound": "PVC מחובר",
         "pvcPending": "PVC ממתין",
-        "notProvisioned": "לא מוקצה"
+        "notProvisioned": "לא מוקצה",
+        "connected": "מחובר",
+        "disconnected": "לא מחובר"
       },
       "sections": {
         "connection": "הגדרות חיבור",
