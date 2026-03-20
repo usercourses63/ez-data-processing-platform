@@ -68,11 +68,11 @@ Files flow reliably from any source through validation to any destination, with 
 #### Frontend Workflow — v0.1
 - ✓ **FE-01..07**: Component docs, Playwright E2E, API coordination, React 19 patterns, Docusaurus portal integration, Hebrew user guide — v0.1
 
-### Active — v0.2 Production Validation & Release
+### Active — v0.3.0 NAS UX + Monitoring + Release
 
-<!-- Current milestone scope — defined 2026-02-11 -->
+<!-- Current milestone scope — defined 2026-03-20 -->
 
-**Goal:** Production-validated platform with real E2E testing against file-simulator, all bugs fixed, and tagged release for OCP deployment.
+**Goal:** Package and release v0.3.0 with NAS UX improvements, monitoring fixes, pipeline bug fixes, updated documentation, and sanity tests.
 
 #### Bug Fixes (carried from v0.1)
 - [ ] **BUG-01**: Fix Hebrew/RTL layout regressions

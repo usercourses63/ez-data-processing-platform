@@ -1,5 +1,24 @@
 # Milestones
 
+## v0.2 Production Validation & Release (Shipped: 2026-03-20)
+
+**Phases completed:** 13 phases (11-23), 38 plans
+**Key accomplishments:**
+- NAS lifecycle completion (auto-mount, DataSource linking, PVC verification, delete cascade)
+- Full OTEL verification across all 9 microservices
+- Device health monitoring with real K8s/Prometheus/Jaeger data
+- SignalR real-time monitoring (services, pods, metrics, queues, traces, device health)
+- File-simulator integration (DemoDataGenerator, protocol testing)
+- Release package CI pipeline (build-all-images, assemble-package, offline deploy)
+- Docusaurus documentation portal, local sanity deploy scripts
+
+**Carried to v0.3:**
+- NAS UX improvements (SignalR sync, deprovision on delete, i18n)
+- Monitoring fixes (camelCase normalization, RabbitMQ, pipeline lanes)
+- Pipeline fixes (FileServerId, FTP connector, NasDeviceId extraction)
+
+---
+
 ## v0.1 Testing Foundation + Infrastructure (Shipped: 2026-02-11)
 
 **Phases completed:** 10 phases, 35 plans, 30 tasks
