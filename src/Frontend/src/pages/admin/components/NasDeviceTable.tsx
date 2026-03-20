@@ -60,27 +60,25 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
   const queryClient = useQueryClient();
   const [testingDeviceId, setTestingDeviceId] = useState<string | null>(null);
 
-  // Test connection mutation
-  const testConnectionMutation = useMutation({
-    mutationFn: testNasDeviceConnection,
-    onSuccess: (result, deviceId) => {
-      if (result.Success) {
-        message.success(`${t('admin.nas.connectionSuccess')} (${result.DurationMs}ms)`);
-      } else {
-        message.error(`${t('admin.nas.connectionFailed')}: ${result.ErrorMessage}`);
-      }
-      queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.detail(deviceId) });
-      setTestingDeviceId(null);
-    },
-    onError: (error: Error) => {
-      message.error(error.message || t('admin.nas.connectionFailed'));
-      setTestingDeviceId(null);
-    },
-  });
-
-  const handleTestConnection = (device: NasDevice) => {
+  // Test connection — use async/await with explicit message to survive re-renders
+  const handleTestConnection = async (device: NasDevice) => {
     setTestingDeviceId(device.ID);
-    testConnectionMutation.mutate(device.ID);
+    const key = `test-conn-${device.ID}`;
+    message.loading({ content: t('admin.nas.testingConnection') || 'Testing connection...', key, duration: 0 });
+
+    try {
+      const result = await testNasDeviceConnection(device.ID);
+      if (result.Success) {
+        message.success({ content: `${t('admin.nas.connectionSuccess') || 'Connection successful'} (${result.DurationMs}ms)`, key, duration: 5 });
+      } else {
+        message.error({ content: `${t('admin.nas.connectionFailed') || 'Connection failed'}: ${result.ErrorMessage}`, key, duration: 8 });
+      }
+      queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.all });
+    } catch (error: any) {
+      message.error({ content: error.message || t('admin.nas.connectionFailed') || 'Connection failed', key, duration: 8 });
+    } finally {
+      setTestingDeviceId(null);
+    }
   };
 
   const columns: ColumnsType<NasDevice> = [

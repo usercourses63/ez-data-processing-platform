@@ -41,21 +41,22 @@ const NasDevicesTab: React.FC = () => {
     },
   });
 
-  // Provision mutation
-  const provisionMutation = useMutation({
-    mutationFn: (id: string) => provisionNasDevice(id),
-    onSuccess: (result) => {
+  // Provision — use async handler with explicit loading message
+  const handleProvisionExec = async (id: string) => {
+    const key = `provision-${id}`;
+    message.loading({ content: t('admin.nas.provisioning') || 'Provisioning Kubernetes resources...', key, duration: 0 });
+    try {
+      const result = await provisionNasDevice(id);
       if (result.Success) {
-        message.success(t('admin.nas.provisionSuccess') || 'Kubernetes resources created successfully');
+        message.success({ content: t('admin.nas.provisionSuccess') || 'Kubernetes resources created successfully', key, duration: 5 });
       } else {
-        message.error(result.ErrorMessage || t('admin.nas.provisionError') || 'Error provisioning NAS device');
+        message.error({ content: result.ErrorMessage || t('admin.nas.provisionError') || 'Error provisioning', key, duration: 8 });
       }
       queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.all });
-    },
-    onError: (error: Error) => {
-      message.error(error.message || t('admin.nas.provisionError') || 'Error provisioning NAS device');
-    },
-  });
+    } catch (error: any) {
+      message.error({ content: error.message || t('admin.nas.provisionError') || 'Error provisioning', key, duration: 8 });
+    }
+  };
 
   const handleAdd = () => {
     setEditingDevice(null);
@@ -78,7 +79,7 @@ const NasDevicesTab: React.FC = () => {
         `Create PersistentVolume and PersistentVolumeClaim for ${device.Name}?`,
       okText: t('common.yes') || 'Yes',
       cancelText: t('common.no') || 'No',
-      onOk: () => provisionMutation.mutate(device.ID),
+      onOk: () => handleProvisionExec(device.ID),
     });
   };
 
