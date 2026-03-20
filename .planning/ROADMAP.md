@@ -4,7 +4,7 @@
 
 - v0.1 **Testing Foundation + Infrastructure** — Phases 1-10 (shipped 2026-02-11) — [archive](milestones/v0.1-ROADMAP.md)
 - v0.2 **Production Validation & Release** — Phases 11-21 (in progress)
-- v0.3 **Real-Time Monitoring & Scaling** — Phase 22+ (planned)
+- v0.3 **NAS UX + Monitoring + Release** — Phase 24 (in progress)
 
 ## Next Milestone
 
@@ -31,6 +31,11 @@
 - [x] **Phase 20: CI/CD & Production Deployment** - Pipeline, version display, local prod mode, OCP resources (completed 2026-03-18)
 - [x] **Phase 21: Release Package** - Tagged release, offline Helm package (completed 2026-03-18)
 - [x] **Phase 22: SignalR Monitoring Data Integration** - Replace mock data with real K8s/Prometheus/Kafka/Jaeger data (v0.3) (completed 2026-03-19)
+- [x] **Phase 23: Local Sanity Deploy & Extended Tests** - Deploy scripts, browser/UI/docs sanity tests (completed 2026-03-19)
+
+### v0.3 NAS UX + Monitoring + Release
+
+- [ ] **Phase 24: v0.3.0 Release Package & Deploy** - Version update, docs, build all images, assemble package, sanity tests
 
 ## Phase Details
 
