@@ -227,8 +227,9 @@ const ServerTable: React.FC<ServerTableProps> = ({
       rowKey="ID"
       loading={loading}
       pagination={{
-        pageSize: 10,
+        defaultPageSize: 10,
         showSizeChanger: true,
+        pageSizeOptions: ['10', '20', '50', '100'],
         showTotal: (total) => `סה"כ ${total} שרתים`,
       }}
       scroll={{ x: 1000 }}

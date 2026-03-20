@@ -231,8 +231,9 @@ const NasDeviceTable: React.FC<NasDeviceTableProps> = ({
       rowKey="ID"
       loading={loading}
       pagination={{
-        pageSize: 10,
+        defaultPageSize: 10,
         showSizeChanger: true,
+        pageSizeOptions: ['10', '20', '50', '100'],
         showTotal: (total) => `${t('common.total')} ${total} ${t('admin.nas.devices')}`,
       }}
       scroll={{ x: 1100 }}
