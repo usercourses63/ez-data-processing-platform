@@ -6,6 +6,50 @@ sidebar_position: 2
 
 ---
 
+## v0.3.0 - NAS UX + Monitoring + Pipeline Fixes (March 2026)
+
+**Status:** Production Release
+**Type:** Feature Enhancement - NAS UX improvements, monitoring stability, pipeline reliability
+
+### Highlights
+
+This release delivers **NAS device UX improvements** with SignalR-based real-time sync across browser tabs, **monitoring stability fixes** for Device Health and pipeline visualization, and **pipeline reliability fixes** for server credential handling and protocol parsing.
+
+### NAS UX Improvements
+
+- **SignalR Entity Broadcasts (NAS-12, NAS-13)**: Creating, updating, deleting, or toggling Servers and Categories in any browser tab instantly propagates changes to all connected clients via SignalR EntityChanged events
+- **Delete Auto-Deprovision (NAS-14)**: Deleting a NAS device automatically cleans up Kubernetes PV/PVC resources before performing soft-delete, preventing orphaned cluster resources
+- **Status Tags i18n (NAS-15)**: NAS connection status tags (connected/disconnected) now use i18n translation keys, displaying correctly in both Hebrew and English
+- **Role Enum Fix (NAS-16)**: Backend NAS Role enum accepts string values ("Input", "Output", "Both", "Backup") from frontend via JsonStringEnumConverter, fixing the numeric enum mismatch
+
+### Data Pipeline Fixes
+
+- **FileServerId Extraction (PIPE-06)**: FileServerId correctly extracted from ConfigurationSettings when creating or updating datasources
+- **NasDeviceId Extraction (PIPE-07)**: NasDeviceId and NasSubPath properly extracted from ConfigurationSettings
+- **FTP URL Parsing (PIPE-08)**: FTP connector parses `ftp://` URLs to extract host and port separately, instead of using the entire URL as hostname
+- **Server Credentials (PIPE-09)**: Credentials auto-populated from AdminServer.TypeSpecificConfig when creating file discovery and processing connections
+- **NAS ConnectionString Optional (PIPE-10)**: ConnectionString field no longer required for NAS datasources since mount path is derived from provisioned PV
+
+### Monitoring Fixes
+
+- **Device Health HTTP Fallback (MON-15)**: Device Health tab loads data via HTTP polling when SignalR connection is unavailable, preventing blank tab on WebSocket failures
+- **SignalR Case Mapping (MON-16)**: SignalR data mappers handle both camelCase and PascalCase property names, fixing data display issues when backend serialization changes
+- **RabbitMQ Queue Monitoring (MON-17)**: Queue monitoring queries RabbitMQ management API instead of Kafka, matching the actual message broker used by pipeline services
+- **Pipeline Flow Service IDs (MON-18)**: Service identifiers in pipeline flow visualization match actual Kubernetes deployment names (e.g., `fileprocessor` not `FileProcessorService`)
+- **Traces Relative Timing (MON-19)**: Traces tab queries all pipeline services and displays spans with correct relative timing from trace start
+
+### Migration from v0.2.0
+
+**Backward compatible** -- no breaking changes. Standard Helm upgrade:
+
+```bash
+helm upgrade ez-platform ./helm/ez-platform -f values-local.yaml --namespace ez-platform
+```
+
+No database migration required. All changes are backward-compatible service updates.
+
+---
+
 ## v0.2.0 - Production Release (March 2026)
 
 **Status:** Production Release

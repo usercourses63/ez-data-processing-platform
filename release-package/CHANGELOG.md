@@ -5,6 +5,30 @@ All notable changes to the EZ Platform release package will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.0] - 2026-03-20
+
+### Added
+- **SignalR Entity Broadcasts**: Servers and Categories controllers broadcast EntityChanged events on create/update/delete/toggle, enabling real-time multi-client UI sync (NAS-12, NAS-13)
+- **NAS Delete Auto-Deprovision**: Deleting a NAS device automatically removes Kubernetes PV/PVC resources before soft-delete (NAS-14)
+- **NAS Status i18n Tags**: Connection status tags (connected/disconnected) use i18n keys for proper Hebrew/English display (NAS-15)
+- **NAS Pipeline Test**: NAS datasource creation via UI with file discovery through NFS mount verified end-to-end
+
+### Changed
+- **NAS Role Enum**: Backend accepts string values from frontend via JsonStringEnumConverter, eliminating numeric enum mismatch (NAS-16)
+- **FileServerId Extraction**: FileServerId and NasDeviceId properly extracted from ConfigurationSettings on datasource create/update (PIPE-06, PIPE-07)
+- **FTP URL Parsing**: FTP connector now parses ftp:// URLs to extract host/port instead of using entire URL as hostname (PIPE-08)
+- **Server Credentials**: Auto-populated from AdminServer.TypeSpecificConfig when creating datasources (PIPE-09)
+- **NAS ConnectionString**: Made optional for NAS datasources since mount path comes from provisioned PV (PIPE-10)
+
+### Fixed
+- **Device Health Tab**: Loads via HTTP polling, no longer blocked by SignalR connection failures (MON-15)
+- **SignalR Case Mapping**: Mappers handle both camelCase and PascalCase property names from backend (MON-16)
+- **Queue Monitoring**: RabbitMQ queue monitoring replaces Kafka topic monitoring (MON-17)
+- **Pipeline Flow IDs**: Service IDs in pipeline flow visualization match actual K8s deployment names (MON-18)
+- **Traces Tab**: Queries all pipeline services with correct relative span timing (MON-19)
+
+---
+
 ## [v0.2.0] - 2026-03-18
 
 ### Added
