@@ -45,129 +45,135 @@ export interface MonitoringHubResult {
   lastUpdate: Date | null;
 }
 
-// --- PascalCase -> camelCase mappers ---
+// --- Dual-casing mappers (SignalR sends camelCase, HTTP API sends PascalCase) ---
+
+/** Read a property that may be PascalCase or camelCase */
+function v(raw: any, pascal: string): any {
+  const camel = pascal.charAt(0).toLowerCase() + pascal.slice(1);
+  return raw[pascal] ?? raw[camel];
+}
 
 function mapServiceStatus(raw: any): ServiceStatus {
   return {
-    id: raw.Id,
-    name: raw.Name,
-    displayName: raw.DisplayName,
-    status: raw.Status?.toLowerCase?.() ?? 'unknown',
-    port: raw.Port,
-    icon: raw.Icon ?? '',
-    cpu: raw.Cpu,
-    memory: raw.Memory,
-    throughput: raw.Throughput,
-    errorRate: raw.ErrorRate,
-    latency: raw.Latency,
-    uptime: raw.Uptime,
-    restarts: raw.Restarts,
-    queueDepth: raw.QueueDepth,
+    id: v(raw, 'Id'),
+    name: v(raw, 'Name'),
+    displayName: v(raw, 'DisplayName'),
+    status: (v(raw, 'Status') ?? 'unknown').toLowerCase(),
+    port: v(raw, 'Port'),
+    icon: v(raw, 'Icon') ?? '',
+    cpu: v(raw, 'Cpu'),
+    memory: v(raw, 'Memory'),
+    throughput: v(raw, 'Throughput'),
+    errorRate: v(raw, 'ErrorRate'),
+    latency: v(raw, 'Latency'),
+    uptime: v(raw, 'Uptime'),
+    restarts: v(raw, 'Restarts'),
+    queueDepth: v(raw, 'QueueDepth'),
   };
 }
 
 function mapPodStatus(raw: any): PodStatus {
   const statusMap: Record<string, PodStatus['status']> = {
-    Running: 'running',
-    Pending: 'pending',
-    Error: 'error',
-    Terminated: 'terminated',
-    Failed: 'error',
+    Running: 'running', running: 'running',
+    Pending: 'pending', pending: 'pending',
+    Error: 'error', error: 'error',
+    Terminated: 'terminated', terminated: 'terminated',
+    Failed: 'error', failed: 'error',
   };
   return {
-    name: raw.Name,
-    service: raw.Service,
-    status: statusMap[raw.Status] ?? 'pending',
-    restarts: raw.Restarts,
-    cpu: raw.Cpu,
-    memory: raw.Memory,
-    age: raw.Age,
-    node: raw.Node,
+    name: v(raw, 'Name'),
+    service: v(raw, 'Service'),
+    status: statusMap[v(raw, 'Status')] ?? 'pending',
+    restarts: v(raw, 'Restarts'),
+    cpu: v(raw, 'Cpu'),
+    memory: v(raw, 'Memory'),
+    age: v(raw, 'Age'),
+    node: v(raw, 'Node'),
   };
 }
 
 function mapMetricDataPoint(raw: any): MetricDataPoint {
   return {
-    timestamp: new Date(raw.Timestamp),
-    value: raw.Value,
+    timestamp: new Date(v(raw, 'Timestamp')),
+    value: v(raw, 'Value'),
   };
 }
 
 function mapDashboardMetrics(raw: any): DashboardMetrics {
   return {
-    totalThroughput: raw.TotalThroughput,
-    successRate: raw.SuccessRate,
-    avgLatency: raw.AvgLatency,
-    activeJobs: raw.ActiveJobs,
-    queueDepth: raw.QueueDepth,
-    errorRate: raw.ErrorRate,
-    throughputHistory: (raw.ThroughputHistory ?? []).map(mapMetricDataPoint),
-    latencyHistory: (raw.LatencyHistory ?? []).map(mapMetricDataPoint),
-    errorHistory: (raw.ErrorHistory ?? []).map(mapMetricDataPoint),
+    totalThroughput: v(raw, 'TotalThroughput') ?? 0,
+    successRate: v(raw, 'SuccessRate') ?? 0,
+    avgLatency: v(raw, 'AvgLatency') ?? 0,
+    activeJobs: v(raw, 'ActiveJobs') ?? 0,
+    queueDepth: v(raw, 'QueueDepth') ?? 0,
+    errorRate: v(raw, 'ErrorRate') ?? 0,
+    throughputHistory: (v(raw, 'ThroughputHistory') ?? []).map(mapMetricDataPoint),
+    latencyHistory: (v(raw, 'LatencyHistory') ?? []).map(mapMetricDataPoint),
+    errorHistory: (v(raw, 'ErrorHistory') ?? []).map(mapMetricDataPoint),
   };
 }
 
 function mapMessageQueue(raw: any): MessageQueue {
   return {
-    name: raw.Name,
-    topic: raw.Topic,
-    depth: raw.Depth,
-    rate: raw.Rate,
-    consumers: raw.Consumers,
-    status: raw.Status?.toLowerCase?.() ?? 'healthy',
+    name: v(raw, 'Name'),
+    topic: v(raw, 'Topic'),
+    depth: v(raw, 'Depth'),
+    rate: v(raw, 'Rate'),
+    consumers: v(raw, 'Consumers'),
+    status: (v(raw, 'Status') ?? 'healthy').toLowerCase(),
   };
 }
 
 function mapAlert(raw: any): Alert {
   return {
-    id: raw.Id,
-    type: raw.Type?.toLowerCase?.() ?? 'info',
-    icon: raw.Icon ?? '',
-    title: raw.Title,
-    message: raw.Message,
-    timestamp: new Date(raw.Timestamp),
-    service: raw.Service,
+    id: v(raw, 'Id'),
+    type: (v(raw, 'Type') ?? 'info').toLowerCase(),
+    icon: v(raw, 'Icon') ?? '',
+    title: v(raw, 'Title'),
+    message: v(raw, 'Message'),
+    timestamp: new Date(v(raw, 'Timestamp')),
+    service: v(raw, 'Service'),
   };
 }
 
 function mapTraceSpan(raw: any): TraceSpan {
   return {
-    service: raw.Service,
-    serviceName: raw.ServiceName,
-    start: raw.Start,
-    duration: raw.Duration,
-    color: raw.Color,
+    service: v(raw, 'Service'),
+    serviceName: v(raw, 'ServiceName'),
+    start: v(raw, 'Start'),
+    duration: v(raw, 'Duration'),
+    color: v(raw, 'Color'),
   };
 }
 
 function mapDistributedTrace(raw: any): DistributedTrace {
   return {
-    traceId: raw.TraceId,
-    totalDuration: raw.TotalDuration,
-    spans: (raw.Spans ?? []).map(mapTraceSpan),
-    timestamp: new Date(raw.Timestamp),
+    traceId: v(raw, 'TraceId'),
+    totalDuration: v(raw, 'TotalDuration'),
+    spans: (v(raw, 'Spans') ?? []).map(mapTraceSpan),
+    timestamp: new Date(v(raw, 'Timestamp')),
   };
 }
 
 function mapClusterInfo(raw: any): ClusterInfo {
   return {
-    clusterName: raw.ClusterName,
-    namespace: raw.Namespace,
-    version: raw.Version,
-    nodeCount: raw.NodeCount,
-    totalPods: raw.TotalPods,
-    healthyPods: raw.HealthyPods,
+    clusterName: v(raw, 'ClusterName'),
+    namespace: v(raw, 'Namespace'),
+    version: v(raw, 'Version'),
+    nodeCount: v(raw, 'NodeCount'),
+    totalPods: v(raw, 'TotalPods'),
+    healthyPods: v(raw, 'HealthyPods'),
   };
 }
 
 function mapPipelineEvent(raw: any): PipelineEvent {
   return {
-    id: raw.Id,
-    timestamp: new Date(raw.Timestamp),
-    service: raw.Service,
-    level: raw.Level?.toLowerCase?.() ?? 'info',
-    message: raw.Message,
-    correlationId: raw.CorrelationId,
+    id: v(raw, 'Id'),
+    timestamp: new Date(v(raw, 'Timestamp')),
+    service: v(raw, 'Service'),
+    level: (v(raw, 'Level') ?? 'info').toLowerCase(),
+    message: v(raw, 'Message'),
+    correlationId: v(raw, 'CorrelationId'),
   };
 }
 
