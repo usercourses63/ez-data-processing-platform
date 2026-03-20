@@ -353,6 +353,14 @@ public class NasDevicesController : ControllerBase
                 return NotFound(new { message = result.ErrorMessage });
             }
 
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "NasDevice",
+                EntityId = id,
+                Action = "provisioned",
+                Version = 0
+            });
+
             return Ok(result);
         }
         catch (Exception ex)
@@ -386,6 +394,14 @@ public class NasDevicesController : ControllerBase
                 return NotFound(new { message = $"התקן NAS לא נמצא או שגיאה בביטול הקצאה: {id}" });
             }
 
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "NasDevice",
+                EntityId = id,
+                Action = "deprovisioned",
+                Version = 0
+            });
+
             return NoContent();
         }
         catch (Exception ex)
@@ -416,6 +432,14 @@ public class NasDevicesController : ControllerBase
             {
                 return NotFound(new { message = result.ErrorMessage });
             }
+
+            await _hubContext.Clients.All.SendAsync("EntityChanged", new
+            {
+                EntityType = "NasDevice",
+                EntityId = id,
+                Action = "connection-tested",
+                Version = 0
+            });
 
             return Ok(result);
         }
