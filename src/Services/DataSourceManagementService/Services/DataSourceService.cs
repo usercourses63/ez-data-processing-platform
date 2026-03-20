@@ -25,6 +25,7 @@ public class DataSourceService : IDataSourceService
     private readonly BusinessMetrics _metrics;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly INasDeviceService _nasDeviceService;
+    private readonly IServerService _serverService;
     private static readonly ActivitySource ActivitySource = new("DataProcessing.DataSourceManagement.Service");
 
     public DataSourceService(
@@ -32,13 +33,15 @@ public class DataSourceService : IDataSourceService
         ILogger<DataSourceService> logger,
         BusinessMetrics metrics,
         IPublishEndpoint publishEndpoint,
-        INasDeviceService nasDeviceService)
+        INasDeviceService nasDeviceService,
+        IServerService serverService)
     {
         _repository = repository;
         _logger = logger;
         _metrics = metrics;
         _publishEndpoint = publishEndpoint;
         _nasDeviceService = nasDeviceService;
+        _serverService = serverService;
     }
 
     /// <summary>
@@ -212,6 +215,9 @@ public class DataSourceService : IDataSourceService
             // Validate NAS device and auto-populate FilePath if NasDeviceId is set
             await ValidateAndPopulateNasDeviceAsync(dataSource);
 
+            // Resolve FileServer and build proper FilePath if FileServerId is set
+            await PopulateFileServerConnectionAsync(dataSource, request.ConfigurationSettings);
+
             // Create the data source
             var createdDataSource = await _repository.CreateAsync(dataSource, correlationId);
 
@@ -304,6 +310,9 @@ public class DataSourceService : IDataSourceService
 
             // Validate NAS device and auto-populate FilePath if NasDeviceId is set
             await ValidateAndPopulateNasDeviceAsync(existingDataSource);
+
+            // Resolve FileServer and build proper FilePath if FileServerId is set
+            await PopulateFileServerConnectionAsync(existingDataSource, request.ConfigurationSettings);
 
             // Debug logging after mapping
             var additionalConfig = existingDataSource.AdditionalConfiguration;
@@ -973,6 +982,90 @@ public class DataSourceService : IDataSourceService
         catch { /* Invalid JSON — ignore */ }
 
         return null;
+    }
+
+    /// <summary>
+    /// When FileServerId is set, resolve the AdminServer and build proper FilePath/ConnectionString
+    /// so downstream services (FileDiscovery, FileProcessor) can connect correctly.
+    /// </summary>
+    private async Task PopulateFileServerConnectionAsync(
+        DataProcessingDataSource dataSource,
+        string? configurationSettings,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrEmpty(dataSource.FileServerId))
+            return;
+
+        var server = await _serverService.GetServerByIdAsync(dataSource.FileServerId, ct);
+        if (server == null)
+        {
+            _logger.LogWarning("AdminServer {ServerId} not found for datasource {Name}",
+                dataSource.FileServerId, dataSource.Name);
+            return;
+        }
+
+        // Extract sub-path from ConfigurationSettings (frontend sends as connectionConfig.path)
+        string? subPath = null;
+        if (!string.IsNullOrEmpty(configurationSettings))
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(configurationSettings);
+                if (doc.RootElement.TryGetProperty("connectionConfig", out var cc) &&
+                    cc.TryGetProperty("path", out var p) &&
+                    p.ValueKind == System.Text.Json.JsonValueKind.String)
+                {
+                    subPath = p.GetString();
+                }
+            }
+            catch { /* ignore */ }
+        }
+
+        // Fall back to existing FilePath only if it looks like a real path (not a bad connection string)
+        if (string.IsNullOrEmpty(subPath) && !string.IsNullOrEmpty(dataSource.FilePath))
+        {
+            var fp = dataSource.FilePath;
+            // Skip if FilePath looks like a URL with undefined parts
+            if (!fp.Contains("undefined") && !fp.StartsWith("ftp://") && !fp.StartsWith("sftp://"))
+            {
+                subPath = fp;
+            }
+        }
+
+        // Build proper FilePath from server connection info
+        var basePath = server.BasePath?.TrimEnd('/') ?? "";
+        var path = (subPath ?? "").TrimStart('/');
+        var fullPath = string.IsNullOrEmpty(path) ? basePath : $"{basePath}/{path}";
+
+        dataSource.FilePath = server.ServerType?.ToLowerInvariant() switch
+        {
+            "ftp" => $"ftp://{server.Host}:{server.Port}{fullPath}",
+            "sftp" => $"sftp://{server.Host}:{server.Port}{fullPath}",
+            "http" or "https" => $"http://{server.Host}:{server.Port}{fullPath}",
+            "s3" => $"s3://{server.Host}:{server.Port}{fullPath}",
+            _ => fullPath
+        };
+
+        // Store server type and connection details in AdditionalConfiguration for downstream services
+        dataSource.AdditionalConfiguration ??= new MongoDB.Bson.BsonDocument();
+        dataSource.AdditionalConfiguration["ServerType"] = server.ServerType ?? "local";
+
+        // Store server credentials so connectors can authenticate
+        if (server.TypeSpecificConfig != null)
+        {
+            if (server.TypeSpecificConfig.Contains("Username"))
+                dataSource.AdditionalConfiguration["FtpUsername"] = server.TypeSpecificConfig["Username"].AsString;
+            if (server.TypeSpecificConfig.Contains("Password"))
+                dataSource.AdditionalConfiguration["FtpPassword"] = server.TypeSpecificConfig["Password"].AsString;
+            if (server.TypeSpecificConfig.Contains("PassiveMode"))
+                dataSource.AdditionalConfiguration["FtpUsePassiveMode"] = server.TypeSpecificConfig["PassiveMode"].AsBoolean;
+        }
+        dataSource.AdditionalConfiguration["FtpServer"] = server.Host;
+        dataSource.AdditionalConfiguration["FtpPort"] = server.Port;
+
+        _logger.LogInformation(
+            "Resolved FileServerId {ServerId} ({ServerType}) for datasource {Name}: FilePath={FilePath}",
+            server.ID, server.ServerType, dataSource.Name, dataSource.FilePath);
     }
 
     /// <summary>

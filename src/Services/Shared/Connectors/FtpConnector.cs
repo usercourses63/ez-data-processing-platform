@@ -62,8 +62,10 @@ public class FtpConnector : IDataSourceConnector, IServerConnector
     {
         try
         {
-            var remotePath = dataSource.FilePath;
-            _logger.LogInformation("Listing files from FTP: {RemotePath} with pattern: {Pattern}", remotePath, pattern);
+            var config = GetFtpConfig(dataSource);
+            var remotePath = config.RemotePath;
+            _logger.LogInformation("Listing files from FTP {Server}:{Port}{RemotePath} with pattern: {Pattern}",
+                config.Server, config.Port, remotePath, pattern);
 
             return await _pipeline.ExecuteAsync(async ct =>
             {
@@ -182,29 +184,54 @@ public class FtpConnector : IDataSourceConnector, IServerConnector
 
     private FtpConfiguration GetFtpConfig(DataProcessingDataSource dataSource)
     {
-        var config = new FtpConfiguration
-        {
-            Server = dataSource.FilePath // Base path contains server
-        };
+        var config = new FtpConfiguration();
 
-        // Parse additional configuration from BsonDocument
+        // Parse FilePath as URL if it starts with ftp://
+        var filePath = dataSource.FilePath ?? "";
+        if (filePath.StartsWith("ftp://", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var uri = new Uri(filePath);
+                config.Server = uri.Host;
+                config.Port = uri.Port > 0 ? uri.Port : 21;
+                config.RemotePath = uri.AbsolutePath;
+                if (!string.IsNullOrEmpty(uri.UserInfo))
+                {
+                    var parts = uri.UserInfo.Split(':');
+                    config.Username = Uri.UnescapeDataString(parts[0]);
+                    if (parts.Length > 1)
+                        config.Password = Uri.UnescapeDataString(parts[1]);
+                }
+            }
+            catch
+            {
+                config.Server = filePath;
+            }
+        }
+        else
+        {
+            config.Server = filePath;
+        }
+
+        // Parse additional configuration from BsonDocument (overrides URL-parsed values)
         if (dataSource.AdditionalConfiguration != null)
         {
             if (dataSource.AdditionalConfiguration.Contains("FtpServer"))
                 config.Server = dataSource.AdditionalConfiguration["FtpServer"].AsString;
-            
+
             if (dataSource.AdditionalConfiguration.Contains("FtpPort"))
                 config.Port = dataSource.AdditionalConfiguration["FtpPort"].AsInt32;
-            
+
             if (dataSource.AdditionalConfiguration.Contains("FtpUsername"))
                 config.Username = dataSource.AdditionalConfiguration["FtpUsername"].AsString;
-            
+
             if (dataSource.AdditionalConfiguration.Contains("FtpPassword"))
                 config.Password = dataSource.AdditionalConfiguration["FtpPassword"].AsString;
-            
+
             if (dataSource.AdditionalConfiguration.Contains("FtpUsePassiveMode"))
                 config.UsePassiveMode = dataSource.AdditionalConfiguration["FtpUsePassiveMode"].AsBoolean;
-            
+
             if (dataSource.AdditionalConfiguration.Contains("FtpUseSsl"))
                 config.UseSsl = dataSource.AdditionalConfiguration["FtpUseSsl"].AsBoolean;
         }
@@ -248,6 +275,7 @@ public class FtpConnector : IDataSourceConnector, IServerConnector
         public string Password { get; set; } = "";
         public bool UsePassiveMode { get; set; } = true;
         public bool UseSsl { get; set; } = false;
+        public string RemotePath { get; set; } = "/";
     }
 
     #region IServerConnector Implementation (New - AdminServer)
