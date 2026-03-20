@@ -342,6 +342,20 @@ const InvalidRecordsManagement: React.FC = () => {
     fetchStatistics();
   }, []);
 
+  // Auto-refresh when another user changes invalid records (SignalR EntityChanged)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.entityType === 'InvalidRecord' || detail?.entityType === 'DataSource') {
+        fetchRecords();
+        fetchStatistics();
+        fetchFilteredStatistics();
+      }
+    };
+    window.addEventListener('entity-changed', handler);
+    return () => window.removeEventListener('entity-changed', handler);
+  }, [selectedDataSource, selectedErrorType, selectedTimeRange, dateRange, currentPage]);
+
   useEffect(() => {
     fetchRecords();
     fetchFilteredStatistics();

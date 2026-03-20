@@ -37,6 +37,8 @@ export function useEntitySync() {
         'DataSource': ['datasources', 'datasource'],
         'NasDevice': ['nasDevices', 'nasdevices'],
         'AdminServer': ['adminservers', 'servers'],
+        'Category': ['categories'],
+        'InvalidRecord': ['invalidRecords', 'invalid-records'],
       };
 
       const keysToInvalidate = queryKeyMap[data.entityType] || [data.entityType.toLowerCase()];
