@@ -280,6 +280,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 21. Release Package & CI Pipeline | 4/4 | Complete    | 2026-03-18 | - |
 | 22. SignalR Monitoring Data Integration | 3/3 | Complete    | 2026-03-19 | - |
 | 23. Local Sanity Deploy & Extended Tests | 2/2 | Complete    | 2026-03-19 | - |
+| 24. v0.3.0 Release Package & Deploy | 0/3 | Planned    | - | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 0/3 plans complete (0%)
@@ -302,5 +303,22 @@ Plans:
 - [ ] 23-01-PLAN.md — Extended sanity tests (SANITY-08, 09, 10) + headed npm script
 - [ ] 23-02-PLAN.md — Local sanity deploy scripts (bash + PowerShell) + docs port-forward
 
+### Phase 24: v0.3.0 Release Package & Deploy
+**Goal**: Package and release v0.3.0 with version update, documentation, image builds, deployment package, and sanity tests
+**Depends on**: Phase 23 (all v0.2 work complete)
+**Requirements**: REL-03, REL-04, REL-05, REL-06, REL-07
+**Success Criteria** (what must be TRUE):
+  1. Frontend footer shows v0.3.0 version
+  2. Docusaurus has pages for NAS UX improvements, monitoring fixes, pipeline fixes
+  3. `build-all-images.sh v0.3.0` produces 10 .tar files in dist/images/services/
+  4. `assemble-package.sh v0.3.0` produces deployment folder with canonical structure
+  5. Sanity tests pass: NAS lifecycle, monitoring device health, FTP pipeline, NAS pipeline
+**Plans**: 3 plans (Wave 1: 24-01, 24-02 parallel; Wave 2: 24-03)
+
+Plans:
+- [ ] 24-01-PLAN.md — Version update (package.json, CLAUDE.md) + CHANGELOG v0.3.0 + Docusaurus release notes (REL-03, REL-04)
+- [ ] 24-02-PLAN.md — Sanity test updates: SANITY-11 NAS pipeline test + NAS E2E test hardening (REL-07)
+- [ ] 24-03-PLAN.md — Build all images v0.3.0, Helm deploy, sanity tests, assemble deployment package (REL-05, REL-06)
+
 ---
-*Roadmap updated: 2026-03-19 after Phase 22 revision (added MON-14)*
+*Roadmap updated: 2026-03-20 after Phase 24 planning*
