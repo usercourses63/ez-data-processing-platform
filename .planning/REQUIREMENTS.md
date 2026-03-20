@@ -37,7 +37,7 @@ Requirements for v0.3.0 NAS UX + Monitoring + Release. Most features already imp
 - [x] **REL-04**: Docusaurus documentation updated for v0.3.0 features
 - [ ] **REL-05**: All service images built from source with v0.3.0 tag
 - [ ] **REL-06**: Deployment package assembled (deployment-v0.3.0-{timestamp}/)
-- [ ] **REL-07**: Sanity tests updated and pass against deployed v0.3.0
+- [x] **REL-07**: Sanity tests updated and pass against deployed v0.3.0
 
 ## Out of Scope
 
@@ -70,7 +70,7 @@ Requirements for v0.3.0 NAS UX + Monitoring + Release. Most features already imp
 | REL-04 | Phase 24 | Complete |
 | REL-05 | Phase 24 | Pending |
 | REL-06 | Phase 24 | Pending |
-| REL-07 | Phase 24 | Pending |
+| REL-07 | Phase 24 | Complete |
 
 **Coverage:**
 - v0.3 requirements: 20 total

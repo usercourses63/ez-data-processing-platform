@@ -280,7 +280,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 21. Release Package & CI Pipeline | 4/4 | Complete    | 2026-03-18 | - |
 | 22. SignalR Monitoring Data Integration | 3/3 | Complete    | 2026-03-19 | - |
 | 23. Local Sanity Deploy & Extended Tests | 2/2 | Complete    | 2026-03-19 | - |
-| 24. v0.3.0 Release Package & Deploy | 1/3 | In Progress | - | - |
+| 24. v0.3.0 Release Package & Deploy | 2/3 | In Progress|  | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
