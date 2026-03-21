@@ -1,5 +1,17 @@
 # Milestones
 
+## v0.3.0 NAS UX + Monitoring + Release (Shipped: 2026-03-20)
+
+**Phases completed:** 1 phase (24), 3 plans
+**Key accomplishments:**
+- NAS UX improvements (SignalR EntityChanged on Servers/Categories, deprovision on delete, i18n status tags)
+- Pipeline fixes (FileServerId/NasDeviceId extraction, FTP connector URL parsing, ConnectionString optional)
+- Monitoring fixes (camelCase normalization, RabbitMQ queues, pipeline flow IDs, traces tab)
+- Release package with 21 images, Helm chart v0.3.0, Docusaurus portal
+- 11 sanity tests all passing (including NAS pipeline test)
+
+---
+
 ## v0.2 Production Validation & Release (Shipped: 2026-03-20)
 
 **Phases completed:** 13 phases (11-23), 38 plans
