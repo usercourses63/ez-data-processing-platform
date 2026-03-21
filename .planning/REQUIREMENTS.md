@@ -1,82 +1,79 @@
-# Requirements: EZ Platform v0.3.0
+# Requirements: EZ Data Processing Platform
 
-**Defined:** 2026-03-20
-**Core Value:** Files flow reliably from any source through validation to any destination, with complete visibility and traceability — no data loss, no silent failures, every record accounted for.
+**Defined:** 2026-03-21
+**Core Value:** Files flow reliably from any source through validation to any destination, with complete visibility and traceability
 
-## v0.3 Requirements
+## v0.4.0 Requirements
 
-Requirements for v0.3.0 NAS UX + Monitoring + Release. Most features already implemented — this milestone packages and releases them.
+Requirements for Datasource Productivity Features milestone. Each maps to roadmap phases.
 
-### NAS UX & SignalR (implemented)
+### Clone Datasource
 
-- [x] **NAS-12**: SignalR EntityChanged broadcasts on Servers controller (create/update/delete/toggle)
-- [x] **NAS-13**: SignalR EntityChanged broadcasts on Categories controller (create/update/delete/reorder)
-- [x] **NAS-14**: NAS delete auto-deprovisions K8s PV/PVC before soft-delete
-- [x] **NAS-15**: NAS status tags use i18n keys (connected/disconnected)
-- [x] **NAS-16**: NAS Role enum accepts string values from frontend (JsonStringEnumConverter)
+- [ ] **CLONE-01**: User can clone a datasource from the list page actions menu
+- [ ] **CLONE-02**: User can clone a datasource from the details page header
+- [ ] **CLONE-03**: Cloned datasource pre-fills all form fields (name prefixed with "Copy of", schedule disabled, output destinations get new IDs)
 
-### Data Pipeline Fixes (implemented)
+### Import from File
 
-- [x] **PIPE-06**: FileServerId extracted from ConfigurationSettings on datasource create/update
-- [x] **PIPE-07**: NasDeviceId/NasSubPath extracted from ConfigurationSettings
-- [x] **PIPE-08**: FTP connector parses ftp:// URLs for host/port instead of using as hostname
-- [x] **PIPE-09**: Server credentials auto-populated from AdminServer.TypeSpecificConfig
-- [x] **PIPE-10**: ConnectionString optional for NAS datasources
+- [ ] **IMPORT-01**: User can upload a sample data file (CSV, JSON, XML) to auto-fill datasource form fields
+- [ ] **IMPORT-02**: System infers JSON Schema 2020-12 from file content with type detection (integer, number, boolean, date, string)
+- [ ] **IMPORT-03**: CSV files without headers generate synthetic field names (field_1, field_2, ... field_N)
+- [ ] **IMPORT-04**: System applies smart constraints via schemaAutoSuggest (email format, phone patterns, date formats, etc.)
+- [ ] **IMPORT-05**: User can preview parsed data in a table and review/edit inferred schema in Monaco Editor before applying
 
-### Monitoring Fixes (implemented)
+### Completeness Checklist
 
-- [x] **MON-15**: Device Health tab loads via HTTP polling (not blocked by SignalR)
-- [x] **MON-16**: SignalR mappers handle both camelCase and PascalCase
-- [x] **MON-17**: RabbitMQ queue monitoring replaces Kafka
-- [x] **MON-18**: Pipeline flow service IDs match K8s deployment names
-- [x] **MON-19**: Traces tab queries all pipeline services with relative span timing
+- [ ] **CHECK-01**: Create form shows real-time completeness percentage and per-tab status
+- [ ] **CHECK-02**: Edit form shows real-time completeness percentage and per-tab status
+- [ ] **CHECK-03**: Clicking an incomplete tab item navigates to that tab
+- [ ] **CHECK-04**: Required vs recommended fields distinguished with color-coded indicators (green/yellow/red/gray)
 
-### Release Package
+## Future Requirements
 
-- [x] **REL-03**: Frontend version updated to v0.3.0 in footer
-- [x] **REL-04**: Docusaurus documentation updated for v0.3.0 features
-- [ ] **REL-05**: All service images built from source with v0.3.0 tag
-- [ ] **REL-06**: Deployment package assembled (deployment-v0.3.0-{timestamp}/)
-- [x] **REL-07**: Sanity tests updated and pass against deployed v0.3.0
+Deferred to future release. Tracked but not in current roadmap.
+
+### Datasource Management
+- **DS-FUTURE-01**: Export datasource configuration as JSON file
+- **DS-FUTURE-02**: Bulk clone multiple datasources
+- **DS-FUTURE-03**: Excel file import support (in addition to CSV/JSON/XML)
+- **DS-FUTURE-04**: Datasource configuration templates (save/load presets)
 
 ## Out of Scope
 
+Explicitly excluded. Documented to prevent scope creep.
+
 | Feature | Reason |
 |---------|--------|
-| OpenTelemetry MassTransit trace propagation | Requires changes to all pipeline services, deferred to v0.4 |
-| NAS E2E with unfs3 (NFSv3) servers | Only erichough/nfs-server (NFSv4) works cross-cluster |
-| Multi-destination NAS output test | Cross-cluster NFS mount complexities, tested with FTP |
+| Backend API changes | All 3 features are frontend-only; backend already has all needed endpoints |
+| Datasource diff/compare | Useful but separate feature, not part of productivity focus |
+| Auto-save / draft mode | Complexity vs value — users can use clone as workaround |
+| File upload to server | Import is for schema inference only, not file ingestion |
+| OpenTelemetry MassTransit trace propagation | Deferred from v0.3, still not in scope |
 
 ## Traceability
 
+Which phases cover which requirements. Updated during roadmap creation.
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAS-12 | Pre-phase (already committed) | Complete |
-| NAS-13 | Pre-phase (already committed) | Complete |
-| NAS-14 | Pre-phase (already committed) | Complete |
-| NAS-15 | Pre-phase (already committed) | Complete |
-| NAS-16 | Pre-phase (already committed) | Complete |
-| PIPE-06 | Pre-phase (already committed) | Complete |
-| PIPE-07 | Pre-phase (already committed) | Complete |
-| PIPE-08 | Pre-phase (already committed) | Complete |
-| PIPE-09 | Pre-phase (already committed) | Complete |
-| PIPE-10 | Pre-phase (already committed) | Complete |
-| MON-15 | Pre-phase (already committed) | Complete |
-| MON-16 | Pre-phase (already committed) | Complete |
-| MON-17 | Pre-phase (already committed) | Complete |
-| MON-18 | Pre-phase (already committed) | Complete |
-| MON-19 | Pre-phase (already committed) | Complete |
-| REL-03 | Phase 24 | Complete |
-| REL-04 | Phase 24 | Complete |
-| REL-05 | Phase 24 | Pending |
-| REL-06 | Phase 24 | Pending |
-| REL-07 | Phase 24 | Complete |
+| CLONE-01 | — | Pending |
+| CLONE-02 | — | Pending |
+| CLONE-03 | — | Pending |
+| IMPORT-01 | — | Pending |
+| IMPORT-02 | — | Pending |
+| IMPORT-03 | — | Pending |
+| IMPORT-04 | — | Pending |
+| IMPORT-05 | — | Pending |
+| CHECK-01 | — | Pending |
+| CHECK-02 | — | Pending |
+| CHECK-03 | — | Pending |
+| CHECK-04 | — | Pending |
 
 **Coverage:**
-- v0.3 requirements: 20 total
-- Already complete: 15
-- Pending (Phase 24): 5
-- Unmapped: 0 ✓
+- v0.4.0 requirements: 12 total
+- Mapped to phases: 0
+- Unmapped: 12 ⚠️
 
 ---
-*Requirements defined: 2026-03-20*
+*Requirements defined: 2026-03-21*
+*Last updated: 2026-03-21 after initial definition*
