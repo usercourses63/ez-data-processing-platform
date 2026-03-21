@@ -92,6 +92,14 @@ Files flow reliably from any source through validation to any destination, with 
 - [ ] **CHECK-03**: Clicking an incomplete tab item navigates to that tab
 - [ ] **CHECK-04**: Required vs recommended fields distinguished with color-coded indicators
 
+#### Documentation & Release
+- [ ] **DOC-09**: Hebrew user guide refactored with detailed coverage of all v0.4.0 features
+- [ ] **DOC-10**: Docusaurus documentation updated for v0.4.0
+- [ ] **REL-08**: All service images built from source with v0.4.0 tag
+- [ ] **REL-09**: Deployment package assembled (deployment-v0.4.0-{timestamp}/)
+- [ ] **REL-10**: Fresh install from deployment package succeeds on clean cluster
+- [ ] **REL-11**: Sanity tests pass against fresh install including documentation correctness
+
 ### Out of Scope
 
 - **AI Assistant integration** - Deferred, not critical for reliability
@@ -104,7 +112,7 @@ Files flow reliably from any source through validation to any destination, with 
 
 ### Current State
 - **Version:** v0.3.0 shipped (2026-03-20), now working on v0.4.0
-- **Current Milestone:** v0.4.0 Datasource Productivity Features (12 requirements)
+- **Current Milestone:** v0.4.0 Datasource Productivity Features (18 requirements)
 - **Architecture:** 9 microservices + React frontend on Kubernetes
 - **Testing:** 32 protocol tests, 63 format tests, 17 pipeline tests, 5 load tests, Playwright E2E
 - **CI/CD:** GitHub Actions pipeline with Docker builds, Helm charts, quality gates

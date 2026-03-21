@@ -4,7 +4,8 @@
 
 - v0.1 **Testing Foundation + Infrastructure** — Phases 1-10 (shipped 2026-02-11) — [archive](milestones/v0.1-ROADMAP.md)
 - v0.2 **Production Validation & Release** — Phases 11-21 (in progress)
-- v0.3 **NAS UX + Monitoring + Release** — Phase 24 (in progress)
+- v0.3 **NAS UX + Monitoring + Release** — Phase 22-24 (in progress)
+- v0.4 **Datasource Productivity Features** — Phases 25-28 (planned)
 
 ## Next Milestone
 
@@ -36,6 +37,13 @@
 ### v0.3 NAS UX + Monitoring + Release
 
 - [ ] **Phase 24: v0.3.0 Release Package & Deploy** - Version update, docs, build all images, assemble package, sanity tests
+
+### v0.4 Datasource Productivity Features
+
+- [ ] **Phase 25: Clone Datasource** - Clone from list/details with full form pre-fill
+- [ ] **Phase 26: Completeness Checklist** - Real-time form completeness with per-tab status and navigation
+- [ ] **Phase 27: Import from File** - Upload sample file to auto-fill schema and form fields
+- [ ] **Phase 28: Polish, i18n & Release** - Hebrew translations, Playwright E2E tests, v0.4.0 release packaging
 
 ## Phase Details
 
@@ -257,34 +265,6 @@ Plans:
 
 ---
 
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21 -> 22 -> 23
-
-Note: Phases 14 and 17 can run in parallel with earlier phases as they have no strict dependencies.
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 11. Bug Fixes & UI Polish | v0.2 | 2/2 | Complete | 2026-02-11 |
-| 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
-| 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
-| 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
-| 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
-| 15.1. Protocol File Operations Testing | 3/4 | In Progress|  | - |
-| 16. SignalR Real-Time Updates | 2/2 | Complete    | 2026-03-16 | - |
-| 17. File-Simulator Integration | 2/2 | Complete    | 2026-03-16 | - |
-| 18. E2E Validation | 4/5 | Gap Closure | 2026-03-16 | - |
-| 19. Documentation Update | 2/2 | Complete    | 2026-03-17 | - |
-| 20. CI/CD & Production Deployment | 3/3 | Complete   | 2026-03-18 | - |
-| 21. Release Package & CI Pipeline | 4/4 | Complete    | 2026-03-18 | - |
-| 22. SignalR Monitoring Data Integration | 3/3 | Complete    | 2026-03-19 | - |
-| 23. Local Sanity Deploy & Extended Tests | 2/2 | Complete    | 2026-03-19 | - |
-| 24. v0.3.0 Release Package & Deploy | 2/3 | In Progress|  | - |
-
-**v0.2 Totals:** 12/35 plans complete (34%)
-**v0.3 Totals:** 1/3 plans complete (33%)
-
 ### Phase 23: Local sanity deploy script and extended sanity tests with browser UI docs and help validation
 
 **Goal:** Single-command local sanity deploy script and extended sanity test suite with docs portal and help button verification
@@ -321,4 +301,94 @@ Plans:
 - [ ] 24-03-PLAN.md — Build all images v0.3.0, Helm deploy, sanity tests, assemble deployment package (REL-05, REL-06)
 
 ---
-*Roadmap updated: 2026-03-20 after Phase 24 planning*
+
+## v0.4 Datasource Productivity Features
+
+**Milestone Goal:** Add 3 datasource UX productivity features to the React frontend: clone existing datasources, import schema from sample files, and completeness checklist for form fill guidance. All changes are frontend-only.
+
+### Phase 25: Clone Datasource
+**Goal**: Users can duplicate any datasource to quickly create similar configurations
+**Depends on**: Phase 24 (v0.3.0 released)
+**Requirements**: CLONE-01, CLONE-02, CLONE-03
+**Success Criteria** (what must be TRUE):
+  1. User can click "Clone" from the actions menu on the datasource list page and a new create form opens pre-filled with cloned data
+  2. User can click "Clone" from the datasource details/edit page header and a new create form opens pre-filled with cloned data
+  3. Cloned form has name prefixed with "Copy of", schedule is disabled, and output destinations have new unique IDs
+  4. Cloned datasource saves successfully as a new independent entity (original unchanged)
+**Plans**: TBD
+
+### Phase 26: Completeness Checklist
+**Goal**: Users see real-time guidance on which form fields are filled and which tabs need attention
+**Depends on**: Phase 25 (validates form navigation patterns)
+**Requirements**: CHECK-01, CHECK-02, CHECK-03, CHECK-04
+**Success Criteria** (what must be TRUE):
+  1. Create datasource form displays a completeness percentage that updates in real-time as user fills fields
+  2. Edit datasource form displays per-tab completion status showing which tabs have incomplete fields
+  3. User can click an incomplete checklist item and the UI navigates to the corresponding tab
+  4. Required fields show red indicators, recommended fields show yellow, completed show green, and optional/empty show gray
+**Plans**: TBD
+
+### Phase 27: Import from File
+**Goal**: Users can upload a sample data file and have the system auto-fill the datasource form with inferred schema and field configuration
+**Depends on**: Phase 26 (checklist validates form completeness after import)
+**Requirements**: IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04, IMPORT-05
+**Success Criteria** (what must be TRUE):
+  1. User can upload a CSV, JSON, or XML sample file from the datasource create form and the system parses it client-side
+  2. System generates a valid JSON Schema 2020-12 from the file content with correct type detection (integer, number, boolean, date, string)
+  3. CSV files without a header row produce synthetic field names (field_1, field_2, ... field_N) instead of failing
+  4. System detects common data patterns (email, phone, date) and applies format/pattern constraints via schemaAutoSuggest
+  5. User sees a preview table of parsed data and can review/edit the inferred schema in Monaco Editor before applying it to the form
+**Plans**: TBD
+
+### Phase 28: Documentation, i18n, Deploy & Release
+**Goal**: Complete Hebrew translations (including user guide refactor), update Docusaurus docs, build v0.4.0 images, assemble deployment package, install from scratch, and verify with sanity tests
+**Depends on**: Phase 27 (all features implemented)
+**Requirements**: DOC-09, DOC-10, REL-08, REL-09, REL-10, REL-11
+**Success Criteria** (what must be TRUE):
+  1. All UI text for clone, import, and checklist features has Hebrew translations and displays correctly in RTL mode
+  2. Hebrew user guide refactored with detailed step-by-step coverage of all 3 new features
+  3. Docusaurus documentation updated (changelog, component docs, admin guide) for v0.4.0
+  4. All service images built from source with v0.4.0 tag (build-all-images.sh)
+  5. Deployment package assembled at dist/deployment-v0.4.0-{timestamp}/ with Helm chart, images, install scripts (all version references = v0.4.0)
+  6. Fresh install from deployment package using install.ps1 succeeds on clean cluster
+  7. Sanity tests pass against fresh install including documentation correctness verification
+  8. Playwright E2E tests cover clone, import, and checklist workflows
+**Plans**: TBD
+
+---
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21 -> 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28
+
+Note: Phases 14 and 17 can run in parallel with earlier phases as they have no strict dependencies.
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 11. Bug Fixes & UI Polish | v0.2 | 2/2 | Complete | 2026-02-11 |
+| 12. NAS Lifecycle Completion | v0.2 | 3/3 | Complete | 2026-02-11 |
+| 13. AdminServer & Feature Completion | v0.2 | 0/3 | Planned | - |
+| 14. OTEL Verification | v0.2 | 2/2 | Complete | 2026-02-25 |
+| 15. Device Health Monitoring | v0.2 | 2/2 | Complete | 2026-02-25 |
+| 15.1. Protocol File Operations Testing | v0.2 | 3/4 | In Progress | - |
+| 16. SignalR Real-Time Updates | v0.2 | 2/2 | Complete | 2026-03-16 |
+| 17. File-Simulator Integration | v0.2 | 2/2 | Complete | 2026-03-16 |
+| 18. E2E Validation | v0.2 | 4/5 | Gap Closure | 2026-03-16 |
+| 19. Documentation Update | v0.2 | 2/2 | Complete | 2026-03-17 |
+| 20. CI/CD & Production Deployment | v0.2 | 3/3 | Complete | 2026-03-18 |
+| 21. Release Package & CI Pipeline | v0.2 | 4/4 | Complete | 2026-03-18 |
+| 22. SignalR Monitoring Data Integration | v0.3 | 3/3 | Complete | 2026-03-19 |
+| 23. Local Sanity Deploy & Extended Tests | v0.3 | 2/2 | Complete | 2026-03-19 |
+| 24. v0.3.0 Release Package & Deploy | v0.3 | 2/3 | In Progress | - |
+| 25. Clone Datasource | v0.4 | 0/TBD | Not started | - |
+| 26. Completeness Checklist | v0.4 | 0/TBD | Not started | - |
+| 27. Import from File | v0.4 | 0/TBD | Not started | - |
+| 28. Documentation, i18n, Deploy & Release | v0.4 | 0/TBD | Not started | - |
+
+**v0.2 Totals:** 12/35 plans complete (34%)
+**v0.3 Totals:** 1/3 plans complete (33%)
+**v0.4 Totals:** 0/TBD plans complete (0%)
+
+---
+*Roadmap updated: 2026-03-21 after v0.4.0 milestone roadmap creation*

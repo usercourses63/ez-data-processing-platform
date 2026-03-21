@@ -28,6 +28,15 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 - [ ] **CHECK-03**: Clicking an incomplete tab item navigates to that tab
 - [ ] **CHECK-04**: Required vs recommended fields distinguished with color-coded indicators (green/yellow/red/gray)
 
+### Documentation & Release
+
+- [ ] **DOC-09**: Hebrew user guide refactored with detailed coverage of all v0.4.0 features (clone, import, checklist)
+- [ ] **DOC-10**: Docusaurus documentation updated for v0.4.0 (changelog, component docs, admin guide)
+- [ ] **REL-08**: All service images built from source with v0.4.0 tag
+- [ ] **REL-09**: Deployment package assembled (deployment-v0.4.0-{timestamp}/) with Helm chart, images, install scripts
+- [ ] **REL-10**: Fresh install from deployment package using install.ps1 succeeds on clean cluster
+- [ ] **REL-11**: Sanity tests pass against fresh install including documentation correctness verification
+
 ## Future Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -46,7 +55,7 @@ Explicitly excluded. Documented to prevent scope creep.
 |---------|--------|
 | Backend API changes | All 3 features are frontend-only; backend already has all needed endpoints |
 | Datasource diff/compare | Useful but separate feature, not part of productivity focus |
-| Auto-save / draft mode | Complexity vs value — users can use clone as workaround |
+| Auto-save / draft mode | Complexity vs value -- users can use clone as workaround |
 | File upload to server | Import is for schema inference only, not file ingestion |
 | OpenTelemetry MassTransit trace propagation | Deferred from v0.3, still not in scope |
 
@@ -56,24 +65,30 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLONE-01 | — | Pending |
-| CLONE-02 | — | Pending |
-| CLONE-03 | — | Pending |
-| IMPORT-01 | — | Pending |
-| IMPORT-02 | — | Pending |
-| IMPORT-03 | — | Pending |
-| IMPORT-04 | — | Pending |
-| IMPORT-05 | — | Pending |
-| CHECK-01 | — | Pending |
-| CHECK-02 | — | Pending |
-| CHECK-03 | — | Pending |
-| CHECK-04 | — | Pending |
+| CLONE-01 | Phase 25 | Pending |
+| CLONE-02 | Phase 25 | Pending |
+| CLONE-03 | Phase 25 | Pending |
+| IMPORT-01 | Phase 27 | Pending |
+| IMPORT-02 | Phase 27 | Pending |
+| IMPORT-03 | Phase 27 | Pending |
+| IMPORT-04 | Phase 27 | Pending |
+| IMPORT-05 | Phase 27 | Pending |
+| CHECK-01 | Phase 26 | Pending |
+| CHECK-02 | Phase 26 | Pending |
+| CHECK-03 | Phase 26 | Pending |
+| CHECK-04 | Phase 26 | Pending |
+| DOC-09 | Phase 28 | Pending |
+| DOC-10 | Phase 28 | Pending |
+| REL-08 | Phase 28 | Pending |
+| REL-09 | Phase 28 | Pending |
+| REL-10 | Phase 28 | Pending |
+| REL-11 | Phase 28 | Pending |
 
 **Coverage:**
-- v0.4.0 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12 ⚠️
+- v0.4.0 requirements: 18 total
+- Mapped to phases: 18
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 after roadmap creation (traceability updated)*
