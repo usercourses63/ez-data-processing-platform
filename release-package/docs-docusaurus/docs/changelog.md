@@ -11,6 +11,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-03-20
+
+### Added
+
+#### NAS UX Improvements
+- SignalR EntityChanged broadcasts on Servers controller (create/update/delete/toggle-active)
+- SignalR EntityChanged broadcasts on Categories controller (create/update/delete/reorder/toggle-active)
+- NAS delete auto-deprovisions K8s PV/PVC before soft-delete
+- NAS status tags use i18n keys (connected/disconnected in Hebrew and English)
+- NAS Role enum accepts both string and numeric values (JsonStringEnumConverter)
+- NAS full lifecycle E2E test (create, connect, provision, deprovision, delete)
+
+#### Data Pipeline Fixes
+- FileServerId extracted from ConfigurationSettings JSON on datasource create/update
+- NasDeviceId and NasSubPath extracted from ConfigurationSettings JSON
+- FTP connector parses ftp:// URLs for host/port instead of passing full URL as hostname
+- Server credentials auto-populated from AdminServer.TypeSpecificConfig
+- ConnectionString made optional for NAS datasources
+- FileDiscoveryService Dockerfile added for source builds
+
+#### Monitoring Improvements
+- Device Health tab crash fixed (SignalR camelCase normalization)
+- HTTP polling fallback for Device Health (not blocked by SignalR connection)
+- All SignalR mappers handle both camelCase and PascalCase via dual-casing helper
+- RabbitMQ Management API monitoring replaces Kafka for queue status
+- Pipeline flow lanes use real K8s deployment names
+- Traces tab queries all 6 pipeline services with relative span timing
+- Service names shortened (strip DataProcessing. prefix) with tooltip for full name
+- Metrics overview latency precision rounded to 1 decimal place
+
+#### Release Infrastructure
+- SANITY-11: NAS pipeline sanity test (create datasource with NAS device via UI)
+- Deployment package with 10 service + 11 infrastructure image tars
+- Helm chart updated to v0.3.0
+- Frontend version display updated to v0.3.0
+
+### Changed
+- Monitoring queues tab shows RabbitMQ/MassTransit queues instead of Kafka topics
+- FileDiscovery DeduplicationTTLHours changed from 0.25 to 1 (integer required)
+- Pipeline deployments include hostAliases for file-simulator.local cross-cluster access
+
+### Fixed
+- Cluster header showing empty values (SignalR camelCase property mapping)
+- MetricsOverviewCards crashing on undefined values (defensive ?? 0 fallbacks)
+- DeviceHealthSummaryBar crashing on undefined counts
+- DistributedTracing showing absolute timestamps instead of relative span timing
+
+---
+
 ## [0.2.0] - 2026-03-17
 
 ### Added
