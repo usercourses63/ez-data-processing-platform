@@ -2,11 +2,11 @@
 sidebar_position: 2
 ---
 
-# EZ Platform - Administrator Guide v0.2.0
+# EZ Platform - Administrator Guide v0.3.0
 
 **Last Updated:** March 2026
 **Audience:** System Administrators, DevOps Engineers
-**Version:** 0.2.0
+**Version:** 0.3.0
 
 ---
 
@@ -398,7 +398,29 @@ kube_pod_container_status_restarts_total{namespace="ez-platform"}
 
 ### Overview
 
-EZ Platform v0.2.0 introduces real-time monitoring via SignalR WebSocket connections. The `MonitoringBroadcaster` hosted service broadcasts system status to all connected frontend clients.
+EZ Platform v0.2.0 introduced real-time monitoring via SignalR WebSocket connections. The `MonitoringBroadcaster` hosted service broadcasts system status to all connected frontend clients.
+
+### v0.3.0: SignalR EntityChanged for CRUD Operations
+
+In v0.3.0, SignalR is also used for real-time synchronization of CRUD operations. The `EntityChanged` event is broadcast whenever an entity is created, updated, or deleted, allowing all connected clients to see changes immediately.
+
+**Servers Controller:**
+The Servers (AdminServers) controller broadcasts `EntityChanged` events for all CRUD operations. When an admin creates, updates, or deletes a server, all connected frontend clients automatically refresh their server lists.
+
+**Categories Controller:**
+The Categories controller also broadcasts `EntityChanged` events. Category changes (create, edit, delete, toggle active/inactive) are reflected across all connected admin sessions in real time.
+
+**NAS Devices Controller:**
+NAS device CRUD operations broadcast `EntityChanged` events. Additionally, delete operations automatically deprovision associated K8s PV/PVC resources before removing the device record.
+
+```csharp
+// v0.3.0: EntityChanged broadcast pattern (all CRUD controllers)
+await _hubContext.Clients.All.SendAsync("EntityChanged", new {
+    EntityType = "Server",   // or "Category", "NasDevice"
+    Action = "Created",      // or "Updated", "Deleted"
+    EntityId = entity.ID
+});
+```
 
 ### SignalR Hub
 
@@ -1487,6 +1509,6 @@ kubectl describe pvc <name> -n ez-platform
 
 ---
 
-**Admin Guide Version:** 2.1
-**Platform Version:** v0.2.0
+**Admin Guide Version:** 3.0
+**Platform Version:** v0.3.0
 **Last Updated:** March 2026

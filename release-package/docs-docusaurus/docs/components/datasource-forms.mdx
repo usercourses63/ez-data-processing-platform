@@ -2,7 +2,7 @@
 sidebar_position: 2
 title: Data Source Forms
 description: Form tab components for data source creation and editing
-last_verified: 2026-02-03
+last_verified: 2026-03-21
 ---
 
 import Tabs from '@theme/Tabs';
@@ -406,6 +406,47 @@ const CreateDataSourcePage: React.FC = () => {
   );
 };
 ```
+
+## v0.3.0 Changes
+
+### FileServerId Extraction from ConfigurationSettings
+
+In v0.3.0, the `inputServerId` (FileServerId) is extracted from the `ConfigurationSettings` object when editing an existing data source. Previously, this field was stored at the top level of the data source model. The ConnectionTab now reads `ConfigurationSettings.FileServerId` and maps it to the `inputServerId` form field.
+
+### NasDeviceId and NasSubPath Extraction
+
+Similarly, `NasDeviceId` and `NasSubPath` are now extracted from `ConfigurationSettings` when the connection type is NFS. These fields populate the NAS device selector and sub-path input in the ConnectionTab:
+
+```typescript
+// v0.3.0: Extract NAS fields from ConfigurationSettings
+if (connectionType === 'NFS' && configSettings) {
+  form.setFieldsValue({
+    nasDeviceId: configSettings.NasDeviceId,
+    nasSubPath: configSettings.NasSubPath,
+  });
+}
+```
+
+### FTP Connector URL Parsing
+
+The FTP connector now parses composite URL strings to extract host and port separately. When loading an existing FTP data source, the `ConnectionString` is parsed to populate the host and port fields individually:
+
+```typescript
+// v0.3.0: Parse "ftp://host:port" into separate fields
+const url = new URL(connectionString);
+form.setFieldsValue({
+  host: url.hostname,
+  port: url.port || '21',
+});
+```
+
+### Server Credentials Auto-Population
+
+When selecting an AdminServer in the ConnectionTab, credentials (username, password, host, port) are auto-populated from the selected server's configuration. This eliminates the need for users to re-enter credentials that are already stored in the AdminServer record.
+
+### ConnectionString Optional for NAS
+
+For NAS-type data sources, the `ConnectionString` field is no longer required. The connection is determined by the selected NAS device's NFS server and export path, making the explicit connection string redundant.
 
 ## See Also
 

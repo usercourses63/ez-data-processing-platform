@@ -214,6 +214,44 @@ useEffect(() => {
 | RecentAlerts | `/monitoring/components/` | Alert list |
 | DeviceHealthTab | `/monitoring/components/` | Device health cards and summary |
 
+## v0.3.0 Changes
+
+### RabbitMQ Queue Monitoring
+
+The Queues tab now monitors RabbitMQ queues instead of Kafka topics for internal service communication. Kafka monitoring remains for external data source connectors only. Queue status shows message count, consumer count, and queue state.
+
+### Pipeline Flow with K8s Deployment IDs
+
+The PipelineFlow component now uses actual Kubernetes deployment identifiers for flow lane rendering. Each lane corresponds to a real deployment (e.g., `filediscovery`, `fileprocessor`, `validation`, `output`) rather than static mock labels.
+
+### Traces Tab Improvements
+
+The Traces tab now queries all pipeline services with relative timing display:
+
+- **Service Coverage**: Queries traces across FileDiscovery, FileProcessor, Validation, Output, and Scheduling services
+- **Relative Timing**: Span start times shown relative to the trace root (e.g., "+45ms" instead of absolute timestamps)
+- **Shortened Service Names**: The `DataProcessing.` prefix is stripped from service names for cleaner display (e.g., "FileProcessor" instead of "DataProcessing.FileProcessor")
+
+### Dual-Casing SignalR Mappers
+
+All SignalR mapper functions now handle both camelCase and PascalCase property names. This prevents crashes when the backend serialization format changes or when different services use different naming policies:
+
+```typescript
+// v0.3.0: All mappers handle dual casing
+function mapServiceStatus(raw: any): ServiceStatus {
+  return {
+    id: raw.Id ?? raw.id,
+    name: raw.Name ?? raw.name,
+    status: (raw.Status ?? raw.status)?.toLowerCase?.() ?? 'unknown',
+    cpu: raw.Cpu ?? raw.cpu ?? 0,
+    memory: raw.Memory ?? raw.memory ?? 0,
+    // ... all properties handle both casings
+  };
+}
+```
+
+Affected mappers: `ServiceStatus`, `PodStatus`, `DashboardMetrics`, `MessageQueue`, `Alert`, `DistributedTrace`, `ClusterInfo`, `PipelineEvent`, `DeviceHealthStatusResponse`.
+
 ## See Also
 
 - [Device Health](device-health) - Device health monitoring details

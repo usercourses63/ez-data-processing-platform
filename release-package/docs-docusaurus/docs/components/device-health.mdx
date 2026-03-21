@@ -218,6 +218,44 @@ const data = signalRData ?? polledData;
 }
 ```
 
+## v0.3.0 Changes
+
+### Fixed SignalR camelCase Crash
+
+In v0.2.0, the DeviceHealthTab could crash when receiving SignalR data in camelCase format (the backend sends PascalCase, but under certain conditions camelCase data arrived). v0.3.0 fixes this by applying dual-casing normalization to all incoming device health data.
+
+### HTTP Polling Fallback
+
+The DeviceHealthTab is no longer blocked by SignalR connectivity issues. When SignalR is disconnected, the component independently fetches device health data via HTTP polling at a 15-second interval. This ensures device health information is always available regardless of WebSocket connection state.
+
+```typescript
+// v0.3.0: Independent polling, not blocked by SignalR state
+const { data: polledData } = useQuery<DeviceHealthStatusResponse>({
+  queryKey: ['device-health-status'],
+  queryFn: getDeviceHealthStatus,
+  refetchInterval: isSignalRConnected ? false : 15000,
+  enabled: !isSignalRConnected,  // Always falls back to polling
+  staleTime: 10000,
+});
+```
+
+### Dual-Casing Normalization
+
+All device health data mappers now handle both PascalCase and camelCase property names. This ensures compatibility with any backend serialization configuration:
+
+```typescript
+// v0.3.0: Accepts both casings
+function mapDeviceHealth(raw: any): DeviceHealthInfo {
+  return {
+    deviceId: raw.DeviceId ?? raw.deviceId,
+    deviceName: raw.DeviceName ?? raw.deviceName,
+    status: raw.Status ?? raw.status,
+    latencyMs: raw.LatencyMs ?? raw.latencyMs,
+    // ... all fields handle both casings
+  };
+}
+```
+
 ## Related Components
 
 | Component | Location | Purpose |

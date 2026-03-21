@@ -2,7 +2,7 @@
 sidebar_position: 4
 title: NAS Devices
 description: NAS device management component for admin panel
-last_verified: 2026-02-03
+last_verified: 2026-03-21
 ---
 
 import Tabs from '@theme/Tabs';
@@ -27,6 +27,10 @@ This is a self-contained tab component - no props required.
 - **Connection Testing**: Test NFS connectivity
 - **Status Tracking**: Shows provisioned vs pending devices
 - **React Query Integration**: Automatic cache invalidation
+- **SignalR Real-Time Sync** (v0.3.0): Live CRUD updates via EntityChanged broadcasts
+- **Auto-Deprovision on Delete** (v0.3.0): Deleting a device automatically removes K8s PV/PVC
+- **i18n Status Tags** (v0.3.0): Connected/Disconnected status shown in Hebrew and English
+- **String Role Values** (v0.3.0): Role enum accepts string values via JsonStringEnumConverter
 
 ### Internal State
 
@@ -299,6 +303,60 @@ const getActions = (device: NasDevice) => {
 
   return actions;
 };
+```
+
+## v0.3.0 Changes
+
+### SignalR Real-Time Sync
+
+NAS device CRUD operations now broadcast `EntityChanged` events via SignalR. When any user creates, updates, or deletes a NAS device, all connected clients receive the update in real time without manual refresh.
+
+```typescript
+// SignalR EntityChanged event for NAS devices
+connection.on('EntityChanged', (event: EntityChangedEvent) => {
+  if (event.entityType === 'NasDevice') {
+    queryClient.invalidateQueries({ queryKey: nasDeviceQueryKeys.all });
+  }
+});
+```
+
+### Auto-Deprovision on Delete
+
+In v0.3.0, deleting a NAS device automatically deprovisions the associated Kubernetes resources (PV and PVC). Previously, administrators had to manually deprovision before deleting. The delete flow now:
+
+1. Sends `DELETE /api/v1/nasdevices/{id}`
+2. Backend checks for existing PV/PVC
+3. If provisioned, automatically deletes PV and PVC
+4. Deletes the device record from MongoDB
+5. Broadcasts `EntityChanged` event via SignalR
+
+### i18n Status Tags
+
+Status indicators now display localized text using i18n keys:
+
+| Status | English | Hebrew |
+|--------|---------|--------|
+| Connected | Connected | מחובר |
+| Disconnected | Disconnected | לא מחובר |
+| PVC Bound | PVC Bound | PVC מחובר |
+| PV Created | PV Created | PV נוצר |
+| Not Provisioned | Not Provisioned | לא מוקצה |
+
+### Role Enum String Values
+
+The backend now uses `JsonStringEnumConverter` for the Role field. API requests and responses accept both numeric and string values:
+
+| Numeric | String |
+|---------|--------|
+| 0 | Input |
+| 1 | Output |
+| 2 | Backup |
+| 3 | Both |
+
+```json
+// Both formats accepted in v0.3.0
+{ "Role": "Input" }
+{ "Role": 0 }
 ```
 
 ## Related Components

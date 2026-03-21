@@ -4,17 +4,17 @@ title: Welcome
 slug: /
 ---
 
-# EZ Platform v0.1.1-rc2 Documentation
+# EZ Platform v0.3.0 Documentation
 
-Welcome to the official documentation for EZ Platform version 0.1.1-rc1.
+Welcome to the official documentation for EZ Platform version 0.3.0.
 
 ## About This Release
 
 EZ Platform is an enterprise data processing system with automated file discovery, format conversion, schema validation, and multi-destination output capabilities.
 
-**Release Date:** January 6, 2026
-**Status:** Release Candidate 1
-**Version:** 0.1.1-rc1
+**Release Date:** March 2026
+**Status:** Release
+**Version:** 0.3.0
 
 ---
 
@@ -59,6 +59,10 @@ EZ Platform is an enterprise data processing system with automated file discover
 - ✅ **Hebrew/RTL UI** - Complete right-to-left support
 - ✅ **Network Access** - NodePort on 30080 for internal LAN
 - ✅ **Comprehensive Monitoring** - Grafana dashboards, Prometheus metrics, Jaeger tracing
+- ✅ **SignalR Real-Time Sync** - Live CRUD updates across all connected clients (v0.3.0)
+- ✅ **NAS Auto-Deprovision** - Delete cleans up K8s PV/PVC automatically (v0.3.0)
+- ✅ **RabbitMQ Queue Monitoring** - Internal queue health monitoring (v0.3.0)
+- ✅ **Device Health Resilience** - HTTP polling fallback, dual-casing normalization (v0.3.0)
 
 ---
 
@@ -99,6 +103,6 @@ For issues or questions, refer to:
 
 ---
 
-**Documentation Version:** 1.1
-**Platform Version:** v0.1.1-rc2
-**Last Updated:** January 6, 2026
+**Documentation Version:** 3.0
+**Platform Version:** v0.3.0
+**Last Updated:** March 2026
