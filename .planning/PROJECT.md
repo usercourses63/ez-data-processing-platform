@@ -68,72 +68,29 @@ Files flow reliably from any source through validation to any destination, with 
 #### Frontend Workflow — v0.1
 - ✓ **FE-01..07**: Component docs, Playwright E2E, API coordination, React 19 patterns, Docusaurus portal integration, Hebrew user guide — v0.1
 
-### Active — v0.3.0 NAS UX + Monitoring + Release
+### Active — v0.4.0 Datasource Productivity Features
 
-<!-- Current milestone scope — defined 2026-03-20 -->
+<!-- Current milestone scope — defined 2026-03-21 -->
 
-**Goal:** Package and release v0.3.0 with NAS UX improvements, monitoring fixes, pipeline bug fixes, updated documentation, and sanity tests.
+**Goal:** Add 3 datasource UX productivity features: clone existing datasources, import schema from sample files, and completeness checklist for form fill guidance.
 
-#### Bug Fixes (carried from v0.1)
-- [ ] **BUG-01**: Fix Hebrew/RTL layout regressions
-- [ ] **BUG-02**: Remove unwanted English translations
-- [ ] **BUG-03**: Replace NFS protocol dropdown with NAS devices from system settings
+#### Clone Datasource
+- [ ] **CLONE-01**: User can clone a datasource from the list page actions menu
+- [ ] **CLONE-02**: User can clone a datasource from the details page header
+- [ ] **CLONE-03**: Cloned datasource pre-fills all form fields (name prefixed, schedule disabled, new destination IDs)
 
-#### Feature Completion (carried from v0.1)
-- [ ] **FEAT-01**: AdminServer settings pages complete and verified (NAS, protocols, system config)
-- [ ] **FEAT-02**: NAS devices selectable in data source Connection/Output tabs with path config
-- [ ] **FEAT-03**: Archive extraction functional across all protocols
+#### Import from File
+- [ ] **IMPORT-01**: User can upload a sample data file (CSV, JSON, XML) to auto-fill datasource form
+- [ ] **IMPORT-02**: System infers JSON schema from file content with type detection
+- [ ] **IMPORT-03**: CSV without headers generates synthetic field names (field_1, field_2, ...)
+- [ ] **IMPORT-04**: System applies smart constraints via schemaAutoSuggest (email, phone, date patterns)
+- [ ] **IMPORT-05**: User can preview parsed data and review/edit inferred schema before applying
 
-#### NAS Lifecycle Management (gap analysis)
-- [ ] **NAS-08**: Auto-mount volumes to service deployments after PV/PVC provisioning
-- [ ] **NAS-09**: DataSource → NasDevice entity linking (NasDeviceId + mount path auto-population)
-- [ ] **NAS-10**: PVC binding verification before DataSource can use NAS device
-- [ ] **NAS-11**: NAS update/delete lifecycle (prevent delete if referenced, cascade cleanup)
-
-#### Observability Verification
-- [ ] **OTEL-01**: Every microservice generates logs via OTEL collector
-- [ ] **OTEL-02**: Every microservice generates traces via OTEL collector
-- [ ] **OTEL-03**: Every microservice generates metrics via OTEL collector
-
-#### System Monitoring Enhancement
-- [ ] **MON-05**: System Monitoring page reflects real current system components
-- [ ] **MON-06**: File access device health/latency/keep-alive monitoring
-- [ ] **MON-07**: SignalR real-time updates on System Monitoring page (reference file-simulator)
-- [x] **MON-08**: KubernetesMonitoringService returns real pod/service data (RBAC fix) — Validated in Phase 22: SignalR Monitoring Data Integration
-- [x] **MON-09**: PrometheusQueryService reads real metrics (env var config) — Validated in Phase 22
-- [x] **MON-10**: KafkaMonitoringService reads real queue depths — Validated in Phase 22
-- [x] **MON-11**: JaegerService reads real traces — Validated in Phase 22
-- [x] **MON-12**: PipelineEventConsumer receives real MassTransit events — Validated in Phase 22
-- [x] **MON-13**: Mock data removed, skeleton loading on System Monitoring page — Validated in Phase 22
-- [x] **MON-14**: Multi-user CRUD broadcast via SignalR + optimistic locking (Version/409) — Validated in Phase 22
-
-#### File-Simulator Integration
-- [ ] **SIM-01**: File-simulator docs/API understood and documented
-- [ ] **SIM-02**: DemoDataGenerator reads file-simulator config via API
-- [ ] **SIM-03**: DemoDataGenerator creates matching EZ devices from simulator config
-
-#### Production Deployment
-- [ ] **PROD-01**: CI/CD deploys to production-like environment via Helm
-- [ ] **PROD-02**: All services healthy in production-like deployment
-- [ ] **PROD-03**: Frontend version display from CI/CD build pipeline
-- [ ] **PROD-04**: Local production deployment (single-pod mode for dev PC)
-- [ ] **PROD-05**: OCP resource configuration (requests/limits per pod)
-- [ ] **PROD-06**: Release-package local validation (single-replica test)
-
-#### Documentation
-- [ ] **DOC-06**: Docusaurus content updated for v0.2.0 release
-- [ ] **DOC-07**: Docusaurus container in release-package
-- [ ] **DOC-08**: Frontend help → Docusaurus integration verification
-
-#### E2E Validation
-- [ ] **E2E-01**: Full file flow test (generate input → ingest → process → output → compare)
-- [ ] **E2E-02**: Error/negative tests with intentional bad data verify filtering
-- [ ] **E2E-03**: Playwright UI verification of NAS devices, file protocols, features
-- [ ] **E2E-04**: All existing E2E tests validated against file-simulator
-
-#### Release
-- [ ] **REL-01**: Tagged GitHub release (v0.2)
-- [ ] **REL-02**: Offline Helm package for OCP deployment
+#### Completeness Checklist
+- [ ] **CHECK-01**: Create form shows real-time completeness percentage and per-tab status
+- [ ] **CHECK-02**: Edit form shows real-time completeness percentage and per-tab status
+- [ ] **CHECK-03**: Clicking an incomplete tab item navigates to that tab
+- [ ] **CHECK-04**: Required vs recommended fields distinguished with color-coded indicators
 
 ### Out of Scope
 
@@ -146,8 +103,8 @@ Files flow reliably from any source through validation to any destination, with 
 ## Context
 
 ### Current State
-- **Version:** v0.1 shipped (2026-02-11), now working on v0.2
-- **Current Milestone:** v0.2 Production Validation & Release (34 requirements)
+- **Version:** v0.3.0 shipped (2026-03-20), now working on v0.4.0
+- **Current Milestone:** v0.4.0 Datasource Productivity Features (12 requirements)
 - **Architecture:** 9 microservices + React frontend on Kubernetes
 - **Testing:** 32 protocol tests, 63 format tests, 17 pipeline tests, 5 load tests, Playwright E2E
 - **CI/CD:** GitHub Actions pipeline with Docker builds, Helm charts, quality gates
@@ -194,4 +151,4 @@ Files flow reliably from any source through validation to any destination, with 
 | SignalR for real-time monitoring | File-simulator uses it, proven pattern | ⚠️ Infrastructure built in v0.2 (Phase 16), real data integration deferred to v0.3 (Phase 22) |
 
 ---
-*Last updated: 2026-03-19 after Phase 22 complete*
+*Last updated: 2026-03-21 after milestone v0.4.0 started*
