@@ -430,12 +430,25 @@ src/components/
 
 ## Testing Strategy
 
-### Playwright Headed Testing (MANDATORY for all UI work)
-**Every phase that touches frontend UI MUST include Playwright headed test verification before the phase is complete.**
+### Testing Requirements (MANDATORY for all UI work)
+**Every phase that touches frontend UI MUST run both testing tools before the phase is complete.**
 
-- Write new Playwright test specs for new UI features (not deferred to a later phase)
-- Run with `--headed` flag for visual verification: `npx playwright test --headed`
-- Verify RTL layout, Ant Design component behavior, and interaction flows
+**Step 1: `/gsd:add-tests {phase}` — Unit + E2E test generation**
+- Classifies files into TDD (unit) / E2E (Playwright) / Skip
+- Generates unit tests for pure functions (Vitest)
+- Generates E2E Playwright specs for UI behavior
+- Run with `--headed` flag: `npx playwright test --headed`
+
+**Step 2: `webapp-testing` skill — Comprehensive UI verification**
+- Python Playwright scripts for deep UI testing
+- Reconnaissance-first approach: discover DOM → verify
+- Tests edge cases: tooltips, modal content, cancel flows, uniqueness, error handling
+- Location: `src/Frontend/tests/webapp-testing/`
+- Run: `python tests/webapp-testing/{feature}_comprehensive_test.py`
+
+**Both tools complement each other:**
+- `/gsd:add-tests` covers unit tests + basic E2E flows
+- `webapp-testing` covers comprehensive UI verification with edge cases
 - Sanity tests: `src/Frontend/tests/e2e/sanity.spec.ts` (11 tests)
 - Config: `src/Frontend/playwright.config.ts`, baseURL `http://localhost:7000`
 
