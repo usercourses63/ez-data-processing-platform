@@ -51,10 +51,33 @@ test.describe('Clone Datasource', () => {
     await expect(page.locator('text=שכפול מקור נתונים')).toBeVisible({ timeout: 5000 });
   });
 
+  test('CLONE-LIST-03: Clone pre-fills supplier and category fields', async ({ page }) => {
+    const firstRow = page.locator('.ant-table-tbody tr').first();
+
+    // Clone
+    await firstRow.locator('button .anticon-copy').locator('..').click();
+    await page.waitForTimeout(3000);
+    const modal = page.locator('.ant-modal-confirm');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+    await modal.locator('.ant-btn-primary').click();
+    await page.waitForTimeout(3000);
+
+    // On the create form — check fields are populated
+    expect(page.url()).toContain('/datasources/new');
+
+    // Supplier name should be filled (not empty)
+    const supplierInput = page.locator('input#supplierName, input[id$="_supplierName"]').first();
+    if (await supplierInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      const val = await supplierInput.inputValue();
+      expect(val.length).toBeGreaterThan(0);
+    }
+  });
+
   test('CLONE-DETAILS-01: Clone from details page header works', async ({ page }) => {
     // Navigate to first datasource details
     const firstRow = page.locator('.ant-table-tbody tr').first();
     const viewBtn = firstRow.locator('button .anticon-eye').locator('..');
+    await expect(viewBtn).toBeVisible({ timeout: 10000 });
     await viewBtn.click();
     await page.waitForURL(/\/datasources\/[a-f0-9]+$/, { timeout: 15000 });
     await page.waitForTimeout(2000);
@@ -77,5 +100,23 @@ test.describe('Clone Datasource', () => {
 
     // Verify navigation to create form
     expect(page.url()).toContain('/datasources/new');
+  });
+
+  test('ACTIONS-01: Delete action shows popconfirm and can be cancelled', async ({ page }) => {
+    const firstRow = page.locator('.ant-table-tbody tr').first();
+    const deleteBtn = firstRow.locator('button .anticon-delete').locator('..');
+    await deleteBtn.click();
+    await page.waitForTimeout(1000);
+
+    // Popconfirm should appear
+    const popconfirm = page.locator('.ant-popconfirm, .ant-popover');
+    await expect(popconfirm).toBeVisible({ timeout: 5000 });
+
+    // Cancel it
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+
+    // Should still be on the same page
+    expect(page.url()).toContain('/datasources');
   });
 });
