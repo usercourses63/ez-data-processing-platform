@@ -292,6 +292,29 @@ Each microservice follows this structure:
 - Override `ProcessMessageAsync` for message handling
 - Automatic correlation ID tracking from message context
 
+### SignalR Real-Time Sync (MANDATORY)
+**Every backend controller that performs CRUD operations MUST broadcast via SignalR `EntityChanged`.**
+
+This ensures all connected browser sessions see changes immediately without manual refresh.
+
+```csharp
+// Inject in controller constructor:
+private readonly IHubContext<MonitoringHub> _hubContext;
+
+// After create/update/delete:
+await _hubContext.Clients.All.SendAsync("EntityChanged", new
+{
+    EntityType = "DataSource",    // or "AdminServer", "NasDevice", "Category"
+    EntityId = entity.ID.ToString(),
+    Action = "created",           // "created", "updated", "deleted"
+    Version = entity.Version
+});
+```
+
+**Already implemented on:** DataSourceController, ServersController, CategoriesController, NasDevicesController
+
+**Frontend handling:** `useEntitySync` hook (global in App.tsx) → dispatches `entity-changed` CustomEvent → pages listen and auto-refresh.
+
 ---
 
 ## Message Broker Configuration

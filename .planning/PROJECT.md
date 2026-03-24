@@ -143,6 +143,7 @@ Files flow reliably from any source through validation to any destination, with 
 - **Internationalization:** Must maintain Hebrew/RTL support
 - **Architecture:** Must preserve microservices architecture (9 services + frontend)
 - **OCP Security:** Non-root, restricted-v2 SCC compliance
+- **SignalR Sync:** Every CRUD controller must broadcast EntityChanged for real-time multi-user sync
 
 ## Key Decisions
 

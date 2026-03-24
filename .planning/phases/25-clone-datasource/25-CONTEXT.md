@@ -52,6 +52,9 @@ Add "Clone" capability to datasources — users can duplicate an existing dataso
   - Statistics → cleared (TotalFilesProcessed, TotalErrorRecords, LastProcessedAt)
   - isActive → true (default)
 
+### SignalR Real-Time Sync
+- **D-06:** No additional work needed — DataSourceController already broadcasts `EntityChanged` on create (line 220), update (line 270), and delete (line 310). When a cloned datasource is saved via POST, the broadcast fires automatically. Frontend `useEntitySync` hook + DataSourceList `entity-changed` listener auto-refresh the list for all connected users.
+
 ### Claude's Discretion
 - Loading state/spinner while fetching full datasource on list page clone
 - Exact modal styling and layout
