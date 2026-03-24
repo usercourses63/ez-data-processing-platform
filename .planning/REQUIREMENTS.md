@@ -23,10 +23,10 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 
 ### Completeness Checklist
 
-- [ ] **CHECK-01**: Create form shows real-time completeness percentage and per-tab status
-- [ ] **CHECK-02**: Edit form shows real-time completeness percentage and per-tab status
+- [x] **CHECK-01**: Create form shows real-time completeness percentage and per-tab status
+- [x] **CHECK-02**: Edit form shows real-time completeness percentage and per-tab status
 - [ ] **CHECK-03**: Clicking an incomplete tab item navigates to that tab
-- [ ] **CHECK-04**: Required vs recommended fields distinguished with color-coded indicators (green/yellow/red/gray)
+- [x] **CHECK-04**: Required vs recommended fields distinguished with color-coded indicators (green/yellow/red/gray)
 
 ### Documentation & Release
 
@@ -77,10 +77,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMPORT-03 | Phase 27 | Pending |
 | IMPORT-04 | Phase 27 | Pending |
 | IMPORT-05 | Phase 27 | Pending |
-| CHECK-01 | Phase 26 | Pending |
-| CHECK-02 | Phase 26 | Pending |
+| CHECK-01 | Phase 26 | Complete |
+| CHECK-02 | Phase 26 | Complete |
 | CHECK-03 | Phase 26 | Pending |
-| CHECK-04 | Phase 26 | Pending |
+| CHECK-04 | Phase 26 | Complete |
 | CLONE-04 | Phase 28 | Pending |
 | DOC-09 | Phase 28 | Pending |
 | DOC-10 | Phase 28 | Pending |
