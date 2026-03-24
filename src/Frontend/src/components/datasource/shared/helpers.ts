@@ -115,6 +115,13 @@ export const prepareCloneData = (
 ): ClonePayload => {
   const namePrefix = language === 'he' ? 'העתק של ' : 'Copy of ';
   const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+  const generateUUID = () =>
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          const r = (Math.random() * 16) | 0;
+          return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+        });
 
   // Clone output destinations with new UUIDs (per D-04)
   // Handle both camelCase and PascalCase (ConfigurationSettings uses PascalCase)
@@ -153,7 +160,7 @@ export const prepareCloneData = (
     []
   ).map((dest: OutputDestination) => ({
     ...dest,
-    id: crypto.randomUUID(),
+    id: generateUUID(),
   }));
 
   return {
