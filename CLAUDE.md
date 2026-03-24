@@ -430,6 +430,15 @@ src/components/
 
 ## Testing Strategy
 
+### Playwright Headed Testing (MANDATORY for all UI work)
+**Every phase that touches frontend UI MUST include Playwright headed test verification before the phase is complete.**
+
+- Write new Playwright test specs for new UI features (not deferred to a later phase)
+- Run with `--headed` flag for visual verification: `npx playwright test --headed`
+- Verify RTL layout, Ant Design component behavior, and interaction flows
+- Sanity tests: `src/Frontend/tests/e2e/sanity.spec.ts` (11 tests)
+- Config: `src/Frontend/playwright.config.ts`, baseURL `http://localhost:7000`
+
 ### E2E-First Approach
 ```
         ┌──────────────────┐
