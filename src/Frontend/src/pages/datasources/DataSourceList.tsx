@@ -74,7 +74,7 @@ const DataSourceList: React.FC = () => {
     total: 0,
   });
   const [sortInfo, setSortInfo] = useState<any>({
-    order: 'ascend',
+    order: 'descend',
     field: 'CreatedAt',
     columnKey: 'CreatedAt'
   });
@@ -566,7 +566,7 @@ const DataSourceList: React.FC = () => {
 
   // Load data on component mount with default sorting (CreatedAt ascending = oldest first, by creation order)
   useEffect(() => {
-    fetchDataSources(1, 25, 'CreatedAt', 'ascend');
+    fetchDataSources(1, 25, 'CreatedAt', 'descend');
   }, []);
 
   // Handle table changes (pagination, sorting, filtering)
