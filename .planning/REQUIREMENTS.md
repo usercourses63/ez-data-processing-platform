@@ -10,7 +10,7 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 ### Clone Datasource
 
 - [x] **CLONE-01**: User can clone a datasource from the list page actions menu
-- [ ] **CLONE-02**: User can clone a datasource from the details page header
+- [x] **CLONE-02**: User can clone a datasource from the details page header
 - [x] **CLONE-03**: Cloned datasource pre-fills all form fields (name prefixed with "Copy of", schedule disabled, output destinations get new IDs)
 
 ### Import from File
@@ -66,7 +66,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CLONE-01 | Phase 25 | Complete |
-| CLONE-02 | Phase 25 | Pending |
+| CLONE-02 | Phase 25 | Complete |
 | CLONE-03 | Phase 25 | Complete |
 | IMPORT-01 | Phase 27 | Pending |
 | IMPORT-02 | Phase 27 | Pending |
