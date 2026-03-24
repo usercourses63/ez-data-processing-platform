@@ -1,5 +1,6 @@
 // Helper functions for DataSource forms
 import cronstrue from 'cronstrue/i18n';
+import type { ClonePayload, OutputDestination } from './types';
 
 /**
  * Humanizes a cron expression into Hebrew description using cronstrue library
@@ -90,7 +91,7 @@ export const extractFileTypeFromPattern = (filePattern?: string): string => {
  */
 export const getDelimiterLabel = (delimiter?: string): string => {
   if (!delimiter) return 'פסיק (,)';
-  
+
   switch (delimiter) {
     case ',': return 'פסיק (,)';
     case ';': return 'נקודה-פסיק (;)';
@@ -98,4 +99,64 @@ export const getDelimiterLabel = (delimiter?: string): string => {
     case '|': return 'Pipe (|)';
     default: return delimiter;
   }
+};
+
+/**
+ * Transforms a full DataSource API response into a ClonePayload
+ * for passing via location.state to the create form.
+ *
+ * Per D-04: Carries over all config (connection, file, schema, validation, notifications, output, archive).
+ * Per D-05: Resets name (prefix), schedule (disabled), output destination IDs (new UUIDs), stats.
+ */
+export const prepareCloneData = (
+  dataSource: any,
+  parsedConfig: any,
+  language: string
+): ClonePayload => {
+  const namePrefix = language === 'he' ? 'העתק של ' : 'Copy of ';
+
+  // Clone output destinations with new UUIDs (per D-04)
+  const clonedDestinations: OutputDestination[] = (
+    parsedConfig?.outputConfig?.destinations ||
+    dataSource?.Output?.Destinations?.map((d: any) => ({
+      id: d.Id || d.id,
+      name: d.Name || d.name,
+      description: d.Description || d.description,
+      type: d.Type || d.type,
+      enabled: d.Enabled ?? d.enabled ?? true,
+      outputFormat: d.OutputFormat || d.outputFormat,
+      includeInvalidRecords: d.IncludeInvalidRecords ?? d.includeInvalidRecords,
+      outputServerId: d.OutputServerId || d.outputServerId,
+      nasDeviceId: d.NasDeviceId || d.nasDeviceId,
+      kafkaConfig: d.KafkaConfig || d.kafkaConfig,
+      folderConfig: d.FolderConfig || d.folderConfig,
+      sftpConfig: d.SftpConfig || d.sftpConfig,
+      httpConfig: d.HttpConfig || d.httpConfig,
+    })) ||
+    []
+  ).map((dest: OutputDestination) => ({
+    ...dest,
+    id: crypto.randomUUID(),
+  }));
+
+  return {
+    name: `${namePrefix}${dataSource.Name}`,
+    supplierName: dataSource.SupplierName || '',
+    category: dataSource.Category || '',
+    description: dataSource.Description || dataSource.AdditionalConfiguration?.Metadata || '',
+    isActive: true,
+    filePattern: dataSource.FilePattern || '*.*',
+    connectionConfig: parsedConfig?.connectionConfig || undefined,
+    fileConfig: parsedConfig?.fileConfig || undefined,
+    validationRules: parsedConfig?.validationRules || undefined,
+    notificationSettings: parsedConfig?.notificationSettings || undefined,
+    outputConfig: {
+      defaultOutputFormat: parsedConfig?.outputConfig?.defaultOutputFormat || dataSource?.Output?.DefaultOutputFormat || 'original',
+      includeInvalidRecords: parsedConfig?.outputConfig?.includeInvalidRecords ?? dataSource?.Output?.IncludeInvalidRecords ?? false,
+      destinations: clonedDestinations,
+    },
+    jsonSchema: dataSource.JsonSchema || undefined,
+    retentionDays: dataSource.AdditionalConfiguration?.RetentionDays || dataSource.RetentionDays || 30,
+    archiveSettings: dataSource.ArchiveSettings || undefined,
+  };
 };

@@ -154,3 +154,27 @@ export interface HttpOutputConfig {
   authType?: 'none' | 'basic' | 'bearer';
   authToken?: string;
 }
+
+/** Data passed via location.state when cloning a datasource */
+export interface ClonePayload {
+  name: string;
+  supplierName: string;
+  category: string;
+  description?: string;
+  isActive: boolean;
+  filePattern: string;
+  connectionConfig?: ConnectionConfig;
+  fileConfig?: FileConfig;
+  validationRules?: ValidationRules;
+  notificationSettings?: NotificationSettings;
+  outputConfig?: OutputConfiguration;
+  jsonSchema?: any;
+  retentionDays?: number;
+  archiveSettings?: {
+    IsArchiveSource: boolean;
+    ArchiveType: string;
+    ArchivePassword?: string;
+    ExtractionPattern: string;
+    ProcessNestedArchives: boolean;
+  };
+}

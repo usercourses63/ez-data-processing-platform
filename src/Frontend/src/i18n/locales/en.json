@@ -147,6 +147,23 @@
       "hours6": "6 Hours",
       "hours12": "12 Hours",
       "daily": "Daily"
+    },
+    "clone": {
+      "button": "Clone",
+      "confirmTitle": "Clone Datasource",
+      "confirmMessage": "Clone \"{{name}}\"?",
+      "confirmNote": "Schedule will be disabled in the cloned copy.",
+      "confirmOk": "Clone",
+      "confirmCancel": "Cancel",
+      "success": "Datasource cloned successfully",
+      "fetchError": "Failed to load datasource data"
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "trigger": "Trigger",
+      "more": "More actions"
     }
   },
   "validation": {

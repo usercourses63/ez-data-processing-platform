@@ -587,6 +587,23 @@
     "confirmDelete": {
       "title": "מחיקת מקור נתונים",
       "message": "האם אתה בטוח שברצונך למחוק את מקור הנתונים '{{name}}'? פעולה זו לא ניתנת לביטול."
+    },
+    "clone": {
+      "button": "שכפל",
+      "confirmTitle": "שכפול מקור נתונים",
+      "confirmMessage": "לשכפל את \"{{name}}\"?",
+      "confirmNote": "התזמון יושבת בעותק החדש.",
+      "confirmOk": "שכפל",
+      "confirmCancel": "ביטול",
+      "success": "מקור הנתונים שוכפל בהצלחה",
+      "fetchError": "שגיאה בטעינת נתוני מקור הנתונים"
+    },
+    "actions": {
+      "view": "צפה",
+      "edit": "ערוך",
+      "delete": "מחק",
+      "trigger": "הפעל",
+      "more": "פעולות נוספות"
     }
   },
   "validation": {
