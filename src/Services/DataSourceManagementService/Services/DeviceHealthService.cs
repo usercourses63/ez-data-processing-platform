@@ -302,13 +302,16 @@ public class DeviceHealthService : IDeviceHealthService, IHostedService
         var nasDevices = await _nasDeviceService.GetAllNasDevicesAsync(includeDeleted: false, ct: ct);
         var adminServers = await _serverService.GetAllServersAsync(includeInactive: true, cancellationToken: ct);
 
-        // Get latest check result per device
-        var allResults = await DB.Find<DeviceHealthCheckResult>()
+        // Get latest check result per device (limit to last hour to prevent OOM on large collections)
+        var cutoff = DateTime.UtcNow.AddHours(-1);
+        var recentResults = await DB.Find<DeviceHealthCheckResult>()
+            .Match(r => r.CheckedAt >= cutoff)
             .Sort(r => r.CheckedAt, MongoDB.Entities.Order.Descending)
+            .Limit(500)
             .ExecuteAsync(ct);
 
         // Group by DeviceId, take latest per device
-        var latestByDevice = allResults
+        var latestByDevice = recentResults
             .GroupBy(r => r.DeviceId)
             .ToDictionary(g => g.Key, g => g.First());
 
