@@ -58,6 +58,11 @@ export interface ConnectionConfig {
   consumerGroup?: string;
   securityProtocol?: string;
   offsetReset?: string;
+  // Server reference (v0.2.0)
+  inputServerId?: string;
+  // NAS-specific fields
+  nasDeviceId?: string;
+  nasSubPath?: string;
 }
 
 export interface FileConfig {

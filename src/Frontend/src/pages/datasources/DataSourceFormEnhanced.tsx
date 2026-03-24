@@ -1,10 +1,10 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { Typography, Card, Form, Button, Space, Alert, Spin, message, Divider, Tabs, Skeleton } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined } from '@ant-design/icons';
 import { type JSONSchema } from 'jsonjoy-builder';
-import type { OutputConfiguration } from '../../components/datasource/shared/types';
+import type { OutputConfiguration, ClonePayload } from '../../components/datasource/shared/types';
 import { buildConnectionString, frequencyToCron } from '../../components/datasource/shared/helpers';
 import { DEFAULT_FORM_VALUES } from '../../components/datasource/shared/constants';
 
@@ -24,6 +24,8 @@ const { Title, Paragraph } = Typography;
 const DataSourceFormEnhanced: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const cloneData = (location.state as { cloneData?: ClonePayload } | null)?.cloneData;
   const [form] = Form.useForm();
   
   // State
@@ -45,6 +47,80 @@ const DataSourceFormEnhanced: React.FC = () => {
   const fileType = Form.useWatch('fileType', form);
   const scheduleFrequency = Form.useWatch('scheduleFrequency', form);
   const cronExpression = Form.useWatch('cronExpression', form);
+
+  // Populate form from clone data (if navigated from clone action)
+  React.useEffect(() => {
+    if (!cloneData) return;
+
+    // Set form fields (per D-04 carry-over, D-05 resets)
+    const formValues: Record<string, any> = {
+      name: cloneData.name,
+      supplierName: cloneData.supplierName,
+      category: cloneData.category,
+      description: cloneData.description || '',
+      isActive: cloneData.isActive,
+      filePattern: cloneData.filePattern,
+      // Schedule: force disabled (per D-05)
+      scheduleEnabled: false,
+      scheduleFrequency: 'Manual',
+      // File settings
+      fileType: cloneData.fileConfig?.type || 'CSV',
+      csvDelimiter: cloneData.fileConfig?.delimiter || ',',
+      hasHeaders: cloneData.fileConfig?.hasHeaders ?? true,
+      excelSheet: cloneData.fileConfig?.sheetName || '',
+      encoding: cloneData.fileConfig?.encoding || 'UTF-8',
+      // Connection settings
+      connectionType: cloneData.connectionConfig?.type || 'NFS',
+      connectionHost: cloneData.connectionConfig?.host || '',
+      connectionPort: cloneData.connectionConfig?.port || undefined,
+      connectionUsername: cloneData.connectionConfig?.username || '',
+      connectionPassword: cloneData.connectionConfig?.password || '',
+      connectionPath: cloneData.connectionConfig?.path || '',
+      connectionUrl: cloneData.connectionConfig?.url || '',
+      inputServerId: cloneData.connectionConfig?.inputServerId,
+      nasDeviceId: cloneData.connectionConfig?.nasDeviceId,
+      nasSubPath: cloneData.connectionConfig?.nasSubPath,
+      // Kafka fields
+      kafkaBrokers: cloneData.connectionConfig?.brokers || '',
+      kafkaTopic: cloneData.connectionConfig?.topic || '',
+      kafkaConsumerGroup: cloneData.connectionConfig?.consumerGroup || '',
+      kafkaSecurityProtocol: cloneData.connectionConfig?.securityProtocol || 'PLAINTEXT',
+      kafkaOffsetReset: cloneData.connectionConfig?.offsetReset || 'earliest',
+      // Validation
+      skipInvalidRecords: cloneData.validationRules?.skipInvalidRecords ?? false,
+      maxErrorsAllowed: cloneData.validationRules?.maxErrorsAllowed,
+      // Notifications
+      notifyOnSuccess: cloneData.notificationSettings?.onSuccess ?? false,
+      notifyOnFailure: cloneData.notificationSettings?.onFailure ?? true,
+      notificationRecipients: cloneData.notificationSettings?.recipients?.join(', ') || '',
+      // Retention
+      retentionDays: cloneData.retentionDays || 30,
+    };
+
+    // Archive settings (if present)
+    if (cloneData.archiveSettings) {
+      formValues.isArchiveSource = cloneData.archiveSettings.IsArchiveSource;
+      formValues.archiveType = cloneData.archiveSettings.ArchiveType;
+      formValues.archivePassword = cloneData.archiveSettings.ArchivePassword;
+      formValues.extractionPattern = cloneData.archiveSettings.ExtractionPattern;
+      formValues.processNestedArchives = cloneData.archiveSettings.ProcessNestedArchives;
+    }
+
+    form.setFieldsValue(formValues);
+
+    // Set non-form state: JSON Schema
+    if (cloneData.jsonSchema && Object.keys(cloneData.jsonSchema).length > 0) {
+      setJsonSchema(cloneData.jsonSchema);
+    }
+
+    // Set non-form state: Output configuration (with already-regenerated UUIDs)
+    if (cloneData.outputConfig) {
+      setOutputConfig(cloneData.outputConfig);
+    }
+
+    // Reset connection test status (per D-05)
+    setConnectionTestResult(null);
+  }, [cloneData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handlers
   const handleSchemaChange = (newSchema: JSONSchema) => {
@@ -204,7 +280,9 @@ const DataSourceFormEnhanced: React.FC = () => {
     <div>
       <div className="page-header">
         <div>
-          <Title level={2} style={{ margin: 0 }}>{t('datasources.create')}</Title>
+          <Title level={2} style={{ margin: 0 }}>
+            {cloneData ? t('datasources.clone.confirmTitle', { defaultValue: 'שכפול מקור נתונים' }) : t('datasources.create')}
+          </Title>
           <Paragraph className="page-subtitle">
             צור מקור נתונים חדש עם הגדרות מלאות לחיבור, עיבוד, ותזמון
           </Paragraph>
@@ -249,6 +327,10 @@ const DataSourceFormEnhanced: React.FC = () => {
                         testingConnection={testingConnection}
                         connectionTestResult={connectionTestResult}
                         onTestConnection={handleTestConnection}
+                        savedFieldValues={cloneData?.connectionConfig ? {
+                          inputServerId: cloneData.connectionConfig.inputServerId,
+                          nasDeviceId: cloneData.connectionConfig.nasDeviceId,
+                        } : undefined}
                       />
                     </Suspense>
                   )
