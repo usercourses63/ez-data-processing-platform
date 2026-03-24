@@ -315,7 +315,11 @@ Plans:
   2. User can click "Clone" from the datasource details/edit page header and a new create form opens pre-filled with cloned data
   3. Cloned form has name prefixed with "Copy of", schedule is disabled, and output destinations have new unique IDs
   4. Cloned datasource saves successfully as a new independent entity (original unchanged)
-**Plans**: TBD
+**Plans**: 2 plans (Wave 1: 25-01; Wave 2: 25-02)
+
+Plans:
+- [ ] 25-01-PLAN.md — Clone utility, i18n keys, list page actions redesign with clone flow (CLONE-01, CLONE-03)
+- [ ] 25-02-PLAN.md — Details page clone button, form pre-fill from location.state (CLONE-02, CLONE-03)
 
 ### Phase 26: Completeness Checklist
 **Goal**: Users see real-time guidance on which form fields are filled and which tabs need attention
@@ -381,14 +385,14 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 22. SignalR Monitoring Data Integration | v0.3 | 3/3 | Complete | 2026-03-19 |
 | 23. Local Sanity Deploy & Extended Tests | v0.3 | 2/2 | Complete | 2026-03-19 |
 | 24. v0.3.0 Release Package & Deploy | v0.3 | 2/3 | In Progress | - |
-| 25. Clone Datasource | v0.4 | 0/TBD | Not started | - |
+| 25. Clone Datasource | v0.4 | 0/2 | Planned | - |
 | 26. Completeness Checklist | v0.4 | 0/TBD | Not started | - |
 | 27. Import from File | v0.4 | 0/TBD | Not started | - |
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 0/TBD | Not started | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
-**v0.4 Totals:** 0/TBD plans complete (0%)
+**v0.4 Totals:** 0/2 plans complete (0%)
 
 ---
-*Roadmap updated: 2026-03-21 after v0.4.0 milestone roadmap creation*
+*Roadmap updated: 2026-03-24 after Phase 25 planning*
