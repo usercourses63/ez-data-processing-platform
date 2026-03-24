@@ -60,9 +60,10 @@ const DataSourceFormEnhanced: React.FC = () => {
       description: cloneData.description || '',
       isActive: cloneData.isActive,
       filePattern: cloneData.filePattern,
-      // Schedule: force disabled (per D-05)
+      // Schedule: preserve cron/frequency but force disabled (per D-05)
       scheduleEnabled: false,
-      scheduleFrequency: 'Manual',
+      scheduleFrequency: cloneData.schedule?.frequency || 'Manual',
+      cronExpression: cloneData.schedule?.cronExpression || '',
       // File settings
       fileType: cloneData.fileConfig?.type || 'CSV',
       csvDelimiter: cloneData.fileConfig?.delimiter || ',',
@@ -182,7 +183,8 @@ const DataSourceFormEnhanced: React.FC = () => {
       notifyOnFailure: cloneData.notificationSettings?.onFailure ?? true,
       notificationRecipients: cloneData.notificationSettings?.recipients?.join(', ') || '',
       scheduleEnabled: false,
-      scheduleFrequency: 'Manual',
+      scheduleFrequency: cloneData.schedule?.frequency || 'Manual',
+      cronExpression: cloneData.schedule?.cronExpression || '',
       ...rawValues, // User-edited values override clone defaults
     } : rawValues;
 

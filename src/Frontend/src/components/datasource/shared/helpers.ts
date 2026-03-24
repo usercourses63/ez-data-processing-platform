@@ -182,5 +182,9 @@ export const prepareCloneData = (
     jsonSchema: dataSource.JsonSchema || undefined,
     retentionDays: dataSource.AdditionalConfiguration?.RetentionDays || dataSource.RetentionDays || 30,
     archiveSettings: dataSource.ArchiveSettings || undefined,
+    schedule: parsedConfig?.schedule ? {
+      frequency: parsedConfig.schedule.frequency,
+      cronExpression: parsedConfig.schedule.cronExpression,
+    } : undefined,
   };
 };

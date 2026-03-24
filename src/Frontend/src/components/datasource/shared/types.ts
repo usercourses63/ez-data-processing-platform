@@ -175,6 +175,10 @@ export interface ClonePayload {
   outputConfig?: OutputConfiguration;
   jsonSchema?: any;
   retentionDays?: number;
+  schedule?: {
+    frequency?: string;
+    cronExpression?: string;
+  };
   archiveSettings?: {
     IsArchiveSource: boolean;
     ArchiveType: string;
