@@ -163,7 +163,13 @@
       "edit": "Edit",
       "delete": "Delete",
       "trigger": "Trigger",
+      "enable": "Enable",
+      "disable": "Disable",
       "more": "More actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "tabs": {
       "basic": "Basic Info",

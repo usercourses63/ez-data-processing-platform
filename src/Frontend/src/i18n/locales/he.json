@@ -603,7 +603,13 @@
       "edit": "ערוך",
       "delete": "מחק",
       "trigger": "הפעל",
+      "enable": "הפעל",
+      "disable": "השבת",
       "more": "פעולות נוספות"
+    },
+    "status": {
+      "active": "פעיל",
+      "inactive": "לא פעיל"
     },
     "tabs": {
       "basic": "מידע בסיסי",
