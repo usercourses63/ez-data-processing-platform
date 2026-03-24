@@ -36,6 +36,21 @@ Add real-time form completeness guidance to the datasource create and edit forms
 - **D-11:** Schema tab counts as complete when: at least 1 property with a type defined AND the schema passes JSON Schema 2020-12 validation
 - **D-12:** Empty schema or schema with untyped properties = incomplete (red in sidebar)
 
+### Schema-FileType Alignment Check
+- **D-22:** Schema structure must be compatible with the selected file type. This is a completeness condition on the Schema tab — if the schema is structurally incompatible with the file type, the Schema tab shows as incomplete (red).
+- **D-23:** CSV/Excel rules (always produce flat arrays of objects):
+  - PASS: All schema properties are primitive types (string, number, integer, boolean)
+  - FAIL: Schema has any property with `type: "object"` (nesting impossible in CSV/Excel)
+  - FAIL: Schema has any property with `type: "array"` (arrays impossible in CSV/Excel)
+  - FAIL: CSV with `hasHeaders: false` and schema property names don't match `Column1, Column2...` pattern
+- **D-24:** XML rules (can have nesting + arrays):
+  - PASS: Any valid schema structure (nested objects, arrays all OK)
+  - No structural restrictions — XML converter preserves nesting
+- **D-25:** JSON rules (passthrough, any structure):
+  - PASS: Any valid schema structure
+  - No structural restrictions — JSON is passed through as-is
+- **D-26:** The alignment check runs reactively whenever fileType OR schema changes. Warning message in sidebar explains WHY the schema is incompatible (e.g., "CSV files produce flat records — schema cannot contain nested objects")
+
 ### Field-Level Indicators
 - **D-13:** Each Form.Item in required tabs gets a **colored left border**: red for required-empty, green for filled, gray for optional
 - **D-14:** Borders appear **immediately on form load** — no touch-based progressive reveal
