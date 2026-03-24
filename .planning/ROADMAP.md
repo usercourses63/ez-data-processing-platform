@@ -318,7 +318,7 @@ Plans:
 **Plans**: 2 plans (Wave 1: 25-01; Wave 2: 25-02)
 
 Plans:
-- [ ] 25-01-PLAN.md — Clone utility, i18n keys, list page actions redesign with clone flow (CLONE-01, CLONE-03)
+- [x] 25-01-PLAN.md — Clone utility, i18n keys, list page actions redesign with clone flow (CLONE-01, CLONE-03)
 - [ ] 25-02-PLAN.md — Details page clone button, form pre-fill from location.state (CLONE-02, CLONE-03)
 
 ### Phase 26: Completeness Checklist
@@ -385,7 +385,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 22. SignalR Monitoring Data Integration | v0.3 | 3/3 | Complete | 2026-03-19 |
 | 23. Local Sanity Deploy & Extended Tests | v0.3 | 2/2 | Complete | 2026-03-19 |
 | 24. v0.3.0 Release Package & Deploy | v0.3 | 2/3 | In Progress | - |
-| 25. Clone Datasource | v0.4 | 0/2 | Planned | - |
+| 25. Clone Datasource | v0.4 | 1/2 | In Progress|  |
 | 26. Completeness Checklist | v0.4 | 0/TBD | Not started | - |
 | 27. Import from File | v0.4 | 0/TBD | Not started | - |
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 0/TBD | Not started | - |
