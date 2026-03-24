@@ -42,7 +42,7 @@ Add real-time form completeness guidance to the datasource create and edit forms
   - PASS: All schema properties are primitive types (string, number, integer, boolean)
   - FAIL: Schema has any property with `type: "object"` (nesting impossible in CSV/Excel)
   - FAIL: Schema has any property with `type: "array"` (arrays impossible in CSV/Excel)
-  - FAIL: CSV with `hasHeaders: false` and schema property names don't match `Column1, Column2...` pattern
+  - INFO (soft warning, not a blocker): CSV with `hasHeaders: false` shows an informational message: "CSV files without headers will use schema field names by position order (1st schema field = 1st column, etc.)"
 - **D-24:** XML rules (can have nesting + arrays):
   - PASS: Any valid schema structure (nested objects, arrays all OK)
   - No structural restrictions — XML converter preserves nesting
@@ -133,6 +133,7 @@ No external specs — requirements are fully captured in decisions above.
 - Metrics tab cloning — Phase 28
 - Bulk enable/disable from list page (select multiple datasources) — backlog
 - Completeness enforcement on backend API (reject enable if incomplete server-side) — future hardening
+- **CsvToJsonConverter headerless fix:** When `hasHeaders: false`, the backend currently assigns generic `Column1, Column2...` names. It should instead use schema field names by position order (1st schema property → 1st CSV column, 2nd → 2nd, etc.). This requires passing the JSON schema to the converter. Backend fix — not in scope for Phase 26 (frontend-only).
 
 </deferred>
 
