@@ -1,0 +1,39 @@
+/**
+ * Completeness Field Indicators
+ *
+ * CSS classes for colored left borders on Form.Items to indicate
+ * field completion status. Uses CSS logical properties (border-inline-start)
+ * for automatic RTL support (D-13/D-14/D-15).
+ *
+ * In LTR mode: border appears on the left.
+ * In RTL mode: border appears on the right.
+ */
+
+/* Base class: transparent border to reserve space and prevent layout shift */
+.completeness-border {
+  border-inline-start: 4px solid transparent;
+  padding-inline-start: 12px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s ease;
+}
+
+/* Required field that is empty (red) */
+.completeness-border--required-empty {
+  border-inline-start-color: #ff4d4f;
+}
+
+/* Field that is filled (green) */
+.completeness-border--filled {
+  border-inline-start-color: #52c41a;
+}
+
+/* Optional field (gray) */
+.completeness-border--optional {
+  border-inline-start-color: #d9d9d9;
+}
+
+/* Recommended tab fields use gray borders inside the tab (D-15).
+   Yellow status appears only in the sidebar, not on individual fields. */
+.completeness-border--recommended {
+  border-inline-start-color: #d9d9d9;
+}
