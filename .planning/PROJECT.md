@@ -85,6 +85,7 @@ Files flow reliably from any source through validation to any destination, with 
 - [ ] **IMPORT-03**: CSV without headers generates synthetic field names (field_1, field_2, ...)
 - [ ] **IMPORT-04**: System applies smart constraints via schemaAutoSuggest (email, phone, date patterns)
 - [ ] **IMPORT-05**: User can preview parsed data and review/edit inferred schema before applying
+- [ ] **IMPORT-06**: CsvToJsonConverter uses schema field names by position for headerless CSV (instead of Column1, Column2...)
 
 #### Completeness Checklist
 - [ ] **CHECK-01**: Create form shows real-time completeness percentage and per-tab status

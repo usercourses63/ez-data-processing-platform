@@ -341,13 +341,14 @@ Plans:
 ### Phase 27: Import from File
 **Goal**: Users can upload a sample data file and have the system auto-fill the datasource form with inferred schema and field configuration
 **Depends on**: Phase 26 (checklist validates form completeness after import)
-**Requirements**: IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04, IMPORT-05
+**Requirements**: IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04, IMPORT-05, IMPORT-06
 **Success Criteria** (what must be TRUE):
   1. User can upload a CSV, JSON, or XML sample file from the datasource create form and the system parses it client-side
   2. System generates a valid JSON Schema 2020-12 from the file content with correct type detection (integer, number, boolean, date, string)
   3. CSV files without a header row produce synthetic field names (field_1, field_2, ... field_N) instead of failing
   4. System detects common data patterns (email, phone, date) and applies format/pattern constraints via schemaAutoSuggest
   5. User sees a preview table of parsed data and can review/edit the inferred schema in Monaco Editor before applying it to the form
+  6. CsvToJsonConverter maps headerless CSV columns to schema field names by position order (1st schema property = 1st column, 2nd = 2nd, etc.) instead of generic Column1, Column2...
 **Plans**: TBD
 
 ### Phase 28: Documentation, i18n, Deploy & Release

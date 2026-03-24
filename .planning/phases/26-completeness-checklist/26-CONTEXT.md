@@ -133,7 +133,7 @@ No external specs — requirements are fully captured in decisions above.
 - Metrics tab cloning — Phase 28
 - Bulk enable/disable from list page (select multiple datasources) — backlog
 - Completeness enforcement on backend API (reject enable if incomplete server-side) — future hardening
-- **CsvToJsonConverter headerless fix:** When `hasHeaders: false`, the backend currently assigns generic `Column1, Column2...` names. It should instead use schema field names by position order (1st schema property → 1st CSV column, 2nd → 2nd, etc.). This requires passing the JSON schema to the converter. Backend fix — not in scope for Phase 26 (frontend-only).
+- **CsvToJsonConverter headerless fix (IMPORT-06, Phase 27):** When `hasHeaders: false`, the backend assigns generic `Column1, Column2...` names. Must be fixed to use schema field names by position order. Added as IMPORT-06 in Phase 27 — must ship before v0.4.0.
 
 </deferred>
 
