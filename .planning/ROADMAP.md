@@ -385,7 +385,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 22. SignalR Monitoring Data Integration | v0.3 | 3/3 | Complete | 2026-03-19 |
 | 23. Local Sanity Deploy & Extended Tests | v0.3 | 2/2 | Complete | 2026-03-19 |
 | 24. v0.3.0 Release Package & Deploy | v0.3 | 2/3 | In Progress | - |
-| 25. Clone Datasource | v0.4 | 2/2 | Complete   | 2026-03-24 |
+| 25. Clone Datasource | v0.4 | 2/2 | Complete    | 2026-03-24 |
 | 26. Completeness Checklist | v0.4 | 0/TBD | Not started | - |
 | 27. Import from File | v0.4 | 0/TBD | Not started | - |
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 0/TBD | Not started | - |
