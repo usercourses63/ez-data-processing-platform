@@ -164,6 +164,34 @@
       "delete": "Delete",
       "trigger": "Trigger",
       "more": "More actions"
+    },
+    "tabs": {
+      "basic": "Basic Info",
+      "connection": "Connection",
+      "file": "File Settings",
+      "schema": "Schema",
+      "schedule": "Schedule",
+      "validation": "Validation",
+      "notifications": "Notifications",
+      "output": "Output",
+      "metrics": "Metrics"
+    }
+  },
+  "completeness": {
+    "required": "required",
+    "recommended": "recommended",
+    "sidebarTitle": "Completeness",
+    "metricsUnavailable": "Available after saving",
+    "allComplete": "All required fields complete",
+    "missingFields": "Missing required fields",
+    "enableBlocked": "Cannot enable - missing required fields",
+    "enableBlockedDetails": "The following fields are missing: {{fields}}",
+    "autoDisabled": "Data source was auto-disabled due to missing required fields",
+    "schemaAlignment": {
+      "nestedObjectInCsv": "CSV/Excel files produce flat records - schema cannot contain nested objects",
+      "arrayInCsv": "CSV/Excel files produce flat records - schema cannot contain array properties",
+      "headerlessInfo": "CSV without headers maps columns by position - 1st schema field = 1st column, 2nd = 2nd, etc.",
+      "incompatible": "Schema structure is not compatible with the selected file type"
     }
   },
   "validation": {
