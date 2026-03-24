@@ -148,11 +148,9 @@ const DataSourceList: React.FC = () => {
 
   // Handle clone
   const handleClone = async (record: DataSource) => {
-    console.log('[CLONE] handleClone called for:', record.ID, record.Name);
     setCloningId(record.ID);
     try {
       // Fetch full datasource (list only has summary)
-      console.log('[CLONE] fetching full datasource...');
       const response = await fetch(`/api/v1/datasource/${record.ID}`, {
         method: 'GET',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
@@ -168,7 +166,6 @@ const DataSourceList: React.FC = () => {
       }
 
       // Show confirmation modal (per D-03)
-      console.log('[CLONE] fetch success, showing modal...');
       modal.confirm({
         title: t('datasources.clone.confirmTitle'),
         content: (
