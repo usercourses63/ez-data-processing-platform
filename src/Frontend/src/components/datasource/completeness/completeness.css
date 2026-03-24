@@ -37,3 +37,37 @@
 .completeness-border--recommended {
   border-inline-start-color: #d9d9d9;
 }
+
+/* ============================================================================
+   DOM-based per-field borders for required tabs (D-13)
+   Applied via data-completeness-status attribute set by useEffect in forms
+   ============================================================================ */
+
+/* Base styling for Form.Items inside completeness-tracked tabs */
+.completeness-tab .ant-form-item {
+  border-inline-start: 4px solid transparent;
+  padding-inline-start: 12px;
+  transition: border-color 0.2s ease;
+}
+
+/* Required field that is filled (green) */
+.completeness-tab .ant-form-item[data-completeness-status="filled"] {
+  border-inline-start-color: #52c41a;
+}
+
+/* Required field that is empty (red) */
+.completeness-tab .ant-form-item[data-completeness-status="required-empty"] {
+  border-inline-start-color: #ff4d4f;
+}
+
+/* Optional field (gray) */
+.completeness-tab .ant-form-item[data-completeness-status="optional-empty"] {
+  border-inline-start-color: #d9d9d9;
+}
+
+/* Recommended and optional tab fields show uniform gray borders (D-15) */
+.completeness-tab--recommended .ant-form-item,
+.completeness-tab--optional .ant-form-item {
+  border-inline-start: 4px solid #d9d9d9;
+  padding-inline-start: 12px;
+}

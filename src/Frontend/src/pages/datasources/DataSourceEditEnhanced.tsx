@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { Typography, Card, Form, Button, Space, Alert, Spin, message, Divider, Tabs, Skeleton } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -6,6 +6,8 @@ import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircle
 import { type JSONSchema } from 'jsonjoy-builder';
 import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
 import { DataSource, ApiResponse, OutputConfiguration } from '../../components/datasource/shared/types';
+import { useCompletenessTracker, CompletenessPanel, TAB_FIELD_CONFIG, REQUIRED_TABS } from '../../components/datasource/completeness';
+import '../../components/datasource/completeness/completeness.css';
 
 // Lazy load tab components for better performance
 const BasicInfoTab = lazy(() => import('../../components/datasource/tabs/BasicInfoTab').then(m => ({ default: m.BasicInfoTab })));
@@ -49,6 +51,71 @@ const DataSourceEditEnhanced: React.FC = () => {
   const fileType = Form.useWatch('fileType', form);
   const scheduleFrequency = Form.useWatch('scheduleFrequency', form);
   const cronExpression = Form.useWatch('cronExpression', form);
+
+  // Completeness tracking: construct initial values from fetched data
+  const editInitialValues = useMemo(() => {
+    if (!dataSource || !parsedConfig) return undefined;
+    const connectionConfig = parsedConfig?.connectionConfig || {};
+    const fileConfig = parsedConfig?.fileConfig || {};
+    const schedule = parsedConfig?.schedule || {};
+    const validationRules = parsedConfig?.validationRules || {};
+    const notificationSettings = parsedConfig?.notificationSettings || {};
+    return {
+      name: dataSource.Name,
+      supplierName: dataSource.SupplierName,
+      category: dataSource.Category,
+      description: dataSource.Description,
+      isActive: dataSource.IsActive,
+      retentionDays: dataSource.AdditionalConfiguration?.RetentionDays || 30,
+      connectionType: connectionConfig.type || 'Local',
+      inputServerId: connectionConfig.inputServerId || (dataSource as any)?.FileServerId,
+      nasDeviceId: connectionConfig.nasDeviceId || (dataSource as any)?.NasDeviceId,
+      filePath: connectionConfig.path || dataSource.FilePath,
+      httpEndpointPath: connectionConfig.url,
+      kafkaTopic: connectionConfig.topic,
+      fileType: fileConfig.type || extractFileTypeFromPattern(dataSource.FilePattern) || 'CSV',
+      encoding: fileConfig.encoding || 'UTF-8',
+      csvDelimiter: fileConfig.delimiter || ',',
+      hasHeaders: fileConfig.hasHeaders !== false,
+      excelSheet: fileConfig.sheetName,
+      scheduleFrequency: schedule.frequency || 'Manual',
+      scheduleEnabled: schedule.enabled || false,
+      cronExpression: schedule.cronExpression,
+      skipInvalidRecords: validationRules.skipInvalidRecords || false,
+      maxErrorsAllowed: validationRules.maxErrorsAllowed,
+      notifyOnSuccess: notificationSettings.onSuccess || false,
+      notifyOnFailure: notificationSettings.onFailure !== false,
+      notificationRecipients: notificationSettings.recipients?.join(', ') || '',
+    };
+  }, [dataSource, parsedConfig]);
+
+  const { completeness, recalculate, getFieldStatus } = useCompletenessTracker(
+    form, jsonSchema, outputConfig, editInitialValues, true /* isEditMode */
+  );
+
+  // Per-field border injection via DOM attributes (D-13)
+  useEffect(() => {
+    for (const tabKey of REQUIRED_TABS) {
+      const container = document.querySelector(`[data-tab-key="${tabKey}"]`);
+      if (!container) continue;
+
+      const config = TAB_FIELD_CONFIG[tabKey];
+      if (!config?.fields) continue;
+
+      for (const field of config.fields) {
+        const formItems = container.querySelectorAll('.ant-form-item');
+        for (const formItem of formItems) {
+          const el = formItem.querySelector(`[id*="${field.name}"]`) ||
+            formItem.querySelector(`[id$="_${field.name}"]`);
+          if (el) {
+            const status = getFieldStatus(tabKey, field.name);
+            (formItem as HTMLElement).setAttribute('data-completeness-status', status);
+            break;
+          }
+        }
+      }
+    }
+  }, [completeness, getFieldStatus]);
 
   // Handlers
   const handleSchemaChange = (newSchema: JSONSchema) => {
@@ -297,6 +364,13 @@ const DataSourceEditEnhanced: React.FC = () => {
         outputConfig: outputConfig
       };
 
+      // D-16: Auto-disable if completeness check fails
+      let isActive = values.isActive ?? dataSource.IsActive;
+      if (!completeness.isFullyComplete) {
+        isActive = false;
+        message.info(t('completeness.autoDisabled'));
+      }
+
       const requestPayload: any = {
         Id: id,
         Name: values.name || dataSource.Name,
@@ -304,7 +378,7 @@ const DataSourceEditEnhanced: React.FC = () => {
         Category: values.category || dataSource.Category,
         Description: values.description ?? dataSource.Description,
         ConnectionString: buildConnectionString(values) || dataSource.FilePath,
-        IsActive: values.isActive ?? dataSource.IsActive,
+        IsActive: isActive,
         FilePattern: values.filePattern ?? existingConfig.connectionConfig?.filePattern ?? dataSource.FilePattern ?? '*.*',
         ScheduleFrequency: values.scheduleFrequency || mergedConfig.schedule.frequency,
         CronExpression: cronExpressionToSave ?? mergedConfig.schedule.cronExpression,
@@ -433,134 +507,167 @@ const DataSourceEditEnhanced: React.FC = () => {
         </Space>
       </div>
 
-      <Card>
-        <Spin spinning={saving}>
-          <Form form={form} layout="vertical" onFinish={handleSubmit} preserve={true}>
-            <Tabs
-              activeKey={activeTab}
-              onChange={setActiveTab}
-              type="card"
-              items={[
-                {
-                  key: 'basic',
-                  label: <span><FileOutlined /> מידע בסיסי</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <BasicInfoTab form={form} t={t} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'connection',
-                  label: <span><ApiOutlined /> הגדרות קלט</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <ConnectionTab
-                        form={form}
-                        t={t}
-                        connectionType={connectionType}
-                        testingConnection={testingConnection}
-                        connectionTestResult={connectionTestResult}
-                        onTestConnection={handleTestConnection}
-                        savedFieldValues={parsedConfig?.connectionConfig ? {
-                          inputServerId: parsedConfig.connectionConfig.inputServerId || (dataSource as any)?.FileServerId,
-                          nasDeviceId: parsedConfig.connectionConfig.nasDeviceId || (dataSource as any)?.NasDeviceId,
-                        } : undefined}
-                      />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'file',
-                  label: <span><FileOutlined /> הגדרות קובץ</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <FileSettingsTab form={form} t={t} fileType={fileType} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'schema',
-                  label: <span><FileTextOutlined /> הגדרת Schema</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'metrics',
-                  label: <span><BarChartOutlined /> מדדים</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <MetricsTab
-                        dataSourceId={id!}
-                        dataSourceName={dataSource.Name}
-                        onCreateMetric={() => navigate(`/metrics/new?dataSourceId=${id}`)}
-                        onEditMetric={(metricId) => navigate(`/metrics/edit/${metricId}?dataSourceId=${id}`)}
-                      />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'schedule',
-                  label: <span><ClockCircleOutlined /> תזמון</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <ScheduleTab
-                        form={form}
-                        t={t}
-                        scheduleFrequency={scheduleFrequency}
-                        cronExpression={cronExpression}
-                        onOpenCronHelper={() => setCronHelperVisible(true)}
-                      />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'validation',
-                  label: <span><SafetyOutlined /> כללי אימות</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <ValidationTab form={form} t={t} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'notifications',
-                  label: <span><BellOutlined /> התראות</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <NotificationsTab form={form} t={t} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'output',
-                  label: <span><ExportOutlined /> פלט</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <OutputTab output={outputConfig} onChange={setOutputConfig} />
-                    </Suspense>
-                  )
-                }
-              ]}
-            />
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        {/* Main form area */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Card>
+            <Spin spinning={saving}>
+              <Form form={form} layout="vertical" onFinish={handleSubmit} preserve={true} onValuesChange={recalculate}>
+                <Tabs
+                  activeKey={activeTab}
+                  onChange={setActiveTab}
+                  type="card"
+                  items={[
+                    {
+                      key: 'basic',
+                      label: <span><FileOutlined /> מידע בסיסי</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="basic" className="completeness-tab">
+                            <BasicInfoTab form={form} t={t} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'connection',
+                      label: <span><ApiOutlined /> הגדרות קלט</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="connection" className="completeness-tab">
+                            <ConnectionTab
+                              form={form}
+                              t={t}
+                              connectionType={connectionType}
+                              testingConnection={testingConnection}
+                              connectionTestResult={connectionTestResult}
+                              onTestConnection={handleTestConnection}
+                              savedFieldValues={parsedConfig?.connectionConfig ? {
+                                inputServerId: parsedConfig.connectionConfig.inputServerId || (dataSource as any)?.FileServerId,
+                                nasDeviceId: parsedConfig.connectionConfig.nasDeviceId || (dataSource as any)?.NasDeviceId,
+                              } : undefined}
+                            />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'file',
+                      label: <span><FileOutlined /> הגדרות קובץ</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="file" className="completeness-tab">
+                            <FileSettingsTab form={form} t={t} fileType={fileType} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'schema',
+                      label: <span><FileTextOutlined /> הגדרת Schema</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="schema" className="completeness-tab">
+                            <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'metrics',
+                      label: <span><BarChartOutlined /> מדדים</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="metrics" className="completeness-tab completeness-tab--recommended">
+                            <MetricsTab
+                              dataSourceId={id!}
+                              dataSourceName={dataSource.Name}
+                              onCreateMetric={() => navigate(`/metrics/new?dataSourceId=${id}`)}
+                              onEditMetric={(metricId) => navigate(`/metrics/edit/${metricId}?dataSourceId=${id}`)}
+                            />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'schedule',
+                      label: <span><ClockCircleOutlined /> תזמון</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="schedule" className="completeness-tab completeness-tab--recommended">
+                            <ScheduleTab
+                              form={form}
+                              t={t}
+                              scheduleFrequency={scheduleFrequency}
+                              cronExpression={cronExpression}
+                              onOpenCronHelper={() => setCronHelperVisible(true)}
+                            />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'validation',
+                      label: <span><SafetyOutlined /> כללי אימות</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="validation" className="completeness-tab completeness-tab--optional">
+                            <ValidationTab form={form} t={t} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'notifications',
+                      label: <span><BellOutlined /> התראות</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="notifications" className="completeness-tab completeness-tab--optional">
+                            <NotificationsTab form={form} t={t} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'output',
+                      label: <span><ExportOutlined /> פלט</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="output" className="completeness-tab completeness-tab--recommended">
+                            <OutputTab output={outputConfig} onChange={setOutputConfig} />
+                          </div>
+                        </Suspense>
+                      )
+                    }
+                  ]}
+                />
 
-            <Divider />
-            <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-              <Space size="middle">
-                <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={saving} disabled={connectionTestResult === 'failed'}>
-                  {t('common.update')}
-                </Button>
-                <Button size="large" onClick={() => navigate(`/datasources/${id}`)} disabled={saving}>
-                  {t('common.cancel')}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Spin>
-      </Card>
+                <Divider />
+                <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+                  <Space size="middle">
+                    <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={saving} disabled={connectionTestResult === 'failed'}>
+                      {t('common.update')}
+                    </Button>
+                    <Button size="large" onClick={() => navigate(`/datasources/${id}`)} disabled={saving}>
+                      {t('common.cancel')}
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Form>
+            </Spin>
+          </Card>
+        </div>
+
+        {/* Completeness sidebar (D-01) */}
+        <div style={{ width: 280, flexShrink: 0 }}>
+          <CompletenessPanel
+            completeness={completeness}
+            activeTab={activeTab}
+            onTabClick={setActiveTab}
+            isEditMode={true}
+          />
+        </div>
+      </div>
 
       {cronHelperVisible && (
         <Suspense fallback={null}>

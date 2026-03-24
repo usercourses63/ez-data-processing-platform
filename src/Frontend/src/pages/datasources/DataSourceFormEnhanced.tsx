@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Typography, Card, Form, Button, Space, Alert, Spin, message, Divider, Tabs, Skeleton } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -7,6 +7,8 @@ import { type JSONSchema } from 'jsonjoy-builder';
 import type { OutputConfiguration, ClonePayload } from '../../components/datasource/shared/types';
 import { buildConnectionString, frequencyToCron } from '../../components/datasource/shared/helpers';
 import { DEFAULT_FORM_VALUES } from '../../components/datasource/shared/constants';
+import { useCompletenessTracker, CompletenessPanel, TAB_FIELD_CONFIG, REQUIRED_TABS, RECOMMENDED_TABS, OPTIONAL_TABS } from '../../components/datasource/completeness';
+import '../../components/datasource/completeness/completeness.css';
 
 // Lazy load tab components for better performance
 const BasicInfoTab = lazy(() => import('../../components/datasource/tabs/BasicInfoTab').then(m => ({ default: m.BasicInfoTab })));
@@ -47,6 +49,67 @@ const DataSourceFormEnhanced: React.FC = () => {
   const fileType = Form.useWatch('fileType', form);
   const scheduleFrequency = Form.useWatch('scheduleFrequency', form);
   const cronExpression = Form.useWatch('cronExpression', form);
+
+  // Completeness tracking: extract initial values for lazy-loaded tabs
+  const cloneInitialValues = useMemo(() => {
+    if (!cloneData) return undefined;
+    return {
+      name: cloneData.name,
+      supplierName: cloneData.supplierName,
+      category: cloneData.category,
+      description: cloneData.description || '',
+      isActive: cloneData.isActive,
+      filePattern: cloneData.filePattern,
+      scheduleEnabled: false,
+      scheduleFrequency: cloneData.schedule?.frequency || 'Manual',
+      cronExpression: cloneData.schedule?.cronExpression || '',
+      fileType: cloneData.fileConfig?.type || 'CSV',
+      csvDelimiter: cloneData.fileConfig?.delimiter || ',',
+      hasHeaders: cloneData.fileConfig?.hasHeaders ?? true,
+      excelSheet: cloneData.fileConfig?.sheetName || '',
+      encoding: cloneData.fileConfig?.encoding || 'UTF-8',
+      connectionType: cloneData.connectionConfig?.type || 'NFS',
+      inputServerId: cloneData.connectionConfig?.inputServerId,
+      nasDeviceId: cloneData.connectionConfig?.nasDeviceId,
+      kafkaTopic: cloneData.connectionConfig?.topic || '',
+      retentionDays: cloneData.retentionDays || 30,
+      skipInvalidRecords: cloneData.validationRules?.skipInvalidRecords ?? false,
+      maxErrorsAllowed: cloneData.validationRules?.maxErrorsAllowed,
+      notifyOnSuccess: cloneData.notificationSettings?.onSuccess ?? false,
+      notifyOnFailure: cloneData.notificationSettings?.onFailure ?? true,
+      notificationRecipients: cloneData.notificationSettings?.recipients?.join(', ') || '',
+    };
+  }, [cloneData]);
+
+  const { completeness, recalculate, getFieldStatus } = useCompletenessTracker(
+    form, jsonSchema, outputConfig, cloneInitialValues, false /* isEditMode */
+  );
+
+  // Per-field border injection via DOM attributes (D-13)
+  useEffect(() => {
+    const allRequiredAndRecommended = [...REQUIRED_TABS];
+    for (const tabKey of allRequiredAndRecommended) {
+      const container = document.querySelector(`[data-tab-key="${tabKey}"]`);
+      if (!container) continue;
+
+      const config = TAB_FIELD_CONFIG[tabKey];
+      if (!config?.fields) continue;
+
+      for (const field of config.fields) {
+        // Find the .ant-form-item containing the field by searching for matching id
+        const formItems = container.querySelectorAll('.ant-form-item');
+        for (const formItem of formItems) {
+          const el = formItem.querySelector(`[id*="${field.name}"]`) ||
+            formItem.querySelector(`[id$="_${field.name}"]`);
+          if (el) {
+            const status = getFieldStatus(tabKey, field.name);
+            (formItem as HTMLElement).setAttribute('data-completeness-status', status);
+            break;
+          }
+        }
+      }
+    }
+  }, [completeness, getFieldStatus]);
 
   // Populate form from clone data (if navigated from clone action)
   React.useEffect(() => {
@@ -194,13 +257,20 @@ const DataSourceFormEnhanced: React.FC = () => {
         cronExpressionToSave = frequencyToCron(values.scheduleFrequency);
       }
 
+      // D-16: Auto-disable if completeness check fails
+      let isActive = values.isActive ?? true;
+      if (!completeness.isFullyComplete) {
+        isActive = false;
+        message.info(t('completeness.autoDisabled'));
+      }
+
       const requestPayload: any = {
         name: values.name,
         supplierName: values.supplierName,
         category: values.category,
         description: values.description,
         connectionString: buildConnectionString(values),
-        isActive: values.isActive ?? true,
+        isActive,
         filePattern: values.filePattern || '*.*',
         configurationSettings: JSON.stringify({
           connectionConfig: {
@@ -333,120 +403,151 @@ const DataSourceFormEnhanced: React.FC = () => {
         <Alert message={t('common.error')} description={error} type="error" closable onClose={() => setError(null)} style={{ marginBottom: 16 }} />
       )}
 
-      <Card>
-        <Spin spinning={loading}>
-          <Form form={form} layout="vertical" onFinish={handleSubmit} preserve={true} initialValues={DEFAULT_FORM_VALUES}>
-            <Tabs
-              activeKey={activeTab}
-              onChange={setActiveTab}
-              type="card"
-              items={[
-                {
-                  key: 'basic',
-                  label: <span><FileOutlined /> מידע בסיסי</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <BasicInfoTab form={form} t={t} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'connection',
-                  label: <span><ApiOutlined /> הגדרות קלט</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <ConnectionTab
-                        form={form}
-                        t={t}
-                        connectionType={connectionType}
-                        testingConnection={testingConnection}
-                        connectionTestResult={connectionTestResult}
-                        onTestConnection={handleTestConnection}
-                        savedFieldValues={cloneData?.connectionConfig ? {
-                          inputServerId: cloneData.connectionConfig.inputServerId,
-                          nasDeviceId: cloneData.connectionConfig.nasDeviceId,
-                        } : undefined}
-                      />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'file',
-                  label: <span><FileOutlined /> הגדרות קובץ</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <FileSettingsTab form={form} t={t} fileType={fileType} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'schema',
-                  label: <span><FileTextOutlined /> הגדרת Schema</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'schedule',
-                  label: <span><ClockCircleOutlined /> תזמון</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <ScheduleTab
-                        form={form}
-                        t={t}
-                        scheduleFrequency={scheduleFrequency}
-                        cronExpression={cronExpression}
-                        onOpenCronHelper={() => setCronHelperVisible(true)}
-                      />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'validation',
-                  label: <span><SafetyOutlined /> כללי אימות</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <ValidationTab form={form} t={t} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'notifications',
-                  label: <span><BellOutlined /> התראות</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <NotificationsTab form={form} t={t} />
-                    </Suspense>
-                  )
-                },
-                {
-                  key: 'output',
-                  label: <span><ExportOutlined /> פלט</span>,
-                  children: (
-                    <Suspense fallback={<Skeleton active />}>
-                      <OutputTab output={outputConfig} onChange={setOutputConfig} />
-                    </Suspense>
-                  )
-                }
-              ]}
-            />
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        {/* Main form area */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Card>
+            <Spin spinning={loading}>
+              <Form form={form} layout="vertical" onFinish={handleSubmit} preserve={true} initialValues={DEFAULT_FORM_VALUES} onValuesChange={recalculate}>
+                <Tabs
+                  activeKey={activeTab}
+                  onChange={setActiveTab}
+                  type="card"
+                  items={[
+                    {
+                      key: 'basic',
+                      label: <span><FileOutlined /> מידע בסיסי</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="basic" className="completeness-tab">
+                            <BasicInfoTab form={form} t={t} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'connection',
+                      label: <span><ApiOutlined /> הגדרות קלט</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="connection" className="completeness-tab">
+                            <ConnectionTab
+                              form={form}
+                              t={t}
+                              connectionType={connectionType}
+                              testingConnection={testingConnection}
+                              connectionTestResult={connectionTestResult}
+                              onTestConnection={handleTestConnection}
+                              savedFieldValues={cloneData?.connectionConfig ? {
+                                inputServerId: cloneData.connectionConfig.inputServerId,
+                                nasDeviceId: cloneData.connectionConfig.nasDeviceId,
+                              } : undefined}
+                            />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'file',
+                      label: <span><FileOutlined /> הגדרות קובץ</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="file" className="completeness-tab">
+                            <FileSettingsTab form={form} t={t} fileType={fileType} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'schema',
+                      label: <span><FileTextOutlined /> הגדרת Schema</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="schema" className="completeness-tab">
+                            <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'schedule',
+                      label: <span><ClockCircleOutlined /> תזמון</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="schedule" className="completeness-tab completeness-tab--recommended">
+                            <ScheduleTab
+                              form={form}
+                              t={t}
+                              scheduleFrequency={scheduleFrequency}
+                              cronExpression={cronExpression}
+                              onOpenCronHelper={() => setCronHelperVisible(true)}
+                            />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'validation',
+                      label: <span><SafetyOutlined /> כללי אימות</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="validation" className="completeness-tab completeness-tab--optional">
+                            <ValidationTab form={form} t={t} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'notifications',
+                      label: <span><BellOutlined /> התראות</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="notifications" className="completeness-tab completeness-tab--optional">
+                            <NotificationsTab form={form} t={t} />
+                          </div>
+                        </Suspense>
+                      )
+                    },
+                    {
+                      key: 'output',
+                      label: <span><ExportOutlined /> פלט</span>,
+                      children: (
+                        <Suspense fallback={<Skeleton active />}>
+                          <div data-tab-key="output" className="completeness-tab completeness-tab--recommended">
+                            <OutputTab output={outputConfig} onChange={setOutputConfig} />
+                          </div>
+                        </Suspense>
+                      )
+                    }
+                  ]}
+                />
 
-            <Divider />
-            <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-              <Space size="middle">
-                <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={loading} disabled={connectionTestResult === 'failed'}>
-                  {t('common.create')}
-                </Button>
-                <Button size="large" onClick={() => navigate('/datasources')} disabled={loading}>
-                  {t('common.cancel')}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Spin>
-      </Card>
+                <Divider />
+                <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+                  <Space size="middle">
+                    <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={loading} disabled={connectionTestResult === 'failed'}>
+                      {t('common.create')}
+                    </Button>
+                    <Button size="large" onClick={() => navigate('/datasources')} disabled={loading}>
+                      {t('common.cancel')}
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Form>
+            </Spin>
+          </Card>
+        </div>
+
+        {/* Completeness sidebar (D-01) */}
+        <div style={{ width: 280, flexShrink: 0 }}>
+          <CompletenessPanel
+            completeness={completeness}
+            activeTab={activeTab}
+            onTabClick={setActiveTab}
+            isEditMode={false}
+          />
+        </div>
+      </div>
 
       {cronHelperVisible && (
         <Suspense fallback={null}>
