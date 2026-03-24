@@ -117,8 +117,24 @@ export const prepareCloneData = (
   const uniqueSuffix = Math.random().toString(36).substring(2, 7);
 
   // Clone output destinations with new UUIDs (per D-04)
+  // Handle both camelCase and PascalCase (ConfigurationSettings uses PascalCase)
   const clonedDestinations: OutputDestination[] = (
     parsedConfig?.outputConfig?.destinations ||
+    parsedConfig?.outputConfig?.Destinations?.map((d: any) => ({
+      id: d.Id || d.id,
+      name: d.Name || d.name,
+      description: d.Description || d.description,
+      type: d.Type || d.type,
+      enabled: d.Enabled ?? d.enabled ?? true,
+      outputFormat: d.OutputFormat || d.outputFormat,
+      includeInvalidRecords: d.IncludeInvalidRecords ?? d.includeInvalidRecords,
+      outputServerId: d.OutputServerId || d.outputServerId,
+      nasDeviceId: d.NasDeviceId || d.nasDeviceId,
+      kafkaConfig: d.KafkaConfig || d.kafkaConfig,
+      folderConfig: d.FolderConfig || d.folderConfig,
+      sftpConfig: d.SftpConfig || d.sftpConfig,
+      httpConfig: d.HttpConfig || d.httpConfig,
+    })) ||
     dataSource?.Output?.Destinations?.map((d: any) => ({
       id: d.Id || d.id,
       name: d.Name || d.name,
@@ -152,8 +168,8 @@ export const prepareCloneData = (
     validationRules: parsedConfig?.validationRules || undefined,
     notificationSettings: parsedConfig?.notificationSettings || undefined,
     outputConfig: {
-      defaultOutputFormat: parsedConfig?.outputConfig?.defaultOutputFormat || dataSource?.Output?.DefaultOutputFormat || 'original',
-      includeInvalidRecords: parsedConfig?.outputConfig?.includeInvalidRecords ?? dataSource?.Output?.IncludeInvalidRecords ?? false,
+      defaultOutputFormat: parsedConfig?.outputConfig?.defaultOutputFormat || parsedConfig?.outputConfig?.DefaultOutputFormat || dataSource?.Output?.DefaultOutputFormat || 'original',
+      includeInvalidRecords: parsedConfig?.outputConfig?.includeInvalidRecords ?? parsedConfig?.outputConfig?.IncludeInvalidRecords ?? dataSource?.Output?.IncludeInvalidRecords ?? false,
       destinations: clonedDestinations,
     },
     jsonSchema: dataSource.JsonSchema || undefined,

@@ -149,9 +149,42 @@ const DataSourceFormEnhanced: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (rawValues: any) => {
     setLoading(true);
     setError(null);
+
+    // Merge clone data for lazy-loaded tab fields that may not be mounted yet
+    // Form.setFieldsValue silently drops values for unmounted Form.Items
+    const values = cloneData ? {
+      connectionType: cloneData.connectionConfig?.type || 'NFS',
+      connectionHost: cloneData.connectionConfig?.host || '',
+      connectionPort: cloneData.connectionConfig?.port || undefined,
+      connectionUsername: cloneData.connectionConfig?.username || '',
+      connectionPassword: cloneData.connectionConfig?.password || '',
+      connectionPath: cloneData.connectionConfig?.path || '',
+      connectionUrl: cloneData.connectionConfig?.url || '',
+      inputServerId: cloneData.connectionConfig?.inputServerId,
+      nasDeviceId: cloneData.connectionConfig?.nasDeviceId,
+      nasSubPath: cloneData.connectionConfig?.nasSubPath,
+      kafkaBrokers: cloneData.connectionConfig?.brokers || '',
+      kafkaTopic: cloneData.connectionConfig?.topic || '',
+      kafkaConsumerGroup: cloneData.connectionConfig?.consumerGroup || '',
+      kafkaSecurityProtocol: cloneData.connectionConfig?.securityProtocol || 'PLAINTEXT',
+      kafkaOffsetReset: cloneData.connectionConfig?.offsetReset || 'earliest',
+      fileType: cloneData.fileConfig?.type || 'CSV',
+      csvDelimiter: cloneData.fileConfig?.delimiter || ',',
+      hasHeaders: cloneData.fileConfig?.hasHeaders ?? true,
+      excelSheet: cloneData.fileConfig?.sheetName || '',
+      encoding: cloneData.fileConfig?.encoding || 'UTF-8',
+      skipInvalidRecords: cloneData.validationRules?.skipInvalidRecords ?? false,
+      maxErrorsAllowed: cloneData.validationRules?.maxErrorsAllowed,
+      notifyOnSuccess: cloneData.notificationSettings?.onSuccess ?? false,
+      notifyOnFailure: cloneData.notificationSettings?.onFailure ?? true,
+      notificationRecipients: cloneData.notificationSettings?.recipients?.join(', ') || '',
+      scheduleEnabled: false,
+      scheduleFrequency: 'Manual',
+      ...rawValues, // User-edited values override clone defaults
+    } : rawValues;
 
     try {
       let cronExpressionToSave = values.cronExpression;
