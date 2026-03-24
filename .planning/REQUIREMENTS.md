@@ -37,6 +37,10 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 - [ ] **REL-10**: Fresh install from deployment package using install.ps1 succeeds on clean cluster
 - [ ] **REL-11**: Sanity tests pass against fresh install including documentation correctness verification
 
+### Clone — Metrics (deferred within v0.4.0)
+
+- [ ] **CLONE-04**: Clone also duplicates associated metric configurations (with new IDs and updated datasource reference)
+
 ## Future Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -77,6 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHECK-02 | Phase 26 | Pending |
 | CHECK-03 | Phase 26 | Pending |
 | CHECK-04 | Phase 26 | Pending |
+| CLONE-04 | Phase 28 | Pending |
 | DOC-09 | Phase 28 | Pending |
 | DOC-10 | Phase 28 | Pending |
 | REL-08 | Phase 28 | Pending |
@@ -85,8 +90,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REL-11 | Phase 28 | Pending |
 
 **Coverage:**
-- v0.4.0 requirements: 18 total
-- Mapped to phases: 18
+- v0.4.0 requirements: 19 total
+- Mapped to phases: 19
 - Unmapped: 0
 
 ---
