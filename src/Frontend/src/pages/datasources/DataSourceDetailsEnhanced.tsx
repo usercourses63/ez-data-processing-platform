@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Typography, Space, Button, Alert, Spin, Tabs, Row, Col, Statistic, message } from 'antd';
+import { Card, Typography, Space, Button, Alert, Spin, Tabs, Row, Col, Statistic, message, Modal } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeftOutlined, EditOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, InfoCircleOutlined, FileTextOutlined, LineChartOutlined, ExportOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, EditOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, InfoCircleOutlined, FileTextOutlined, LineChartOutlined, ExportOutlined, ThunderboltOutlined, CopyOutlined } from '@ant-design/icons';
 
 // Import detail tab components
 import {
@@ -19,13 +19,13 @@ import { RelatedMetricsTab } from '../../components/datasource/details/RelatedMe
 
 // Import shared utilities
 import { DataSource, ApiResponse } from '../../components/datasource/shared/types';
-import { extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
+import { extractFileTypeFromPattern, prepareCloneData } from '../../components/datasource/shared/helpers';
 
 const { Title, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 const DataSourceDetailsEnhanced: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   
@@ -131,6 +131,26 @@ const DataSourceDetailsEnhanced: React.FC = () => {
     } finally {
       setTriggering(false);
     }
+  };
+
+  const handleClone = () => {
+    if (!dataSource) return;
+
+    Modal.confirm({
+      title: t('datasources.clone.confirmTitle'),
+      content: (
+        <div>
+          <p>{t('datasources.clone.confirmMessage', { name: dataSource.Name })}</p>
+          <p style={{ color: '#faad14', fontSize: '13px' }}>{t('datasources.clone.confirmNote')}</p>
+        </div>
+      ),
+      okText: t('datasources.clone.confirmOk'),
+      cancelText: t('datasources.clone.confirmCancel'),
+      onOk: () => {
+        const cloneData = prepareCloneData(dataSource, parsedConfig, i18n.language);
+        navigate('/datasources/new', { state: { cloneData } });
+      },
+    });
   };
 
   const getCategoryLabel = (category: string) => {
@@ -266,6 +286,9 @@ const DataSourceDetailsEnhanced: React.FC = () => {
               הפעל עכשיו
             </Button>
           )}
+          <Button icon={<CopyOutlined />} onClick={handleClone}>
+            {t('datasources.clone.button')}
+          </Button>
           <Button type="primary" icon={<EditOutlined />} onClick={() => navigate(`/datasources/${id}/edit`)}>{t('common.edit')}</Button>
         </Space>
       </div>
