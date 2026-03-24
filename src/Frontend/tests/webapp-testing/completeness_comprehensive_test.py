@@ -19,12 +19,12 @@ Tests all completeness checklist scenarios including edge cases:
 - RTL sidebar position
 - Cancel enable modal dismissal
 """
-import sys, io, re, time
+import sys, io, re, time, os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 from playwright.sync_api import sync_playwright
 
-BASE_URL = 'http://localhost:7000'
-DATASOURCE_API = 'http://localhost:5001'
+BASE_URL = os.environ.get('FRONTEND_URL', 'http://172.30.22.206:32608')
+DATASOURCE_API = os.environ.get('DATASOURCE_API', 'http://localhost:5001')
 RESULTS = []
 
 
