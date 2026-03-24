@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Typography, Space, Button, Alert, Spin, Tabs, Row, Col, Statistic, message, Modal } from 'antd';
+import { Card, Typography, Space, Button, Alert, Spin, Tabs, Row, Col, Statistic, message, App } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftOutlined, EditOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, InfoCircleOutlined, FileTextOutlined, LineChartOutlined, ExportOutlined, ThunderboltOutlined, CopyOutlined } from '@ant-design/icons';
@@ -28,6 +28,7 @@ const DataSourceDetailsEnhanced: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { modal } = App.useApp();
   
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +137,7 @@ const DataSourceDetailsEnhanced: React.FC = () => {
   const handleClone = () => {
     if (!dataSource) return;
 
-    Modal.confirm({
+    modal.confirm({
       title: t('datasources.clone.confirmTitle'),
       content: (
         <div>

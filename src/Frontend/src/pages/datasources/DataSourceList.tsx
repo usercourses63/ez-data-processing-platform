@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Space, Table, Card, Alert, Spin, Tag, Dropdown, Modal, message, Select, Tooltip } from 'antd';
+import { Typography, Button, Space, Table, Card, Alert, Spin, Tag, Popconfirm, App, message, Select, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ThunderboltOutlined, ClockCircleOutlined, FilterOutlined, MoreOutlined, CopyOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ThunderboltOutlined, ClockCircleOutlined, FilterOutlined, CopyOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { humanizeCron, prepareCloneData } from '../../components/datasource/shared/helpers';
 import { getAllCategories } from '../../services/categories-api-client';
@@ -64,6 +64,7 @@ interface ApiResponse<T> {
 const DataSourceList: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { modal } = App.useApp();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
@@ -147,9 +148,11 @@ const DataSourceList: React.FC = () => {
 
   // Handle clone
   const handleClone = async (record: DataSource) => {
+    console.log('[CLONE] handleClone called for:', record.ID, record.Name);
     setCloningId(record.ID);
     try {
       // Fetch full datasource (list only has summary)
+      console.log('[CLONE] fetching full datasource...');
       const response = await fetch(`/api/v1/datasource/${record.ID}`, {
         method: 'GET',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
@@ -165,7 +168,8 @@ const DataSourceList: React.FC = () => {
       }
 
       // Show confirmation modal (per D-03)
-      Modal.confirm({
+      console.log('[CLONE] fetch success, showing modal...');
+      modal.confirm({
         title: t('datasources.clone.confirmTitle'),
         content: (
           <div>
@@ -405,68 +409,59 @@ const DataSourceList: React.FC = () => {
     {
       title: t('datasources.actions.more', { defaultValue: 'פעולות' }),
       key: 'actions',
-      width: 140,
+      width: 180,
       render: (_, record: DataSource) => {
-        const dropdownItems = [
-          {
-            key: 'clone',
-            icon: <CopyOutlined />,
-            label: t('datasources.clone.button'),
-            onClick: () => handleClone(record),
-            disabled: cloningId === record.ID,
-          },
-          {
-            key: 'trigger',
-            icon: <ThunderboltOutlined style={{ color: '#52c41a' }} />,
-            label: t('datasources.actions.trigger', { defaultValue: 'הפעל' }),
-            onClick: () => handleManualTrigger(record.ID, record.Name),
-            disabled: !!triggeringMap[record.ID],
-          },
-          { type: 'divider' as const },
-          {
-            key: 'delete',
-            icon: <DeleteOutlined />,
-            label: t('datasources.actions.delete', { defaultValue: 'מחק' }),
-            danger: true,
-            onClick: () => {
-              Modal.confirm({
-                title: t('datasources.confirmDelete.title', { defaultValue: 'מחק מקור נתונים?' }),
-                content: t('datasources.confirmDelete.message', { name: record.Name, defaultValue: `האם למחוק את "${record.Name}"?` }),
-                okText: t('datasources.actions.delete', { defaultValue: 'מחק' }),
-                okButtonProps: { danger: true },
-                cancelText: t('datasources.clone.confirmCancel', { defaultValue: 'ביטול' }),
-                onOk: () => handleDelete(record.ID, record.Name),
-              });
-            },
-          },
-        ];
-
         return (
           <Space size="small">
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => navigate(`/datasources/${record.ID}`)}
-            >
-              {t('datasources.actions.view', { defaultValue: 'צפה' })}
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/datasources/${record.ID}/edit`)}
-            >
-              {t('datasources.actions.edit', { defaultValue: 'ערוך' })}
-            </Button>
-            <Dropdown menu={{ items: dropdownItems }} trigger={['click']}>
+            <Tooltip title={t('datasources.actions.view', { defaultValue: 'צפה' })}>
               <Button
-                type="link"
+                type="text"
                 size="small"
-                icon={<MoreOutlined />}
-                loading={cloningId === record.ID}
+                icon={<EyeOutlined />}
+                onClick={() => navigate(`/datasources/${record.ID}`)}
               />
-            </Dropdown>
+            </Tooltip>
+            <Tooltip title={t('datasources.actions.edit', { defaultValue: 'ערוך' })}>
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => navigate(`/datasources/${record.ID}/edit`)}
+              />
+            </Tooltip>
+            <Tooltip title={t('datasources.clone.button')}>
+              <Button
+                type="text"
+                size="small"
+                icon={<CopyOutlined />}
+                loading={cloningId === record.ID}
+                onClick={() => handleClone(record)}
+              />
+            </Tooltip>
+            <Tooltip title={t('datasources.actions.trigger', { defaultValue: 'הפעל' })}>
+              <Button
+                type="text"
+                size="small"
+                icon={<ThunderboltOutlined style={{ color: '#52c41a' }} />}
+                loading={!!triggeringMap[record.ID]}
+                onClick={() => handleManualTrigger(record.ID, record.Name)}
+              />
+            </Tooltip>
+            <Popconfirm
+              title={t('datasources.confirmDelete.title', { defaultValue: 'מחק מקור נתונים?' })}
+              description={t('datasources.confirmDelete.message', { name: record.Name, defaultValue: `האם למחוק את "${record.Name}"?` })}
+              onConfirm={() => handleDelete(record.ID, record.Name)}
+              okText={t('datasources.actions.delete', { defaultValue: 'מחק' })}
+              cancelText={t('common.cancel', { defaultValue: 'ביטול' })}
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
           </Space>
         );
       },
