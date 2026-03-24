@@ -264,9 +264,10 @@ const DataSourceList: React.FC = () => {
     {
       title: 'מזהה',
       dataIndex: 'ID',
-      key: 'id',
+      key: 'ID',
       width: 240,
-      sorter: false,
+      sorter: true,
+      defaultSortOrder: 'descend' as const,
       render: (id: string) => (
         <code style={{ 
           fontSize: '11px', 
@@ -472,6 +473,7 @@ const DataSourceList: React.FC = () => {
 
     // Map frontend field to backend field
     const sortFieldMap: { [key: string]: string } = {
+      'ID': 'CreatedAt',
       'Name': 'Name',
       'Category': 'Category',
       'TotalFilesProcessed': 'TotalFilesProcessed'
