@@ -256,18 +256,18 @@ const DataSourceFormEnhanced: React.FC = () => {
         body: JSON.stringify(requestPayload),
       });
 
-      if (!response.ok) {
-        if (response.status === 409) throw new Error(t('errors.duplicateName'));
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (!response.ok || !data.IsSuccess) {
+        const errorMsg = data.Error?.Message || '';
+        const errorCode = data.Error?.Code || '';
+        if (response.status === 409 || errorCode.includes('DUPLICATE') || errorMsg.includes('duplicate') || errorMsg.includes('already exists') || errorCode.includes('DATABASE_ERROR')) {
+          throw new Error(t('errors.duplicateName', { defaultValue: 'שם מקור הנתונים כבר קיים. שנה את השם ונסה שוב.' }));
+        }
+        throw new Error(errorMsg || `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      if (data.IsSuccess) {
-        message.success(t('messages.dataSourceCreated'));
-        navigate('/datasources');
-      } else {
-        throw new Error(data.Error?.Message || 'Failed to create data source');
-      }
+      message.success(t('messages.dataSourceCreated'));
+      navigate('/datasources');
     } catch (err) {
       console.error('Error creating data source:', err);
       setError(err instanceof Error ? err.message : 'Failed to create data source');
