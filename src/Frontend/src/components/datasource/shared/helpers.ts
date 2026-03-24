@@ -114,6 +114,7 @@ export const prepareCloneData = (
   language: string
 ): ClonePayload => {
   const namePrefix = language === 'he' ? 'העתק של ' : 'Copy of ';
+  const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
   // Clone output destinations with new UUIDs (per D-04)
   const clonedDestinations: OutputDestination[] = (
@@ -140,7 +141,7 @@ export const prepareCloneData = (
   }));
 
   return {
-    name: `${namePrefix}${dataSource.Name}`,
+    name: `${namePrefix}${dataSource.Name} (${timestamp})`,
     supplierName: dataSource.SupplierName || '',
     category: dataSource.Category || '',
     description: dataSource.Description || dataSource.AdditionalConfiguration?.Metadata || '',
