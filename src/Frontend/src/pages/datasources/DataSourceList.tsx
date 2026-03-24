@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Space, Table, Card, Alert, Spin, Tag, Popconfirm, App, message, Select, Tooltip } from 'antd';
+import { Typography, Button, Space, Table, Card, Alert, Spin, Tag, Popconfirm, App, Select, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ThunderboltOutlined, ClockCircleOutlined, FilterOutlined, CopyOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ThunderboltOutlined, ClockCircleOutlined, FilterOutlined, CopyOutlined, PoweroffOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { humanizeCron, prepareCloneData } from '../../components/datasource/shared/helpers';
 import { getAllCategories } from '../../services/categories-api-client';
+import { checkDataSourceCompleteness } from '../../components/datasource/completeness/completenessUtils';
 
 const { Title, Paragraph } = Typography;
 const { Option } = Select;
@@ -64,7 +65,7 @@ interface ApiResponse<T> {
 const DataSourceList: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { modal } = App.useApp();
+  const { modal, message: appMessage } = App.useApp();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
@@ -133,14 +134,14 @@ const DataSourceList: React.FC = () => {
       });
 
       if (response.ok) {
-        message.success(`הפעלה ידנית עבור "${name}" בוצעה בהצלחה!`, 2);
+        appMessage.success(`הפעלה ידנית עבור "${name}" בוצעה בהצלחה!`, 2);
       } else {
         const errorData = await response.json().catch(() => null);
-        message.error(errorData?.message || `שגיאה בהפעלה ידנית עבור "${name}"`);
+        appMessage.error(errorData?.message || `שגיאה בהפעלה ידנית עבור "${name}"`);
       }
     } catch (err) {
       console.error('Error triggering manual execution:', err);
-      message.error('שגיאה בחיבור לשרת התזמון');
+      appMessage.error('שגיאה בחיבור לשרת התזמון');
     } finally {
       setTriggeringMap(prev => ({ ...prev, [id]: false }));
     }
@@ -183,7 +184,7 @@ const DataSourceList: React.FC = () => {
       });
     } catch (err) {
       console.error('Clone fetch error:', err);
-      message.error(t('datasources.clone.fetchError'));
+      appMessage.error(t('datasources.clone.fetchError'));
     } finally {
       setCloningId(null);
     }
@@ -232,7 +233,7 @@ const DataSourceList: React.FC = () => {
 
       const data: ApiResponse<any> = await response.json();
       if (data.IsSuccess) {
-        message.success(isActive ? 'מקור הנתונים הופעל' : 'מקור הנתונים הושבת');
+        appMessage.success(isActive ? 'מקור הנתונים הופעל' : 'מקור הנתונים הושבת');
         // Refetch to ensure UI shows latest data
         await fetchDataSources(pagination.current, pagination.pageSize);
       } else {
@@ -240,9 +241,51 @@ const DataSourceList: React.FC = () => {
       }
     } catch (err) {
       console.error('Error updating status:', err);
-      message.error('שגיאה בעדכון סטטוס');
+      appMessage.error('שגיאה בעדכון סטטוס');
       // Refetch to revert optimistic UI update
       await fetchDataSources(pagination.current, pagination.pageSize);
+    }
+  };
+
+  // Handle toggle status with completeness check (D-17, D-21)
+  const handleToggleStatus = async (record: DataSource) => {
+    if (record.IsActive) {
+      // Disabling is always allowed
+      await handleStatusChange(record.ID, false);
+      return;
+    }
+
+    // Enabling: check completeness first (D-17, D-21)
+    try {
+      const response = await fetch(`/api/v1/datasource/${record.ID}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (!data.IsSuccess) throw new Error(data.Error?.Message || 'Fetch failed');
+
+      const fullDs = data.Data;
+      const { isComplete, missingFields } = checkDataSourceCompleteness(fullDs);
+
+      if (!isComplete) {
+        // D-18: Show message explaining what's missing
+        modal.warning({
+          title: t('completeness.enableBlocked', { defaultValue: 'לא ניתן להפעיל' }),
+          content: t('completeness.enableBlockedDetails', {
+            fields: missingFields.join(', '),
+            defaultValue: `יש להשלים את השדות הבאים לפני הפעלה: ${missingFields.join(', ')}`,
+          }),
+          okText: t('common.ok', { defaultValue: 'אישור' }),
+        });
+        return;
+      }
+
+      // All complete, proceed with enable
+      await handleStatusChange(record.ID, true);
+    } catch (err) {
+      console.error('Enable check error:', err);
+      appMessage.error(t('datasources.errors.statusChange', { defaultValue: 'שגיאה בשינוי סטטוס' }));
     }
   };
 
@@ -301,20 +344,14 @@ const DataSourceList: React.FC = () => {
       ),
     },
     {
-      title: 'סטטוס',
+      title: t('datasources.fields.status', { defaultValue: 'סטטוס' }),
       dataIndex: 'IsActive',
       key: 'status',
-      width: 110,
-      render: (isActive: boolean, record: DataSource) => (
-        <Select
-          value={isActive}
-          size="small"
-          style={{ width: '100%' }}
-          onChange={(newStatus: boolean) => handleStatusChange(record.ID, newStatus)}
-        >
-          <Option value={true}>פעיל</Option>
-          <Option value={false}>לא פעיל</Option>
-        </Select>
+      width: 100,
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? 'success' : 'default'}>
+          {isActive ? t('datasources.status.active', { defaultValue: 'פעיל' }) : t('datasources.status.inactive', { defaultValue: 'לא פעיל' })}
+        </Tag>
       ),
     },
     {
@@ -407,7 +444,7 @@ const DataSourceList: React.FC = () => {
     {
       title: t('datasources.actions.more', { defaultValue: 'פעולות' }),
       key: 'actions',
-      width: 180,
+      width: 210,
       render: (_, record: DataSource) => {
         return (
           <Space size="small">
@@ -436,7 +473,18 @@ const DataSourceList: React.FC = () => {
                 onClick={() => handleClone(record)}
               />
             </Tooltip>
-            <Tooltip title={t('datasources.actions.trigger', { defaultValue: 'הפעל' })}>
+            <Tooltip title={record.IsActive
+              ? t('datasources.actions.disable', { defaultValue: 'השבת' })
+              : t('datasources.actions.enable', { defaultValue: 'הפעל' })
+            }>
+              <Button
+                type="text"
+                size="small"
+                icon={<PoweroffOutlined style={{ color: record.IsActive ? '#52c41a' : '#d9d9d9' }} />}
+                onClick={() => handleToggleStatus(record)}
+              />
+            </Tooltip>
+            <Tooltip title={t('datasources.actions.trigger', { defaultValue: 'הפעל ידנית' })}>
               <Button
                 type="text"
                 size="small"
@@ -555,14 +603,14 @@ const DataSourceList: React.FC = () => {
       const data: ApiResponse<any> = await response.json();
 
       if (data.IsSuccess) {
-        message.success(t('datasources.messages.deleteSuccess', { name }));
+        appMessage.success(t('datasources.messages.deleteSuccess', { name }));
         fetchDataSources(pagination.current, pagination.pageSize);
       } else {
         throw new Error(data.Error?.Message || 'Failed to delete data source');
       }
     } catch (err) {
       console.error('Error deleting data source:', err);
-      message.error(t('datasources.messages.deleteError', { name }));
+      appMessage.error(t('datasources.messages.deleteError', { name }));
     }
   };
 
