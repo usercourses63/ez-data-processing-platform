@@ -15,7 +15,8 @@
     "notifications": "התרעות",
     "validation": "אימות נתונים",
     "monitoring": "ניטור מערכת",
-    "settings": "הגדרות"
+    "settings": "הגדרות",
+    "adminSettings": "הגדרות מערכת"
   },
   "metrics": {
     "title": "ניהול מדדים",
@@ -454,7 +455,10 @@
     "search": "חיפוש מקורות נתונים...",
     "filter": "סינון",
     "category": "קטגוריה",
-    "status": "סטטוס",
+    "status": {
+      "active": "פעיל",
+      "inactive": "לא פעיל"
+    },
     "form": {
       "title": "צור מקור נתונים",
       "connection": "הגדרות חיבור",
@@ -607,10 +611,6 @@
       "disable": "השבת",
       "more": "פעולות נוספות"
     },
-    "status": {
-      "active": "פעיל",
-      "inactive": "לא פעיל"
-    },
     "tabs": {
       "basic": "מידע בסיסי",
       "connection": "חיבור",
@@ -638,6 +638,23 @@
       "arrayInCsv": "קבצי CSV/Excel מייצרים רשומות שטוחות — הסכמה לא יכולה להכיל מערכים",
       "headerlessInfo": "CSV ללא כותרות ממפה עמודות לפי סדר — שדה ראשון בסכמה = עמודה ראשונה, שני = שנייה וכו'",
       "incompatible": "מבנה הסכמה אינו תואם לסוג הקובץ שנבחר"
+    },
+    "missingFieldsTitle": "שדות חובה חסרים:",
+    "saveWarningTitle": "מקור נתונים לא שלם",
+    "saveWarningMessage": "השדות הנדרשים הבאים חסרים. מקור הנתונים יישמר כמושבת:",
+    "fieldLabels": {
+      "name": "שם",
+      "supplierName": "שם ספק",
+      "category": "קטגוריה",
+      "connectionType": "סוג חיבור",
+      "filePath": "נתיב קובץ",
+      "httpEndpointPath": "כתובת HTTP",
+      "inputServerId": "שרת",
+      "nasDeviceId": "התקן NAS",
+      "kafkaTopic": "נושא Kafka",
+      "fileType": "סוג קובץ",
+      "schema": "סכמת JSON",
+      "scheduleFrequency": "תדירות תזמון"
     }
   },
   "validation": {
@@ -1264,20 +1281,6 @@
         "descriptionMaxLength": "תיאור לא יכול להיות ארוך מ-500 תווים"
       }
     }
-  },
-  "navigation": {
-    "dashboard": "דשבורד",
-    "datasources": "מקורות נתונים",
-    "schemaManagement": "ניהול Schema",
-    "metricsConfig": "הגדרות מדדים",
-    "metricsDashboard": "לוח מדדים",
-    "invalidRecords": "רשומות לא תקינות",
-    "aiAssistant": "עוזר AI",
-    "notifications": "התרעות",
-    "validation": "אימות נתונים",
-    "monitoring": "ניטור מערכת",
-    "settings": "הגדרות",
-    "adminSettings": "הגדרות מערכת"
   },
   "footer": {
     "copyright": "© {{year}} פלטפורמת EZ. כל הזכויות שמורות.",

@@ -7,7 +7,17 @@
  * Field names MUST match the actual Form.Item `name` attributes in each tab component.
  */
 
+import Ajv from 'ajv';
 import type { TabFieldConfig } from './types';
+
+// D-11: AJV instance for full JSON Schema 2020-12 validation in completeness check
+const schemaAjv = new Ajv({
+  strict: false,
+  validateFormats: false,
+  strictSchema: false,
+  validateSchema: true,
+  allowUnionTypes: true,
+});
 
 // ============================================================================
 // Schema-FileType Alignment Check (D-22/D-23/D-24/D-25/D-26)
@@ -165,8 +175,17 @@ export const TAB_FIELD_CONFIG: Record<string, TabFieldConfig> = {
       const fileType = formValues?.fileType;
       const hasHeaders = formValues?.hasHeaders;
       const alignment = checkSchemaFileTypeAlignment(jsonSchema, fileType, hasHeaders);
+      if (!alignment.isAligned) return false;
 
-      return alignment.isAligned;
+      // D-11: Full JSON Schema 2020-12 validation via AJV compilation
+      // Catches malformed required arrays, invalid $schema URIs, contradictory constraints, etc.
+      try {
+        schemaAjv.compile(jsonSchema);
+      } catch {
+        return false;
+      }
+
+      return true;
     },
   },
 

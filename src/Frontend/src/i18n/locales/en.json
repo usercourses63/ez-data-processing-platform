@@ -35,7 +35,10 @@
     "search": "Search data sources...",
     "filter": "Filter",
     "category": "Category",
-    "status": "Status",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
     "form": {
       "title": "Create Data Source",
       "connection": "Connection Settings",
@@ -167,10 +170,6 @@
       "disable": "Disable",
       "more": "More actions"
     },
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive"
-    },
     "tabs": {
       "basic": "Basic Info",
       "connection": "Connection",
@@ -198,6 +197,23 @@
       "arrayInCsv": "CSV/Excel files produce flat records - schema cannot contain array properties",
       "headerlessInfo": "CSV without headers maps columns by position - 1st schema field = 1st column, 2nd = 2nd, etc.",
       "incompatible": "Schema structure is not compatible with the selected file type"
+    },
+    "missingFieldsTitle": "Missing required fields:",
+    "saveWarningTitle": "Incomplete datasource",
+    "saveWarningMessage": "The following required fields are missing. The datasource will be saved as disabled:",
+    "fieldLabels": {
+      "name": "Name",
+      "supplierName": "Supplier Name",
+      "category": "Category",
+      "connectionType": "Connection Type",
+      "filePath": "File Path",
+      "httpEndpointPath": "HTTP Endpoint",
+      "inputServerId": "Server",
+      "nasDeviceId": "NAS Device",
+      "kafkaTopic": "Kafka Topic",
+      "fileType": "File Type",
+      "schema": "JSON Schema",
+      "scheduleFrequency": "Schedule Frequency"
     }
   },
   "validation": {
@@ -335,7 +351,19 @@
     "templates": "Templates",
     "visual": "Visual Editor",
     "json": "JSON Editor",
-    "validation": "Validation Testing",
+    "validation": {
+      "minLength": "Minimum Length",
+      "maxLength": "Maximum Length",
+      "pattern": "Regex Pattern",
+      "format": "Format",
+      "enum": "Allowed Values",
+      "minimum": "Minimum Value",
+      "maximum": "Maximum Value",
+      "multipleOf": "Multiple Of",
+      "minItems": "Minimum Items",
+      "maxItems": "Maximum Items",
+      "uniqueItems": "Unique Items"
+    },
     "properties": "Properties",
     "required": "Required Fields",
     "builder": {
@@ -356,19 +384,6 @@
       "jsonCopied": "JSON Schema copied to clipboard",
       "validateData": "Validate Data",
       "validationSuccess": "Data is valid and passes all validation rules"
-    },
-    "validation": {
-      "minLength": "Minimum Length",
-      "maxLength": "Maximum Length",
-      "pattern": "Regex Pattern",
-      "format": "Format",
-      "enum": "Allowed Values",
-      "minimum": "Minimum Value",
-      "maximum": "Maximum Value",
-      "multipleOf": "Multiple Of",
-      "minItems": "Minimum Items",
-      "maxItems": "Maximum Items",
-      "uniqueItems": "Unique Items"
     },
     "fields": {
       "name": "Schema Name",
