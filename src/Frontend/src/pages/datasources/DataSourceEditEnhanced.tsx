@@ -538,6 +538,7 @@ const DataSourceEditEnhanced: React.FC = () => {
                   activeKey={activeTab}
                   onChange={setActiveTab}
                   type="card"
+                  destroyInactiveTabPane={false}
                   items={[
                     {
                       key: 'basic',

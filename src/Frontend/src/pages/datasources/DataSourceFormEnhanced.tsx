@@ -257,10 +257,13 @@ const DataSourceFormEnhanced: React.FC = () => {
       setJsonSchema(importData.jsonSchema);
     }
 
-    // Force completeness recalculation after import state settles
-    setTimeout(() => {
-      recalculate({}, form.getFieldsValue(true));
-    }, 500);
+    // Retry setFieldsValue after lazy tabs mount (Ant Design lazy tab bug)
+    // First retry at 500ms, second at 1500ms for slow-mounting tabs
+    const retryValues = () => form.setFieldsValue(formValues);
+    const t1 = setTimeout(retryValues, 500);
+    const t2 = setTimeout(retryValues, 1500);
+    const t3 = setTimeout(() => recalculate({}, form.getFieldsValue(true)), 2000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [importData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handlers
@@ -505,11 +508,12 @@ const DataSourceFormEnhanced: React.FC = () => {
         <div style={{ flex: 1, minWidth: 0 }}>
           <Card>
             <Spin spinning={loading}>
-              <Form form={form} layout="vertical" onFinish={handleSubmit} preserve={true} initialValues={DEFAULT_FORM_VALUES} onValuesChange={recalculate}>
+              <Form form={form} layout="vertical" onFinish={handleSubmit} preserve={true} initialValues={importData ? { ...DEFAULT_FORM_VALUES, fileType: importData.fileType, encoding: importData.encoding, hasHeaders: importData.hasHeaders ?? true, csvDelimiter: importData.csvDelimiter || ',', name: importData.name, filePattern: importData.filePattern } : DEFAULT_FORM_VALUES} onValuesChange={recalculate}>
                 <Tabs
                   activeKey={activeTab}
                   onChange={setActiveTab}
                   type="card"
+                  destroyInactiveTabPane={false}
                   items={[
                     {
                       key: 'basic',
