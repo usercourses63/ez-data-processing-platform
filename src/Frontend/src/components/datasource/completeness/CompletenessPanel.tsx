@@ -215,7 +215,7 @@ export const CompletenessPanel: React.FC<CompletenessPanelProps> = ({
 
       {/* Missing fields detail (D-18, GAP-03) */}
       {!completeness.isFullyComplete && completeness.missingFields.length > 0 && (
-        <div style={{ marginTop: 8, padding: '8px 12px', backgroundColor: '#fff2f0', borderRadius: 6, border: '1px solid #ffccc7' }}>
+        <div style={{ marginTop: 8, padding: '8px 10px', backgroundColor: '#fff2f0', borderRadius: 6, border: '1px solid #ffccc7' }}>
           <Text type="danger" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 4 }}>
             {t('completeness.missingFieldsTitle', { defaultValue: 'Missing required fields:' })}
           </Text>

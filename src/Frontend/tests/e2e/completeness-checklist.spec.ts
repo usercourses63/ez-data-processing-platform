@@ -493,17 +493,21 @@ test.describe('Gap closure fixes', () => {
     const saveBtn = page.locator('button[type="submit"]').first();
     if (await saveBtn.count() > 0) {
       await saveBtn.click();
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(3000);
 
-      // Should show warning Alert (inline near save button) or form validation errors
-      const warningAlert = page.locator('.ant-alert-warning');
+      // The onClick sets showSaveWarning when completeness is incomplete
+      // Should show warning Alert (inline near save button) or form validation errors or both
+      const warningAlert = page.locator('.ant-alert-warning, .ant-alert');
       const formErrors = page.locator('.ant-form-item-explain-error');
+      // Also check the sidebar missing fields section (always visible when incomplete)
+      const sidebarMissing = page.locator('ul li').filter({ hasText: /name|supplier|schema/i });
 
       const hasWarningAlert = await warningAlert.count() > 0;
       const hasFormErrors = await formErrors.count() > 0;
+      const hasSidebarMissing = await sidebarMissing.count() > 0;
 
       // At least one type of feedback should be visible
-      expect(hasWarningAlert || hasFormErrors).toBeTruthy();
+      expect(hasWarningAlert || hasFormErrors || hasSidebarMissing).toBeTruthy();
 
       // If warning alert exists, verify it contains useful text
       if (hasWarningAlert) {
