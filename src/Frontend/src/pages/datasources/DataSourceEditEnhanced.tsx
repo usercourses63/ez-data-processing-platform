@@ -126,7 +126,7 @@ const DataSourceEditEnhanced: React.FC = () => {
         }
       }
     }
-  }, [completeness, getFieldStatus]);
+  }, [completeness, getFieldStatus, activeTab]);
 
   // Handlers
   const handleSchemaChange = (newSchema: JSONSchema) => {

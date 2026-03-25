@@ -121,7 +121,7 @@ const DataSourceFormEnhanced: React.FC = () => {
         }
       }
     }
-  }, [completeness, getFieldStatus]);
+  }, [completeness, getFieldStatus, activeTab]);
 
   // Populate form from clone data (if navigated from clone action)
   React.useEffect(() => {
