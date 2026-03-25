@@ -1,24 +1,12 @@
 /**
  * Archive Handler
- * Handles .zip, .tar.gz, .rar, .7z files using JSZip (unencrypted .zip)
- * and libarchive.js (encrypted .zip, .tar.gz, .rar, .7z).
+ * Handles .zip, .tar.gz, .rar, .7z files using a backend API for reliable
+ * cross-format support, with JSZip as a client-side fallback for unencrypted .zip.
  *
- * Per D-16 through D-19 from CONTEXT.md.
+ * Replaces the broken libarchive.js WASM approach with server-side SharpCompress.
  */
 import JSZip from 'jszip';
-import { Archive } from 'libarchive.js';
 import type { ArchiveType } from './types';
-
-/** The reader type returned by Archive.open() */
-type LibArchiveReader = Awaited<ReturnType<typeof Archive.open>>;
-
-// Initialize libarchive.js with worker URL from the package dist
-Archive.init({
-  workerUrl: new URL(
-    'libarchive.js/dist/worker-bundle.js',
-    import.meta.url
-  ).toString(),
-});
 
 /** Information about a single file entry inside an archive */
 export interface ArchiveFileEntry {
@@ -44,6 +32,9 @@ export interface ArchiveResult {
 
 /** Data file extensions to look for inside archives */
 const DATA_FILE_EXTENSIONS = ['.csv', '.json', '.xml', '.xlsx'];
+
+/** Base URL for archive API (empty = relative, same origin) */
+const API_BASE_URL = '';
 
 /**
  * Detect archive type from file extension.
@@ -97,106 +88,99 @@ async function tryJSZip(file: File): Promise<ArchiveResult | null> {
 }
 
 /**
- * Open an archive using libarchive.js (WASM-based).
- * Supports .zip (including encrypted), .tar.gz, .rar, .7z.
+ * Analyze an archive file via the backend API.
+ * Uses POST /api/v1/archive/analyze to list contents.
  */
-async function openWithLibarchive(
+async function handleArchiveViaBackend(
   file: File,
-  archiveType: ArchiveType,
   password?: string
 ): Promise<ArchiveResult> {
-  let reader: LibArchiveReader | null = null;
+  const archiveType = detectArchiveType(file.name);
 
-  try {
-    const opened = await Archive.open(file);
-    reader = opened;
-
-    // Check encryption status
-    const encrypted = await opened.hasEncryptedData();
-    const isEncrypted = encrypted === true;
-
-    // If encrypted and password provided, set it
-    if (isEncrypted && password) {
-      await opened.usePassword(password);
-    }
-
-    // Get files list
-    const filesObj = await opened.getFilesObject();
-    const files: ArchiveFileEntry[] = [];
-
-    // Recursively walk the files object structure
-    function walkFilesObject(obj: Record<string, unknown>, prefix: string) {
-      for (const [key, value] of Object.entries(obj)) {
-        const path = prefix ? `${prefix}/${key}` : key;
-        if (
-          value &&
-          typeof value === 'object' &&
-          'name' in (value as Record<string, unknown>) &&
-          'size' in (value as Record<string, unknown>)
-        ) {
-          // This is a CompressedFile
-          const cf = value as { name: string; size: number };
-          files.push({
-            name: path,
-            size: cf.size,
-            isDirectory: false,
-          });
-        } else if (value && typeof value === 'object') {
-          // This is a directory
-          files.push({
-            name: path + '/',
-            size: 0,
-            isDirectory: true,
-          });
-          walkFilesObject(value as Record<string, unknown>, path);
-        }
-      }
-    }
-
-    walkFilesObject(filesObj, '');
-
-    // Keep reader alive for extraction; caller must manage lifecycle
-    // Set reader to null so finally doesn't close it
-    reader = null;
-
-    return {
-      files,
-      isEncrypted,
-      archiveType,
-      extractFile: async (filename: string, pwd?: string) => {
-        if (pwd) {
-          await opened.usePassword(pwd);
-        }
-        const extracted = await opened.extractSingleFile(filename);
-        const buffer = await extracted.arrayBuffer();
-        return buffer;
-      },
-    };
-  } catch (err) {
-    // For encrypted archives where no password was provided, surface clearly
-    const message = err instanceof Error ? err.message : String(err);
-    if (
-      isEncryptionError(message) &&
-      !password
-    ) {
-      return {
-        files: [],
-        isEncrypted: true,
-        archiveType,
-        extractFile: async () => {
-          throw new Error(
-            'Archive is encrypted. Please provide a password to extract files.'
-          );
-        },
-      };
-    }
-    throw err;
-  } finally {
-    // Only close if we still hold the reader (i.e., extraction wasn't set up)
-    if (reader) {
-      await reader.close();
-    }
+  // Build form data for analyze endpoint
+  const formData = new FormData();
+  formData.append('file', file);
+  if (password) {
+    formData.append('password', password);
   }
+
+  const analyzeResponse = await fetch(`${API_BASE_URL}/api/v1/archive/analyze`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!analyzeResponse.ok) {
+    const errorBody = await analyzeResponse.text();
+    let errorMessage = `Archive analysis failed (${analyzeResponse.status})`;
+    try {
+      const parsed = JSON.parse(errorBody);
+      if (parsed.message) {
+        errorMessage = parsed.message;
+      }
+    } catch {
+      // Use default message
+    }
+    throw new Error(errorMessage);
+  }
+
+  const data = await analyzeResponse.json() as {
+    Files: Array<{ Name: string; Size: number; IsDirectory: boolean }>;
+    ArchiveType: string;
+    IsEncrypted: boolean;
+  };
+
+  const files: ArchiveFileEntry[] = data.Files.map((f) => ({
+    name: f.Name,
+    size: f.Size,
+    isDirectory: f.IsDirectory,
+  }));
+
+  return {
+    files,
+    isEncrypted: data.IsEncrypted,
+    archiveType: (data.ArchiveType as ArchiveType) || archiveType,
+    extractFile: async (filename: string, pwd?: string) => {
+      return extractFileViaBackend(file, filename, pwd || password);
+    },
+  };
+}
+
+/**
+ * Extract a specific file from an archive via the backend API.
+ * Uses POST /api/v1/archive/extract.
+ */
+async function extractFileViaBackend(
+  archiveFile: File,
+  filename: string,
+  password?: string
+): Promise<ArrayBuffer> {
+  const formData = new FormData();
+  formData.append('file', archiveFile);
+  formData.append('filename', filename);
+  if (password) {
+    formData.append('password', password);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/archive/extract`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    let errorMessage = `File extraction failed (${response.status})`;
+    try {
+      const parsed = JSON.parse(errorBody);
+      if (parsed.message) {
+        errorMessage = parsed.message;
+      }
+    } catch {
+      // Use default message
+    }
+    throw new Error(errorMessage);
+  }
+
+  return await response.arrayBuffer();
 }
 
 /** Check if an error message indicates encryption */
@@ -214,8 +198,8 @@ function isEncryptionError(message: string): boolean {
 
 /**
  * Handle an archive file.
- * For .zip: tries JSZip first (fast, no WASM), falls back to libarchive.js.
- * For .tar.gz, .rar, .7z: uses libarchive.js directly.
+ * Strategy: backend API first (handles all formats reliably),
+ * falls back to JSZip for unencrypted .zip (works offline/without backend).
  *
  * @param file - The archive file to inspect
  * @param password - Optional password for encrypted archives
@@ -227,17 +211,29 @@ export async function handleArchive(
 ): Promise<ArchiveResult> {
   const archiveType = detectArchiveType(file.name);
 
-  // For .zip, try JSZip first (faster for unencrypted)
+  // Try backend API first (handles all archive formats reliably)
+  try {
+    return await handleArchiveViaBackend(file, password);
+  } catch (backendError) {
+    console.warn(
+      'Backend archive API unavailable, falling back to client-side:',
+      backendError instanceof Error ? backendError.message : backendError
+    );
+  }
+
+  // Fallback: for .zip without password, try JSZip client-side
   if (archiveType === 'zip' && !password) {
     const jszipResult = await tryJSZip(file);
     if (jszipResult) {
       return jszipResult;
     }
-    // JSZip failed - likely encrypted, fall through to libarchive.js
   }
 
-  // Use libarchive.js for all other cases
-  return openWithLibarchive(file, archiveType, password);
+  // No fallback available for non-zip or encrypted archives
+  throw new Error(
+    `Cannot process ${archiveType} archive: backend API is unavailable and ` +
+      `client-side extraction is only supported for unencrypted .zip files.`
+  );
 }
 
 /**
