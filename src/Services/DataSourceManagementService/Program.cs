@@ -15,6 +15,7 @@ using Quartz;
 using DataProcessing.DataSourceManagement.Jobs;
 using DataProcessing.DataSourceManagement.Hubs;
 using DataProcessing.DataSourceManagement.Consumers;
+using DataProcessing.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -111,6 +112,9 @@ services.AddScoped<IServerService, ServerService>();
 
 // Register file operations proxy service (v0.2.0: SIM-TEST-01 - Protocol testing endpoints)
 services.AddScoped<IFileOperationsService, FileOperationsService>();
+
+// Register archive service for server-side archive analysis/extraction
+services.AddScoped<IArchiveService, DataProcessing.Shared.Services.SharpCompressArchiveService>();
 
 // Register Kubernetes client and NAS device service (v0.2.0: NAS/NFS Architecture)
 services.AddKubernetesClient(configuration);
