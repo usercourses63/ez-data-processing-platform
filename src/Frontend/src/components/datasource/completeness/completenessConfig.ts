@@ -145,6 +145,17 @@ export const TAB_FIELD_CONFIG: Record<string, TabFieldConfig> = {
         required: true,
         when: (v) => v.connectionType === 'Kafka',
       },
+      // Archive fields — required when isArchiveSource is enabled
+      {
+        name: 'archiveType',
+        required: true,
+        when: (v) => v.isArchiveSource === true,
+      },
+      {
+        name: 'extractionPattern',
+        required: false,
+        when: (v) => v.isArchiveSource === true,
+      },
     ],
   },
 

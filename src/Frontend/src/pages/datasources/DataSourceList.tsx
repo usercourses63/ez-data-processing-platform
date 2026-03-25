@@ -770,11 +770,92 @@ const DataSourceList: React.FC = () => {
         visible={previewModalVisible}
         importData={importData}
         archiveResult={archiveResult}
-        onContinue={(data) => {
+        onContinue={async (data) => {
           setPreviewModalVisible(false);
           setImportData(null);
           setArchiveResult(null);
-          navigate('/datasources/new', { state: { importData: data } });
+
+          // Auto-create datasource from imported file data
+          try {
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+            const baseName = data.name || 'imported';
+            const dsName = `${baseName}-${timestamp}`;
+            const requestPayload: Record<string, unknown> = {
+              name: dsName,
+              supplierName: 'Imported',
+              category: 'Imported',
+              description: t('datasources.import.autoCreatedDescription', {
+                defaultValue: 'Auto-created from imported file: {{name}}',
+                name: dsName,
+              }),
+              connectionString: '',
+              isActive: false, // Start inactive — user completes connection later
+              filePattern: data.filePattern || '*.*',
+              configurationSettings: JSON.stringify({
+                connectionConfig: { type: 'NFS' },
+                fileConfig: {
+                  type: data.fileType,
+                  delimiter: data.csvDelimiter || ',',
+                  hasHeaders: data.hasHeaders ?? true,
+                  encoding: data.encoding || 'UTF-8',
+                },
+                schedule: { frequency: 'Manual', enabled: false },
+                validationRules: { skipInvalidRecords: false },
+                notificationSettings: { onSuccess: false, onFailure: true, recipients: [] },
+                outputConfig: null,
+              }),
+              fileFormat: data.fileType,
+              retentionDays: 30,
+            };
+
+            // Add schema if inferred
+            if (data.jsonSchema && Object.keys(data.jsonSchema).length > 0) {
+              requestPayload.JsonSchema = data.jsonSchema;
+            }
+
+            // Add archive settings if from archive
+            if (data.isArchiveSource) {
+              requestPayload.ArchiveSettings = {
+                IsArchiveSource: true,
+                ArchiveType: data.archiveType || 'auto',
+                ArchivePassword: data.archivePassword || '',
+                ExtractionPattern: data.extractionPattern || '*.*',
+                ProcessNestedArchives: false,
+              };
+            }
+
+            const response = await fetch('/api/v1/datasource', {
+              method: 'POST',
+              headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestPayload),
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.IsSuccess) {
+              throw new Error(result.Error?.Message || 'Failed to create datasource');
+            }
+
+            const createdId = result.Data?.ID || result.Data?.Id;
+            appMessage.success(t('datasources.import.autoCreated', {
+              defaultValue: 'Datasource "{{name}}" created. Opening editor...',
+              name: dsName,
+            }));
+
+            // Navigate to edit page so user sees completeness + can complete connection
+            if (createdId) {
+              navigate(`/datasources/${createdId}/edit`);
+            } else {
+              fetchDataSources();
+            }
+          } catch (err: unknown) {
+            const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+            appMessage.error(t('datasources.import.autoCreateFailed', {
+              defaultValue: 'Failed to auto-create datasource: {{error}}',
+              error: errorMsg,
+            }));
+            // Fallback: navigate to form with pre-filled data
+            navigate('/datasources/new', { state: { importData: data } });
+          }
         }}
         onCancel={() => {
           setPreviewModalVisible(false);

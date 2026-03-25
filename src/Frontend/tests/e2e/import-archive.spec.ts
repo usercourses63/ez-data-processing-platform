@@ -285,7 +285,9 @@ test.describe('UI Archive Import', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/datasources');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
+    // Wait for the file input to be attached (inside ImportFromFileButton)
+    await page.waitForSelector('input[type="file"]', { state: 'attached', timeout: 10000 });
   });
 
   test('ZIP: shows file selector with 3 data files', async ({ page }) => {
@@ -469,7 +471,7 @@ test.describe('UI Archive Import', () => {
 test.describe('Archive to Form Integration', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test('ZIP CSV: Continue → form pre-filled with completeness', async ({ page }) => {
+  test('ZIP CSV: Continue → auto-creates datasource → edit page with completeness', async ({ page }) => {
     await page.goto('/datasources');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
@@ -481,29 +483,29 @@ test.describe('Archive to Form Integration', () => {
     await expect(modal).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(2000);
 
-    // Select CSV and analyze
     await selectArchiveFile(modal, /archive-test\.csv/, page);
 
-    // Click Continue
     const continueBtn = modal.locator('button').filter({ hasText: /Continue|המשך/i });
     await expect(continueBtn).toBeEnabled({ timeout: 10000 });
     await continueBtn.click();
+
+    // Should auto-create and redirect to edit page
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
 
-    // Should be on create form
-    expect(page.url()).toContain('/datasources/new');
+    // Should be on edit page (URL contains /edit)
+    expect(page.url()).toMatch(/\/datasources\/[a-f0-9]+\/edit/);
 
-    // Completeness sidebar should show progress > 0%
+    // Completeness sidebar should show progress
     const progressRing = page.locator('div.ant-progress-circle');
-    await expect(progressRing).toBeVisible({ timeout: 5000 });
+    await expect(progressRing).toBeVisible({ timeout: 10000 });
 
-    // Schema tab should show 1/1 (schema was inferred from CSV)
+    // Schema tab should show 1/1 (inferred from CSV)
     const sidebarText = await page.locator('.ant-card').filter({ has: page.locator('div.ant-progress-circle') }).textContent();
     expect(sidebarText).toContain('1/1');
   });
 
-  test('7Z JSON: Continue → form pre-filled with JSON schema', async ({ page }) => {
+  test('7Z JSON: Continue → auto-creates and opens edit page', async ({ page }) => {
     await page.goto('/datasources');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
@@ -520,14 +522,16 @@ test.describe('Archive to Form Integration', () => {
     const continueBtn = modal.locator('button').filter({ hasText: /Continue|המשך/i });
     await expect(continueBtn).toBeEnabled({ timeout: 10000 });
     await continueBtn.click();
+
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
 
-    expect(page.url()).toContain('/datasources/new');
+    // Should be on edit page
+    expect(page.url()).toMatch(/\/datasources\/[a-f0-9]+\/edit/);
 
-    // Completeness sidebar should be visible with progress
+    // Completeness sidebar visible
     const progressRing = page.locator('div.ant-progress-circle');
-    await expect(progressRing).toBeVisible({ timeout: 5000 });
+    await expect(progressRing).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -544,7 +548,7 @@ test.describe('Regular File Import Regression', () => {
     await page.waitForTimeout(2000);
   });
 
-  test('CSV with headers: preview + schema + Continue', async ({ page }) => {
+  test('CSV with headers: preview + Continue → auto-creates', async ({ page }) => {
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(path.join(TEST_DATA_DIR, 'import-test-with-headers.csv'));
 
@@ -552,21 +556,20 @@ test.describe('Regular File Import Regression', () => {
     await expect(modal).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(2000);
 
-    // Should show CSV preview
     const content = await modal.textContent();
     expect(content).toBeTruthy();
 
-    // Continue button should be available
     const continueBtn = modal.locator('button').filter({ hasText: /Continue|המשך/i });
     await expect(continueBtn).toBeEnabled({ timeout: 10000 });
     await continueBtn.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
 
-    expect(page.url()).toContain('/datasources/new');
+    // Auto-create redirects to edit page
+    expect(page.url()).toMatch(/\/datasources\/[a-f0-9]+\/edit/);
   });
 
-  test('JSON file: preview + schema + Continue', async ({ page }) => {
+  test('JSON file: preview + Continue → auto-creates', async ({ page }) => {
     const jsonPath = path.join(TEST_DATA_DIR, 'import-test.json');
     if (!fs.existsSync(jsonPath)) { test.skip(); return; }
 
@@ -581,8 +584,8 @@ test.describe('Regular File Import Regression', () => {
     await expect(continueBtn).toBeEnabled({ timeout: 10000 });
     await continueBtn.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
 
-    expect(page.url()).toContain('/datasources/new');
+    expect(page.url()).toMatch(/\/datasources\/[a-f0-9]+\/edit/);
   });
 });

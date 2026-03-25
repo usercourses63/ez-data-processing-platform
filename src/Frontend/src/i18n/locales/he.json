@@ -640,7 +640,10 @@
       "unsupportedFormat": "פורמט קובץ לא נתמך",
       "parseError": "שגיאה בניתוח הקובץ",
       "formTitle": "ייבוא: {{name}}",
-      "noDataFilesInArchive": "לא נמצאו קבצי נתונים נתמכים בארכיון"
+      "noDataFilesInArchive": "לא נמצאו קבצי נתונים נתמכים בארכיון",
+      "autoCreated": "מקור הנתונים \"{{name}}\" נוצר. פותח עורך...",
+      "autoCreateFailed": "שגיאה ביצירת מקור נתונים אוטומטית: {{error}}",
+      "autoCreatedDescription": "נוצר אוטומטית מקובץ מיובא: {{name}}"
     }
   },
   "completeness": {
@@ -681,7 +684,9 @@
       "kafkaTopic": "נושא Kafka",
       "fileType": "סוג קובץ",
       "schema": "סכמת JSON",
-      "scheduleFrequency": "תדירות תזמון"
+      "scheduleFrequency": "תדירות תזמון",
+      "archiveType": "סוג ארכיון",
+      "extractionPattern": "תבנית חילוץ"
     }
   },
   "validation": {

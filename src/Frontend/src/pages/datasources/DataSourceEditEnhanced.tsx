@@ -252,6 +252,14 @@ const DataSourceEditEnhanced: React.FC = () => {
           notifyOnSuccess: notificationSettings.onSuccess || false,
           notifyOnFailure: notificationSettings.onFailure !== false,
           notificationRecipients: notificationSettings.recipients?.join(', ') || '',
+          // Archive settings (v0.4.0)
+          ...((additionalConfig as any).ArchiveSettings?.IsArchiveSource ? {
+            isArchiveSource: true,
+            archiveType: (additionalConfig as any).ArchiveSettings.ArchiveType || 'auto',
+            archivePassword: (additionalConfig as any).ArchiveSettings.ArchivePassword || '',
+            extractionPattern: (additionalConfig as any).ArchiveSettings.ExtractionPattern || '',
+            processNestedArchives: (additionalConfig as any).ArchiveSettings.ProcessNestedArchives || false,
+          } : {}),
         });
 
         // Initialize output config if it exists (handle both camelCase and PascalCase)
