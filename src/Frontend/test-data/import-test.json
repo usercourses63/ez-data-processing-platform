@@ -1,0 +1,12 @@
+[
+  { "name": "Alice Cohen", "age": 30, "email": "alice@example.com", "phone": "0541234567", "price": 99.99, "active": true },
+  { "name": "Bob Levi", "age": 25, "email": "bob@test.com", "phone": "0529876543", "price": 149.50, "active": false },
+  { "name": "Charlie David", "age": 45, "email": "charlie@mail.org", "phone": "0501112233", "price": 250.00, "active": true },
+  { "name": "Dana Katz", "age": 33, "email": "dana@company.co.il", "phone": "0537778899", "price": 75.25, "active": true },
+  { "name": "Eli Rosen", "age": 28, "email": "eli@startup.io", "phone": "0548765432", "price": 320.00, "active": false },
+  { "name": "Fiona Green", "age": 52, "email": "fiona@work.net", "phone": "0526543210", "price": 55.75, "active": true },
+  { "name": "Gadi Mor", "age": 19, "email": "gadi@school.edu", "phone": "0509998877", "price": 12.50, "active": false },
+  { "name": "Hannah Paz", "age": 41, "email": "hannah@org.com", "phone": "0531234567", "price": 180.00, "active": true },
+  { "name": "Idan Tal", "age": 36, "email": "idan@lab.co.il", "phone": "0542345678", "price": 420.99, "active": true },
+  { "name": "Julia Ben", "age": 22, "email": "julia@uni.ac.il", "phone": "0527654321", "price": 63.00, "active": false }
+]

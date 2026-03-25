@@ -1,0 +1,11 @@
+name,age,email,phone,price,active
+Alice Cohen,30,alice@example.com,0541234567,99.99,true
+Bob Levi,25,bob@test.com,0529876543,149.50,false
+Charlie David,45,charlie@mail.org,0501112233,250.00,true
+Dana Katz,33,dana@company.co.il,0537778899,75.25,true
+Eli Rosen,28,eli@startup.io,0548765432,320.00,false
+Fiona Green,52,fiona@work.net,0526543210,55.75,true
+Gadi Mor,19,gadi@school.edu,0509998877,12.50,false
+Hannah Paz,41,hannah@org.com,0531234567,180.00,true
+Idan Tal,36,idan@lab.co.il,0542345678,420.99,true
+Julia Ben,22,julia@uni.ac.il,0527654321,63.00,false
