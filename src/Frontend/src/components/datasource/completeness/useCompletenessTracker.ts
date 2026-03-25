@@ -9,7 +9,7 @@
  * that unvisited tabs still report correct completeness.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormInstance } from 'antd/es/form';
 import type { CompletenessState, TabCompleteness, FieldStatus, FieldConfig } from './types';
 import { TAB_FIELD_CONFIG, TAB_META, REQUIRED_TABS, RECOMMENDED_TABS } from './completenessConfig';
@@ -184,6 +184,12 @@ export function useCompletenessTracker(
 } {
   const [completeness, setCompleteness] = useState<CompletenessState>(createInitialState);
 
+  // Refs to avoid stale closures in setTimeout callbacks
+  const jsonSchemaRef = useRef(jsonSchema);
+  const outputConfigRef = useRef(outputConfig);
+  jsonSchemaRef.current = jsonSchema;
+  outputConfigRef.current = outputConfig;
+
   /**
    * Merge form values with initialValues to handle lazy-loaded tab fields.
    * Form values take precedence; initialValues fill in gaps for unmounted fields.
@@ -212,12 +218,18 @@ export function useCompletenessTracker(
    * Uses form.getFieldsValue(true) merged with initialValues.
    */
   useEffect(() => {
-    // Small delay to ensure form.setFieldsValue has propagated (import/clone race condition)
+    // Immediate calculation with current values
+    const merged = getMergedValues();
+    const newState = computeCompleteness(merged, jsonSchema, outputConfig, !!isEditMode);
+    setCompleteness(newState);
+
+    // Also recalculate after a short delay using refs (handles race conditions
+    // where form.setFieldsValue hasn't propagated yet — refs avoid stale closures)
     const timer = setTimeout(() => {
-      const merged = getMergedValues();
-      const newState = computeCompleteness(merged, jsonSchema, outputConfig, !!isEditMode);
-      setCompleteness(newState);
-    }, 300);
+      const mergedDelayed = getMergedValues();
+      const delayedState = computeCompleteness(mergedDelayed, jsonSchemaRef.current, outputConfigRef.current, !!isEditMode);
+      setCompleteness(delayedState);
+    }, 500);
     return () => clearTimeout(timer);
   }, [jsonSchema, outputConfig, getMergedValues, isEditMode]);
 
