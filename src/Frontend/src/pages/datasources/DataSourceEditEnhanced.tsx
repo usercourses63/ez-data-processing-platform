@@ -141,8 +141,12 @@ const DataSourceEditEnhanced: React.FC = () => {
   const handleSchemaChange = (newSchema: JSONSchema) => {
     if (schemaChangeTimerRef.current) clearTimeout(schemaChangeTimerRef.current);
     schemaChangeTimerRef.current = setTimeout(() => {
-      setJsonSchema(newSchema);
-    }, 300);
+      // Only update if schema actually changed (prevents unnecessary re-renders)
+      setJsonSchema((prev: any) => {
+        if (JSON.stringify(prev) === JSON.stringify(newSchema)) return prev;
+        return newSchema;
+      });
+    }, 500);
   };
 
   const handleCronHelperSelect = (expression: string) => {
@@ -466,10 +470,8 @@ const DataSourceEditEnhanced: React.FC = () => {
 
       if (data.IsSuccess) {
         message.success(t('messages.dataSourceUpdated'));
-        // Refresh the data source instead of navigating away
-        await fetchDataSource();
-        // Reset to basic info tab to show updated data
-        setActiveTab('basic');
+        // Navigate back to datasource list after successful update
+        navigate('/datasources');
       } else {
         throw new Error(data.Error?.Message || 'Failed to update data source');
       }
