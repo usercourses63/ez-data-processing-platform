@@ -127,40 +127,49 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(modal.locator('strong').filter({ hasText: 'name' }).first()).toBeVisible();
   });
 
-  test('JSON file shows preview modal (IMPORT-01)', async ({ page }) => {
+  test('JSON file shows preview modal with hierarchical view (IMPORT-01)', async ({ page }) => {
     await uploadTestFile(page, 'import-test.json');
     await waitForPreviewModal(page);
 
     const modal = page.locator('.ant-modal');
     await expect(modal).toBeVisible();
 
-    // Data table should show rows
-    const tableRows = modal.locator('.ant-table-tbody tr:not([aria-hidden="true"])');
-    await expect(tableRows.first()).toBeVisible({ timeout: 10000 });
+    // JSON uses pre block (not table) for hierarchical preview
+    const preBlock = modal.locator('pre');
+    await expect(preBlock).toBeVisible({ timeout: 10000 });
+    const preText = await preBlock.textContent();
+    expect(preText).toContain('orderId');
+    expect(preText).toContain('customer');
 
-    // Extraction checklist renders field names in <strong> tags
-    await expect(modal.locator('strong').filter({ hasText: 'name' }).first()).toBeVisible();
-    await expect(modal.locator('strong').filter({ hasText: 'email' }).first()).toBeVisible();
+    // Extraction checklist shows field names with types
+    const modalText = await modal.evaluate(el => el.textContent || '');
+    expect(modalText).toContain('orderId');
+    expect(modalText).toContain('object');
 
     // Continue button should be visible
     const continueButton = modal.locator('button').filter({ hasText: /Continue|המשך/i });
     await expect(continueButton).toBeVisible();
   });
 
-  test('XML file shows tree view (IMPORT-01, IMPORT-05)', async ({ page }) => {
+  test('XML file shows raw XML preview (IMPORT-01, IMPORT-05)', async ({ page }) => {
     await uploadTestFile(page, 'import-test.xml');
     await waitForPreviewModal(page);
 
     const modal = page.locator('.ant-modal');
     await expect(modal).toBeVisible();
 
-    // XML tree view should appear (Ant Design Tree component)
-    const treeView = modal.locator('.ant-tree');
-    await expect(treeView).toBeVisible({ timeout: 10000 });
+    // XML uses pre block for formatted raw XML preview (browser-style)
+    const preBlock = modal.locator('pre');
+    await expect(preBlock).toBeVisible({ timeout: 10000 });
+    const preText = await preBlock.textContent();
+    // Should contain XML tags
+    expect(preText).toContain('<order');
+    expect(preText).toContain('<customer>');
 
-    // Data table should also be present below the tree
-    const dataTable = modal.locator('.ant-table');
-    await expect(dataTable).toBeVisible();
+    // Extraction checklist shows nested field types
+    const modalText = await modal.evaluate(el => el.textContent || '');
+    expect(modalText).toContain('customer');
+    expect(modalText).toContain('object');
 
     // Continue button should be visible
     const continueButton = modal.locator('button').filter({ hasText: /Continue|המשך/i });

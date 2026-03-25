@@ -69,16 +69,19 @@ test.describe('Import Schema Inference', () => {
     expect(text).toMatch(/minLength.*2/);
   });
 
-  test('JSON type inference produces correct types (IMPORT-02)', async ({ page }) => {
+  test('JSON type inference handles nested objects and arrays (IMPORT-02)', async ({ page }) => {
     await uploadTestFile(page, 'import-test.json');
     await waitForPreviewModal(page);
 
     const text = await getModalText(page);
 
-    expect(text).toContain(': integer');
-    expect(text).toContain(': number');
-    expect(text).toContain(': boolean');
+    // Top-level fields: orderId (string), customer (object), items (object[]), payment (object)
     expect(text).toContain(': string');
+    expect(text).toContain(': object');
+    // The JSON preview should show the nested structure
+    const preText = await page.locator('.ant-modal pre').textContent();
+    expect(preText).toContain('customer');
+    expect(preText).toContain('items');
   });
 
   test('Headerless CSV schema uses field_N names (IMPORT-02, IMPORT-03)', async ({ page }) => {
