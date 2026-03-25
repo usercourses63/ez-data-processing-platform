@@ -42,7 +42,7 @@
 
 - [x] **Phase 25: Clone Datasource** - Clone from list/details with full form pre-fill (completed 2026-03-24)
 - [ ] **Phase 26: Completeness Checklist** - Real-time form completeness with per-tab status and navigation
-- [ ] **Phase 27: Import from File** - Upload sample file to auto-fill schema and form fields
+- [x] **Phase 27: Import from File** - Upload sample file to auto-fill schema and form fields (completed 2026-03-25)
 - [ ] **Phase 28: Polish, i18n & Release** - Hebrew translations, Playwright E2E tests, v0.4.0 release packaging
 
 ## Phase Details
@@ -359,7 +359,7 @@ Plans:
 - [x] 27-02-PLAN.md — Archive handling: JSZip + libarchive.js for .zip/.tar.gz/.rar/.7z with password support (IMPORT-01)
 - [x] 27-03-PLAN.md — Import wizard UI: Upload File button, preview modal, headerless editor, XML tree, form pre-fill (IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04, IMPORT-05)
 - [x] 27-04-PLAN.md — Backend CsvToJsonConverter fix for headerless CSV schema field mapping (IMPORT-06)
-- [ ] 27-05-PLAN.md — Playwright E2E + webapp-testing comprehensive tests + K8s deploy (IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04, IMPORT-05, IMPORT-06)
+- [x] 27-05-PLAN.md — Playwright E2E + webapp-testing comprehensive tests + K8s deploy (IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04, IMPORT-05, IMPORT-06)
 
 ### Phase 28: Documentation, i18n, Deploy & Release
 **Goal**: Complete Hebrew translations (including user guide refactor), update Docusaurus docs, build v0.4.0 images, assemble deployment package, install from scratch, and verify with sanity tests
@@ -404,7 +404,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 24. v0.3.0 Release Package & Deploy | v0.3 | 2/3 | In Progress | - |
 | 25. Clone Datasource | v0.4 | 2/2 | Complete    | 2026-03-24 |
 | 26. Completeness Checklist | v0.4 | 7/7 | Complete | 2026-03-25 |
-| 27. Import from File | v0.4 | 4/5 | In Progress|  |
+| 27. Import from File | v0.4 | 5/5 | Complete   | 2026-03-25 |
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 0/TBD | Not started | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
