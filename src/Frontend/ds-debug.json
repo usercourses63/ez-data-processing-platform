@@ -1,0 +1,2475 @@
+{
+  "CorrelationId": "a79fce8c-bd6c-4904-9bfb-14f01ebcdc0c",
+  "Data": {
+    "Items": [
+      {
+        "Name": "1import-test",
+        "SupplierName": "hhh",
+        "FilePath": "sftp://file-simulator.local:30022/data/input",
+        "PollingRate": "00:05:00",
+        "CronExpression": null,
+        "ScheduleFrequency": null,
+        "ScheduleEnabled": false,
+        "JsonSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "timestamp": {
+              "type": "string"
+            },
+            "customer": {
+              "type": "string"
+            },
+            "items": {
+              "type": "string"
+            },
+            "payment": {
+              "type": "string"
+            },
+            "shipping": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "timestamp",
+            "customer",
+            "items",
+            "payment",
+            "shipping"
+          ],
+          "additionalProperties": false
+        },
+        "Category": "financial",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.xml",
+        "LastProcessedAt": "2026-03-25T19:35:03.191Z",
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"SFTP\",\"filePattern\":\"*.xml\",\"inputServerId\":\"69c3c9c9660cd5095c039ea6\"},\"fileConfig\":{\"type\":\"XML\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"enabled\":false},\"validationRules\":{\"skipInvalidRecords\":false},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30,
+          "ServerType": "sftp",
+          "FtpUsername": "sftpuser",
+          "FtpPassword": "sftppass123",
+          "FtpServer": "file-simulator.local",
+          "FtpPort": 30022
+        },
+        "Description": null,
+        "FileServerId": "69c3c9c9660cd5095c039ea6",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": "2026-03-25T19:35:00.007Z",
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": "2026-03-25T19:35:03.191Z",
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T18:17:22.352Z",
+        "UpdatedAt": "2026-03-25T19:35:03.191Z",
+        "IsDeleted": false,
+        "CorrelationId": "1c26d6ac-c0c8-442a-bf35-def4de6c37e4",
+        "Version": 37,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "System",
+        "ID": "69c426b24f3f4062eb6652f1"
+      },
+      {
+        "Name": "Test Incomplete DS",
+        "SupplierName": "Test Supplier",
+        "FilePath": "",
+        "PollingRate": "00:05:00",
+        "CronExpression": null,
+        "ScheduleFrequency": null,
+        "ScheduleEnabled": null,
+        "JsonSchema": {},
+        "Category": "מכירות",
+        "SchemaVersion": 1,
+        "IsActive": false,
+        "FilePattern": "*.*",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"filePattern\":\"*.*\"},\"fileConfig\":{},\"schedule\":{\"enabled\":false},\"validationRules\":{\"skipInvalidRecords\":false},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30
+        },
+        "Description": null,
+        "FileServerId": null,
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T17:24:40.282Z",
+        "UpdatedAt": "2026-03-25T17:24:40.282Z",
+        "IsDeleted": false,
+        "CorrelationId": "78ad46b5-acab-4d9d-960c-2980f0768342",
+        "Version": 1,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "DataSourceManagementService",
+        "ID": "69c41a584f3f4062eb664258"
+      },
+      {
+        "Name": "e2e-ftp-pipeline",
+        "SupplierName": "E2E Test Supplier",
+        "FilePath": "ftp://file-simulator.local:30021",
+        "PollingRate": "00:05:00",
+        "CronExpression": null,
+        "ScheduleFrequency": null,
+        "ScheduleEnabled": null,
+        "JsonSchema": {},
+        "Category": "financial",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": "2026-03-25T19:35:00.023Z",
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"FTP\",\"filePattern\":\"*.csv\",\"inputServerId\":\"69bd1e30ff66ac5ebbe8b4bd\"},\"fileConfig\":{},\"schedule\":{\"enabled\":false},\"validationRules\":{\"skipInvalidRecords\":false},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30,
+          "ServerType": "ftp",
+          "FtpUsername": "ftpuser",
+          "FtpPassword": "ftppass123",
+          "FtpUsePassiveMode": true,
+          "FtpServer": "file-simulator.local",
+          "FtpPort": 30021
+        },
+        "Description": null,
+        "FileServerId": "69bd1e30ff66ac5ebbe8b4bd",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": true,
+        "ProcessingStartedAt": "2026-03-25T19:35:00.005Z",
+        "ProcessingCorrelationId": "510a3487-4777-4f30-8935-b897bd41ce9d",
+        "ProcessingPodId": "scheduling-77d57c974d-9h6t8",
+        "ProcessingHostname": "scheduling-77d57c974d-9h6t8",
+        "ProcessingCompletedAt": "2026-03-25T19:32:52.271Z",
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-20T18:30:11.626Z",
+        "UpdatedAt": "2026-03-25T19:35:00.023Z",
+        "IsDeleted": false,
+        "CorrelationId": "c3a78a95-a6d8-4ac5-977c-2f53af4c1436",
+        "Version": 2887,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "System",
+        "ID": "69bd92335a1edde426505376"
+      },
+      {
+        "Name": "import-test",
+        "SupplierName": "ddd",
+        "FilePath": "/mnt/nas-input-2",
+        "PollingRate": "00:05:00",
+        "CronExpression": null,
+        "ScheduleFrequency": null,
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 2
+            },
+            "age": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "phone": {
+              "type": "integer",
+              "pattern": "^05\\d{8}$"
+            },
+            "price": {
+              "type": "number",
+              "minimum": 0
+            },
+            "active": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "name",
+            "age",
+            "email",
+            "phone",
+            "price",
+            "active"
+          ],
+          "additionalProperties": false
+        },
+        "Category": "financial",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "import-test.xml",
+        "LastProcessedAt": "2026-03-25T19:35:00.028Z",
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"NAS\",\"filePattern\":\"import-test.xml\",\"nasDeviceId\":\"69bd1e30ff66ac5ebbe8b4c4\"},\"fileConfig\":{\"type\":\"XML\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"enabled\":false},\"validationRules\":{\"skipInvalidRecords\":false},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30
+        },
+        "Description": null,
+        "FileServerId": null,
+        "NasDeviceId": "69bd1e30ff66ac5ebbe8b4c4",
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": "2026-03-25T19:35:00.008Z",
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": "2026-03-25T19:35:00.025Z",
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T17:54:29.607Z",
+        "UpdatedAt": "2026-03-25T19:35:00.028Z",
+        "IsDeleted": false,
+        "CorrelationId": "086107a1-569d-495f-b3e7-944745a97771",
+        "Version": 43,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "System",
+        "ID": "69c421554f3f4062eb664bbe"
+      },
+      {
+        "Name": "import-test-no-headers",
+        "SupplierName": "fff",
+        "FilePath": "sftp://file-simulator.local:30022/data/input",
+        "PollingRate": "00:05:00",
+        "CronExpression": null,
+        "ScheduleFrequency": null,
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 2
+            },
+            "age": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "phone": {
+              "type": "integer",
+              "pattern": "^05\\d{8}$"
+            },
+            "price": {
+              "type": "number",
+              "minimum": 0
+            },
+            "isvalid": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "name",
+            "age",
+            "email",
+            "phone",
+            "price",
+            "isvalid"
+          ],
+          "additionalProperties": false
+        },
+        "Category": "financial",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": "2026-03-25T19:35:02.864Z",
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"SFTP\",\"filePattern\":\"*.csv\",\"inputServerId\":\"69c3c9c9660cd5095c039ea6\"},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":false,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Every30Minutes\",\"cronExpression\":\"*/30 * * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30,
+          "ServerType": "sftp",
+          "FtpUsername": "sftpuser",
+          "FtpPassword": "sftppass123",
+          "FtpServer": "file-simulator.local",
+          "FtpPort": 30022
+        },
+        "Description": null,
+        "FileServerId": "69c3c9c9660cd5095c039ea6",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": "2026-03-25T19:35:00.007Z",
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": "2026-03-25T19:35:02.864Z",
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T17:52:07.038Z",
+        "UpdatedAt": "2026-03-25T19:35:02.864Z",
+        "IsDeleted": false,
+        "CorrelationId": "23f69b8a-65ba-4fdc-b0ba-29c15dcc0efc",
+        "Version": 43,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "System",
+        "ID": "69c420c74f3f4062eb664af5"
+      },
+      {
+        "Name": "import-test-with-headers",
+        "SupplierName": "demo",
+        "FilePath": "/mnt/nas",
+        "PollingRate": "00:05:00",
+        "CronExpression": "*/10 * * * *",
+        "ScheduleFrequency": "Every10Minutes",
+        "ScheduleEnabled": true,
+        "JsonSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 2
+            },
+            "age": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "phone": {
+              "type": "integer",
+              "pattern": "^05\\d{8}$"
+            },
+            "price": {
+              "type": "number",
+              "minimum": 0
+            },
+            "active": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "name",
+            "age",
+            "email",
+            "phone",
+            "price",
+            "active"
+          ],
+          "additionalProperties": false
+        },
+        "Category": "financial",
+        "SchemaVersion": 1,
+        "IsActive": false,
+        "FilePattern": "import-test-with-headers.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"NAS\",\"filePattern\":\"import-test-with-headers.csv\",\"nasDeviceId\":\"69bd1e30ff66ac5ebbe8b4c1\"},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"enabled\":true,\"frequency\":\"Every10Minutes\",\"cronExpression\":\"*/10 * * * *\"},\"validationRules\":{\"skipInvalidRecords\":false},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30
+        },
+        "Description": null,
+        "FileServerId": null,
+        "NasDeviceId": "69bd1e30ff66ac5ebbe8b4c1",
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T17:31:39.234Z",
+        "UpdatedAt": "2026-03-25T17:32:29.512Z",
+        "IsDeleted": false,
+        "CorrelationId": "1fea8996-7550-4c38-b6b3-9731f4e7929d",
+        "Version": 5,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "DataSourceManagementService",
+        "ID": "69c41bfb4f3f4062eb664489"
+      },
+      {
+        "Name": "import-test-with-headers1",
+        "SupplierName": "ddd",
+        "FilePath": "/mnt/nas-input-1",
+        "PollingRate": "00:05:00",
+        "CronExpression": null,
+        "ScheduleFrequency": null,
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 2
+            },
+            "age": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "phone": {
+              "type": "integer",
+              "pattern": "^05\\d{8}$"
+            },
+            "price": {
+              "type": "number",
+              "minimum": 0
+            },
+            "active": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "name",
+            "age",
+            "email",
+            "phone",
+            "price",
+            "active"
+          ],
+          "additionalProperties": false
+        },
+        "Category": "financial",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "import-test-with-headers.csv",
+        "LastProcessedAt": "2026-03-25T19:35:00.028Z",
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"NAS\",\"filePattern\":\"import-test-with-headers.csv\",\"nasDeviceId\":\"69bd1e30ff66ac5ebbe8b4c3\"},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"enabled\":false},\"validationRules\":{\"skipInvalidRecords\":false},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30
+        },
+        "Description": null,
+        "FileServerId": null,
+        "NasDeviceId": "69bd1e30ff66ac5ebbe8b4c3",
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": "2026-03-25T19:35:00.007Z",
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": "2026-03-25T19:35:00.025Z",
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T17:48:36.622Z",
+        "UpdatedAt": "2026-03-25T19:35:00.028Z",
+        "IsDeleted": false,
+        "CorrelationId": "a6ab2304-c040-42f3-87f9-7abc6abadc50",
+        "Version": 45,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "System",
+        "ID": "69c41ff44f3f4062eb6649dc"
+      },
+      {
+        "Name": "import-test2",
+        "SupplierName": "fff",
+        "FilePath": "",
+        "PollingRate": "00:05:00",
+        "CronExpression": null,
+        "ScheduleFrequency": null,
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "timestamp": {
+              "type": "string"
+            },
+            "customer": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 2
+                },
+                "contact": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "phone": {
+                      "type": "integer",
+                      "pattern": "^05\\d{8}$"
+                    }
+                  },
+                  "required": [
+                    "email",
+                    "phone"
+                  ]
+                },
+                "address": {
+                  "type": "object",
+                  "properties": {
+                    "street": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "zipCode": {
+                      "type": "integer"
+                    },
+                    "country": {
+                      "type": "string",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "street",
+                    "city",
+                    "zipCode",
+                    "country"
+                  ]
+                },
+                "loyaltyTier": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "contact",
+                "address",
+                "loyaltyTier"
+              ]
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "sku": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "quantity": {
+                    "type": "string",
+                    "minimum": 0
+                  },
+                  "unitPrice": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "category": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "payment": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "amounts": {
+                  "type": "object",
+                  "properties": {
+                    "subtotal": {
+                      "type": "number"
+                    },
+                    "tax": {
+                      "type": "number"
+                    },
+                    "total": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "subtotal",
+                    "tax",
+                    "total"
+                  ]
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "method",
+                "currency",
+                "amounts",
+                "status"
+              ]
+            },
+            "shipping": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string"
+                },
+                "trackingNumber": {
+                  "type": "string"
+                },
+                "estimatedDelivery": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "method",
+                "estimatedDelivery"
+              ]
+            }
+          },
+          "required": [
+            "timestamp",
+            "customer",
+            "items",
+            "payment",
+            "shipping"
+          ],
+          "additionalProperties": false
+        },
+        "Category": "financial",
+        "SchemaVersion": 1,
+        "IsActive": false,
+        "FilePattern": "import-test.xml",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"filePattern\":\"import-test.xml\"},\"fileConfig\":{\"type\":\"XML\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"enabled\":false},\"validationRules\":{\"skipInvalidRecords\":false},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30
+        },
+        "Description": null,
+        "FileServerId": null,
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T19:05:58.127Z",
+        "UpdatedAt": "2026-03-25T19:05:58.127Z",
+        "IsDeleted": false,
+        "CorrelationId": "a7d12d5e-a3a6-454e-b6ba-5ab9949811ba",
+        "Version": 1,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "DataSourceManagementService",
+        "ID": "69c432164f3f4062eb66621a"
+      },
+      {
+        "Name": "import-test3",
+        "SupplierName": "ggg",
+        "FilePath": "/data/uploads",
+        "PollingRate": "00:05:00",
+        "CronExpression": null,
+        "ScheduleFrequency": null,
+        "ScheduleEnabled": false,
+        "JsonSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "orderId": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "string"
+            },
+            "customer": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 2
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "pattern": "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+                },
+                "phone": {
+                  "type": "integer",
+                  "pattern": "^05\\d{8}$"
+                },
+                "address": {
+                  "type": "object",
+                  "properties": {
+                    "street": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "zipCode": {
+                      "type": "integer"
+                    },
+                    "country": {
+                      "type": "string",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "street",
+                    "city",
+                    "zipCode",
+                    "country"
+                  ]
+                },
+                "loyaltyTier": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "email",
+                "phone",
+                "address",
+                "loyaltyTier"
+              ]
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "sku": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "quantity": {
+                    "type": "string",
+                    "minimum": 0
+                  },
+                  "unitPrice": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "category": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "payment": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "subtotal": {
+                  "type": "number"
+                },
+                "tax": {
+                  "type": "number"
+                },
+                "total": {
+                  "type": "number"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "method",
+                "currency",
+                "subtotal",
+                "tax",
+                "total",
+                "status"
+              ]
+            },
+            "shipping": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string"
+                },
+                "trackingNumber": {
+                  "type": "string"
+                },
+                "estimatedDelivery": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "method",
+                "estimatedDelivery"
+              ]
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "sessionId": {
+                  "type": "string"
+                },
+                "userAgent": {
+                  "type": "string",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "source",
+                "sessionId",
+                "userAgent"
+              ]
+            },
+            "ddd": {
+              "type": "string",
+              "description": ""
+            },
+            "rrr": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "required": [
+            "orderId",
+            "timestamp",
+            "customer",
+            "items",
+            "payment",
+            "shipping",
+            "metadata"
+          ],
+          "additionalProperties": false
+        },
+        "Category": "financial",
+        "SchemaVersion": 1,
+        "IsActive": false,
+        "FilePattern": "*.*",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"filePattern\":\"*.*\"},\"fileConfig\":{},\"schedule\":{},\"validationRules\":{},\"notificationSettings\":{\"recipients\":[]},\"outputConfig\":{\"defaultOutputFormat\":\"original\",\"includeInvalidRecords\":false,\"destinations\":[]}}",
+          "RetentionDays": 30
+        },
+        "Description": "",
+        "FileServerId": null,
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T19:06:52.438Z",
+        "UpdatedAt": "2026-03-25T19:31:56.784Z",
+        "IsDeleted": false,
+        "CorrelationId": "17a4d412-8799-4cf4-ab4c-7d22d72c1c2d",
+        "Version": 19,
+        "CreatedBy": "DataSourceManagementService",
+        "UpdatedBy": "DataSourceManagementService",
+        "ID": "69c4324c4f3f4062eb66626b"
+      },
+      {
+        "Name": "בקרת איכות",
+        "SupplierName": "שירות אנליטיקה",
+        "FilePath": "לוגיסטיקה_topic",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 */30 * * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "בקרת איכות - לוגיסטיקה",
+          "properties": {
+            "inspectionId": {
+              "type": "string"
+            },
+            "productBatch": {
+              "type": "string"
+            },
+            "inspectionDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "passed": {
+              "type": "boolean"
+            },
+            "defectCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "inspector": {
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "inspectionId",
+            "productBatch",
+            "passed"
+          ]
+        },
+        "Category": "לוגיסטיקה",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"Kafka\",\"host\":\"kafka\",\"port\":9092,\"path\":\"לוגיסטיקה_topic\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039eab\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":\"לוגיסטיקה_events\",\"kafkaBrokers\":\"kafka:9092\",\"kafkaTopic\":\"לוגיסטיקה_events\",\"kafkaConsumerGroup\":\"dataprocessing_לוגיסטיקה_group\",\"kafkaSecurityProtocol\":\"PLAINTEXT\"},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 */30 * * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"d8e6c286-0cba-43c7-a10c-02beba555da7\",\"Name\":\"Primary Kafka Topic\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"בקרת-איכות-validated\",\"MessageKey\":null,\"Headers\":null,\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"},{\"Id\":\"9c6eb480-af54-464a-925d-caddc51d6ad3\",\"Name\":\"Local Backup\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/בקרתאיכות\",\"FileNamePattern\":null,\"CreateSubfolders\":false,\"SubfolderPattern\":null,\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "Kafka",
+          "Protocol": "v2",
+          "Timeout": 58,
+          "RetryCount": 3,
+          "BufferSize": 3425280
+        },
+        "Description": "מקור נתונים עבור בקרת איכות - לוגיסטיקה (Kafka)",
+        "FileServerId": "69c3c9c9660cd5095c039eab",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.759Z",
+        "UpdatedAt": "2026-03-25T11:40:57.759Z",
+        "IsDeleted": false,
+        "CorrelationId": "36a45c3e-75a1-4479-900c-bca47a53e44f",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039ebf"
+      },
+      {
+        "Name": "דוחות כספיים",
+        "SupplierName": "מערכת POS",
+        "FilePath": "שירות לקוחות_topic",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 */3 * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "דוח כספי - שירות לקוחות",
+          "properties": {
+            "reportId": {
+              "type": "string",
+              "description": "מזהה דוח"
+            },
+            "fiscalYear": {
+              "type": "integer",
+              "minimum": 2000,
+              "maximum": 2100,
+              "description": "שנת כספים"
+            },
+            "quarter": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4,
+              "description": "רבעון"
+            },
+            "revenue": {
+              "type": "number",
+              "minimum": 0,
+              "description": "הכנסות"
+            },
+            "expenses": {
+              "type": "number",
+              "minimum": 0,
+              "description": "הוצאות"
+            },
+            "profit": {
+              "type": "number",
+              "description": "רווח"
+            },
+            "currency": {
+              "type": "string",
+              "description": "מטבע"
+            },
+            "salesRevenue": {
+              "type": "number",
+              "description": "הכנסות ממכירות"
+            },
+            "servicesRevenue": {
+              "type": "number",
+              "description": "הכנסות משירותים"
+            },
+            "approved": {
+              "type": "boolean",
+              "description": "האם אושר"
+            },
+            "approver": {
+              "type": "string",
+              "description": "מאשר"
+            }
+          },
+          "required": [
+            "reportId",
+            "fiscalYear",
+            "revenue",
+            "expenses"
+          ]
+        },
+        "Category": "שירות לקוחות",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"Kafka\",\"host\":\"kafka\",\"port\":9092,\"path\":\"שירות לקוחות_topic\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039eab\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":\"שירות לקוחות_events\",\"kafkaBrokers\":\"kafka:9092\",\"kafkaTopic\":\"שירות לקוחות_events\",\"kafkaConsumerGroup\":\"dataprocessing_שירות לקוחות_group\",\"kafkaSecurityProtocol\":\"PLAINTEXT\"},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 */3 * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"703b8b0c-f19a-4791-a1d7-d6948e752076\",\"Name\":\"Real-Time Analytics\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"דוחות-כספיים-validated\",\"MessageKey\":\"{filename}_{timestamp}\",\"Headers\":{\"source\":\"דוחות כספיים\",\"server\":\"EZ Platform Kafka\",\"environment\":\"development\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"},{\"Id\":\"d3eb027b-a004-4777-b6e6-8d003f435c03\",\"Name\":\"Local Archive\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/דוחותכספיים\",\"FileNamePattern\":\"{filename}_{date}_valid.{ext}\",\"CreateSubfolders\":true,\"SubfolderPattern\":\"{year}/{month}/{day}\",\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "Kafka",
+          "Protocol": "v2",
+          "Timeout": 89,
+          "RetryCount": 3,
+          "BufferSize": 3728384
+        },
+        "Description": "מקור נתונים עבור דוחות כספיים - שירות לקוחות (Kafka)",
+        "FileServerId": "69c3c9c9660cd5095c039eab",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.605Z",
+        "UpdatedAt": "2026-03-25T11:40:57.605Z",
+        "IsDeleted": false,
+        "CorrelationId": "88032e8b-fcef-4b2f-9aab-5b11dc8cb341",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eb3"
+      },
+      {
+        "Name": "הזמנות ספקים",
+        "SupplierName": "מערכת WMS",
+        "FilePath": "/תפעול/018",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 * * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "הזמנת ספק - תפעול",
+          "properties": {
+            "orderId": {
+              "type": "string"
+            },
+            "supplierId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "orderType": {
+              "type": "string",
+              "enum": [
+                "רגיל",
+                "דחוף",
+                "מתוכנן"
+              ]
+            },
+            "deliveryTerms": {
+              "type": "string"
+            },
+            "paymentTerms": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "orderId",
+            "supplierId",
+            "amount"
+          ]
+        },
+        "Category": "תפעול",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"NAS\",\"host\":\"file-simulator.local\",\"port\":0,\"path\":\"/תפעול/018\",\"url\":null,\"inputServerId\":null,\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 * * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"123afb47-dd97-4806-972f-563fe3444ff6\",\"Name\":\"Real-Time Analytics\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"הזמנות-ספקים-validated\",\"MessageKey\":\"{filename}_{timestamp}\",\"Headers\":{\"source\":\"הזמנות ספקים\",\"server\":\"file-simulator Kafka\",\"environment\":\"development\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"a9f3045b-81ea-49b0-aed8-701c917ed8ce\",\"Name\":\"Local Archive\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/הזמנותספקים\",\"FileNamePattern\":\"{filename}_{date}_valid.{ext}\",\"CreateSubfolders\":true,\"SubfolderPattern\":\"{year}/{month}/{day}\",\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "NAS",
+          "Protocol": "v3",
+          "Timeout": 41,
+          "RetryCount": 5,
+          "BufferSize": 7624704
+        },
+        "Description": "מקור נתונים עבור הזמנות ספקים - תפעול (NAS)",
+        "FileServerId": null,
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.808Z",
+        "UpdatedAt": "2026-03-25T11:40:57.808Z",
+        "IsDeleted": false,
+        "CorrelationId": "ece6b9d6-503d-4013-9432-56436e3c8e22",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039ec0"
+      },
+      {
+        "Name": "יעדי מכירות",
+        "SupplierName": "מערכת תמיכה",
+        "FilePath": "/data/רכש",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 */6 * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "יעדי מכירות - רכש",
+          "properties": {
+            "targetId": {
+              "type": "string"
+            },
+            "period": {
+              "type": "string",
+              "enum": [
+                "חודשי",
+                "רבעוני",
+                "שנתי"
+              ]
+            },
+            "targetAmount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "actualAmount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "achievementRate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "region": {
+              "type": "string"
+            },
+            "salesPerson": {
+              "type": "string"
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "targetId",
+            "period",
+            "targetAmount"
+          ]
+        },
+        "Category": "רכש",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.json",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"SFTP\",\"host\":\"file-simulator.local\",\"port\":30022,\"path\":\"/data/רכש\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea6\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"JSON\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 */6 * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"d8da618e-08ca-4180-b6a8-9bcdd4b68fba\",\"Name\":\"Real-Time Analytics\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"יעדי-מכירות-validated\",\"MessageKey\":\"{filename}_{timestamp}\",\"Headers\":{\"source\":\"יעדי מכירות\",\"server\":\"file-simulator Kafka\",\"environment\":\"development\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"40c7700e-0095-4d08-a635-b229398a651f\",\"Name\":\"Local Archive\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/יעדימכירות\",\"FileNamePattern\":\"{filename}_{date}_valid.{ext}\",\"CreateSubfolders\":true,\"SubfolderPattern\":\"{year}/{month}/{day}\",\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null},{\"Id\":\"825902b1-8cf7-488e-9e83-1435668aa905\",\"Name\":\"Partner Export\",\"Description\":null,\"Type\":\"ftp\",\"Enabled\":true,\"OutputFormat\":\"csv\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/output/יעדימכירות\",\"FileNamePattern\":\"export_{date}.csv\",\"CreateSubfolders\":false,\"SubfolderPattern\":null,\"OverwriteExisting\":true},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039ea5\"}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "SFTP",
+          "Protocol": "v2",
+          "Timeout": 79,
+          "RetryCount": 3,
+          "BufferSize": 2742272
+        },
+        "Description": "מקור נתונים עבור יעדי מכירות - רכש (SFTP)",
+        "FileServerId": "69c3c9c9660cd5095c039ea6",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.824Z",
+        "UpdatedAt": "2026-03-25T11:40:57.824Z",
+        "IsDeleted": false,
+        "CorrelationId": "0466489b-826d-47f7-b0cc-ce54e29c524a",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039ec2"
+      },
+      {
+        "Name": "מחקר שוק",
+        "SupplierName": "פלטפורמת ענן",
+        "FilePath": "/data/מלאי",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 */2 * * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "מחקר שוק - מלאי",
+          "properties": {
+            "researchId": {
+              "type": "string"
+            },
+            "marketSegment": {
+              "type": "string"
+            },
+            "sampleSize": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "findings": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "methodology": {
+              "type": "string"
+            },
+            "confidenceLevel": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "researchId",
+            "marketSegment",
+            "sampleSize"
+          ]
+        },
+        "Category": "מלאי",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.json",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"SFTP\",\"host\":\"file-simulator.local\",\"port\":30022,\"path\":\"/data/מלאי\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea6\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"JSON\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 */2 * * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"a242d103-f870-4ea4-a68a-6546b2e86cd3\",\"Name\":\"Real-Time Analytics\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"מחקר-שוק-validated\",\"MessageKey\":\"{filename}_{timestamp}\",\"Headers\":{\"source\":\"מחקר שוק\",\"server\":\"file-simulator Kafka\",\"environment\":\"development\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"39f791ae-6cd1-4179-8ad3-c104a4d27fe1\",\"Name\":\"Local Archive\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/מחקרשוק\",\"FileNamePattern\":\"{filename}_{date}_valid.{ext}\",\"CreateSubfolders\":true,\"SubfolderPattern\":\"{year}/{month}/{day}\",\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null},{\"Id\":\"4b9de079-e50a-4d6e-8806-da0780bd9444\",\"Name\":\"Partner Export\",\"Description\":null,\"Type\":\"ftp\",\"Enabled\":true,\"OutputFormat\":\"csv\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/output/מחקרשוק\",\"FileNamePattern\":\"export_{date}.csv\",\"CreateSubfolders\":false,\"SubfolderPattern\":null,\"OverwriteExisting\":true},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039ea5\"}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "SFTP",
+          "Protocol": "v2",
+          "Timeout": 223,
+          "RetryCount": 3,
+          "BufferSize": 5100544
+        },
+        "Description": "מקור נתונים עבור מחקר שוק - מלאי (SFTP)",
+        "FileServerId": "69c3c9c9660cd5095c039ea6",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.701Z",
+        "UpdatedAt": "2026-03-25T11:40:57.701Z",
+        "IsDeleted": false,
+        "CorrelationId": "2a29732a-e3d3-412d-9a1a-f5e277dc286e",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039ebc"
+      },
+      {
+        "Name": "מלאי מחסן",
+        "SupplierName": "מערכת WMS",
+        "FilePath": "/data/תפעול",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 30 14 * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "פריט במלאי - תפעול",
+          "properties": {
+            "sku": {
+              "type": "string",
+              "pattern": "^SKU-[A-Z0-9]{8}$"
+            },
+            "itemName": {
+              "type": "string"
+            },
+            "quantity": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reorderLevel": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "location": {
+              "type": "string"
+            },
+            "lastStockUpdate": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "sku",
+            "itemName",
+            "quantity"
+          ]
+        },
+        "Category": "תפעול",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.json",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"SFTP\",\"host\":\"file-simulator.local\",\"port\":30022,\"path\":\"/data/תפעול\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea6\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"JSON\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 30 14 * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"676702f4-4ea9-4b20-8624-031befca4daa\",\"Name\":\"Real-Time Analytics\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"מלאי-מחסן-validated\",\"MessageKey\":\"{filename}_{timestamp}\",\"Headers\":{\"source\":\"מלאי מחסן\",\"server\":\"file-simulator Kafka\",\"environment\":\"development\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"7c299767-a000-49c8-8acf-8903a4f318b4\",\"Name\":\"Local Archive\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/מלאימחסן\",\"FileNamePattern\":\"{filename}_{date}_valid.{ext}\",\"CreateSubfolders\":true,\"SubfolderPattern\":\"{year}/{month}/{day}\",\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null},{\"Id\":\"ddf8e5dc-2b20-40a7-a3c0-0a464d022fed\",\"Name\":\"Partner Export\",\"Description\":null,\"Type\":\"ftp\",\"Enabled\":true,\"OutputFormat\":\"csv\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/output/מלאימחסן\",\"FileNamePattern\":\"export_{date}.csv\",\"CreateSubfolders\":false,\"SubfolderPattern\":null,\"OverwriteExisting\":true},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039ea5\"}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "SFTP",
+          "Protocol": "v2",
+          "Timeout": 207,
+          "RetryCount": 3,
+          "BufferSize": 7753728
+        },
+        "Description": "מקור נתונים עבור מלאי מחסן - תפעול (SFTP)",
+        "FileServerId": "69c3c9c9660cd5095c039ea6",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.624Z",
+        "UpdatedAt": "2026-03-25T11:40:57.624Z",
+        "IsDeleted": false,
+        "CorrelationId": "15394bf0-e1a7-4b62-a0e7-6729a189c253",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eb6"
+      },
+      {
+        "Name": "מעקב משלוחים",
+        "SupplierName": "מערכת BI ראשית",
+        "FilePath": "מכירות_topic",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 8 * * MON-FRI",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "מעקב משלוח - מכירות",
+          "properties": {
+            "trackingNumber": {
+              "type": "string",
+              "pattern": "^SHIP[0-9]{10}$"
+            },
+            "origin": {
+              "type": "string"
+            },
+            "destination": {
+              "type": "string"
+            },
+            "currentLocation": {
+              "type": "string"
+            },
+            "estimatedDelivery": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "בהכנה",
+                "בדרך",
+                "נמסר",
+                "חזר לשולח"
+              ]
+            },
+            "weight": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000
+            }
+          },
+          "required": [
+            "trackingNumber",
+            "origin",
+            "destination"
+          ]
+        },
+        "Category": "מכירות",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"Kafka\",\"host\":\"file-simulator.local\",\"port\":30092,\"path\":\"מכירות_topic\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039eac\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":\"מכירות_events\",\"kafkaBrokers\":\"kafka:9092\",\"kafkaTopic\":\"מכירות_events\",\"kafkaConsumerGroup\":\"dataprocessing_מכירות_group\",\"kafkaSecurityProtocol\":\"PLAINTEXT\"},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 8 * * MON-FRI\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"93d991e0-8f60-4a8e-9ac7-3465fdb46f89\",\"Name\":\"Fraud Detection System\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"fraud-detection-input\",\"MessageKey\":\"{datasource}_{timestamp}\",\"Headers\":{\"priority\":\"high\",\"system\":\"fraud\",\"server\":\"EZ Platform Kafka\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"},{\"Id\":\"3feab18a-758c-4c31-86e7-6ba949b38286\",\"Name\":\"Audit Log\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":true,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"audit-log-all-records\",\"MessageKey\":null,\"Headers\":{\"record-type\":\"validated-and-invalid\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "Kafka",
+          "Protocol": "v2",
+          "Timeout": 35,
+          "RetryCount": 5,
+          "BufferSize": 8078336
+        },
+        "Description": "מקור נתונים עבור מעקב משלוחים - מכירות (Kafka)",
+        "FileServerId": "69c3c9c9660cd5095c039eac",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.642Z",
+        "UpdatedAt": "2026-03-25T11:40:57.642Z",
+        "IsDeleted": false,
+        "CorrelationId": "b69b109e-fd94-4889-b10a-23830346071b",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eb9"
+      },
+      {
+        "Name": "מערכת הזמנות",
+        "SupplierName": "שירות אנליטיקה",
+        "FilePath": "/incoming/לוגיסטיקה",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 9 * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "ניהול הזמנה - לוגיסטיקה",
+          "properties": {
+            "orderId": {
+              "type": "string"
+            },
+            "customerId": {
+              "type": "string"
+            },
+            "orderDate": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "productId": {
+              "type": "string",
+              "description": "מזהה מוצר ראשי"
+            },
+            "quantity": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "כמות"
+            },
+            "unitPrice": {
+              "type": "number",
+              "minimum": 0,
+              "description": "מחיר ליחידה"
+            },
+            "shippingAddress": {
+              "type": "string"
+            },
+            "totalAmount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "paymentMethod": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "orderId",
+            "customerId",
+            "totalAmount"
+          ]
+        },
+        "Category": "לוגיסטיקה",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"FTP\",\"host\":\"file-simulator.local\",\"port\":30021,\"path\":\"/incoming/לוגיסטיקה\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea4\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 9 * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"74b20fb6-da16-4af3-9d61-606105b4caf9\",\"Name\":\"Primary Kafka Topic\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"מערכת-הזמנות-validated\",\"MessageKey\":null,\"Headers\":null,\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"},{\"Id\":\"166262e5-bc43-4e8d-b77f-3d579c04414b\",\"Name\":\"Local Backup\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/מערכתהזמנות\",\"FileNamePattern\":null,\"CreateSubfolders\":false,\"SubfolderPattern\":null,\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "FTP",
+          "Protocol": "v1",
+          "Timeout": 165,
+          "RetryCount": 3,
+          "BufferSize": 7132160
+        },
+        "Description": "מקור נתונים עבור מערכת הזמנות - לוגיסטיקה (FTP)",
+        "FileServerId": "69c3c9c9660cd5095c039ea4",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.617Z",
+        "UpdatedAt": "2026-03-25T11:40:57.617Z",
+        "IsDeleted": false,
+        "CorrelationId": "7822d930-ffa6-44ae-b738-d245da24c61c",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eb5"
+      },
+      {
+        "Name": "מערכת מכירות מרכזית",
+        "SupplierName": "מערכת BI ראשית",
+        "FilePath": "/incoming/מכירות",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 */5 * * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "עסקה פשוטה - מכירות",
+          "properties": {
+            "transactionId": {
+              "type": "string",
+              "pattern": "^TXN-\\d{8}$",
+              "description": "מזהה ייחודי של העסקה"
+            },
+            "amount": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000,
+              "description": "סכום העסקה בשקלים"
+            },
+            "date": {
+              "type": "string",
+              "format": "date",
+              "description": "תאריך ביצוע העסקה"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "ממתין",
+                "אושר",
+                "נדחה"
+              ],
+              "description": "סטטוס העסקה"
+            }
+          },
+          "required": [
+            "transactionId",
+            "amount",
+            "date"
+          ]
+        },
+        "Category": "מכירות",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"FTP\",\"host\":\"file-simulator.local\",\"port\":30021,\"path\":\"/incoming/מכירות\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea4\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 */5 * * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"2f5bec05-29d1-41c5-89aa-51a523f671ac\",\"Name\":\"Fraud Detection System\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"fraud-detection-input\",\"MessageKey\":\"{datasource}_{timestamp}\",\"Headers\":{\"priority\":\"high\",\"system\":\"fraud\",\"server\":\"EZ Platform Kafka\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"},{\"Id\":\"4f590599-2d8f-46f1-a6ed-4e4bed6edf28\",\"Name\":\"Audit Log\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":true,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"audit-log-all-records\",\"MessageKey\":null,\"Headers\":{\"record-type\":\"validated-and-invalid\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "FTP",
+          "Protocol": "v1",
+          "Timeout": 252,
+          "RetryCount": 3,
+          "BufferSize": 4980736
+        },
+        "Description": "מקור נתונים עבור מערכת מכירות מרכזית - מכירות (FTP)",
+        "FileServerId": "69c3c9c9660cd5095c039ea4",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.524Z",
+        "UpdatedAt": "2026-03-25T11:40:57.524Z",
+        "IsDeleted": false,
+        "CorrelationId": "fdf79baa-5e9b-492b-919b-fc8e211db078",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eaf"
+      },
+      {
+        "Name": "ניהול עובדים",
+        "SupplierName": "פלטפורמת ענן",
+        "FilePath": "מלאי/incoming",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 * * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "רשומת עובד - מלאי",
+          "properties": {
+            "employeeId": {
+              "type": "string",
+              "pattern": "^EMP\\d{5}$",
+              "description": "מספר עובד"
+            },
+            "firstName": {
+              "type": "string",
+              "description": "שם פרטי"
+            },
+            "lastName": {
+              "type": "string",
+              "description": "שם משפחה"
+            },
+            "department": {
+              "type": "string",
+              "description": "מחלקה"
+            },
+            "position": {
+              "type": "string",
+              "description": "תפקיד"
+            },
+            "salary": {
+              "type": "number",
+              "minimum": 5000,
+              "description": "שכר חודשי"
+            },
+            "isManager": {
+              "type": "boolean",
+              "description": "האם מנהל"
+            },
+            "managedTeam": {
+              "type": "array",
+              "description": "רשימת עובדים בניהול",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "employeeId",
+            "firstName",
+            "lastName",
+            "department"
+          ],
+          "if": {
+            "properties": {
+              "isManager": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "employeeId",
+              "firstName",
+              "lastName",
+              "department",
+              "managedTeam"
+            ]
+          }
+        },
+        "Category": "מלאי",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.json",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"S3\",\"host\":\"file-simulator.local\",\"port\":30900,\"path\":\"מלאי/incoming\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea8\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"JSON\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 * * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"d783a5b6-dfe5-4a7c-81ac-b83dd515de16\",\"Name\":\"Real-Time Analytics\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"ניהול-עובדים-validated\",\"MessageKey\":\"{filename}_{timestamp}\",\"Headers\":{\"source\":\"ניהול עובדים\",\"server\":\"file-simulator Kafka\",\"environment\":\"development\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"4985530d-da2a-4d13-966f-c93df1e144dd\",\"Name\":\"Local Archive\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/ניהולעובדים\",\"FileNamePattern\":\"{filename}_{date}_valid.{ext}\",\"CreateSubfolders\":true,\"SubfolderPattern\":\"{year}/{month}/{day}\",\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null},{\"Id\":\"56cb03ba-7640-48a4-8f23-4ecb0d69d9a0\",\"Name\":\"Partner Export\",\"Description\":null,\"Type\":\"ftp\",\"Enabled\":true,\"OutputFormat\":\"csv\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/output/ניהולעובדים\",\"FileNamePattern\":\"export_{date}.csv\",\"CreateSubfolders\":false,\"SubfolderPattern\":null,\"OverwriteExisting\":true},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039ea5\"}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "S3",
+          "Protocol": "v1",
+          "Timeout": 193,
+          "RetryCount": 4,
+          "BufferSize": 1421312
+        },
+        "Description": "מקור נתונים עבור ניהול עובדים - מלאי (S3)",
+        "FileServerId": "69c3c9c9660cd5095c039ea8",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.598Z",
+        "UpdatedAt": "2026-03-25T11:40:57.598Z",
+        "IsDeleted": false,
+        "CorrelationId": "97ba7487-bc76-462d-bb74-53c3240c896c",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eb2"
+      },
+      {
+        "Name": "ניהול פרויקטים",
+        "SupplierName": "מערכת CRM",
+        "FilePath": "שיווק/incoming",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 */15 * * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "ניהול פרויקט - שיווק",
+          "properties": {
+            "projectId": {
+              "type": "string"
+            },
+            "projectName": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "phase": {
+              "type": "string",
+              "enum": [
+                "תכנון",
+                "ביצוע",
+                "ניטור",
+                "סגירה"
+              ]
+            },
+            "milestones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "dueDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "completed": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "riskLevel": {
+              "type": "string",
+              "enum": [
+                "נמוך",
+                "בינוני",
+                "גבוה"
+              ]
+            }
+          },
+          "required": [
+            "projectId",
+            "projectName",
+            "phase"
+          ]
+        },
+        "Category": "שיווק",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.json",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"S3\",\"host\":\"file-simulator.local\",\"port\":30900,\"path\":\"שיווק/incoming\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea8\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"JSON\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 */15 * * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"64f2d430-dd24-4577-a397-4e2c177a5c11\",\"Name\":\"Fraud Detection System\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"fraud-detection-input\",\"MessageKey\":\"{datasource}_{timestamp}\",\"Headers\":{\"priority\":\"high\",\"system\":\"fraud\",\"server\":\"file-simulator Kafka\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"808c62c3-6526-4dd1-a973-0a98c7f2f714\",\"Name\":\"Audit Log\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":true,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"audit-log-all-records\",\"MessageKey\":null,\"Headers\":{\"record-type\":\"validated-and-invalid\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "S3",
+          "Protocol": "v1",
+          "Timeout": 88,
+          "RetryCount": 4,
+          "BufferSize": 4147200
+        },
+        "Description": "מקור נתונים עבור ניהול פרויקטים - שיווק (S3)",
+        "FileServerId": "69c3c9c9660cd5095c039ea8",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.714Z",
+        "UpdatedAt": "2026-03-25T11:40:57.714Z",
+        "IsDeleted": false,
+        "CorrelationId": "82838bbf-50f1-49cc-af8a-1b8eae807bb2",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039ebe"
+      },
+      {
+        "Name": "ניתוח מכירות",
+        "SupplierName": "ספק נתונים חיצוני",
+        "FilePath": "/כספים/012",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 10 1 * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "ניתוח מכירות - כספים",
+          "properties": {
+            "analysisId": {
+              "type": "string"
+            },
+            "period": {
+              "type": "string",
+              "enum": [
+                "יומי",
+                "שבועי",
+                "חודשי",
+                "שנתי"
+              ]
+            },
+            "totalSales": {
+              "type": "number"
+            },
+            "averageOrderValue": {
+              "type": "number"
+            },
+            "conversionRate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "topProducts": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "productId": {
+                    "type": "string"
+                  },
+                  "salesCount": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          },
+          "required": [
+            "analysisId",
+            "period",
+            "totalSales"
+          ]
+        },
+        "Category": "כספים",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.xml",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"NAS\",\"host\":\"file-simulator.local\",\"port\":0,\"path\":\"/כספים/012\",\"url\":null,\"inputServerId\":null,\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"XML\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 10 1 * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"e9051325-282e-4e0d-92af-4cb5ba0b4d09\",\"Name\":\"Primary Kafka Topic\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"ניתוח-מכירות-validated\",\"MessageKey\":null,\"Headers\":null,\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"bc326253-0028-4c23-a953-c0b9e06ad367\",\"Name\":\"Local Backup\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/ניתוחמכירות\",\"FileNamePattern\":null,\"CreateSubfolders\":false,\"SubfolderPattern\":null,\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "NAS",
+          "Protocol": "v3",
+          "Timeout": 57,
+          "RetryCount": 4,
+          "BufferSize": 3494912
+        },
+        "Description": "מקור נתונים עבור ניתוח מכירות - כספים (NAS)",
+        "FileServerId": null,
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.647Z",
+        "UpdatedAt": "2026-03-25T11:40:57.647Z",
+        "IsDeleted": false,
+        "CorrelationId": "fbba11b1-6363-48d6-b4c3-a6648ce2e34b",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eba"
+      },
+      {
+        "Name": "ניתוח תחרות",
+        "SupplierName": "פלטפורמת שיווק",
+        "FilePath": "/incoming/מחקר ופיתוח",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 */3 * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "ניתוח מתחרים - מחקר ופיתוח",
+          "properties": {
+            "analysisId": {
+              "type": "string"
+            },
+            "competitorName": {
+              "type": "string"
+            },
+            "marketShare": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "primaryStrength": {
+              "type": "string",
+              "description": "חוזקה עיקרית"
+            },
+            "primaryWeakness": {
+              "type": "string",
+              "description": "חולשה עיקרית"
+            },
+            "averagePrice": {
+              "type": "number",
+              "description": "מחיר ממוצע"
+            },
+            "minimumPrice": {
+              "type": "number",
+              "description": "מחיר מינימלי"
+            },
+            "maximumPrice": {
+              "type": "number",
+              "description": "מחיר מקסימלי"
+            }
+          },
+          "required": [
+            "analysisId",
+            "competitorName"
+          ]
+        },
+        "Category": "מחקר ופיתוח",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"FTP\",\"host\":\"file-simulator.local\",\"port\":30021,\"path\":\"/incoming/מחקר ופיתוח\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea4\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 */3 * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"2f58bf41-2565-4ff2-8b9a-1202871ad4bf\",\"Name\":\"Real-Time Analytics\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"ניתוח-תחרות-validated\",\"MessageKey\":\"{filename}_{timestamp}\",\"Headers\":{\"source\":\"ניתוח תחרות\",\"server\":\"EZ Platform Kafka\",\"environment\":\"development\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"},{\"Id\":\"f973ee84-b151-4a67-aae1-259cfcb7e53b\",\"Name\":\"Local Archive\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/ניתוחתחרות\",\"FileNamePattern\":\"{filename}_{date}_valid.{ext}\",\"CreateSubfolders\":true,\"SubfolderPattern\":\"{year}/{month}/{day}\",\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "FTP",
+          "Protocol": "v1",
+          "Timeout": 105,
+          "RetryCount": 4,
+          "BufferSize": 5705728
+        },
+        "Description": "מקור נתונים עבור ניתוח תחרות - מחקר ופיתוח (FTP)",
+        "FileServerId": "69c3c9c9660cd5095c039ea4",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.812Z",
+        "UpdatedAt": "2026-03-25T11:40:57.812Z",
+        "IsDeleted": false,
+        "CorrelationId": "0303e5fd-81a3-4312-9225-c4695d95a873",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039ec1"
+      },
+      {
+        "Name": "נתוני לקוחות CRM",
+        "SupplierName": "ספק נתונים חיצוני",
+        "FilePath": "/data/כספים",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 */15 * * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "פרופיל משתמש - כספים",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "מזהה ייחודי של המשתמש"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "כתובת דוא\"ל"
+            },
+            "fullName": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 100,
+              "description": "שם מלא"
+            },
+            "birthDate": {
+              "type": "string",
+              "format": "date",
+              "description": "תאריך לידה"
+            },
+            "preferences": {
+              "type": "object",
+              "description": "העדפות משתמש",
+              "properties": {
+                "language": {
+                  "type": "string",
+                  "enum": [
+                    "he",
+                    "en",
+                    "ar"
+                  ],
+                  "description": "שפת ממשק"
+                },
+                "notifications": {
+                  "type": "boolean",
+                  "description": "קבלת התראות"
+                }
+              }
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "תגיות משתמש"
+            }
+          },
+          "required": [
+            "userId",
+            "email",
+            "fullName"
+          ]
+        },
+        "Category": "כספים",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.json",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"SFTP\",\"host\":\"file-simulator.local\",\"port\":30022,\"path\":\"/data/כספים\",\"url\":null,\"inputServerId\":\"69c3c9c9660cd5095c039ea6\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"JSON\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 */15 * * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"4c023a36-213b-427f-b7f8-84e68456a748\",\"Name\":\"Primary Kafka Topic\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"נתוני-לקוחות-crm-validated\",\"MessageKey\":null,\"Headers\":null,\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"8ed08807-a01f-40dc-af68-ceca84ef414b\",\"Name\":\"Local Backup\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/נתונילקוחותCRM\",\"FileNamePattern\":null,\"CreateSubfolders\":false,\"SubfolderPattern\":null,\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "SFTP",
+          "Protocol": "v2",
+          "Timeout": 70,
+          "RetryCount": 3,
+          "BufferSize": 1422336
+        },
+        "Description": "מקור נתונים עבור נתוני לקוחות CRM - כספים (SFTP)",
+        "FileServerId": "69c3c9c9660cd5095c039ea6",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.585Z",
+        "UpdatedAt": "2026-03-25T11:40:57.585Z",
+        "IsDeleted": false,
+        "CorrelationId": "4c43d6d4-a7c3-4f74-b75f-5edb22ff4877",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eb0"
+      },
+      {
+        "Name": "סקרי לקוחות",
+        "SupplierName": "מערכת CRM",
+        "FilePath": "/שיווק/006",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 */6 * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "תשובת סקר - שיווק",
+          "properties": {
+            "responseId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "surveyName": {
+              "type": "string"
+            },
+            "respondentEmail": {
+              "type": "string",
+              "format": "email"
+            },
+            "rating": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "feedback": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "submittedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "responseId",
+            "rating"
+          ]
+        },
+        "Category": "שיווק",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.json",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"NAS\",\"host\":\"file-simulator.local\",\"port\":0,\"path\":\"/שיווק/006\",\"url\":null,\"inputServerId\":null,\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"JSON\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 */6 * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"7e91f78d-4ff2-4e8f-8f5b-2c30f7b5e6b0\",\"Name\":\"Fraud Detection System\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"fraud-detection-input\",\"MessageKey\":\"{datasource}_{timestamp}\",\"Headers\":{\"priority\":\"high\",\"system\":\"fraud\",\"server\":\"file-simulator Kafka\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"},{\"Id\":\"33d3aab6-e681-478e-adaa-4601b9225974\",\"Name\":\"Audit Log\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":true,\"KafkaConfig\":{\"BrokerServer\":\"file-simulator.local:30092\",\"Topic\":\"audit-log-all-records\",\"MessageKey\":null,\"Headers\":{\"record-type\":\"validated-and-invalid\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eac\"}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "NAS",
+          "Protocol": "v3",
+          "Timeout": 49,
+          "RetryCount": 4,
+          "BufferSize": 1136640
+        },
+        "Description": "מקור נתונים עבור סקרי לקוחות - שיווק (NAS)",
+        "FileServerId": null,
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.613Z",
+        "UpdatedAt": "2026-03-25T11:40:57.613Z",
+        "IsDeleted": false,
+        "CorrelationId": "9d4693c7-944a-457a-8ff8-390eff3f0edc",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eb4"
+      },
+      {
+        "Name": "פעילות שיווק",
+        "SupplierName": "פלטפורמת שיווק",
+        "FilePath": "/מחקר ופיתוח/files",
+        "PollingRate": "00:05:00",
+        "CronExpression": "0 0 0 * * *",
+        "ScheduleFrequency": "Custom",
+        "ScheduleEnabled": null,
+        "JsonSchema": {
+          "schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "title": "קמפיין שיווקי - מחקר ופיתוח",
+          "properties": {
+            "campaignId": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "startDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "endDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "budget": {
+              "type": "number",
+              "minimum": 0
+            },
+            "channel": {
+              "type": "string",
+              "description": "ערוץ שיווקי ראשי"
+            },
+            "targetAge": {
+              "type": "string",
+              "description": "טווח גילאים"
+            },
+            "targetLocation": {
+              "type": "string",
+              "description": "אזור יעד"
+            }
+          },
+          "required": [
+            "campaignId",
+            "name",
+            "startDate",
+            "budget"
+          ]
+        },
+        "Category": "מחקר ופיתוח",
+        "SchemaVersion": 1,
+        "IsActive": true,
+        "FilePattern": "*.csv",
+        "LastProcessedAt": null,
+        "TotalFilesProcessed": 0,
+        "TotalErrorRecords": 0,
+        "AdditionalConfiguration": {
+          "ConfigurationSettings": "{\"connectionConfig\":{\"type\":\"HTTP\",\"host\":\"file-simulator.local\",\"port\":30088,\"path\":\"/מחקר ופיתוח/files\",\"url\":\"https://file-simulator.local/מחקר ופיתוח/files\",\"inputServerId\":\"69c3c9c9660cd5095c039eaa\",\"nasDeviceId\":null,\"nasSubPath\":null,\"topic\":null,\"kafkaBrokers\":null,\"kafkaTopic\":null,\"kafkaConsumerGroup\":null,\"kafkaSecurityProtocol\":null},\"fileConfig\":{\"type\":\"CSV\",\"delimiter\":\",\",\"hasHeaders\":true,\"encoding\":\"UTF-8\"},\"schedule\":{\"frequency\":\"Custom\",\"cronExpression\":\"0 0 0 * * *\",\"enabled\":true},\"validationRules\":{\"skipInvalidRecords\":false,\"maxErrorsAllowed\":100},\"notificationSettings\":{\"onSuccess\":false,\"onFailure\":true,\"recipients\":[\"admin@example.com\"]},\"outputConfig\":{\"Destinations\":[{\"Id\":\"821ec562-c62a-4bbe-9e44-c6db1f717226\",\"Name\":\"Real-Time Analytics\",\"Description\":null,\"Type\":\"kafka\",\"Enabled\":true,\"OutputFormat\":\"json\",\"IncludeInvalidRecords\":null,\"KafkaConfig\":{\"BrokerServer\":\"kafka:9092\",\"Topic\":\"פעילות-שיווק-validated\",\"MessageKey\":\"{filename}_{timestamp}\",\"Headers\":{\"source\":\"פעילות שיווק\",\"server\":\"EZ Platform Kafka\",\"environment\":\"development\"},\"PartitionKey\":null,\"SecurityProtocol\":null,\"SaslMechanism\":null,\"Username\":null,\"Password\":null},\"FolderConfig\":null,\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":\"69c3c9c9660cd5095c039eab\"},{\"Id\":\"dea35c74-1ba7-4c24-b6b5-f8da5bcfdaed\",\"Name\":\"Local Archive\",\"Description\":null,\"Type\":\"folder\",\"Enabled\":true,\"OutputFormat\":null,\"IncludeInvalidRecords\":null,\"KafkaConfig\":null,\"FolderConfig\":{\"Path\":\"/data/output/archive/פעילותשיווק\",\"FileNamePattern\":\"{filename}_{date}_valid.{ext}\",\"CreateSubfolders\":true,\"SubfolderPattern\":\"{year}/{month}/{day}\",\"OverwriteExisting\":false},\"SftpConfig\":null,\"HttpConfig\":null,\"S3Config\":null,\"FtpConfig\":null,\"OutputServerId\":null}],\"IncludeInvalidRecords\":false,\"DefaultOutputFormat\":\"original\"}}",
+          "ConnectionType": "HTTP",
+          "Protocol": "v3",
+          "Timeout": 197,
+          "RetryCount": 3,
+          "BufferSize": 3784704
+        },
+        "Description": "מקור נתונים עבור פעילות שיווק - מחקר ופיתוח (HTTP)",
+        "FileServerId": "69c3c9c9660cd5095c039eaa",
+        "NasDeviceId": null,
+        "NasSubPath": null,
+        "ArchiveSettings": null,
+        "Output": {
+          "Destinations": [],
+          "IncludeInvalidRecords": false,
+          "DefaultOutputFormat": "original"
+        },
+        "IsCurrentlyProcessing": false,
+        "ProcessingStartedAt": null,
+        "ProcessingCorrelationId": null,
+        "ProcessingPodId": null,
+        "ProcessingHostname": null,
+        "ProcessingCompletedAt": null,
+        "ProcessedFileHashes": [],
+        "CreatedAt": "2026-03-25T11:40:57.628Z",
+        "UpdatedAt": "2026-03-25T11:40:57.628Z",
+        "IsDeleted": false,
+        "CorrelationId": "615259fd-7e4b-480d-96e4-5b67399ca91a",
+        "Version": 1,
+        "CreatedBy": "DemoGenerator",
+        "UpdatedBy": "System",
+        "ID": "69c3c9c9660cd5095c039eb7"
+      }
+    ],
+    "Page": 1,
+    "Size": 25,
+    "TotalItems": 29,
+    "TotalPages": 2,
+    "HasNextPage": true,
+    "HasPreviousPage": false
+  },
+  "Error": null,
+  "IsSuccess": true
+}
