@@ -88,18 +88,16 @@ const DataSourceFormEnhanced: React.FC = () => {
   );
 
   // Per-field border injection via DOM attributes (D-13, GAP-02)
-  useEffect(() => {
-    // Apply to ALL tabs that have fields config (required + recommended + optional)
+  const applyFieldBorders = React.useCallback(() => {
     for (const [tabKey, config] of Object.entries(TAB_FIELD_CONFIG)) {
       if (!config?.fields) continue;
 
       const container = document.querySelector(`[data-tab-key="${tabKey}"]`);
       if (!container) continue;
 
-      const formItems = container.querySelectorAll(':scope > .ant-form-item, .ant-form-item');
+      const formItems = container.querySelectorAll('.ant-form-item');
       const matchedFields = new Set<Element>();
 
-      // First pass: match configured fields to form items
       for (const field of config.fields) {
         for (const formItem of formItems) {
           if (matchedFields.has(formItem)) continue;
@@ -114,14 +112,19 @@ const DataSourceFormEnhanced: React.FC = () => {
         }
       }
 
-      // Second pass: mark unmatched form items as optional (gray borders)
       for (const formItem of formItems) {
         if (!matchedFields.has(formItem) && !(formItem as HTMLElement).getAttribute('data-completeness-status')) {
           (formItem as HTMLElement).setAttribute('data-completeness-status', 'optional-empty');
         }
       }
     }
-  }, [completeness, getFieldStatus, activeTab]);
+  }, [getFieldStatus]);
+
+  useEffect(() => {
+    applyFieldBorders();
+    const timer = setTimeout(applyFieldBorders, 500);
+    return () => clearTimeout(timer);
+  }, [completeness, applyFieldBorders, activeTab]);
 
   // Populate form from clone data (if navigated from clone action)
   React.useEffect(() => {

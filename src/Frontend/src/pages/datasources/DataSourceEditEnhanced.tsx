@@ -96,14 +96,14 @@ const DataSourceEditEnhanced: React.FC = () => {
   );
 
   // Per-field border injection via DOM attributes (D-13, GAP-02)
-  useEffect(() => {
+  const applyFieldBorders = React.useCallback(() => {
     for (const [tabKey, config] of Object.entries(TAB_FIELD_CONFIG)) {
       if (!config?.fields) continue;
 
       const container = document.querySelector(`[data-tab-key="${tabKey}"]`);
       if (!container) continue;
 
-      const formItems = container.querySelectorAll(':scope > .ant-form-item, .ant-form-item');
+      const formItems = container.querySelectorAll('.ant-form-item');
       const matchedFields = new Set<Element>();
 
       for (const field of config.fields) {
@@ -126,7 +126,15 @@ const DataSourceEditEnhanced: React.FC = () => {
         }
       }
     }
-  }, [completeness, getFieldStatus, activeTab]);
+  }, [getFieldStatus]);
+
+  useEffect(() => {
+    // Run immediately for already-mounted tabs
+    applyFieldBorders();
+    // Run again after a short delay to catch lazy-loaded tab content that mounts after React render
+    const timer = setTimeout(applyFieldBorders, 500);
+    return () => clearTimeout(timer);
+  }, [completeness, applyFieldBorders, activeTab]);
 
   // Handlers
   const handleSchemaChange = (newSchema: JSONSchema) => {
