@@ -59,19 +59,23 @@ Add real-time form completeness guidance to the datasource create and edit forms
 ### Completeness Enforcement
 - **D-16:** If a datasource is saved with missing required fields, its status is auto-set to **disabled**
 - **D-17:** Only datasources with all required fields complete can be set to **enabled**
-- **D-18:** Attempting to enable an incomplete datasource shows a message explaining what's missing
+- **D-18:** Attempting to enable an incomplete datasource shows a message explaining what's missing. **ALSO:** The sidebar card itself must visually display the missing/invalid fields list — not just in a modal on enable. Users need to see what's wrong at a glance while filling the form.
+- **D-27:** Create and Update buttons must show clear feedback when saving incomplete datasources — inline warning/error explaining what fields are missing. User must never be left wondering why save "didn't work" or what to fix.
 
 ### List Page Enable/Disable Redesign
 - **D-19:** Move enable/disable from the status column **to the actions area** (inline with View/Edit, or in the overflow dropdown)
 - **D-20:** Status column becomes **read-only display** — shows enabled/disabled badge without toggle interaction
 - **D-21:** Enable action checks completeness and blocks with message if required fields are missing
+- **D-28:** Status column should also show a **per-row completeness indicator** (mini ring, bar, or percentage) so users can see at a glance which datasources are complete vs incomplete. Consider reusing the progress ring in a smaller size.
+
+### DemoDataGenerator Completeness
+- **D-29:** DemoDataGenerator must produce datasources with at minimum required-fields completeness, OR the completeness engine must properly evaluate demo datasources and set their enabled/disabled status correctly. Demo data must be consistent with the completeness feature.
 
 ### Claude's Discretion
 - Sidebar width and responsive breakpoint behavior
 - Exact progress ring size and color theme (green/red gradient vs fixed colors)
 - Animation/transition when percentage updates
 - Sidebar scroll behavior when form is long
-- How the "what's missing" message is presented (tooltip, modal, inline warning)
 - Enable/disable placement: inline button vs overflow dropdown item
 
 </decisions>
