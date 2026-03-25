@@ -266,13 +266,9 @@ const DataSourceFormEnhanced: React.FC = () => {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [importData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handlers — debounce schema changes to prevent tab flickering
-  const schemaChangeTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Handlers
   const handleSchemaChange = (newSchema: JSONSchema) => {
-    if (schemaChangeTimerRef.current) clearTimeout(schemaChangeTimerRef.current);
-    schemaChangeTimerRef.current = setTimeout(() => {
-      setJsonSchema(newSchema);
-    }, 300);
+    setJsonSchema(newSchema);
   };
 
   const handleCronHelperSelect = (expression: string) => {
