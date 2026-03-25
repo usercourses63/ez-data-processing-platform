@@ -352,7 +352,14 @@ Plans:
   4. System detects common data patterns (email, phone, date) and applies format/pattern constraints via schemaAutoSuggest
   5. User sees a preview table of parsed data and can review/edit the inferred schema in Monaco Editor before applying it to the form
   6. CsvToJsonConverter maps headerless CSV columns to schema field names by position order (1st schema property = 1st column, 2nd = 2nd, etc.) instead of generic Column1, Column2...
-**Plans**: TBD
+**Plans**: 5 plans (Wave 1: 27-01, 27-02, 27-04 parallel; Wave 2: 27-03; Wave 3: 27-05)
+
+Plans:
+- [ ] 27-01-PLAN.md — File analysis engine: types, CSV/JSON/XML/Excel analyzers, encoding detection, schema inference with auto-suggest (IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04)
+- [ ] 27-02-PLAN.md — Archive handling: JSZip + libarchive.js for .zip/.tar.gz/.rar/.7z with password support (IMPORT-01)
+- [ ] 27-03-PLAN.md — Import wizard UI: Upload File button, preview modal, headerless editor, XML tree, form pre-fill (IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04, IMPORT-05)
+- [ ] 27-04-PLAN.md — Backend CsvToJsonConverter fix for headerless CSV schema field mapping (IMPORT-06)
+- [ ] 27-05-PLAN.md — Playwright E2E + webapp-testing comprehensive tests + K8s deploy (IMPORT-01, IMPORT-02, IMPORT-03, IMPORT-04, IMPORT-05, IMPORT-06)
 
 ### Phase 28: Documentation, i18n, Deploy & Release
 **Goal**: Complete Hebrew translations (including user guide refactor), update Docusaurus docs, build v0.4.0 images, assemble deployment package, install from scratch, and verify with sanity tests
@@ -397,7 +404,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 24. v0.3.0 Release Package & Deploy | v0.3 | 2/3 | In Progress | - |
 | 25. Clone Datasource | v0.4 | 2/2 | Complete    | 2026-03-24 |
 | 26. Completeness Checklist | v0.4 | 7/7 | Complete | 2026-03-25 |
-| 27. Import from File | v0.4 | 0/TBD | Not started | - |
+| 27. Import from File | v0.4 | 0/5 | Planned | - |
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 0/TBD | Not started | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
