@@ -19,7 +19,7 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 - [x] **IMPORT-02**: System infers JSON Schema 2020-12 from file content with type detection (integer, number, boolean, date, string)
 - [x] **IMPORT-03**: CSV files without headers generate synthetic field names (field_1, field_2, ... field_N)
 - [x] **IMPORT-04**: System applies smart constraints via schemaAutoSuggest (email format, phone patterns, date formats, etc.)
-- [ ] **IMPORT-05**: User can preview parsed data in a table and review/edit inferred schema in Monaco Editor before applying
+- [x] **IMPORT-05**: User can preview parsed data in a table and review/edit inferred schema in Monaco Editor before applying
 
 ### Completeness Checklist
 
@@ -76,7 +76,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMPORT-02 | Phase 27 | Complete |
 | IMPORT-03 | Phase 27 | Complete |
 | IMPORT-04 | Phase 27 | Complete |
-| IMPORT-05 | Phase 27 | Pending |
+| IMPORT-05 | Phase 27 | Complete |
 | CHECK-01 | Phase 26 | Complete |
 | CHECK-02 | Phase 26 | Complete |
 | CHECK-03 | Phase 26 | Complete |
