@@ -58,7 +58,16 @@ public class SharpCompressArchiveService : IArchiveService
 
     public ArchiveType? GetArchiveType(string fileName, byte[]? fileContent = null)
     {
-        // Try magic bytes first if content provided
+        // Check double extensions first (tar.gz/tar.bz2) before magic bytes,
+        // because GZip magic bytes would incorrectly classify tar.gz as plain GZip
+        if (fileName.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) ||
+            fileName.EndsWith(".tgz", StringComparison.OrdinalIgnoreCase) ||
+            fileName.EndsWith(".tar.bz2", StringComparison.OrdinalIgnoreCase))
+        {
+            return ArchiveType.TarGz;
+        }
+
+        // Try magic bytes if content provided
         if (fileContent != null && fileContent.Length >= 6)
         {
             foreach (var (archiveType, magicBytesArray) in MagicBytes)
@@ -75,14 +84,6 @@ public class SharpCompressArchiveService : IArchiveService
 
         // Fall back to extension detection
         var extension = Path.GetExtension(fileName).ToLowerInvariant();
-
-        // Handle double extensions like .tar.gz
-        if (fileName.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) ||
-            fileName.EndsWith(".tar.bz2", StringComparison.OrdinalIgnoreCase))
-        {
-            return ArchiveType.TarGz;
-        }
-
         return ExtensionMap.GetValueOrDefault(extension);
     }
 

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+  <record>
+    <id>1</id>
+    <name>Alice</name>
+    <details><age>30</age><city>New York</city></details>
+  </record>
+  <record>
+    <id>2</id>
+    <name>Bob</name>
+    <details><age>25</age><city>Los Angeles</city></details>
+  </record>
+</records>
