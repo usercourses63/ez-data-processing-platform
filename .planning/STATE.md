@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Ready to execute
-stopped_at: Completed 27-04-PLAN.md
-last_updated: "2026-03-25T15:52:24.648Z"
+stopped_at: Completed 27-01-PLAN.md
+last_updated: "2026-03-25T15:52:33.650Z"
 progress:
   total_phases: 28
   completed_phases: 23
@@ -54,6 +54,9 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 26]: Multi-strategy DOM field matching for border injection (id, label, .ant-select fallback)
 - [Phase 27]: JSZip-first for .zip with libarchive.js WASM fallback for encrypted/other archives
 - [Phase 27]: Added datasource parameter to conversion methods for metadata passing instead of building metadata at Consume call site
+- [Phase 27]: Used jschardet binary string conversion for encoding detection
+- [Phase 27]: CSV header detection uses type-ratio heuristic plus all-alpha uniqueness check
+- [Phase 27]: Type inference hierarchy: any string makes column string, number+integer becomes number
 
 ### Reusable Utilities
 
@@ -70,6 +73,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-25T15:52:13.334Z
-Stopped at: Completed 27-04-PLAN.md
+Last session: 2026-03-25T15:52:33.644Z
+Stopped at: Completed 27-01-PLAN.md
 Resume file: None
