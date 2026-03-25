@@ -49,36 +49,15 @@ export function analyzeJson(text: string, filename: string, encoding: string): I
     throw new Error('JSON record has no fields');
   }
 
-  // Convert values to strings for the schema inferrer
-  const rowsAsStrings = records.map((record) => {
-    const row: Record<string, string> = {};
-    for (const key of fieldNames) {
-      const value = record[key];
-      if (value === null || value === undefined) {
-        row[key] = '';
-      } else if (typeof value === 'object') {
-        row[key] = JSON.stringify(value);
-      } else {
-        row[key] = String(value);
-      }
-    }
-    return row;
-  });
-
-  // Build preview rows (first 5 records, D-09) -- preserve original types for display
-  const previewRows = records.slice(0, PREVIEW_ROW_COUNT).map((record) => {
-    const row: Record<string, unknown> = {};
-    for (const key of fieldNames) {
-      row[key] = record[key];
-    }
-    return row;
-  });
+  // Build preview rows (first 5 records, D-09) -- preserve original types
+  const previewRows = records.slice(0, PREVIEW_ROW_COUNT);
 
   // Generate JSON Schema with auto-suggest (IMPORT-02, IMPORT-04)
-  const jsonSchema = generateJsonSchema(fieldNames, rowsAsStrings, true);
+  // Pass raw records (not stringified) so nested objects/arrays are correctly inferred
+  const jsonSchema = generateJsonSchema(fieldNames, records, true);
 
-  // Build field types and constraints for preview display (D-10)
-  const fieldTypes = buildFieldTypes(fieldNames, rowsAsStrings);
+  // Build field types for preview display (D-10) — shows object/array for nested types
+  const fieldTypes = buildFieldTypes(fieldNames, records);
   const fieldConstraints = buildFieldConstraints(fieldNames);
 
   return {

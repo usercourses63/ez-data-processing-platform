@@ -127,41 +127,31 @@ export function inferColumnType(values: string[]): InferredType {
 
 /**
  * Generate a JSON Schema 2020-12 from field names and row data.
+ * Supports nested objects and arrays recursively.
  *
  * @param fieldNames - Ordered list of field/property names
- * @param rows - Array of row objects (field name -> string value)
+ * @param rows - Array of row objects (can contain nested objects/arrays)
  * @param applySuggestions - Whether to apply schemaAutoSuggest constraints (IMPORT-04)
  * @returns JSON Schema 2020-12 object
  */
 export function generateJsonSchema(
   fieldNames: string[],
-  rows: Record<string, string>[],
+  rows: Record<string, any>[],
   applySuggestions: boolean
 ): object {
   const properties: Record<string, object> = {};
   const required: string[] = [];
 
   for (const fieldName of fieldNames) {
-    const values = rows.map((row) => String(row[fieldName] ?? ''));
-    const inferred = inferColumnType(values);
+    const values = rows.map((row) => row[fieldName]);
+    const propSchema = inferPropertySchema(fieldName, values, applySuggestions);
+    properties[fieldName] = propSchema;
 
-    let propSchema: Record<string, unknown> = {
-      type: inferred.type,
-    };
-
-    // Mark as required if no empty values in sample
-    const hasEmptyValues = values.some((v) => v === '' || v === null || v === undefined);
-    if (!hasEmptyValues && values.length > 0) {
+    // Mark as required if no null/undefined values
+    const hasEmpty = values.some((v) => v === null || v === undefined || v === '');
+    if (!hasEmpty && values.length > 0) {
       required.push(fieldName);
     }
-
-    // Apply smart constraints from schemaAutoSuggest (IMPORT-04)
-    if (applySuggestions) {
-      const suggestions = suggestConstraintsForField(fieldName);
-      propSchema = applySuggestionsToSchema(propSchema, suggestions);
-    }
-
-    properties[fieldName] = propSchema;
   }
 
   return {
@@ -174,18 +164,105 @@ export function generateJsonSchema(
 }
 
 /**
+ * Recursively infer the schema for a single property from sample values.
+ */
+function inferPropertySchema(
+  fieldName: string,
+  values: unknown[],
+  applySuggestions: boolean
+): Record<string, unknown> {
+  const nonNull = values.filter((v) => v !== null && v !== undefined);
+  if (nonNull.length === 0) {
+    return { type: 'string' };
+  }
+
+  const first = nonNull[0];
+
+  // Array: infer items schema from all array elements
+  if (Array.isArray(first)) {
+    const allItems = nonNull.flatMap((v) => Array.isArray(v) ? v : []);
+    let itemsSchema: Record<string, unknown> = { type: 'string' };
+
+    if (allItems.length > 0 && typeof allItems[0] === 'object' && allItems[0] !== null) {
+      // Array of objects — recurse into object properties
+      const itemKeys = Object.keys(allItems[0] as Record<string, unknown>);
+      const itemProperties: Record<string, object> = {};
+      for (const key of itemKeys) {
+        const itemValues = allItems.map((item: any) => item[key]);
+        itemProperties[key] = inferPropertySchema(key, itemValues, applySuggestions);
+      }
+      itemsSchema = { type: 'object', properties: itemProperties };
+    } else if (allItems.length > 0) {
+      // Array of primitives
+      const stringValues = allItems.map((v) => String(v));
+      const inferred = inferColumnType(stringValues);
+      itemsSchema = { type: inferred.type };
+    }
+
+    return { type: 'array', items: itemsSchema };
+  }
+
+  // Nested object: recurse into properties
+  if (typeof first === 'object' && first !== null && !Array.isArray(first)) {
+    const objSamples = nonNull.filter((v) => typeof v === 'object' && v !== null) as Record<string, unknown>[];
+    const nestedKeys = Object.keys(objSamples[0]);
+    const nestedProperties: Record<string, object> = {};
+    const nestedRequired: string[] = [];
+
+    for (const key of nestedKeys) {
+      const nestedValues = objSamples.map((obj) => obj[key]);
+      nestedProperties[key] = inferPropertySchema(key, nestedValues, applySuggestions);
+      const hasEmpty = nestedValues.some((v) => v === null || v === undefined || v === '');
+      if (!hasEmpty && nestedValues.length > 0) {
+        nestedRequired.push(key);
+      }
+    }
+
+    return {
+      type: 'object',
+      properties: nestedProperties,
+      ...(nestedRequired.length > 0 ? { required: nestedRequired } : {}),
+    };
+  }
+
+  // Primitive: use string-based type inference
+  const stringValues = nonNull.map((v) => String(v));
+  const inferred = inferColumnType(stringValues);
+  let propSchema: Record<string, unknown> = { type: inferred.type };
+
+  if (applySuggestions) {
+    const suggestions = suggestConstraintsForField(fieldName);
+    propSchema = applySuggestionsToSchema(propSchema, suggestions);
+  }
+
+  return propSchema;
+}
+
+/**
  * Build a field name -> inferred type map for preview display (D-10).
+ * Shows "object", "array" for nested types, primitive types for leaves.
  */
 export function buildFieldTypes(
   fieldNames: string[],
-  rows: Record<string, string>[]
+  rows: Record<string, any>[]
 ): Record<string, string> {
   const fieldTypes: Record<string, string> = {};
 
   for (const fieldName of fieldNames) {
-    const values = rows.map((row) => String(row[fieldName] ?? ''));
-    const inferred = inferColumnType(values);
-    fieldTypes[fieldName] = inferred.type;
+    const values = rows.map((row) => row[fieldName]);
+    const nonNull = values.filter((v) => v !== null && v !== undefined);
+    const first = nonNull[0];
+
+    if (Array.isArray(first)) {
+      const itemType = first.length > 0 && typeof first[0] === 'object' ? 'object[]' : 'array';
+      fieldTypes[fieldName] = itemType;
+    } else if (typeof first === 'object' && first !== null) {
+      fieldTypes[fieldName] = 'object';
+    } else {
+      const stringValues = nonNull.map((v) => String(v));
+      const inferred = inferColumnType(stringValues);
+      fieldTypes[fieldName] = inferred.type;
+    }
   }
 
   return fieldTypes;

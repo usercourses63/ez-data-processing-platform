@@ -356,25 +356,30 @@ const DataSourceList: React.FC = () => {
       key: 'status',
       width: 150,
       render: (isActive: boolean, record: DataSource) => {
-        const { requiredPercent } = checkDataSourceCompleteness(record);
+        const { requiredPercent, missingFields } = checkDataSourceCompleteness(record);
+        const tooltipText = requiredPercent === 100
+          ? t('completeness.allComplete', { defaultValue: 'All required fields complete' })
+          : `${t('completeness.missingFields', { defaultValue: 'Missing fields' })}: ${missingFields.join(', ')}`;
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <Tag color={isActive ? 'success' : 'default'} style={{ margin: 0 }}>
-              {isActive ? t('datasources.status.active', { defaultValue: 'פעיל' }) : t('datasources.status.inactive', { defaultValue: 'לא פעיל' })}
-            </Tag>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Progress
-                type="circle"
-                percent={requiredPercent}
-                size={20}
-                strokeColor={requiredPercent === 100 ? '#52c41a' : requiredPercent >= 50 ? '#faad14' : '#ff4d4f'}
-                format={() => ''}
-              />
-              <span style={{ fontSize: 11, color: requiredPercent === 100 ? '#52c41a' : '#8c8c8c' }}>
-                {requiredPercent}%
-              </span>
+          <Tooltip title={tooltipText}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <Tag color={isActive ? 'success' : 'default'} style={{ margin: 0 }}>
+                {isActive ? t('datasources.status.active', { defaultValue: 'פעיל' }) : t('datasources.status.inactive', { defaultValue: 'לא פעיל' })}
+              </Tag>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Progress
+                  type="circle"
+                  percent={requiredPercent}
+                  size={20}
+                  strokeColor={requiredPercent === 100 ? '#52c41a' : requiredPercent >= 50 ? '#faad14' : '#ff4d4f'}
+                  format={() => ''}
+                />
+                <span style={{ fontSize: 11, color: requiredPercent === 100 ? '#52c41a' : '#8c8c8c' }}>
+                  {requiredPercent}%
+                </span>
+              </div>
             </div>
-          </div>
+          </Tooltip>
         );
       },
     },
