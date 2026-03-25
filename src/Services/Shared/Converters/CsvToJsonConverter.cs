@@ -28,9 +28,29 @@ public class CsvToJsonConverter : IFormatConverter
     {
         try
         {
+            // Read HasHeader from metadata (default true for backward compatibility)
+            var hasHeader = true;
+            if (metadata?.TryGetValue("HasHeader", out var hasHeaderObj) == true)
+            {
+                hasHeader = Convert.ToBoolean(hasHeaderObj);
+            }
+
+            // Read SchemaPropertyNames from metadata when headerless
+            string[]? schemaPropertyNames = null;
+            if (!hasHeader && metadata?.TryGetValue("SchemaPropertyNames", out var namesObj) == true)
+            {
+                schemaPropertyNames = namesObj as string[];
+                if (schemaPropertyNames == null && namesObj is JsonElement jsonElement)
+                {
+                    schemaPropertyNames = jsonElement.EnumerateArray()
+                        .Select(e => e.GetString() ?? "")
+                        .ToArray();
+                }
+            }
+
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                HasHeaderRecord = true,
+                HasHeaderRecord = hasHeader,
                 MissingFieldFound = null,
                 BadDataFound = null
             };
@@ -38,11 +58,33 @@ public class CsvToJsonConverter : IFormatConverter
             using var reader = new StreamReader(sourceStream);
             using var csv = new CsvReader(reader, config);
 
-            // Get records as dynamic objects (all fields are strings by default)
-            var records = csv.GetRecords<dynamic>().ToList();
+            List<Dictionary<string, object>> convertedRecords;
 
-            // Convert numeric and boolean strings to their actual types
-            var convertedRecords = records.Select(record => ConvertTypes((IDictionary<string, object>)record)).ToList();
+            if (hasHeader)
+            {
+                // Existing behavior: use CsvHelper's dynamic record parsing with headers
+                var records = csv.GetRecords<dynamic>().ToList();
+                convertedRecords = records
+                    .Select(record => ConvertTypes((IDictionary<string, object>)record))
+                    .ToList();
+            }
+            else
+            {
+                // Headerless CSV: read fields by position and map to schema property names
+                convertedRecords = new List<Dictionary<string, object>>();
+                while (csv.Read())
+                {
+                    var record = new Dictionary<string, object>();
+                    for (var i = 0; i < csv.Parser.Count; i++)
+                    {
+                        var key = schemaPropertyNames != null && i < schemaPropertyNames.Length
+                            ? schemaPropertyNames[i]
+                            : $"Column{i + 1}";
+                        record[key] = csv.GetField(i) ?? "";
+                    }
+                    convertedRecords.Add(ConvertTypes(record));
+                }
+            }
 
             return Task.FromResult(JsonSerializer.Serialize(convertedRecords));
         }
