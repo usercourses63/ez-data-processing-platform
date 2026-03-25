@@ -218,20 +218,23 @@ export function useCompletenessTracker(
    * Uses form.getFieldsValue(true) merged with initialValues.
    */
   useEffect(() => {
-    // Immediate calculation with current values
+    // Immediate calculation — no delay, no setTimeout, no stale closure risk
     const merged = getMergedValues();
     const newState = computeCompleteness(merged, jsonSchema, outputConfig, !!isEditMode);
     setCompleteness(newState);
-
-    // Also recalculate after a short delay using refs (handles race conditions
-    // where form.setFieldsValue hasn't propagated yet — refs avoid stale closures)
-    const timer = setTimeout(() => {
-      const mergedDelayed = getMergedValues();
-      const delayedState = computeCompleteness(mergedDelayed, jsonSchemaRef.current, outputConfigRef.current, !!isEditMode);
-      setCompleteness(delayedState);
-    }, 500);
-    return () => clearTimeout(timer);
   }, [jsonSchema, outputConfig, getMergedValues, isEditMode]);
+
+  // Secondary recalculation after form.setFieldsValue propagates (for import/clone/edit fetch)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Re-read form values AND use current refs for non-form state
+      const merged = getMergedValues();
+      setCompleteness(computeCompleteness(merged, jsonSchemaRef.current, outputConfigRef.current, !!isEditMode));
+    }, 600);
+    return () => clearTimeout(timer);
+    // Only trigger on form/initialValues changes, not on jsonSchema (that's handled above)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues, isEditMode]);
 
   /**
    * Initial calculation on mount.
