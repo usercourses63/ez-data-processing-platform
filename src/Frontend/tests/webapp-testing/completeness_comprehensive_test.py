@@ -49,14 +49,22 @@ def ant_select(page, input_id, option_text=None, option_index=0):
 
 def get_sidebar_card(page):
     """Locate the completeness sidebar Card containing the progress ring."""
-    return page.locator('.ant-card').filter(has=page.locator('.ant-progress-circle'))
+    return page.locator('.ant-card').filter(has=page.locator('div.ant-progress-circle'))
+
+
+def get_tab_items(page):
+    """Get the 9 sidebar tab items using their unique padding style."""
+    sidebar = get_sidebar_card(page)
+    return sidebar.locator('div[style*="padding: 8px 12px"]')
 
 
 def navigate_to_new_form(page):
     """Navigate to new datasource form and wait for load."""
     page.goto(f'{BASE_URL}/datasources/new')
     page.wait_for_load_state('networkidle')
-    page.wait_for_timeout(1500)
+    # Wait for sidebar to appear (Vite dev server needs time for first module compilation)
+    page.wait_for_selector('div.ant-progress-circle', timeout=30000)
+    page.wait_for_timeout(1000)
 
 
 def navigate_to_list(page):
@@ -78,14 +86,12 @@ def test_sidebar_presence_and_structure(page):
     sidebar = get_sidebar_card(page)
     report("Sidebar Card visible", sidebar.is_visible())
 
-    # Progress circle
-    progress = page.locator('.ant-progress-circle')
+    # Progress circle (use div prefix to avoid matching inner SVG)
+    progress = page.locator('div.ant-progress-circle')
     report("Progress circle visible", progress.is_visible())
 
-    # Count tab items -- each has a status icon (check, close, warning, minus)
-    tab_items = sidebar.locator('div').filter(
-        has=page.locator('.anticon-check-circle, .anticon-close-circle, .anticon-warning, .anticon-minus-circle')
-    )
+    # Count tab items using unique padding style
+    tab_items = get_tab_items(page)
     count = tab_items.count()
     report("Sidebar has exactly 9 tab items", count == 9, f"Found {count} items")
 
@@ -102,8 +108,9 @@ def test_sidebar_presence_and_structure(page):
         'bar-chart',   # metrics
     ]
     icons_found = []
-    for i in range(min(count, 9)):
-        item = tab_items.nth(i)
+    tab_items_for_icons = get_tab_items(page)
+    for i in range(min(tab_items_for_icons.count(), 9)):
+        item = tab_items_for_icons.nth(i)
         item_html = item.evaluate('el => el.innerHTML')
         for icon in expected_icons:
             if f'anticon-{icon}' in item_html:
@@ -189,14 +196,13 @@ def test_per_field_border_colors_connection_tab(page):
     """D-13: Connection tab conditional fields"""
     navigate_to_new_form(page)
 
-    # Navigate to connection tab
-    sidebar = get_sidebar_card(page)
-    conn_item = sidebar.locator('div').filter(has=page.locator('.anticon-api')).first
-    conn_item.click()
+    # Navigate to connection tab (index 1)
+    tabs = get_tab_items(page)
+    tabs.nth(1).click()
     page.wait_for_timeout(1000)
 
     # Connection type should be visible
-    conn_type_visible = page.locator('input#connectionType').is_visible()
+    conn_type_visible = page.locator('#connectionType').is_visible(timeout=5000)
     report("Connection type field visible", conn_type_visible)
 
     # Select FTP connection type
@@ -218,24 +224,15 @@ def test_per_field_border_colors_connection_tab(page):
 
 
 def test_sidebar_click_navigation_all_tabs(page):
-    """Click each of 9 tabs in sidebar, verify correct tab content shows"""
+    """Click each of 8 clickable tabs in sidebar (metrics disabled), verify active highlight"""
     navigate_to_new_form(page)
 
-    sidebar = get_sidebar_card(page)
-    tab_icons = {
-        'basic': '.anticon-file-text',
-        'connection': '.anticon-api',
-        'file': '.anticon-file',
-        'schema': '.anticon-database',
-        'schedule': '.anticon-clock-circle',
-        'validation': '.anticon-safety',
-        'notifications': '.anticon-bell',
-        'output': '.anticon-export',
-    }
+    tab_names = ['basic', 'connection', 'file', 'schema', 'schedule', 'validation', 'notifications', 'output']
+    tabs = get_tab_items(page)
 
     navigated = 0
-    for tab_name, icon_selector in tab_icons.items():
-        item = sidebar.locator('div').filter(has=page.locator(icon_selector)).first
+    for i, tab_name in enumerate(tab_names):
+        item = tabs.nth(i)
         if item.is_visible():
             item.click()
             page.wait_for_timeout(800)
@@ -254,16 +251,17 @@ def test_metrics_tab_grayed_in_create_mode(page):
     """Metrics tab shows as unavailable in create form"""
     navigate_to_new_form(page)
 
-    sidebar = get_sidebar_card(page)
-    metrics_item = sidebar.locator('div').filter(has=page.locator('.anticon-bar-chart')).first
+    # Metrics is the 9th tab (index 8)
+    tabs = get_tab_items(page)
+    metrics_item = tabs.nth(8)
 
     # Should be grayed out (opacity 0.45)
-    opacity = metrics_item.evaluate('el => getComputedStyle(el).opacity')
+    opacity = metrics_item.evaluate('el => el.style.opacity || getComputedStyle(el).opacity')
     is_grayed = float(opacity) < 0.6
     report("Metrics tab grayed out in create mode", is_grayed, f"Opacity: {opacity}")
 
     # Should have cursor: not-allowed
-    cursor = metrics_item.evaluate('el => getComputedStyle(el).cursor')
+    cursor = metrics_item.evaluate('el => el.style.cursor || getComputedStyle(el).cursor')
     report("Metrics tab cursor is not-allowed", cursor == 'not-allowed', f"Cursor: {cursor}")
 
 
@@ -279,10 +277,10 @@ def test_metrics_tab_available_in_edit_mode(page):
     page.wait_for_load_state('networkidle')
     page.wait_for_timeout(2000)
 
-    sidebar = get_sidebar_card(page)
-    metrics_item = sidebar.locator('div').filter(has=page.locator('.anticon-bar-chart')).first
+    tabs = get_tab_items(page)
+    metrics_item = tabs.nth(8)
 
-    opacity = metrics_item.evaluate('el => getComputedStyle(el).opacity')
+    opacity = metrics_item.evaluate('el => el.style.opacity || getComputedStyle(el).opacity')
     is_active = float(opacity) > 0.8
     report("Metrics tab NOT grayed in edit mode", is_active, f"Opacity: {opacity}")
 
@@ -290,9 +288,9 @@ def test_metrics_tab_available_in_edit_mode(page):
     metrics_item.click()
     page.wait_for_timeout(1000)
     active_tab = page.locator('.ant-tabs-tab-active')
-    tab_text = active_tab.text_content() if active_tab.is_visible() else ""
-    has_metrics = bool(re.search(r'metric|מדדים', tab_text, re.IGNORECASE))
-    report("Clicking metrics navigates to metrics tab", has_metrics, f"Active tab: '{tab_text}'")
+    node_key = active_tab.first.get_attribute('data-node-key') if active_tab.is_visible() else ""
+    has_metrics = node_key == 'metrics'
+    report("Clicking metrics navigates to metrics tab", has_metrics, f"Active tab key: '{node_key}'")
 
 
 def test_recommended_tabs_gray_borders(page):
