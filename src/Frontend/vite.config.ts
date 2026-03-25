@@ -79,7 +79,9 @@ export default defineConfig({
       'axios',
       'moment',
       'ajv'
-    ]
+    ],
+    // Exclude libarchive.js from pre-bundling — it uses WASM + WebWorker
+    exclude: ['libarchive.js']
   },
 
   // Define environment variable prefix
