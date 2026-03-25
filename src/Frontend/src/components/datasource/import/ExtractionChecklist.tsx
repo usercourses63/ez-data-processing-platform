@@ -61,12 +61,12 @@ const ExtractionChecklist: React.FC<ExtractionChecklistProps> = ({
         {fieldNames.map((name) => {
           const type = fieldTypes[name] || 'string';
           const constraint = fieldConstraints[name];
-          const hasConstraint = constraint && constraint.constraints.length > 0;
+          const hasTypeOrConstraint = !!type || (constraint && constraint.constraints.length > 0);
           const constraintStr = constraint ? formatConstraint(constraint) : '';
 
           return (
             <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {hasConstraint ? (
+              {hasTypeOrConstraint ? (
                 <CheckCircleFilled style={{ color: '#52c41a', fontSize: 14 }} />
               ) : (
                 <MinusCircleFilled style={{ color: '#d9d9d9', fontSize: 14 }} />

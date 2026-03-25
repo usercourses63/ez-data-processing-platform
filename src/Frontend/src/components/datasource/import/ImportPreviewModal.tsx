@@ -215,19 +215,46 @@ const ImportPreviewModal: React.FC<ImportPreviewModalProps> = ({
                   />
                 )}
 
-                {/* XML tree view */}
+                {/* XML tree view — hierarchical, no flat table */}
                 {isXml && importData.xmlTreeData && (
                   <div style={{ marginBottom: 16 }}>
                     <XmlTreePreview treeData={importData.xmlTreeData} />
+                    <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 12 }}>
+                      {t('datasources.import.totalRows', { count: importData.totalRowCount })}
+                    </div>
                   </div>
                 )}
 
-                {/* Data preview table */}
-                <DataPreviewTable
-                  previewRows={importData.previewRows}
-                  fieldNames={importData.fieldNames}
-                  totalRowCount={importData.totalRowCount}
-                />
+                {/* JSON hierarchical view — show raw JSON tree, not flat table */}
+                {importData.fileType === 'JSON' && importData.previewRows.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <pre style={{
+                      background: '#f5f5f5',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: 6,
+                      padding: 12,
+                      maxHeight: 300,
+                      overflow: 'auto',
+                      fontSize: 12,
+                      direction: 'ltr',
+                      textAlign: 'left',
+                    }}>
+                      {JSON.stringify(importData.previewRows.slice(0, 3), null, 2)}
+                    </pre>
+                    <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 12 }}>
+                      {t('datasources.import.totalRows', { count: importData.totalRowCount })}
+                    </div>
+                  </div>
+                )}
+
+                {/* CSV/Excel flat data table — tabular format only */}
+                {(importData.fileType === 'CSV' || importData.fileType === 'Excel') && (
+                  <DataPreviewTable
+                    previewRows={importData.previewRows}
+                    fieldNames={importData.fieldNames}
+                    totalRowCount={importData.totalRowCount}
+                  />
+                )}
               </div>
 
               {/* Right column (40%): Extraction checklist */}
