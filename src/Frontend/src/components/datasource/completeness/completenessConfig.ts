@@ -15,7 +15,7 @@ const schemaAjv = new Ajv({
   strict: false,
   validateFormats: false,
   strictSchema: false,
-  validateSchema: true,
+  validateSchema: false,
   allowUnionTypes: true,
 });
 

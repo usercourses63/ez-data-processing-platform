@@ -148,7 +148,8 @@ const ImportPreviewModal: React.FC<ImportPreviewModalProps> = ({
     <Modal
       open={visible}
       title={t('datasources.import.previewTitle')}
-      width={900}
+      width="90vw"
+      style={{ maxWidth: 1400 }}
       onCancel={onCancel}
       footer={[
         <Button key="cancel" onClick={onCancel}>
