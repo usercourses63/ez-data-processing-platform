@@ -7,6 +7,7 @@ using DataProcessing.Shared.Monitoring;
 using DataProcessing.Shared.Services;
 using Hazelcast;
 using MassTransit;
+using MongoDB.Bson;
 using MongoDB.Entities;
 
 namespace DataProcessing.FileProcessor.Consumers;
@@ -122,7 +123,8 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
                 (jsonContent, originalFormat, metadata) = await ConvertToJsonFromBytesAsync(
                     fileContentBytes,
                     message.FileName,
-                    message.CorrelationId);
+                    message.CorrelationId,
+                    datasource);
             }
             else
             {
@@ -146,7 +148,8 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
                 (jsonContent, originalFormat, metadata) = await ConvertToJsonAsync(
                     fileContent,
                     message.FileName,
-                    message.CorrelationId);
+                    message.CorrelationId,
+                    datasource);
             }
 
             if (string.IsNullOrEmpty(jsonContent))
@@ -444,16 +447,81 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
     }
 
     /// <summary>
+    /// Builds conversion metadata from datasource for headerless CSV support (IMPORT-06).
+    /// Extracts HasHeaders from AdditionalConfiguration.ConfigurationSettings and
+    /// SchemaPropertyNames from datasource.JsonSchema when headerless.
+    /// </summary>
+    private Dictionary<string, object> BuildConversionMetadata(
+        DataProcessingDataSource? datasource,
+        string correlationId)
+    {
+        var conversionMetadata = new Dictionary<string, object>();
+
+        if (datasource == null)
+            return conversionMetadata;
+
+        // Extract HasHeaders from AdditionalConfiguration.ConfigurationSettings JSON
+        var hasHeaders = true; // default for backward compatibility
+        if (datasource.AdditionalConfiguration != null &&
+            datasource.AdditionalConfiguration.Contains("ConfigurationSettings"))
+        {
+            try
+            {
+                var configSettingsJson = datasource.AdditionalConfiguration["ConfigurationSettings"].AsString;
+                using var configDoc = System.Text.Json.JsonDocument.Parse(configSettingsJson);
+                if (configDoc.RootElement.TryGetProperty("fileConfig", out var fileConfig) &&
+                    fileConfig.TryGetProperty("hasHeaders", out var hasHeadersProp))
+                {
+                    hasHeaders = hasHeadersProp.GetBoolean();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "[{CorrelationId}] Failed to extract hasHeaders from ConfigurationSettings, defaulting to true",
+                    correlationId);
+            }
+        }
+        conversionMetadata["HasHeader"] = hasHeaders;
+
+        // Extract schema property names for headerless CSV mapping (IMPORT-06)
+        if (!hasHeaders && datasource.JsonSchema != null && datasource.JsonSchema.ElementCount > 0)
+        {
+            try
+            {
+                var schemaJson = datasource.JsonSchema.ToJson();
+                using var schemaDoc = System.Text.Json.JsonDocument.Parse(schemaJson);
+                if (schemaDoc.RootElement.TryGetProperty("properties", out var props))
+                {
+                    var propertyNames = props.EnumerateObject()
+                        .Select(p => p.Name)
+                        .ToArray();
+                    conversionMetadata["SchemaPropertyNames"] = propertyNames;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "[{CorrelationId}] Failed to extract schema property names for headerless CSV",
+                    correlationId);
+            }
+        }
+
+        return conversionMetadata;
+    }
+
+    /// <summary>
     /// Converts file content to JSON using appropriate format converter (text-based files)
     /// </summary>
     private async Task<(string jsonContent, string originalFormat, Dictionary<string, object> metadata)> ConvertToJsonAsync(
         string fileContent,
         string fileName,
-        string correlationId)
+        string correlationId,
+        DataProcessingDataSource? datasource = null)
     {
         // Convert text content to bytes for the stream-based converter
         var contentBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
-        return await ConvertToJsonFromBytesAsync(contentBytes, fileName, correlationId);
+        return await ConvertToJsonFromBytesAsync(contentBytes, fileName, correlationId, datasource);
     }
 
     /// <summary>
@@ -463,7 +531,8 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
     private async Task<(string jsonContent, string originalFormat, Dictionary<string, object> metadata)> ConvertToJsonFromBytesAsync(
         byte[] contentBytes,
         string fileName,
-        string correlationId)
+        string correlationId,
+        DataProcessingDataSource? datasource = null)
     {
         using var scope = _scopeFactory.CreateScope();
 
@@ -497,10 +566,13 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
                 return (string.Empty, originalFormat, new Dictionary<string, object>());
             }
 
+            // Build conversion metadata from datasource for headerless CSV support (IMPORT-06)
+            var conversionMetadata = BuildConversionMetadata(datasource, correlationId);
+
             // Convert content to JSON using the binary bytes directly
             using (var stream = new MemoryStream(contentBytes))
             {
-                var jsonContent = await converter.ConvertToJsonAsync(stream);
+                var jsonContent = await converter.ConvertToJsonAsync(stream, conversionMetadata);
 
                 // Extract metadata using a fresh stream (converter may have disposed the first one)
                 using var metadataStream = new MemoryStream(contentBytes);
