@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
-import { Typography, Card, Form, Button, Space, Alert, Spin, message, Divider, Tabs, Skeleton } from 'antd';
+import { Typography, Card, Form, Button, Space, Alert, Spin, App, Divider, Tabs, Skeleton } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined } from '@ant-design/icons';
@@ -27,11 +27,13 @@ const DataSourceFormEnhanced: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { message } = App.useApp();
   const cloneData = (location.state as { cloneData?: ClonePayload } | null)?.cloneData;
   const [form] = Form.useForm();
-  
+
   // State
   const [loading, setLoading] = useState<boolean>(false);
+  const [showSaveWarning, setShowSaveWarning] = useState<boolean>(false);
   const [testingConnection, setTestingConnection] = useState<boolean>(false);
   const [connectionTestResult, setConnectionTestResult] = useState<'success' | 'failed' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +87,7 @@ const DataSourceFormEnhanced: React.FC = () => {
     form, jsonSchema, outputConfig, cloneInitialValues, false /* isEditMode */
   );
 
-  // Per-field border injection via DOM attributes (D-13)
+  // Per-field border injection via DOM attributes (D-13, GAP-02)
   useEffect(() => {
     const allRequiredAndRecommended = [...REQUIRED_TABS];
     for (const tabKey of allRequiredAndRecommended) {
@@ -96,12 +98,18 @@ const DataSourceFormEnhanced: React.FC = () => {
       if (!config?.fields) continue;
 
       for (const field of config.fields) {
-        // Find the .ant-form-item containing the field by searching for matching id
         const formItems = container.querySelectorAll('.ant-form-item');
         for (const formItem of formItems) {
-          const el = formItem.querySelector(`[id*="${field.name}"]`) ||
+          // Strategy 1: Match by id (works for Input, TextArea)
+          const byId = formItem.querySelector(`[id*="${field.name}"]`) ||
             formItem.querySelector(`[id$="_${field.name}"]`);
-          if (el) {
+          // Strategy 2: Match by label's htmlFor attribute
+          const label = formItem.querySelector(`label[for*="${field.name}"]`);
+          // Strategy 3: For Select/DatePicker/InputNumber - look for hidden input or select container
+          const selectInput = formItem.querySelector(`input[id*="${field.name}"]`) ||
+            formItem.querySelector(`.ant-select`);
+
+          if (byId || label || (selectInput && formItem.querySelectorAll('.ant-form-item').length === 0)) {
             const status = getFieldStatus(tabKey, field.name);
             (formItem as HTMLElement).setAttribute('data-completeness-status', status);
             break;
@@ -258,9 +266,11 @@ const DataSourceFormEnhanced: React.FC = () => {
       }
 
       // D-16: Auto-disable if completeness check fails
+      // D-27/GAP-04: Show inline save warning with missing fields
       let isActive = values.isActive ?? true;
       if (!completeness.isFullyComplete) {
         isActive = false;
+        setShowSaveWarning(true);
         message.info(t('completeness.autoDisabled'));
       }
 
@@ -523,6 +533,29 @@ const DataSourceFormEnhanced: React.FC = () => {
                 />
 
                 <Divider />
+
+                {/* GAP-04: Save feedback with missing fields */}
+                {showSaveWarning && !completeness.isFullyComplete && (
+                  <Alert
+                    type="warning"
+                    showIcon
+                    closable
+                    onClose={() => setShowSaveWarning(false)}
+                    message={t('completeness.saveWarningTitle')}
+                    description={
+                      <div>
+                        <div>{t('completeness.saveWarningMessage')}</div>
+                        <ul style={{ margin: '4px 0 0', paddingInlineStart: 16 }}>
+                          {completeness.missingFields.map((f) => (
+                            <li key={f}>{t(`completeness.fieldLabels.${f}`, { defaultValue: f })}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    }
+                    style={{ marginBottom: 16 }}
+                  />
+                )}
+
                 <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
                   <Space size="middle">
                     <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={loading} disabled={connectionTestResult === 'failed'}>

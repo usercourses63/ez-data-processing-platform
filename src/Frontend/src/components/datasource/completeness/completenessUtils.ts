@@ -22,6 +22,9 @@ export function checkDataSourceCompleteness(ds: any): {
   missingFields: string[];
   requiredPercent: number;
 } {
+  // Defensive guard for null/undefined datasource (list API may return minimal data)
+  if (!ds) return { isComplete: false, missingFields: ['unknown'], requiredPercent: 0 };
+
   const missingFields: string[] = [];
 
   // Parse configuration settings

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Space, Table, Card, Alert, Spin, Tag, Popconfirm, App, Select, Tooltip } from 'antd';
+import { Typography, Button, Space, Table, Card, Alert, Spin, Tag, Popconfirm, App, Select, Tooltip, Progress } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ThunderboltOutlined, ClockCircleOutlined, FilterOutlined, CopyOutlined, PoweroffOutlined } from '@ant-design/icons';
@@ -347,12 +347,24 @@ const DataSourceList: React.FC = () => {
       title: t('datasources.fields.status', { defaultValue: 'סטטוס' }),
       dataIndex: 'IsActive',
       key: 'status',
-      width: 100,
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'default'}>
-          {isActive ? t('datasources.status.active', { defaultValue: 'פעיל' }) : t('datasources.status.inactive', { defaultValue: 'לא פעיל' })}
-        </Tag>
-      ),
+      width: 150,
+      render: (isActive: boolean, record: DataSource) => {
+        const { requiredPercent } = checkDataSourceCompleteness(record);
+        return (
+          <Space size={8}>
+            <Progress
+              type="circle"
+              percent={requiredPercent}
+              size={24}
+              strokeColor={requiredPercent === 100 ? '#52c41a' : '#ff4d4f'}
+              format={() => ''}
+            />
+            <Tag color={isActive ? 'success' : 'default'}>
+              {isActive ? t('datasources.status.active', { defaultValue: 'פעיל' }) : t('datasources.status.inactive', { defaultValue: 'לא פעיל' })}
+            </Tag>
+          </Space>
+        );
+      },
     },
     {
       title: 'Schema',
