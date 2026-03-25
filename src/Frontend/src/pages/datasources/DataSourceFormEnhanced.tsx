@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined } from '@ant-design/icons';
 import { type JSONSchema } from 'jsonjoy-builder';
 import type { OutputConfiguration, ClonePayload } from '../../components/datasource/shared/types';
+import type { ImportData } from '../../utils/fileAnalyzer/types';
 import { buildConnectionString, frequencyToCron } from '../../components/datasource/shared/helpers';
 import { DEFAULT_FORM_VALUES } from '../../components/datasource/shared/constants';
 import { useCompletenessTracker, CompletenessPanel, TAB_FIELD_CONFIG, REQUIRED_TABS, RECOMMENDED_TABS, OPTIONAL_TABS } from '../../components/datasource/completeness';
@@ -29,6 +30,7 @@ const DataSourceFormEnhanced: React.FC = () => {
   const location = useLocation();
   const { message } = App.useApp();
   const cloneData = (location.state as { cloneData?: ClonePayload } | null)?.cloneData;
+  const importData = (location.state as { importData?: ImportData } | null)?.importData;
   const [form] = Form.useForm();
 
   // State
@@ -83,8 +85,27 @@ const DataSourceFormEnhanced: React.FC = () => {
     };
   }, [cloneData]);
 
+  // Import initial values for completeness tracker (lazy-loaded tab support, Pitfall 4)
+  const importInitialValues = useMemo(() => {
+    if (!importData) return undefined;
+    return {
+      name: importData.name,
+      fileType: importData.fileType,
+      encoding: importData.encoding,
+      hasHeaders: importData.hasHeaders ?? true,
+      csvDelimiter: importData.csvDelimiter || ',',
+      filePattern: importData.filePattern,
+      ...(importData.isArchiveSource ? {
+        isArchiveSource: true,
+        archiveType: importData.archiveType,
+        archivePassword: importData.archivePassword,
+        extractionPattern: importData.extractionPattern,
+      } : {}),
+    };
+  }, [importData]);
+
   const { completeness, recalculate, getFieldStatus } = useCompletenessTracker(
-    form, jsonSchema, outputConfig, cloneInitialValues, false /* isEditMode */
+    form, jsonSchema, outputConfig, cloneInitialValues || importInitialValues, false /* isEditMode */
   );
 
   // Per-field border injection via DOM attributes (D-13, GAP-02)
@@ -201,6 +222,38 @@ const DataSourceFormEnhanced: React.FC = () => {
     setConnectionTestResult(null);
   }, [cloneData]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Populate form from import data (if navigated from Import from File flow, per D-05, D-20)
+  React.useEffect(() => {
+    if (!importData) return;
+
+    const formValues: Record<string, any> = {
+      // Basic Info tab (D-20)
+      name: importData.name,
+      // File Settings tab (D-20)
+      fileType: importData.fileType,
+      encoding: importData.encoding,
+      hasHeaders: importData.hasHeaders ?? true,
+      csvDelimiter: importData.csvDelimiter || ',',
+      // Connection tab (D-20)
+      filePattern: importData.filePattern,
+    };
+
+    // Archive settings (D-17, D-18, D-20)
+    if (importData.isArchiveSource) {
+      formValues.isArchiveSource = true;
+      formValues.archiveType = importData.archiveType;
+      formValues.archivePassword = importData.archivePassword;
+      formValues.extractionPattern = importData.extractionPattern;
+    }
+
+    form.setFieldsValue(formValues);
+
+    // Schema tab (D-20)
+    if (importData.jsonSchema && Object.keys(importData.jsonSchema).length > 0) {
+      setJsonSchema(importData.jsonSchema);
+    }
+  }, [importData]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Handlers
   const handleSchemaChange = (newSchema: JSONSchema) => {
     setJsonSchema(newSchema);
@@ -264,6 +317,20 @@ const DataSourceFormEnhanced: React.FC = () => {
       scheduleFrequency: cloneData.schedule?.frequency || 'Manual',
       cronExpression: cloneData.schedule?.cronExpression || '',
       ...rawValues, // User-edited values override clone defaults
+    } : importData ? {
+      // Merge import data for lazy-loaded tab fields (Pitfall 4)
+      fileType: importData.fileType,
+      encoding: importData.encoding,
+      hasHeaders: importData.hasHeaders ?? true,
+      csvDelimiter: importData.csvDelimiter || ',',
+      filePattern: importData.filePattern,
+      ...(importData.isArchiveSource ? {
+        isArchiveSource: true,
+        archiveType: importData.archiveType,
+        archivePassword: importData.archivePassword,
+        extractionPattern: importData.extractionPattern,
+      } : {}),
+      ...rawValues, // User-edited values override import defaults
     } : rawValues;
 
     try {
@@ -403,7 +470,11 @@ const DataSourceFormEnhanced: React.FC = () => {
       <div className="page-header">
         <div>
           <Title level={2} style={{ margin: 0 }}>
-            {cloneData ? t('datasources.clone.confirmTitle', { defaultValue: 'שכפול מקור נתונים' }) : t('datasources.create')}
+            {importData
+              ? t('datasources.import.formTitle', { name: importData.name })
+              : cloneData
+                ? t('datasources.clone.confirmTitle', { defaultValue: 'שכפול מקור נתונים' })
+                : t('datasources.create')}
           </Title>
           <Paragraph className="page-subtitle">
             צור מקור נתונים חדש עם הגדרות מלאות לחיבור, עיבוד, ותזמון
