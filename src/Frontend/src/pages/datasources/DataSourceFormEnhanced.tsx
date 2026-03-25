@@ -89,31 +89,35 @@ const DataSourceFormEnhanced: React.FC = () => {
 
   // Per-field border injection via DOM attributes (D-13, GAP-02)
   useEffect(() => {
-    const allRequiredAndRecommended = [...REQUIRED_TABS];
-    for (const tabKey of allRequiredAndRecommended) {
+    // Apply to ALL tabs that have fields config (required + recommended + optional)
+    for (const [tabKey, config] of Object.entries(TAB_FIELD_CONFIG)) {
+      if (!config?.fields) continue;
+
       const container = document.querySelector(`[data-tab-key="${tabKey}"]`);
       if (!container) continue;
 
-      const config = TAB_FIELD_CONFIG[tabKey];
-      if (!config?.fields) continue;
+      const formItems = container.querySelectorAll(':scope > .ant-form-item, .ant-form-item');
+      const matchedFields = new Set<Element>();
 
+      // First pass: match configured fields to form items
       for (const field of config.fields) {
-        const formItems = container.querySelectorAll('.ant-form-item');
         for (const formItem of formItems) {
-          // Strategy 1: Match by id (works for Input, TextArea)
-          const byId = formItem.querySelector(`[id*="${field.name}"]`) ||
-            formItem.querySelector(`[id$="_${field.name}"]`);
-          // Strategy 2: Match by label's htmlFor attribute
-          const label = formItem.querySelector(`label[for*="${field.name}"]`);
-          // Strategy 3: For Select/DatePicker/InputNumber - look for hidden input or select container
-          const selectInput = formItem.querySelector(`input[id*="${field.name}"]`) ||
-            formItem.querySelector(`.ant-select`);
-
-          if (byId || label || (selectInput && formItem.querySelectorAll('.ant-form-item').length === 0)) {
+          if (matchedFields.has(formItem)) continue;
+          const byId = formItem.querySelector(`[id="${field.name}"], [id*="${field.name}"]`);
+          const label = formItem.querySelector(`label[for="${field.name}"], label[for*="${field.name}"]`);
+          if (byId || label) {
             const status = getFieldStatus(tabKey, field.name);
             (formItem as HTMLElement).setAttribute('data-completeness-status', status);
+            matchedFields.add(formItem);
             break;
           }
+        }
+      }
+
+      // Second pass: mark unmatched form items as optional (gray borders)
+      for (const formItem of formItems) {
+        if (!matchedFields.has(formItem) && !(formItem as HTMLElement).getAttribute('data-completeness-status')) {
+          (formItem as HTMLElement).setAttribute('data-completeness-status', 'optional-empty');
         }
       }
     }
@@ -558,7 +562,9 @@ const DataSourceFormEnhanced: React.FC = () => {
 
                 <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
                   <Space size="middle">
-                    <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={loading} disabled={connectionTestResult === 'failed'}>
+                    <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={loading} disabled={connectionTestResult === 'failed'}
+                      onClick={() => { if (!completeness.isFullyComplete) setShowSaveWarning(true); }}
+                    >
                       {t('common.create')}
                     </Button>
                     <Button size="large" onClick={() => navigate('/datasources')} disabled={loading}>

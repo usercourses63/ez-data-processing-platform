@@ -351,18 +351,23 @@ const DataSourceList: React.FC = () => {
       render: (isActive: boolean, record: DataSource) => {
         const { requiredPercent } = checkDataSourceCompleteness(record);
         return (
-          <Space size={8}>
-            <Progress
-              type="circle"
-              percent={requiredPercent}
-              size={24}
-              strokeColor={requiredPercent === 100 ? '#52c41a' : '#ff4d4f'}
-              format={() => ''}
-            />
-            <Tag color={isActive ? 'success' : 'default'}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <Tag color={isActive ? 'success' : 'default'} style={{ margin: 0 }}>
               {isActive ? t('datasources.status.active', { defaultValue: 'פעיל' }) : t('datasources.status.inactive', { defaultValue: 'לא פעיל' })}
             </Tag>
-          </Space>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Progress
+                type="circle"
+                percent={requiredPercent}
+                size={20}
+                strokeColor={requiredPercent === 100 ? '#52c41a' : requiredPercent >= 50 ? '#faad14' : '#ff4d4f'}
+                format={() => ''}
+              />
+              <span style={{ fontSize: 11, color: requiredPercent === 100 ? '#52c41a' : '#8c8c8c' }}>
+                {requiredPercent}%
+              </span>
+            </div>
+          </div>
         );
       },
     },
