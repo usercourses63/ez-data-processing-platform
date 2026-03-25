@@ -117,15 +117,16 @@ function computeCompleteness(
         }
       }
     } else if (config.nonFormCheck) {
-      // Non-form tab: use custom check function
+      // Non-form tab: use custom check function (returns true, or string reason on failure)
       totalCount = 1;
       const result = config.nonFormCheck(jsonSchema, outputConfig, allValues);
-      filledCount = result ? 1 : 0;
-      isComplete = result;
+      const passed = result === true;
+      filledCount = passed ? 1 : 0;
+      isComplete = passed;
 
-      // Track missing for required non-form tabs
-      if ((REQUIRED_TABS as readonly string[]).includes(tabKey) && !isComplete) {
-        missingFields.push(tabKey);
+      // Track missing for required non-form tabs — use specific reason if available
+      if ((REQUIRED_TABS as readonly string[]).includes(tabKey) && !passed) {
+        missingFields.push(typeof result === 'string' ? result : tabKey);
       }
     }
 

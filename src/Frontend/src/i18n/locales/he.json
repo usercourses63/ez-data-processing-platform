@@ -659,6 +659,13 @@
       "headerlessInfo": "CSV ללא כותרות ממפה עמודות לפי סדר — שדה ראשון בסכמה = עמודה ראשונה, שני = שנייה וכו'",
       "incompatible": "מבנה הסכמה אינו תואם לסוג הקובץ שנבחר"
     },
+    "schemaErrors": {
+      "noSchema": "לא הוגדרה סכמה",
+      "noProperties": "הסכמה לא מכילה שדות",
+      "untypedProperties": "ישנם שדות בסכמה ללא הגדרת סוג",
+      "alignmentMismatch": "מבנה הסכמה לא תואם לסוג הקובץ",
+      "invalidSchema": "הסכמה אינה תקינה לפי תקן JSON Schema"
+    },
     "missingFieldsTitle": "שדות חובה חסרים:",
     "saveWarningTitle": "מקור נתונים לא שלם",
     "saveWarningMessage": "השדות הנדרשים הבאים חסרים. מקור הנתונים יישמר כמושבת:",

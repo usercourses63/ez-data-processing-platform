@@ -32,9 +32,9 @@ export interface TabFieldConfig {
   /**
    * Non-form completeness check (for schema, output, metrics tabs).
    * Receives jsonSchema, outputConfig, and optionally formValues.
-   * Returns true if the tab is considered complete.
+   * Returns true if complete, or a string reason if incomplete (i18n key).
    */
-  nonFormCheck?: (jsonSchema: any, outputConfig: any, formValues?: Record<string, any>) => boolean;
+  nonFormCheck?: (jsonSchema: any, outputConfig: any, formValues?: Record<string, any>) => boolean | string;
 }
 
 /** Completeness status for a single tab */

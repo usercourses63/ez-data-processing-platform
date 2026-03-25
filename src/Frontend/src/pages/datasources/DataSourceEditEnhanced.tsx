@@ -136,9 +136,13 @@ const DataSourceEditEnhanced: React.FC = () => {
     return () => clearTimeout(timer);
   }, [completeness, applyFieldBorders, activeTab]);
 
-  // Handlers
+  // Handlers — debounce schema changes to prevent tab flickering (re-renders)
+  const schemaChangeTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleSchemaChange = (newSchema: JSONSchema) => {
-    setJsonSchema(newSchema);
+    if (schemaChangeTimerRef.current) clearTimeout(schemaChangeTimerRef.current);
+    schemaChangeTimerRef.current = setTimeout(() => {
+      setJsonSchema(newSchema);
+    }, 300);
   };
 
   const handleCronHelperSelect = (expression: string) => {

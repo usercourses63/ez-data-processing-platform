@@ -222,7 +222,9 @@ export const CompletenessPanel: React.FC<CompletenessPanelProps> = ({
           <ul style={{ margin: 0, paddingInlineStart: 16, fontSize: 11 }}>
             {completeness.missingFields.map((field) => (
               <li key={field} style={{ color: '#ff4d4f' }}>
-                {t(`completeness.fieldLabels.${field}`, { defaultValue: field })}
+                {field.startsWith('completeness.')
+                  ? t(field)
+                  : t(`completeness.fieldLabels.${field}`, { defaultValue: field })}
               </li>
             ))}
           </ul>

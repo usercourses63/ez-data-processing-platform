@@ -159,29 +159,29 @@ export const TAB_FIELD_CONFIG: Record<string, TabFieldConfig> = {
 
   schema: {
     tier: 'required',
-    nonFormCheck: (jsonSchema: any, _outputConfig: any, formValues?: Record<string, any>) => {
+    nonFormCheck: (jsonSchema: any, _outputConfig: any, formValues?: Record<string, any>): boolean | string => {
       // D-11: At least 1 property with a type defined
       const properties = jsonSchema?.properties;
-      if (!properties) return false;
+      if (!properties) return 'completeness.schemaErrors.noSchema';
 
       const propEntries = Object.entries(properties);
-      if (propEntries.length === 0) return false;
+      if (propEntries.length === 0) return 'completeness.schemaErrors.noProperties';
 
       // Every TOP-LEVEL property must have a `type` defined
       const allTyped = propEntries.every(([, prop]: [string, any]) => prop.type !== undefined);
-      if (!allTyped) return false;
+      if (!allTyped) return 'completeness.schemaErrors.untypedProperties';
 
       // D-22/D-23: Schema-filetype alignment check
       const fileType = formValues?.fileType;
       const hasHeaders = formValues?.hasHeaders;
       const alignment = checkSchemaFileTypeAlignment(jsonSchema, fileType, hasHeaders);
-      if (!alignment.isAligned) return false;
+      if (!alignment.isAligned) return alignment.reason || 'completeness.schemaErrors.alignmentMismatch';
 
       // D-11: Full JSON Schema 2020-12 validation via AJV compilation
       try {
         schemaAjv.compile(jsonSchema);
       } catch {
-        return false;
+        return 'completeness.schemaErrors.invalidSchema';
       }
 
       return true;

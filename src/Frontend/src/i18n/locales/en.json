@@ -218,6 +218,13 @@
       "headerlessInfo": "CSV without headers maps columns by position - 1st schema field = 1st column, 2nd = 2nd, etc.",
       "incompatible": "Schema structure is not compatible with the selected file type"
     },
+    "schemaErrors": {
+      "noSchema": "No schema defined",
+      "noProperties": "Schema has no properties",
+      "untypedProperties": "Schema has properties without type definition",
+      "alignmentMismatch": "Schema structure does not match the file type",
+      "invalidSchema": "Schema is not a valid JSON Schema"
+    },
     "missingFieldsTitle": "Missing required fields:",
     "saveWarningTitle": "Incomplete datasource",
     "saveWarningMessage": "The following required fields are missing. The datasource will be saved as disabled:",

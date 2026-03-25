@@ -357,9 +357,12 @@ const DataSourceList: React.FC = () => {
       width: 150,
       render: (isActive: boolean, record: DataSource) => {
         const { requiredPercent, missingFields } = checkDataSourceCompleteness(record);
+        const translatedMissing = missingFields.map(f =>
+          f.startsWith('completeness.') ? t(f) : t(`completeness.fieldLabels.${f}`, { defaultValue: f })
+        );
         const tooltipText = requiredPercent === 100
           ? t('completeness.allComplete', { defaultValue: 'All required fields complete' })
-          : `${t('completeness.missingFields', { defaultValue: 'Missing fields' })}: ${missingFields.join(', ')}`;
+          : `${t('completeness.missingFields', { defaultValue: 'Missing fields' })}: ${translatedMissing.join(', ')}`;
         return (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <Tag color={isActive ? 'success' : 'default'} style={{ margin: 0 }}>
