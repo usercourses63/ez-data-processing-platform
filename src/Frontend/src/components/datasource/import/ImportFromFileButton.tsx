@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { Button, Upload, App } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { FileAddOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ImportData } from '../../../utils/fileAnalyzer/types';
 import type { ArchiveResult } from '../../../utils/fileAnalyzer/archiveHandler';
@@ -82,8 +82,8 @@ const ImportFromFileButton: React.FC<ImportFromFileButtonProps> = ({
       accept=".csv,.json,.xml,.xlsx,.xls,.zip,.tar.gz,.rar,.7z"
       disabled={loading}
     >
-      <Button icon={<UploadOutlined />} loading={loading}>
-        {t('datasources.importFromFile')}
+      <Button type="primary" icon={<FileAddOutlined />} loading={loading} style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }}>
+        {t('datasources.import.newFromFile', { defaultValue: 'מקור נתונים חדש מקובץ' })}
       </Button>
     </Upload>
   );

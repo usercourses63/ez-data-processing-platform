@@ -181,7 +181,7 @@
       "output": "Output",
       "metrics": "Metrics"
     },
-    "importFromFile": "Upload File",
+    "importFromFile": "New Datasource from File",
     "import": {
       "previewTitle": "Import Preview",
       "totalRows": "Total: {{count}} rows",
