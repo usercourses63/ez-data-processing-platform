@@ -75,6 +75,29 @@ test.describe('Backend Archive API', () => {
       expect(data.Files.length).toBe(3);
     });
 
+    test('RAR: analyze lists all files', async ({ request }) => {
+      const response = await request.post('/api/v1/archive/analyze', {
+        multipart: { file: { name: 'test.rar', mimeType: 'application/x-rar-compressed', buffer: readFixture('import-test-archive.rar') } },
+      });
+      expect(response.ok()).toBeTruthy();
+      const data = await response.json();
+      expect(data.ArchiveType).toBe('rar');
+      expect(data.Files.length).toBe(3);
+    });
+
+    test('RAR: extract returns correct CSV content', async ({ request }) => {
+      const response = await request.post('/api/v1/archive/extract', {
+        multipart: {
+          file: { name: 'test.rar', mimeType: 'application/x-rar-compressed', buffer: readFixture('import-test-archive.rar') },
+          filename: 'archive-test.csv',
+        },
+      });
+      expect(response.ok()).toBeTruthy();
+      const content = await response.text();
+      expect(content).toContain('id,name,age,city');
+      expect(content).toContain('Alice');
+    });
+
     test('ZIP: extract returns correct CSV content', async ({ request }) => {
       const response = await request.post('/api/v1/archive/extract', {
         multipart: {
@@ -134,6 +157,40 @@ test.describe('Backend Archive API', () => {
       expect(response.ok()).toBeTruthy();
       const data = await response.json();
       expect(data.IsEncrypted).toBe(true);
+    });
+
+    test('Encrypted RAR: detects encryption without password', async ({ request }) => {
+      const response = await request.post('/api/v1/archive/analyze', {
+        multipart: { file: { name: 'enc.rar', mimeType: 'application/x-rar-compressed', buffer: readFixture('import-test-encrypted.rar') } },
+      });
+      expect(response.ok()).toBeTruthy();
+      const data = await response.json();
+      expect(data.IsEncrypted).toBe(true);
+    });
+
+    test('Encrypted RAR: extraction fails without password (400)', async ({ request }) => {
+      const response = await request.post('/api/v1/archive/extract', {
+        multipart: {
+          file: { name: 'enc.rar', mimeType: 'application/x-rar-compressed', buffer: readFixture('import-test-encrypted.rar') },
+          filename: 'archive-test.csv',
+        },
+      });
+      expect(response.status()).toBe(400);
+      const data = await response.json();
+      expect(data.message).toContain('password');
+    });
+
+    test('Encrypted RAR: extraction succeeds with correct password', async ({ request }) => {
+      const response = await request.post('/api/v1/archive/extract', {
+        multipart: {
+          file: { name: 'enc.rar', mimeType: 'application/x-rar-compressed', buffer: readFixture('import-test-encrypted.rar') },
+          filename: 'archive-test.csv',
+          password: 'test123',
+        },
+      });
+      expect(response.ok()).toBeTruthy();
+      const content = await response.text();
+      expect(content).toContain('Alice');
     });
 
     test('Encrypted ZIP: extraction fails without password (400)', async ({ request }) => {
@@ -263,6 +320,19 @@ test.describe('UI Archive Import', () => {
   test('7Z: shows file selector via backend API', async ({ page }) => {
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(path.join(TEST_DATA_DIR, 'import-test-archive.7z'));
+
+    const modal = page.locator('.ant-modal');
+    await expect(modal).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(3000);
+
+    const text = await modal.textContent();
+    expect(text).toContain('archive-test.csv');
+    expect(text).toContain('archive-test.json');
+  });
+
+  test('RAR: shows file selector via backend API', async ({ page }) => {
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles(path.join(TEST_DATA_DIR, 'import-test-archive.rar'));
 
     const modal = page.locator('.ant-modal');
     await expect(modal).toBeVisible({ timeout: 15000 });

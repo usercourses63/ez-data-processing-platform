@@ -216,6 +216,13 @@ public class ArchiveController : ControllerBase
             _logger.LogError(ex, "Error extracting from archive: {FileName}", file.FileName);
             return BadRequest(new { message = $"Archive error: {ex.Message}" });
         }
+        catch (Exception ex) when (
+            ex.Message.Contains("password", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("encrypted", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning(ex, "Password required for extraction from: {FileName}", file.FileName);
+            return BadRequest(new { message = "Invalid or missing password for encrypted archive" });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error extracting from archive: {FileName}", file.FileName);

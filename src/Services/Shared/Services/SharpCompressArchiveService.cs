@@ -277,9 +277,12 @@ public class SharpCompressArchiveService : IArchiveService
         {
             throw new ArchivePasswordException("Invalid or missing password for encrypted archive", ex);
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("password", StringComparison.OrdinalIgnoreCase))
+        catch (Exception ex) when (
+            ex.Message.Contains("password", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("encrypted", StringComparison.OrdinalIgnoreCase))
         {
-            throw new ArchivePasswordException(ex.Message, ex);
+            throw new ArchivePasswordException(
+                "Invalid or missing password for encrypted archive", ex);
         }
     }
 
