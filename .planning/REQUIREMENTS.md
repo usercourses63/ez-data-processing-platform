@@ -15,7 +15,7 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 
 ### Import from File
 
-- [ ] **IMPORT-01**: User can upload a sample data file (CSV, JSON, XML) to auto-fill datasource form fields
+- [x] **IMPORT-01**: User can upload a sample data file (CSV, JSON, XML) to auto-fill datasource form fields
 - [ ] **IMPORT-02**: System infers JSON Schema 2020-12 from file content with type detection (integer, number, boolean, date, string)
 - [ ] **IMPORT-03**: CSV files without headers generate synthetic field names (field_1, field_2, ... field_N)
 - [ ] **IMPORT-04**: System applies smart constraints via schemaAutoSuggest (email format, phone patterns, date formats, etc.)
@@ -72,7 +72,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLONE-01 | Phase 25 | Complete |
 | CLONE-02 | Phase 25 | Complete |
 | CLONE-03 | Phase 25 | Complete |
-| IMPORT-01 | Phase 27 | Pending |
+| IMPORT-01 | Phase 27 | Complete |
 | IMPORT-02 | Phase 27 | Pending |
 | IMPORT-03 | Phase 27 | Pending |
 | IMPORT-04 | Phase 27 | Pending |
