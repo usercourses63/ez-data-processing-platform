@@ -621,6 +621,26 @@
       "notifications": "התראות",
       "output": "פלט",
       "metrics": "מדדים"
+    },
+    "importFromFile": "העלאת קובץ",
+    "import": {
+      "previewTitle": "תצוגה מקדימה של ייבוא",
+      "totalRows": "סה\"כ: {{count}} שורות",
+      "continue": "המשך",
+      "cancel": "ביטול",
+      "firstRowIsHeaders": "השורה הראשונה היא כותרות",
+      "editFieldNames": "ערוך שמות שדות",
+      "fieldName": "שם שדה",
+      "fileInfo": "מידע על הקובץ",
+      "extractedFields": "שדות שזוהו",
+      "selectFile": "בחר קובץ לניתוח",
+      "enterPassword": "הזן סיסמת ארכיון",
+      "analyzeSelected": "נתח קובץ נבחר",
+      "fileTooLarge": "הקובץ גדול מדי (מקסימום 10MB)",
+      "unsupportedFormat": "פורמט קובץ לא נתמך",
+      "parseError": "שגיאה בניתוח הקובץ",
+      "formTitle": "ייבוא: {{name}}",
+      "noDataFilesInArchive": "לא נמצאו קבצי נתונים נתמכים בארכיון"
     }
   },
   "completeness": {

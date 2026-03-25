@@ -180,6 +180,26 @@
       "notifications": "Notifications",
       "output": "Output",
       "metrics": "Metrics"
+    },
+    "importFromFile": "Upload File",
+    "import": {
+      "previewTitle": "Import Preview",
+      "totalRows": "Total: {{count}} rows",
+      "continue": "Continue",
+      "cancel": "Cancel",
+      "firstRowIsHeaders": "First row is headers",
+      "editFieldNames": "Edit field names",
+      "fieldName": "Field name",
+      "fileInfo": "File Information",
+      "extractedFields": "Extracted Fields",
+      "selectFile": "Select file to analyze",
+      "enterPassword": "Enter archive password",
+      "analyzeSelected": "Analyze Selected File",
+      "fileTooLarge": "File too large (max 10MB)",
+      "unsupportedFormat": "Unsupported file format",
+      "parseError": "Error parsing file",
+      "formTitle": "Import: {{name}}",
+      "noDataFilesInArchive": "No supported data files found in archive"
     }
   },
   "completeness": {

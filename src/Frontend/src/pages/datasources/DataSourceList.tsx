@@ -7,6 +7,10 @@ import type { ColumnsType } from 'antd/es/table';
 import { humanizeCron, prepareCloneData } from '../../components/datasource/shared/helpers';
 import { getAllCategories } from '../../services/categories-api-client';
 import { checkDataSourceCompleteness } from '../../components/datasource/completeness/completenessUtils';
+import type { ImportData } from '../../utils/fileAnalyzer/types';
+import type { ArchiveResult } from '../../utils/fileAnalyzer/archiveHandler';
+import ImportFromFileButton from '../../components/datasource/import/ImportFromFileButton';
+import ImportPreviewModal from '../../components/datasource/import/ImportPreviewModal';
 
 const { Title, Paragraph } = Typography;
 const { Option } = Select;
@@ -85,6 +89,9 @@ const DataSourceList: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [importData, setImportData] = useState<ImportData | null>(null);
+  const [archiveResult, setArchiveResult] = useState<ArchiveResult | null>(null);
 
   // Fetch categories for filter dropdown
   useEffect(() => {
@@ -700,6 +707,18 @@ const DataSourceList: React.FC = () => {
           >
             {t('datasources.create')}
           </Button>
+          <ImportFromFileButton
+            onAnalysisComplete={(data) => {
+              setImportData(data);
+              setArchiveResult(null);
+              setPreviewModalVisible(true);
+            }}
+            onArchiveDetected={(result) => {
+              setArchiveResult(result);
+              setImportData(null);
+              setPreviewModalVisible(true);
+            }}
+          />
         </Space>
       </div>
 
@@ -736,6 +755,23 @@ const DataSourceList: React.FC = () => {
           />
         </Spin>
       </Card>
+
+      <ImportPreviewModal
+        visible={previewModalVisible}
+        importData={importData}
+        archiveResult={archiveResult}
+        onContinue={(data) => {
+          setPreviewModalVisible(false);
+          setImportData(null);
+          setArchiveResult(null);
+          navigate('/datasources/new', { state: { importData: data } });
+        }}
+        onCancel={() => {
+          setPreviewModalVisible(false);
+          setImportData(null);
+          setArchiveResult(null);
+        }}
+      />
     </div>
   );
 };
