@@ -260,16 +260,27 @@ public class SharpCompressArchiveService : IArchiveService
                 settings.MaxSingleFileSizeBytes);
         }
 
-        using var entryStream = entry.OpenEntryStream();
-        using var output = new MemoryStream();
+        try
+        {
+            using var entryStream = entry.OpenEntryStream();
+            using var output = new MemoryStream();
 
-        await entryStream.CopyToAsync(output, cancellationToken);
+            await entryStream.CopyToAsync(output, cancellationToken);
 
-        _logger.LogInformation(
-            "Extracted '{EntryPath}' ({Size:N0} bytes) from archive",
-            entryPath, output.Length);
+            _logger.LogInformation(
+                "Extracted '{EntryPath}' ({Size:N0} bytes) from archive",
+                entryPath, output.Length);
 
-        return output.ToArray();
+            return output.ToArray();
+        }
+        catch (CryptographicException ex)
+        {
+            throw new ArchivePasswordException("Invalid or missing password for encrypted archive", ex);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("password", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArchivePasswordException(ex.Message, ex);
+        }
     }
 
     public async Task<IReadOnlyDictionary<string, byte[]>> ExtractMatchingFilesAsync(
