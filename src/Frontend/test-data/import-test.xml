@@ -1,83 +1,149 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<records>
-  <record>
-    <name>Alice Cohen</name>
-    <age>30</age>
-    <email>alice@example.com</email>
-    <phone>0541234567</phone>
-    <price>99.99</price>
-    <active>true</active>
-  </record>
-  <record>
-    <name>Bob Levi</name>
-    <age>25</age>
-    <email>bob@test.com</email>
-    <phone>0529876543</phone>
-    <price>149.50</price>
-    <active>false</active>
-  </record>
-  <record>
-    <name>Charlie David</name>
-    <age>45</age>
-    <email>charlie@mail.org</email>
-    <phone>0501112233</phone>
-    <price>250.00</price>
-    <active>true</active>
-  </record>
-  <record>
-    <name>Dana Katz</name>
-    <age>33</age>
-    <email>dana@company.co.il</email>
-    <phone>0537778899</phone>
-    <price>75.25</price>
-    <active>true</active>
-  </record>
-  <record>
-    <name>Eli Rosen</name>
-    <age>28</age>
-    <email>eli@startup.io</email>
-    <phone>0548765432</phone>
-    <price>320.00</price>
-    <active>false</active>
-  </record>
-  <record>
-    <name>Fiona Green</name>
-    <age>52</age>
-    <email>fiona@work.net</email>
-    <phone>0526543210</phone>
-    <price>55.75</price>
-    <active>true</active>
-  </record>
-  <record>
-    <name>Gadi Mor</name>
-    <age>19</age>
-    <email>gadi@school.edu</email>
-    <phone>0509998877</phone>
-    <price>12.50</price>
-    <active>false</active>
-  </record>
-  <record>
-    <name>Hannah Paz</name>
-    <age>41</age>
-    <email>hannah@org.com</email>
-    <phone>0531234567</phone>
-    <price>180.00</price>
-    <active>true</active>
-  </record>
-  <record>
-    <name>Idan Tal</name>
-    <age>36</age>
-    <email>idan@lab.co.il</email>
-    <phone>0542345678</phone>
-    <price>420.99</price>
-    <active>true</active>
-  </record>
-  <record>
-    <name>Julia Ben</name>
-    <age>22</age>
-    <email>julia@uni.ac.il</email>
-    <phone>0527654321</phone>
-    <price>63.00</price>
-    <active>false</active>
-  </record>
-</records>
+<orders>
+  <order id="ORD-2026-001">
+    <timestamp>2026-03-15T10:30:00Z</timestamp>
+    <customer>
+      <id>CUST-100</id>
+      <name>Alice Cohen</name>
+      <contact>
+        <email>alice@example.com</email>
+        <phone>0541234567</phone>
+      </contact>
+      <address>
+        <street>Herzl 42</street>
+        <city>Tel Aviv</city>
+        <zipCode>6120101</zipCode>
+        <country>IL</country>
+      </address>
+      <loyaltyTier>gold</loyaltyTier>
+    </customer>
+    <items>
+      <item>
+        <sku>PROD-A1</sku>
+        <name>Wireless Mouse</name>
+        <quantity>2</quantity>
+        <unitPrice>49.99</unitPrice>
+        <category>electronics</category>
+      </item>
+      <item>
+        <sku>PROD-B3</sku>
+        <name>USB Cable</name>
+        <quantity>5</quantity>
+        <unitPrice>12.50</unitPrice>
+        <category>accessories</category>
+      </item>
+    </items>
+    <payment>
+      <method>credit_card</method>
+      <currency>ILS</currency>
+      <amounts>
+        <subtotal>162.48</subtotal>
+        <tax>28.43</tax>
+        <total>190.91</total>
+      </amounts>
+      <status>completed</status>
+    </payment>
+    <shipping>
+      <method>express</method>
+      <trackingNumber>IL-TRK-98765</trackingNumber>
+      <estimatedDelivery>2026-03-17</estimatedDelivery>
+    </shipping>
+  </order>
+  <order id="ORD-2026-002">
+    <timestamp>2026-03-15T14:22:00Z</timestamp>
+    <customer>
+      <id>CUST-200</id>
+      <name>Bob Levi</name>
+      <contact>
+        <email>bob@test.com</email>
+        <phone>0529876543</phone>
+      </contact>
+      <address>
+        <street>Ben Yehuda 15</street>
+        <city>Jerusalem</city>
+        <zipCode>9100001</zipCode>
+        <country>IL</country>
+      </address>
+      <loyaltyTier>silver</loyaltyTier>
+    </customer>
+    <items>
+      <item>
+        <sku>PROD-C7</sku>
+        <name>Bluetooth Speaker</name>
+        <quantity>1</quantity>
+        <unitPrice>189.00</unitPrice>
+        <category>electronics</category>
+      </item>
+      <item>
+        <sku>PROD-D2</sku>
+        <name>Phone Case</name>
+        <quantity>3</quantity>
+        <unitPrice>25.00</unitPrice>
+        <category>accessories</category>
+      </item>
+    </items>
+    <payment>
+      <method>paypal</method>
+      <currency>ILS</currency>
+      <amounts>
+        <subtotal>264.00</subtotal>
+        <tax>46.20</tax>
+        <total>310.20</total>
+      </amounts>
+      <status>completed</status>
+    </payment>
+    <shipping>
+      <method>standard</method>
+      <trackingNumber>IL-TRK-54321</trackingNumber>
+      <estimatedDelivery>2026-03-20</estimatedDelivery>
+    </shipping>
+  </order>
+  <order id="ORD-2026-003">
+    <timestamp>2026-03-16T09:15:00Z</timestamp>
+    <customer>
+      <id>CUST-300</id>
+      <name>Dana Katz</name>
+      <contact>
+        <email>dana@company.co.il</email>
+        <phone>0537778899</phone>
+      </contact>
+      <address>
+        <street>Rothschild 88</street>
+        <city>Haifa</city>
+        <zipCode>3100001</zipCode>
+        <country>IL</country>
+      </address>
+      <loyaltyTier>platinum</loyaltyTier>
+    </customer>
+    <items>
+      <item>
+        <sku>PROD-F1</sku>
+        <name>Laptop Stand</name>
+        <quantity>1</quantity>
+        <unitPrice>149.99</unitPrice>
+        <category>office</category>
+      </item>
+      <item>
+        <sku>PROD-G4</sku>
+        <name>Mechanical Keyboard</name>
+        <quantity>1</quantity>
+        <unitPrice>299.00</unitPrice>
+        <category>electronics</category>
+      </item>
+    </items>
+    <payment>
+      <method>bank_transfer</method>
+      <currency>ILS</currency>
+      <amounts>
+        <subtotal>448.99</subtotal>
+        <tax>78.57</tax>
+        <total>527.56</total>
+      </amounts>
+      <status>pending</status>
+    </payment>
+    <shipping>
+      <method>express</method>
+      <estimatedDelivery>2026-03-18</estimatedDelivery>
+    </shipping>
+  </order>
+</orders>

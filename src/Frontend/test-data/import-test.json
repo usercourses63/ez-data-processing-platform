@@ -1,12 +1,124 @@
 [
-  { "name": "Alice Cohen", "age": 30, "email": "alice@example.com", "phone": "0541234567", "price": 99.99, "active": true },
-  { "name": "Bob Levi", "age": 25, "email": "bob@test.com", "phone": "0529876543", "price": 149.50, "active": false },
-  { "name": "Charlie David", "age": 45, "email": "charlie@mail.org", "phone": "0501112233", "price": 250.00, "active": true },
-  { "name": "Dana Katz", "age": 33, "email": "dana@company.co.il", "phone": "0537778899", "price": 75.25, "active": true },
-  { "name": "Eli Rosen", "age": 28, "email": "eli@startup.io", "phone": "0548765432", "price": 320.00, "active": false },
-  { "name": "Fiona Green", "age": 52, "email": "fiona@work.net", "phone": "0526543210", "price": 55.75, "active": true },
-  { "name": "Gadi Mor", "age": 19, "email": "gadi@school.edu", "phone": "0509998877", "price": 12.50, "active": false },
-  { "name": "Hannah Paz", "age": 41, "email": "hannah@org.com", "phone": "0531234567", "price": 180.00, "active": true },
-  { "name": "Idan Tal", "age": 36, "email": "idan@lab.co.il", "phone": "0542345678", "price": 420.99, "active": true },
-  { "name": "Julia Ben", "age": 22, "email": "julia@uni.ac.il", "phone": "0527654321", "price": 63.00, "active": false }
+  {
+    "orderId": "ORD-2026-001",
+    "timestamp": "2026-03-15T10:30:00Z",
+    "customer": {
+      "id": "CUST-100",
+      "name": "Alice Cohen",
+      "email": "alice@example.com",
+      "phone": "0541234567",
+      "address": {
+        "street": "Herzl 42",
+        "city": "Tel Aviv",
+        "zipCode": "6120101",
+        "country": "IL"
+      },
+      "loyaltyTier": "gold"
+    },
+    "items": [
+      { "sku": "PROD-A1", "name": "Wireless Mouse", "quantity": 2, "unitPrice": 49.99, "category": "electronics" },
+      { "sku": "PROD-B3", "name": "USB Cable", "quantity": 5, "unitPrice": 12.50, "category": "accessories" }
+    ],
+    "payment": {
+      "method": "credit_card",
+      "currency": "ILS",
+      "subtotal": 162.48,
+      "tax": 28.43,
+      "total": 190.91,
+      "status": "completed"
+    },
+    "shipping": {
+      "method": "express",
+      "trackingNumber": "IL-TRK-98765",
+      "estimatedDelivery": "2026-03-17"
+    },
+    "metadata": {
+      "source": "web",
+      "sessionId": "sess-abc-123",
+      "userAgent": "Mozilla/5.0"
+    }
+  },
+  {
+    "orderId": "ORD-2026-002",
+    "timestamp": "2026-03-15T14:22:00Z",
+    "customer": {
+      "id": "CUST-200",
+      "name": "Bob Levi",
+      "email": "bob@test.com",
+      "phone": "0529876543",
+      "address": {
+        "street": "Ben Yehuda 15",
+        "city": "Jerusalem",
+        "zipCode": "9100001",
+        "country": "IL"
+      },
+      "loyaltyTier": "silver"
+    },
+    "items": [
+      { "sku": "PROD-C7", "name": "Bluetooth Speaker", "quantity": 1, "unitPrice": 189.00, "category": "electronics" },
+      { "sku": "PROD-D2", "name": "Phone Case", "quantity": 3, "unitPrice": 25.00, "category": "accessories" },
+      { "sku": "PROD-E5", "name": "Screen Protector", "quantity": 2, "unitPrice": 15.00, "category": "accessories" }
+    ],
+    "payment": {
+      "method": "paypal",
+      "currency": "ILS",
+      "subtotal": 294.00,
+      "tax": 51.45,
+      "total": 345.45,
+      "status": "completed"
+    },
+    "shipping": {
+      "method": "standard",
+      "trackingNumber": "IL-TRK-54321",
+      "estimatedDelivery": "2026-03-20"
+    },
+    "metadata": {
+      "source": "mobile_app",
+      "sessionId": "sess-xyz-789",
+      "userAgent": "EZShop/2.1 iOS"
+    }
+  },
+  {
+    "orderId": "ORD-2026-003",
+    "timestamp": "2026-03-16T09:15:00Z",
+    "customer": {
+      "id": "CUST-300",
+      "name": "Dana Katz",
+      "email": "dana@company.co.il",
+      "phone": "0537778899",
+      "address": {
+        "street": "Rothschild 88",
+        "city": "Haifa",
+        "zipCode": "3100001",
+        "country": "IL"
+      },
+      "loyaltyTier": "platinum"
+    },
+    "items": [
+      { "sku": "PROD-F1", "name": "Laptop Stand", "quantity": 1, "unitPrice": 149.99, "category": "office" },
+      { "sku": "PROD-G4", "name": "Mechanical Keyboard", "quantity": 1, "unitPrice": 299.00, "category": "electronics" },
+      { "sku": "PROD-H8", "name": "Monitor Arm", "quantity": 2, "unitPrice": 89.50, "category": "office" },
+      { "sku": "PROD-A1", "name": "Wireless Mouse", "quantity": 1, "unitPrice": 49.99, "category": "electronics" }
+    ],
+    "payment": {
+      "method": "bank_transfer",
+      "currency": "ILS",
+      "subtotal": 677.98,
+      "tax": 118.65,
+      "total": 796.63,
+      "status": "pending"
+    },
+    "shipping": {
+      "method": "express",
+      "trackingNumber": null,
+      "estimatedDelivery": "2026-03-18"
+    },
+    "metadata": {
+      "source": "web",
+      "sessionId": "sess-def-456",
+      "userAgent": "Mozilla/5.0",
+      "referrer": "google.com",
+      "campaign": "spring_sale_2026"
+    }
+  }
 ]
