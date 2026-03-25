@@ -373,7 +373,7 @@ const DataSourceList: React.FC = () => {
                     percent={requiredPercent}
                     size={20}
                     strokeColor={requiredPercent === 100 ? '#52c41a' : requiredPercent >= 50 ? '#faad14' : '#ff4d4f'}
-                    format={() => ''}
+                    showInfo={false}
                   />
                 </div>
                 <span style={{ fontSize: 11, color: requiredPercent === 100 ? '#52c41a' : '#8c8c8c' }}>

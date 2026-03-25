@@ -212,9 +212,13 @@ export function useCompletenessTracker(
    * Uses form.getFieldsValue(true) merged with initialValues.
    */
   useEffect(() => {
-    const merged = getMergedValues();
-    const newState = computeCompleteness(merged, jsonSchema, outputConfig, !!isEditMode);
-    setCompleteness(newState);
+    // Small delay to ensure form.setFieldsValue has propagated (import/clone race condition)
+    const timer = setTimeout(() => {
+      const merged = getMergedValues();
+      const newState = computeCompleteness(merged, jsonSchema, outputConfig, !!isEditMode);
+      setCompleteness(newState);
+    }, 300);
+    return () => clearTimeout(timer);
   }, [jsonSchema, outputConfig, getMergedValues, isEditMode]);
 
   /**

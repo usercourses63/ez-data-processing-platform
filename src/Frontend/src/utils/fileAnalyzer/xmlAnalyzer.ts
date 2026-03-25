@@ -48,7 +48,7 @@ export function analyzeXml(text: string, filename: string, encoding: string): Im
     throw new Error('No repeating record elements found in XML');
   }
 
-  // Extract field names from the first record's child elements
+  // Extract field names from the first record's direct child elements
   const firstRecord = recordElements[0];
   const fieldElements = Array.from(firstRecord.children);
   const fieldNames = fieldElements.map((el) => el.tagName);
@@ -57,24 +57,65 @@ export function analyzeXml(text: string, filename: string, encoding: string): Im
     throw new Error('XML record has no field elements');
   }
 
-  // Extract data rows as string records
+  // Recursively convert XML element to a JS object preserving nesting
+  function xmlElementToObject(el: Element): unknown {
+    const children = Array.from(el.children);
+    if (children.length === 0) {
+      // Leaf node — return text content with type inference
+      const text = el.textContent?.trim() ?? '';
+      // Try to parse as number/boolean
+      if (/^-?\d+$/.test(text)) return parseInt(text, 10);
+      if (/^-?\d+\.\d+$/.test(text)) return parseFloat(text);
+      if (text === 'true') return true;
+      if (text === 'false') return false;
+      return text;
+    }
+
+    // Check if children are repeating elements (array)
+    const tagCounts: Record<string, number> = {};
+    children.forEach((c) => { tagCounts[c.tagName] = (tagCounts[c.tagName] || 0) + 1; });
+    const hasRepeating = Object.values(tagCounts).some((count) => count > 1);
+
+    if (hasRepeating && Object.keys(tagCounts).length === 1) {
+      // All children same tag — this is an array
+      return children.map((c) => xmlElementToObject(c));
+    }
+
+    // Mixed children — nested object
+    const obj: Record<string, unknown> = {};
+    for (const child of children) {
+      if (tagCounts[child.tagName] > 1) {
+        // Repeated tag within mixed content — collect as array
+        if (!obj[child.tagName]) {
+          obj[child.tagName] = children
+            .filter((c) => c.tagName === child.tagName)
+            .map((c) => xmlElementToObject(c));
+        }
+      } else {
+        obj[child.tagName] = xmlElementToObject(child);
+      }
+    }
+    return obj;
+  }
+
+  // Extract data rows as nested objects
   const dataRows = recordElements.map((record) => {
-    const row: Record<string, string> = {};
-    for (const fieldName of fieldNames) {
-      const fieldEl = record.querySelector(`:scope > ${fieldName}`);
-      row[fieldName] = fieldEl?.textContent ?? '';
+    const row: Record<string, unknown> = {};
+    for (const child of Array.from(record.children)) {
+      row[child.tagName] = xmlElementToObject(child);
     }
     return row;
   });
 
-  // Build preview rows (first 5 records, D-09)
-  const previewRows = dataRows.slice(0, PREVIEW_ROW_COUNT).map((row) => ({ ...row }));
+  // Build preview rows (first 5 records, D-09) — preserve nested structure
+  const previewRows = dataRows.slice(0, PREVIEW_ROW_COUNT);
 
   // Generate JSON Schema with auto-suggest (IMPORT-02, IMPORT-04)
-  const jsonSchema = generateJsonSchema(fieldNames, dataRows, true);
+  // Pass raw nested objects so recursive inference works
+  const jsonSchema = generateJsonSchema(fieldNames, dataRows as any, true);
 
-  // Build field types and constraints for preview display (D-10)
-  const fieldTypes = buildFieldTypes(fieldNames, dataRows);
+  // Build field types for preview display (D-10) — shows object/array for nested
+  const fieldTypes = buildFieldTypes(fieldNames, dataRows as any);
   const fieldConstraints = buildFieldConstraints(fieldNames);
 
   // Build XML tree data for collapsible preview (D-11)

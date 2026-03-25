@@ -167,7 +167,7 @@ export const TAB_FIELD_CONFIG: Record<string, TabFieldConfig> = {
       const propEntries = Object.entries(properties);
       if (propEntries.length === 0) return false;
 
-      // Every property must have a `type` defined
+      // Every TOP-LEVEL property must have a `type` defined
       const allTyped = propEntries.every(([, prop]: [string, any]) => prop.type !== undefined);
       if (!allTyped) return false;
 
@@ -178,7 +178,6 @@ export const TAB_FIELD_CONFIG: Record<string, TabFieldConfig> = {
       if (!alignment.isAligned) return false;
 
       // D-11: Full JSON Schema 2020-12 validation via AJV compilation
-      // Catches malformed required arrays, invalid $schema URIs, contradictory constraints, etc.
       try {
         schemaAjv.compile(jsonSchema);
       } catch {

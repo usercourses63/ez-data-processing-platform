@@ -41,7 +41,11 @@ const DataSourceFormEnhanced: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('basic');
   const [cronHelperVisible, setCronHelperVisible] = useState<boolean>(false);
-  const [jsonSchema, setJsonSchema] = useState<JSONSchema>({});
+  const [jsonSchema, setJsonSchema] = useState<JSONSchema>(
+    (importData?.jsonSchema && Object.keys(importData.jsonSchema).length > 0)
+      ? importData.jsonSchema as JSONSchema
+      : {}
+  );
   const [outputConfig, setOutputConfig] = useState<OutputConfiguration>({
     defaultOutputFormat: 'original',
     includeInvalidRecords: false,
@@ -252,6 +256,11 @@ const DataSourceFormEnhanced: React.FC = () => {
     if (importData.jsonSchema && Object.keys(importData.jsonSchema).length > 0) {
       setJsonSchema(importData.jsonSchema);
     }
+
+    // Force completeness recalculation after import state settles
+    setTimeout(() => {
+      recalculate({}, form.getFieldsValue(true));
+    }, 500);
   }, [importData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handlers
