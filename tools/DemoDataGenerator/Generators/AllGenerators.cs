@@ -165,9 +165,11 @@ public class DataSourceGenerator
                         _ => 0
                     },
                     path = filePath,
+                    url = connType == "HTTP" ? $"https://{server?.Host ?? "file-simulator.local"}{filePath}" : (string?)null,
                     inputServerId = server?.ID,
                     nasDeviceId = nasDevice?.ID,
                     nasSubPath = nasDevice != null ? filePath : (string?)null,
+                    topic = connType == "Kafka" ? $"{category}_events" : (string?)null,
                     kafkaBrokers = connType == "Kafka" ? "kafka:9092" : (string?)null,
                     kafkaTopic = connType == "Kafka" ? $"{category}_events" : (string?)null,
                     kafkaConsumerGroup = connType == "Kafka" ? $"dataprocessing_{category}_group" : (string?)null,
@@ -206,6 +208,7 @@ public class DataSourceGenerator
                 SupplierName = DemoConfig.SupplierNames[i % DemoConfig.SupplierNames.Length],
                 FilePath = nasDevice != null ? $"{nasDevice.MountPath}{filePath}" : filePath,
                 CronExpression = cronExpr,
+                ScheduleFrequency = "Custom",
                 JsonSchema = new BsonDocument(),
                 Category = category,
                 SchemaVersion = 1,
@@ -331,11 +334,13 @@ public class SchemaGenerator
     public async Task GenerateForDataSourcesAsync(List<DataProcessingDataSource> datasources)
     {
         Console.WriteLine("[3/7] 📋 Generating complex JSON schemas...");
-        
+
         for (int i = 0; i < datasources.Count; i++)
         {
             var ds = datasources[i];
-            var jsonSchemaContent = GenerateComplexJsonSchema(i, ds.Category);
+            // Determine file type from ConfigurationSettings to ensure schema-filetype alignment
+            var fileType = GetFileTypeFromDataSource(ds);
+            var jsonSchemaContent = GenerateComplexJsonSchema(i, ds.Category, fileType);
             
             // Create separate DataProcessingSchema entity
             var schema = new DataProcessingSchema
@@ -365,9 +370,67 @@ public class SchemaGenerator
         Console.WriteLine($"  ✅ Generated {datasources.Count} complex schemas\n");
     }
     
-    private string GenerateComplexJsonSchema(int index, string category)
+    /// <summary>
+    /// Extract file type from datasource ConfigurationSettings for schema-filetype alignment.
+    /// </summary>
+    private string GetFileTypeFromDataSource(DataProcessingDataSource ds)
     {
-        // Generate truly unique schemas based on index with varying complexity
+        try
+        {
+            var configStr = ds.AdditionalConfiguration?["ConfigurationSettings"]?.AsString;
+            if (string.IsNullOrEmpty(configStr)) return "JSON";
+            var config = Newtonsoft.Json.Linq.JObject.Parse(configStr);
+            return config["fileConfig"]?["type"]?.ToString() ?? "JSON";
+        }
+        catch
+        {
+            return "JSON";
+        }
+    }
+
+    /// <summary>
+    /// Checks if a file type requires flat-only schemas (no nested objects/arrays).
+    /// CSV, XLSX, and TXT produce flat records and cannot represent nesting.
+    /// </summary>
+    private static bool RequiresFlatSchema(string fileType)
+    {
+        var upper = fileType.ToUpperInvariant();
+        return upper is "CSV" or "XLSX" or "TXT" or "EXCEL";
+    }
+
+    private string GenerateComplexJsonSchema(int index, string category, string fileType)
+    {
+        // For CSV/Excel/TXT file types, only use flat schemas (no nested objects or arrays)
+        // to satisfy schema-filetype alignment completeness check (D-22/D-23)
+        if (RequiresFlatSchema(fileType))
+        {
+            return index switch
+            {
+                0 => GenerateSimpleTransactionSchema(category),
+                1 => GenerateFlatUserProfileSchema(category),
+                2 => GenerateFlatProductSchema(category),
+                3 => GenerateFlatEmployeeSchema(category),
+                4 => GenerateFlatFinancialSchema(category),
+                5 => GenerateSurveyResponseSchema(category),
+                6 => GenerateFlatOrderSchema(category),
+                7 => GenerateInventoryItemSchema(category),
+                8 => GenerateFlatCampaignSchema(category),
+                9 => GenerateCustomerSupportTicketSchema(category),
+                10 => GenerateShipmentTrackingSchema(category),
+                11 => GenerateFlatSalesAnalyticsSchema(category),
+                12 => GenerateFlatOperationalPlanSchema(category),
+                13 => GenerateFlatMarketResearchSchema(category),
+                14 => GenerateFlatProcurementSchema(category),
+                15 => GenerateFlatProjectSchema(category),
+                16 => GenerateQualityControlSchema(category),
+                17 => GenerateSupplierOrderSchema(category),
+                18 => GenerateFlatCompetitorSchema(category),
+                19 => GenerateFlatSalesTargetSchema(category),
+                _ => GenerateSimpleTransactionSchema(category)
+            };
+        }
+
+        // For JSON/XML file types, use full schemas with nesting
         return index switch
         {
             0 => GenerateSimpleTransactionSchema(category),
@@ -919,6 +982,267 @@ public class SchemaGenerator
                 ["region"] = new { type = "string" },
                 ["salesPerson"] = new { type = "string" },
                 ["notes"] = new { type = "array", items = new { type = "string" } }
+            },
+            required = new[] { "targetId", "period", "targetAmount" }
+        }, Formatting.None);
+
+    // ============================================================================
+    // Flat schema variants for CSV/Excel/TXT file types (D-22/D-23 alignment)
+    // These schemas only use primitive types (string, number, integer, boolean)
+    // ============================================================================
+
+    private string GenerateFlatUserProfileSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"פרופיל משתמש - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["userId"] = new { type = "string", format = "uuid", description = "מזהה ייחודי של המשתמש" },
+                ["email"] = new { type = "string", format = "email", description = "כתובת דוא\"ל" },
+                ["fullName"] = new { type = "string", minLength = 2, maxLength = 100, description = "שם מלא" },
+                ["birthDate"] = new { type = "string", format = "date", description = "תאריך לידה" },
+                ["language"] = new { type = "string", description = "שפת ממשק" },
+                ["notifications"] = new { type = "boolean", description = "קבלת התראות" }
+            },
+            required = new[] { "userId", "email", "fullName" }
+        }, Formatting.None);
+
+    private string GenerateFlatProductSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"קטלוג מוצרים - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["productId"] = new { type = "string", pattern = "^PRD-[0-9]{6}$", description = "מזהה מוצר ייחודי" },
+                ["name"] = new { type = "string", maxLength = 200, description = "שם המוצר" },
+                ["description"] = new { type = "string", description = "תיאור מפורט של המוצר" },
+                ["price"] = new { type = "number", minimum = 0, description = "מחיר המוצר" },
+                ["stock"] = new { type = "integer", minimum = 0, description = "כמות במלאי" },
+                ["category"] = new { type = "string", description = "קטגוריית המוצר" },
+                ["sku"] = new { type = "string", description = "קוד מלאי" },
+                ["color"] = new { type = "string", description = "צבע" }
+            },
+            required = new[] { "productId", "name", "price", "category" }
+        }, Formatting.None);
+
+    private string GenerateFlatEmployeeSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"רשומת עובד - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["employeeId"] = new { type = "string", pattern = "^EMP\\d{5}$", description = "מספר עובד" },
+                ["firstName"] = new { type = "string", description = "שם פרטי" },
+                ["lastName"] = new { type = "string", description = "שם משפחה" },
+                ["department"] = new { type = "string", description = "מחלקה" },
+                ["position"] = new { type = "string", description = "תפקיד" },
+                ["salary"] = new { type = "number", minimum = 5000, description = "שכר חודשי" },
+                ["isManager"] = new { type = "boolean", description = "האם מנהל" },
+                ["hireDate"] = new { type = "string", format = "date", description = "תאריך קליטה" }
+            },
+            required = new[] { "employeeId", "firstName", "lastName", "department" }
+        }, Formatting.None);
+
+    private string GenerateFlatFinancialSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"דוח כספי - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["reportId"] = new { type = "string", description = "מזהה דוח" },
+                ["fiscalYear"] = new { type = "integer", minimum = 2000, maximum = 2100, description = "שנת כספים" },
+                ["quarter"] = new { type = "integer", minimum = 1, maximum = 4, description = "רבעון" },
+                ["revenue"] = new { type = "number", minimum = 0, description = "הכנסות" },
+                ["expenses"] = new { type = "number", minimum = 0, description = "הוצאות" },
+                ["profit"] = new { type = "number", description = "רווח" },
+                ["currency"] = new { type = "string", description = "מטבע" },
+                ["salesRevenue"] = new { type = "number", description = "הכנסות ממכירות" },
+                ["servicesRevenue"] = new { type = "number", description = "הכנסות משירותים" },
+                ["approved"] = new { type = "boolean", description = "האם אושר" },
+                ["approver"] = new { type = "string", description = "מאשר" }
+            },
+            required = new[] { "reportId", "fiscalYear", "revenue", "expenses" }
+        }, Formatting.None);
+
+    private string GenerateFlatOrderSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"ניהול הזמנה - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["orderId"] = new { type = "string" },
+                ["customerId"] = new { type = "string" },
+                ["orderDate"] = new { type = "string", format = "date-time" },
+                ["productId"] = new { type = "string", description = "מזהה מוצר ראשי" },
+                ["quantity"] = new { type = "integer", minimum = 1, description = "כמות" },
+                ["unitPrice"] = new { type = "number", minimum = 0, description = "מחיר ליחידה" },
+                ["shippingAddress"] = new { type = "string" },
+                ["totalAmount"] = new { type = "number", minimum = 0 },
+                ["paymentMethod"] = new { type = "string" }
+            },
+            required = new[] { "orderId", "customerId", "totalAmount" }
+        }, Formatting.None);
+
+    private string GenerateFlatCampaignSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"קמפיין שיווקי - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["campaignId"] = new { type = "string" },
+                ["name"] = new { type = "string" },
+                ["startDate"] = new { type = "string", format = "date" },
+                ["endDate"] = new { type = "string", format = "date" },
+                ["budget"] = new { type = "number", minimum = 0 },
+                ["channel"] = new { type = "string", description = "ערוץ שיווקי ראשי" },
+                ["targetAge"] = new { type = "string", description = "טווח גילאים" },
+                ["targetLocation"] = new { type = "string", description = "אזור יעד" }
+            },
+            required = new[] { "campaignId", "name", "startDate", "budget" }
+        }, Formatting.None);
+
+    private string GenerateFlatSalesAnalyticsSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"ניתוח מכירות - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["analysisId"] = new { type = "string" },
+                ["period"] = new { type = "string" },
+                ["totalSales"] = new { type = "number" },
+                ["averageOrderValue"] = new { type = "number" },
+                ["conversionRate"] = new { type = "number", minimum = 0, maximum = 100 },
+                ["topProductId"] = new { type = "string", description = "מוצר מוביל" },
+                ["topProductSales"] = new { type = "integer", description = "מכירות מוצר מוביל" }
+            },
+            required = new[] { "analysisId", "period", "totalSales" }
+        }, Formatting.None);
+
+    private string GenerateFlatOperationalPlanSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"תוכנית תפעולית - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["planId"] = new { type = "string" },
+                ["title"] = new { type = "string", maxLength = 150 },
+                ["primaryObjective"] = new { type = "string", description = "יעד ראשי" },
+                ["startDate"] = new { type = "string", format = "date" },
+                ["endDate"] = new { type = "string", format = "date" },
+                ["budget"] = new { type = "number", minimum = 0 },
+                ["responsible"] = new { type = "string" }
+            },
+            required = new[] { "planId", "title", "primaryObjective" }
+        }, Formatting.None);
+
+    private string GenerateFlatMarketResearchSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"מחקר שוק - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["researchId"] = new { type = "string" },
+                ["marketSegment"] = new { type = "string" },
+                ["sampleSize"] = new { type = "integer", minimum = 1 },
+                ["primaryFinding"] = new { type = "string", description = "ממצא עיקרי" },
+                ["methodology"] = new { type = "string" },
+                ["confidenceLevel"] = new { type = "number", minimum = 0, maximum = 100 }
+            },
+            required = new[] { "researchId", "marketSegment", "sampleSize" }
+        }, Formatting.None);
+
+    private string GenerateFlatProcurementSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"הזמנת רכש - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["poNumber"] = new { type = "string", pattern = "^PO-\\d{8}$" },
+                ["supplierId"] = new { type = "string" },
+                ["itemCode"] = new { type = "string", description = "קוד פריט ראשי" },
+                ["itemDescription"] = new { type = "string", description = "תיאור פריט" },
+                ["quantity"] = new { type = "integer", description = "כמות" },
+                ["unitPrice"] = new { type = "number", description = "מחיר ליחידה" },
+                ["deliveryDate"] = new { type = "string", format = "date" },
+                ["totalValue"] = new { type = "number" }
+            },
+            required = new[] { "poNumber", "supplierId", "totalValue" }
+        }, Formatting.None);
+
+    private string GenerateFlatProjectSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"ניהול פרויקט - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["projectId"] = new { type = "string" },
+                ["projectName"] = new { type = "string", maxLength = 200 },
+                ["phase"] = new { type = "string" },
+                ["nextMilestone"] = new { type = "string", description = "אבן דרך הבאה" },
+                ["milestoneDueDate"] = new { type = "string", format = "date", description = "תאריך יעד" },
+                ["riskLevel"] = new { type = "string" }
+            },
+            required = new[] { "projectId", "projectName", "phase" }
+        }, Formatting.None);
+
+    private string GenerateFlatCompetitorSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"ניתוח מתחרים - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["analysisId"] = new { type = "string" },
+                ["competitorName"] = new { type = "string" },
+                ["marketShare"] = new { type = "number", minimum = 0, maximum = 100 },
+                ["primaryStrength"] = new { type = "string", description = "חוזקה עיקרית" },
+                ["primaryWeakness"] = new { type = "string", description = "חולשה עיקרית" },
+                ["averagePrice"] = new { type = "number", description = "מחיר ממוצע" },
+                ["minimumPrice"] = new { type = "number", description = "מחיר מינימלי" },
+                ["maximumPrice"] = new { type = "number", description = "מחיר מקסימלי" }
+            },
+            required = new[] { "analysisId", "competitorName" }
+        }, Formatting.None);
+
+    private string GenerateFlatSalesTargetSchema(string category) =>
+        JsonConvert.SerializeObject(new
+        {
+            schema = "https://json-schema.org/draft/2020-12/schema",
+            type = "object",
+            title = $"יעדי מכירות - {category}",
+            properties = new Dictionary<string, object>
+            {
+                ["targetId"] = new { type = "string" },
+                ["period"] = new { type = "string" },
+                ["targetAmount"] = new { type = "number", minimum = 0 },
+                ["actualAmount"] = new { type = "number", minimum = 0 },
+                ["achievementRate"] = new { type = "number", minimum = 0, maximum = 200 },
+                ["region"] = new { type = "string" },
+                ["salesPerson"] = new { type = "string" },
+                ["note"] = new { type = "string", description = "הערה" }
             },
             required = new[] { "targetId", "period", "targetAmount" }
         }, Formatting.None);
