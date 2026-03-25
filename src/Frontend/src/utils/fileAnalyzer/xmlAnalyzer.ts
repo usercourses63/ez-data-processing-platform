@@ -80,6 +80,10 @@ export function analyzeXml(text: string, filename: string, encoding: string): Im
   // Build XML tree data for collapsible preview (D-11)
   const xmlTreeData = buildXmlTreeData(root);
 
+  // Pretty-print the raw XML for browser-style preview
+  const serializer = new XMLSerializer();
+  const rawXmlSource = formatXml(serializer.serializeToString(doc));
+
   return {
     name: inferDatasourceName(filename),
     fileType: 'XML',
@@ -92,6 +96,7 @@ export function analyzeXml(text: string, filename: string, encoding: string): Im
     fieldTypes,
     fieldConstraints,
     xmlTreeData,
+    rawXmlSource,
   };
 }
 
@@ -136,4 +141,47 @@ export function buildXmlTreeData(element: Element, keyPrefix: string = '0'): Xml
   }
 
   return nodes;
+}
+
+/**
+ * Pretty-print XML string with proper indentation.
+ */
+function formatXml(xml: string): string {
+  let formatted = '';
+  let indent = 0;
+  const pad = (n: number) => '  '.repeat(n);
+
+  // Split by tags
+  xml = xml.replace(/(>)\s*(<)/g, '$1\n$2');
+  const lines = xml.split('\n');
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // Closing tag
+    if (trimmed.startsWith('</')) {
+      indent = Math.max(0, indent - 1);
+      formatted += pad(indent) + trimmed + '\n';
+    }
+    // Self-closing tag
+    else if (trimmed.endsWith('/>')) {
+      formatted += pad(indent) + trimmed + '\n';
+    }
+    // Opening tag with content on same line (e.g., <tag>value</tag>)
+    else if (trimmed.match(/^<[^/].*>.*<\//)) {
+      formatted += pad(indent) + trimmed + '\n';
+    }
+    // Opening tag
+    else if (trimmed.startsWith('<') && !trimmed.startsWith('<?')) {
+      formatted += pad(indent) + trimmed + '\n';
+      indent++;
+    }
+    // Processing instruction or other
+    else {
+      formatted += pad(indent) + trimmed + '\n';
+    }
+  }
+
+  return formatted.trim();
 }

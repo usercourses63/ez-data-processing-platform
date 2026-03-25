@@ -49,6 +49,8 @@ export interface ImportData {
   fieldConstraints: Record<string, FieldConstraintSummary>;
   /** Ant Design TreeDataNode[] for XML tree preview (D-11) */
   xmlTreeData?: XmlTreeNode[];
+  /** Raw XML source text for browser-style preview */
+  rawXmlSource?: string;
 }
 
 /** Summary of auto-suggested constraints for a single field */

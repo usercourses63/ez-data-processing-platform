@@ -215,8 +215,8 @@ const ImportPreviewModal: React.FC<ImportPreviewModalProps> = ({
                   />
                 )}
 
-                {/* JSON/XML hierarchical view — pretty-printed JSON structure */}
-                {(importData.fileType === 'JSON' || isXml) && importData.previewRows.length > 0 && (
+                {/* JSON hierarchical view — pretty-printed JSON */}
+                {importData.fileType === 'JSON' && importData.previewRows.length > 0 && (
                   <div style={{ marginBottom: 16 }}>
                     <pre style={{
                       background: '#f5f5f5',
@@ -230,6 +230,29 @@ const ImportPreviewModal: React.FC<ImportPreviewModalProps> = ({
                       textAlign: 'left',
                     }}>
                       {JSON.stringify(importData.previewRows.slice(0, 3), null, 2)}
+                    </pre>
+                    <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 12 }}>
+                      {t('datasources.import.totalRows', { count: importData.totalRowCount })}
+                    </div>
+                  </div>
+                )}
+
+                {/* XML browser-style view — formatted raw XML source */}
+                {isXml && importData.rawXmlSource && (
+                  <div style={{ marginBottom: 16 }}>
+                    <pre style={{
+                      background: '#f9f9f9',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: 6,
+                      padding: 12,
+                      maxHeight: 400,
+                      overflow: 'auto',
+                      fontSize: 12,
+                      direction: 'ltr',
+                      textAlign: 'left',
+                      color: '#333',
+                    }}>
+                      {importData.rawXmlSource}
                     </pre>
                     <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 12 }}>
                       {t('datasources.import.totalRows', { count: importData.totalRowCount })}
