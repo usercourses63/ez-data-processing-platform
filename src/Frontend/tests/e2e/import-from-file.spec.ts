@@ -62,20 +62,19 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(modal).toBeVisible();
 
     // Data table should show rows (Ant Design Table rows)
-    const tableRows = modal.locator('.ant-table-tbody tr');
+    const tableRows = modal.locator('.ant-table-tbody tr:not([aria-hidden="true"])');
     await expect(tableRows.first()).toBeVisible({ timeout: 10000 });
     const rowCount = await tableRows.count();
     // Should show 5 preview rows (per D-09)
     expect(rowCount).toBe(5);
 
-    // Extraction checklist should show field names with types
-    // The ExtractionChecklist renders field names in <strong> tags
-    await expect(modal.getByText('name', { exact: false })).toBeVisible();
-    await expect(modal.getByText('age', { exact: false })).toBeVisible();
-    await expect(modal.getByText('email', { exact: false })).toBeVisible();
+    // Extraction checklist renders field names in <strong> tags
+    await expect(modal.locator('strong').filter({ hasText: 'name' }).first()).toBeVisible();
+    await expect(modal.locator('strong').filter({ hasText: 'age' }).first()).toBeVisible();
+    await expect(modal.locator('strong').filter({ hasText: 'email' }).first()).toBeVisible();
 
-    // Total row count in footer
-    await expect(modal.getByText(/10/)).toBeVisible();
+    // Total row count in footer (shows "סה"כ: 10 שורות" or similar)
+    await expect(modal.getByText(/10 שורות|10 rows/i).first()).toBeVisible();
 
     // Continue button should be visible
     const continueButton = modal.locator('button').filter({ hasText: /Continue|המשך/i });
@@ -125,7 +124,7 @@ test.describe('Import from File - Upload Flows', () => {
     }
 
     // Extraction checklist should update with new field names
-    await expect(modal.getByText('name', { exact: false })).toBeVisible();
+    await expect(modal.locator('strong').filter({ hasText: 'name' }).first()).toBeVisible();
   });
 
   test('JSON file shows preview modal (IMPORT-01)', async ({ page }) => {
@@ -136,12 +135,12 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(modal).toBeVisible();
 
     // Data table should show rows
-    const tableRows = modal.locator('.ant-table-tbody tr');
+    const tableRows = modal.locator('.ant-table-tbody tr:not([aria-hidden="true"])');
     await expect(tableRows.first()).toBeVisible({ timeout: 10000 });
 
-    // Extraction checklist should show field names with types
-    await expect(modal.getByText('name', { exact: false })).toBeVisible();
-    await expect(modal.getByText('email', { exact: false })).toBeVisible();
+    // Extraction checklist renders field names in <strong> tags
+    await expect(modal.locator('strong').filter({ hasText: 'name' }).first()).toBeVisible();
+    await expect(modal.locator('strong').filter({ hasText: 'email' }).first()).toBeVisible();
 
     // Continue button should be visible
     const continueButton = modal.locator('button').filter({ hasText: /Continue|המשך/i });
