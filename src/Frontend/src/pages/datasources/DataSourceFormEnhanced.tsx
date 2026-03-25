@@ -564,7 +564,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                       label: <span><FileTextOutlined /> הגדרת Schema</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
-                          <div data-tab-key="schema" className="completeness-tab">
+                          <div data-tab-key="schema" className="completeness-tab" onSubmit={(e) => { e.stopPropagation(); e.preventDefault(); }}>
                             <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
                           </div>
                         </Suspense>

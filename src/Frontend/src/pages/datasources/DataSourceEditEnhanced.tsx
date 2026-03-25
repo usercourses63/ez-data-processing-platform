@@ -314,7 +314,12 @@ const DataSourceEditEnhanced: React.FC = () => {
     }
   }, [id, form]);
 
+  const intentionalSubmitRef = React.useRef(false);
   const handleSubmit = async (values: any) => {
+    // Guard: only process if submit was triggered by the Update button
+    if (!intentionalSubmitRef.current) return;
+    intentionalSubmitRef.current = false;
+
     if (!id || !dataSource) {
       message.error('Data source information is missing');
       return;
@@ -587,7 +592,7 @@ const DataSourceEditEnhanced: React.FC = () => {
                       label: <span><FileTextOutlined /> הגדרת Schema</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
-                          <div data-tab-key="schema" className="completeness-tab">
+                          <div data-tab-key="schema" className="completeness-tab" onSubmit={(e) => { e.stopPropagation(); e.preventDefault(); }}>
                             <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
                           </div>
                         </Suspense>
@@ -689,7 +694,7 @@ const DataSourceEditEnhanced: React.FC = () => {
                 <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
                   <Space size="middle">
                     <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={saving} disabled={connectionTestResult === 'failed'}
-                      onClick={() => { if (!completeness.isFullyComplete) setShowSaveWarning(true); }}
+                      onClick={() => { intentionalSubmitRef.current = true; if (!completeness.isFullyComplete) setShowSaveWarning(true); }}
                     >
                       {t('common.update')}
                     </Button>
