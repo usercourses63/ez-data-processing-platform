@@ -37,13 +37,13 @@ test.describe('Import from File - Upload Flows', () => {
     await page.waitForLoadState('networkidle');
   });
 
-  test('Upload File button exists on list page next to Create Datasource (IMPORT-01)', async ({ page }) => {
-    // The Import button has an UploadOutlined icon and import text
-    const importButton = page.locator('button').filter({ hasText: /Upload|import|העלאת קובץ|ייבוא/i });
+  test('New Datasource from File button exists on list page next to Create Datasource (IMPORT-01)', async ({ page }) => {
+    // The Import button has a FileAddOutlined icon and "New Datasource from File" / "מקור נתונים חדש מקובץ" text
+    const importButton = page.locator('button').filter({ hasText: /from File|מקובץ|מקור נתונים חדש/i });
     await expect(importButton.first()).toBeVisible({ timeout: 10000 });
 
     // Create Datasource button should also be visible
-    const createButton = page.locator('button').filter({ hasText: /הוסף מקור נתונים|Create|datasource/i });
+    const createButton = page.locator('button').filter({ hasText: /הוסף מקור נתונים|Create|מקור נתונים/i });
     await expect(createButton.first()).toBeVisible();
 
     // Both should be in the same Space container (siblings)
