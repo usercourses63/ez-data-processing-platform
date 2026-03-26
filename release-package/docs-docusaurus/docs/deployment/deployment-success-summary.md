@@ -2,7 +2,11 @@
 sidebar_position: 1
 ---
 
-# EZ Platform v0.1.1-rc1 - Deployment Success Summary
+:::warning Historical Document
+This document describes the v0.1.1-rc1 deployment. For current deployment instructions, see the [Deployment Guide](./deployment-plan) and [Installation Guide](/docs/installation).
+:::
+
+# EZ Platform v0.1.1-rc1 - Deployment Success Summary (Archived)
 
 **Deployment Date:** January 5, 2026
 **Platform Version:** v0.1.1-rc1

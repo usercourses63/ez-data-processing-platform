@@ -2,13 +2,13 @@
 sidebar_position: 1
 ---
 
-# EZ Platform v0.1.1-rc2 - Complete Deployment Troubleshooting Guide
+# EZ Platform v0.4.0 - Complete Deployment Troubleshooting Guide
 
-**Document Version:** 2.0
-**Date:** January 8, 2026
-**Deployment Target:** Minikube (Docker Desktop), OpenShift Container Platform (OCP)
-**Platform Version:** v0.1.1-rc2
-**Status:** ✅ Successfully Deployed and Verified (OCP Compatible)
+**Document Version:** 4.0
+**Date:** March 2026
+**Deployment Target:** Minikube (Hyper-V/Docker), OpenShift Container Platform (OCP)
+**Platform Version:** v0.4.0
+**Status:** Production Ready (OCP Compatible)
 
 ---
 
@@ -504,7 +504,67 @@ powershell.exe -ExecutionPolicy Bypass -File "scripts/start-port-forwards.ps1"
 
 ---
 
+---
+
+## v0.4.0 Troubleshooting
+
+### Archive Upload Issues
+
+**Symptom:** Import from File fails with "Request Entity Too Large" (413)
+
+**Solution:** Verify nginx `client_max_body_size` in the frontend deployment:
+```nginx
+client_max_body_size 100m;
+```
+This is pre-configured in the v0.4.0 frontend image. If using a custom nginx config, add this directive.
+
+### NAS Mount Failures
+
+**Symptom:** NAS device shows provisioned but file operations fail
+
+**Common causes:**
+1. NFSv4 required for cross-cluster mounts -- use `nfsvers=4` mount option
+2. First write to newly-mounted NFSv4 volume can take ~57s (cache warmup)
+3. Stale NAS volume refs survive `kubectl apply` -- delete+recreate deployments
+
+**Verify provisioning:**
+```bash
+kubectl get pv -n ez-platform | grep nfs
+kubectl get pvc -n ez-platform | grep nfs
+```
+
+### SignalR Connection Issues
+
+**Symptom:** Real-time updates not working, entity changes not reflected
+
+**Common causes:**
+1. WebSocket not supported by ingress controller
+2. CORS not configured for SignalR
+3. Pod restarts break WebSocket connections (auto-reconnect should handle this)
+
+**Verify SignalR:**
+```bash
+# Check SignalR hub is responding
+curl http://localhost:5001/hubs/monitoring/negotiate?negotiateVersion=1
+```
+
+### Kafka Cluster ID Mismatch
+
+**Symptom:** `InconsistentClusterIdException` after cluster restart
+
+**Solution:** Delete BOTH Kafka and ZooKeeper StatefulSets + PVCs + released PVs:
+```bash
+kubectl delete statefulset kafka -n ez-platform
+kubectl delete statefulset zookeeper -n ez-platform
+kubectl delete pvc -l app=kafka -n ez-platform
+kubectl delete pvc -l app=zookeeper -n ez-platform
+# Then reapply manifests
+kubectl apply -f k8s/infrastructure/
+```
+
+---
+
 **Document End**
-**Version:** 2.0
-**Last Updated:** January 8, 2026
-**Status:** ✅ Complete and Verified (OCP Compatible)
+**Version:** 4.0
+**Last Updated:** March 2026
+**Status:** Production Ready (OCP Compatible)
