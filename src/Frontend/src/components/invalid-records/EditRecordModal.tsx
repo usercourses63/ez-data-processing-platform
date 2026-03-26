@@ -561,17 +561,24 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
             {record.dataSourceName}
             {record.dataSourceId && (
               <Tooltip title="ערוך הגדרות Schema">
-                <Link
-                  onClick={() => {
-                    navigate(`/datasources/${record.dataSourceId}/edit`, {
-                      state: { activeTab: 'schema' }
-                    });
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     onClose();
+                    setTimeout(() => {
+                      navigate(`/datasources/${record.dataSourceId}/edit`, {
+                        state: { activeTab: 'schema' }
+                      });
+                    }, 300);
                   }}
-                  style={{ fontSize: 12 }}
+                  style={{ fontSize: 12, padding: 0 }}
                 >
-                  <EditOutlined /> ערוך Schema
-                </Link>
+                  ערוך Schema
+                </Button>
               </Tooltip>
             )}
           </Space>

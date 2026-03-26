@@ -1,3 +1,4 @@
+#pragma warning disable CS1998 // Async methods without await — synchronous archive operations implementing async interface
 using SharpCompress.Archives;
 using SharpCompress.Archives.GZip;
 using SharpCompress.Archives.Rar;

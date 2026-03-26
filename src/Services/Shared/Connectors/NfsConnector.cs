@@ -1,3 +1,4 @@
+#pragma warning disable CS1998 // Async methods without await — synchronous NFS operations implementing async interface
 using DataProcessing.Shared.Entities;
 using DataProcessing.Shared.Services;
 using Microsoft.Extensions.Logging;
