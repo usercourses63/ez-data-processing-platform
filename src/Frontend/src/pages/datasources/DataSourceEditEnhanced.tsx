@@ -262,6 +262,20 @@ const DataSourceEditEnhanced: React.FC = () => {
           } : {}),
         });
 
+        // Retry archive fields for lazy-loaded connection tab (Ant Design drops values for unmounted Form.Items)
+        const archiveSettings = (data.Data as any).ArchiveSettings;
+        if (archiveSettings?.IsArchiveSource) {
+          const archiveFields = {
+            isArchiveSource: true,
+            archiveType: archiveSettings.ArchiveType || 'auto',
+            archivePassword: archiveSettings.ArchivePassword || '',
+            extractionPattern: archiveSettings.ExtractionPattern || '',
+            processNestedArchives: archiveSettings.ProcessNestedArchives || false,
+          };
+          setTimeout(() => form.setFieldsValue(archiveFields), 500);
+          setTimeout(() => form.setFieldsValue(archiveFields), 1500);
+        }
+
         // Initialize output config if it exists (handle both camelCase and PascalCase)
         // Priority: configSettings.outputConfig > data.Data.Output
         let outputConfigData = configSettings.outputConfig || configSettings.OutputConfig || data.Data.Output;
