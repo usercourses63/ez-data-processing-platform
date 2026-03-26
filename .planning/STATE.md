@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Phase complete — ready for verification
-stopped_at: Completed 29-07-PLAN.md
-last_updated: "2026-03-26T12:16:53.268Z"
+stopped_at: Completed 28-11-PLAN.md
+last_updated: "2026-03-26T12:38:27.186Z"
 progress:
   total_phases: 30
   completed_phases: 26
   total_plans: 112
-  completed_plans: 107
+  completed_plans: 108
 ---
 
 ## Current Position
@@ -59,6 +59,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 29]: Used App.useApp() for SignalR toast notifications per CLAUDE.md (not static message import)
 - [Phase 29]: E2E tests use API context for dynamic datasource lookup and conditional skip for data-dependent tests
 - [Phase 29]: Screenshot refs commented out as MDX comments for Docusaurus build; v0.5.0 used for changelog version
+- [Phase 28]: All non-user-guide Docusaurus docs updated to v0.4.0 with version-scoped sections
 
 ### Blockers/Concerns
 
@@ -67,6 +68,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T12:16:53.264Z
-Stopped at: Completed 29-07-PLAN.md
+Last session: 2026-03-26T12:38:27.180Z
+Stopped at: Completed 28-11-PLAN.md
 Resume file: None
