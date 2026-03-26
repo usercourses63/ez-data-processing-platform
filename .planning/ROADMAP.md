@@ -41,8 +41,8 @@
 ### v0.4 Datasource Productivity Features
 
 - [x] **Phase 25: Clone Datasource** - Clone from list/details with full form pre-fill (completed 2026-03-24)
-- [ ] **Phase 26: Completeness Checklist** - Real-time form completeness with per-tab status and navigation
-- [x] **Phase 27: Import from File** - Upload sample file to auto-fill schema and form fields (completed 2026-03-25)
+- [x] **Phase 26: Completeness Checklist** - Real-time form completeness with per-tab status and navigation (completed 2026-03-26)
+- [x] **Phase 27: Import from File** - Upload sample file to auto-fill schema and form fields, archive support (completed 2026-03-26)
 - [ ] **Phase 28: Polish, i18n & Release** - Hebrew translations, Playwright E2E tests, v0.4.0 release packaging
 
 ## Phase Details

@@ -1,38 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2
-milestone_name: Production Validation & Release
-status: Phase complete — ready for verification
-stopped_at: Completed 27-05-PLAN.md (awaiting Task 4 human-verify checkpoint)
-last_updated: "2026-03-25T16:09:45.916Z"
+milestone: v0.4
+milestone_name: Datasource Productivity Features
+status: Phase 27 complete — advancing to Phase 28
+last_updated: "2026-03-26T00:30:00.000Z"
 progress:
   total_phases: 28
-  completed_phases: 24
+  completed_phases: 27
   total_plans: 94
-  completed_plans: 89
+  completed_plans: 94
 ---
 
 ## Current Position
 
-Phase: 27 (import-from-file) — EXECUTING
-Plan: 5 of 5
+Phase: 28 (polish-i18n-release) — NOT STARTED
+Plan: 0 of 0
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Files flow reliably from any source through validation to any destination
-**Current focus:** Phase 27 — import-from-file
+**Current focus:** Phase 28 — Polish, i18n & Release
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0 (v0.4.0 milestone)
-- Average duration: --
-- Total execution time: --
-
-*Updated after each plan completion*
+- Phases 25-27 completed in v0.4.0 milestone
+- Phase 25 (Clone): 1 session
+- Phase 26 (Completeness): 3 sessions
+- Phase 27 (Import from File): 4 sessions
 
 ## Accumulated Context
 
@@ -40,41 +38,19 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 - All 3 features are frontend-only (React 19 + Ant Design 5.x + TypeScript)
 - Phase order: Clone (25) -> Checklist (26) -> Import (27) -> Polish/Release (28)
-- Clone first: smallest feature, validates location.state navigation pattern
-- Checklist before Import: checklist is self-contained and useful for verifying import completeness
-- Import last of features: largest scope, needs PapaParse dependency, benefits from checklist already in place
-- Phase 28 consolidates i18n, E2E tests, and release packaging
-- [Phase 25]: Replaced Popconfirm with Modal.confirm for delete in Dropdown menu
-- [Phase 25]: Overflow dropdown pattern: View/Edit inline, Clone/Trigger/Delete in MoreOutlined dropdown
-- [Phase 26]: Used actual Form.Item field names (filePath, httpEndpointPath) instead of plan abstractions for completeness config
-- [Phase 26]: Used DOM data-attribute injection for per-field completeness borders instead of modifying tab components
-- [Phase 26]: Used icon selectors for sidebar tab items and CSS logical property assertions for RTL-compatible border color testing
-- [Phase 26]: Created 14 flat schema variants for CSV/Excel DemoDataGenerator output to satisfy schema-filetype alignment completeness
-- [Phase 26]: Used separate AJV instance with validateSchema:true for completeness schema validation
-- [Phase 26]: Multi-strategy DOM field matching for border injection (id, label, .ant-select fallback)
-- [Phase 27]: JSZip-first for .zip with libarchive.js WASM fallback for encrypted/other archives
-- [Phase 27]: Added datasource parameter to conversion methods for metadata passing instead of building metadata at Consume call site
-- [Phase 27]: Used jschardet binary string conversion for encoding detection
-- [Phase 27]: CSV header detection uses type-ratio heuristic plus all-alpha uniqueness check
-- [Phase 27]: Type inference hierarchy: any string makes column string, number+integer becomes number
-- [Phase 27]: Used Upload.beforeUpload returning false for client-side-only analysis, 60/40 flex modal layout
-- [Phase 27]: Created FileProcessorService.Tests project from scratch for CsvToJsonConverter headerless mapping tests
-
-### Reusable Utilities
-
-- `schemaAutoSuggest.ts` -- pattern detection for Import feature (IMPORT-04)
-- `schemaValidator.ts` -- schema validation
-- `schemaExampleGenerator.ts` -- example data generation
-- New dependency needed: PapaParse for CSV parsing (Import feature)
+- Phase 27 expanded scope: backend SharpCompress archive API for ZIP/TAR.GZ/7Z/RAR
+- Auto-create datasource on import Continue (not just pre-fill form)
+- Archive fields tracked in completeness when isArchiveSource=true
+- Clone preserves all archive settings (lazy tab merge fix)
+- Hebrew i18n for all auto-create messages
 
 ### Blockers/Concerns
 
-- Lazy tab + Form.setFieldsValue bug: must use savedFieldValues prop pattern (documented in MEMORY.md)
-- Ant Design tab click in RTL requires workaround (dispatchEvent, widen viewport)
-- Frontend image currently at v0.3.0
+- Lazy tab + Form.setFieldsValue bug: requires retry at 500ms/1500ms for unmounted tabs
+- Ant Design Input.Password in lazy tabs needs same retry pattern
 
 ## Session Continuity
 
-Last session: 2026-03-25T16:09:45.912Z
-Stopped at: Completed 27-05-PLAN.md (awaiting Task 4 human-verify checkpoint)
+Last session: 2026-03-26
+Stopped at: Phase 27 approved, advancing to Phase 28
 Resume file: None
