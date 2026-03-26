@@ -4,9 +4,9 @@ title: Welcome
 slug: /
 ---
 
-# EZ Platform v0.3.0 Documentation
+# EZ Platform v0.4.0 Documentation
 
-Welcome to the official documentation for EZ Platform version 0.3.0.
+Welcome to the official documentation for EZ Platform version 0.4.0.
 
 ## About This Release
 
@@ -14,7 +14,19 @@ EZ Platform is an enterprise data processing system with automated file discover
 
 **Release Date:** March 2026
 **Status:** Release
-**Version:** 0.3.0
+**Version:** 0.4.0
+
+---
+
+## What's New in v0.4.0
+
+This release adds three datasource productivity features:
+
+- **[Clone Datasource](release-notes#clone-datasource)** -- Duplicate any datasource with all settings preserved (schema, connection, archive, output destinations). Available from list page and edit page.
+- **[Import from File](release-notes#import-from-file)** -- Upload CSV, JSON, XML, or Excel files (including archives: ZIP, TAR.GZ, 7Z, RAR) to auto-create datasources with smart schema inference.
+- **[Completeness Checklist](release-notes#completeness-checklist)** -- Real-time form completion tracking with color-coded indicators, per-tab status, and auto-disable for incomplete datasources.
+
+See the full **[Release Notes](release-notes)** for migration notes and known limitations.
 
 ---
 
@@ -63,6 +75,10 @@ EZ Platform is an enterprise data processing system with automated file discover
 - ✅ **NAS Auto-Deprovision** - Delete cleans up K8s PV/PVC automatically (v0.3.0)
 - ✅ **RabbitMQ Queue Monitoring** - Internal queue health monitoring (v0.3.0)
 - ✅ **Device Health Resilience** - HTTP polling fallback, dual-casing normalization (v0.3.0)
+- ✅ **Clone Datasource** - One-click duplication with all settings preserved (v0.4.0)
+- ✅ **Import from File** - Auto-create datasources from CSV/JSON/XML/Excel samples (v0.4.0)
+- ✅ **Completeness Checklist** - Real-time form guidance with auto-disable (v0.4.0)
+- ✅ **Archive Support** - ZIP, TAR.GZ, 7Z, RAR including encrypted archives (v0.4.0)
 
 ---
 
@@ -103,6 +119,6 @@ For issues or questions, refer to:
 
 ---
 
-**Documentation Version:** 3.0
-**Platform Version:** v0.3.0
+**Documentation Version:** 4.0
+**Platform Version:** v0.4.0
 **Last Updated:** March 2026

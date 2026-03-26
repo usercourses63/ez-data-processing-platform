@@ -2,11 +2,11 @@
 sidebar_position: 2
 ---
 
-# EZ Platform - Administrator Guide v0.3.0
+# EZ Platform - Administrator Guide v0.4.0
 
 **Last Updated:** March 2026
 **Audience:** System Administrators, DevOps Engineers
-**Version:** 0.3.0
+**Version:** 0.4.0
 
 ---
 
@@ -19,11 +19,12 @@ sidebar_position: 2
 5. [SignalR Real-Time Monitoring](#signalr-real-time-monitoring)
 6. [Device Health Monitoring](#device-health-monitoring)
 7. [OTEL Observability](#otel-observability)
-8. [Backup & Recovery](#backup--recovery)
-9. [Scaling Guidelines](#scaling-guidelines)
-10. [Performance Tuning](#performance-tuning)
-11. [Security Hardening](#security-hardening)
-12. [Troubleshooting](#troubleshooting)
+8. [Datasource Productivity Features (v0.4.0)](#datasource-productivity-features-v040)
+9. [Backup & Recovery](#backup--recovery)
+10. [Scaling Guidelines](#scaling-guidelines)
+11. [Performance Tuning](#performance-tuning)
+12. [Security Hardening](#security-hardening)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -632,6 +633,56 @@ curl 'http://localhost:9090/api/v1/targets'
 | **Elasticsearch** | http://localhost:9200 | Structured logs |
 | **Prometheus System** | http://localhost:9090 | Infrastructure metrics |
 | **Prometheus Business** | http://localhost:9091 | Business KPIs |
+
+---
+
+## Datasource Productivity Features (v0.4.0)
+
+### Archive API Endpoints
+
+The FileProcessor service exposes archive handling endpoints via SharpCompress:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/archive/analyze` | POST | Analyze archive contents (returns file list, sizes, encrypted flag) |
+| `/api/v1/archive/extract` | POST | Extract specific file from archive (with optional password) |
+
+**Supported formats:** ZIP, TAR.GZ (.tgz), 7-Zip (.7z), RAR (.rar)
+
+**Encrypted archive support:** ZIP (AES/ZipCrypto), 7Z (AES-256), RAR (AES-128/256)
+
+### Archive Upload Size
+
+Configure nginx `client_max_body_size` for archive uploads:
+
+```nginx
+# k8s/infrastructure/nginx or frontend deployment
+client_max_body_size 100m;
+```
+
+Without this setting, large archive uploads (>1MB default) will be rejected by nginx with a `413 Request Entity Too Large` error.
+
+### Completeness Auto-Disable
+
+Datasources that do not meet minimum required field completion are automatically disabled.
+The enable/disable toggle is grayed out in the list page until all required fields are filled.
+This prevents running pipelines with incomplete configurations.
+
+**Required fields include:** Name, Data Source Type, Connection settings, Schema.
+
+**Recommended fields** (tracked but not blocking): Output destinations, Schedule, Category.
+
+### Clone Feature
+
+The clone operation duplicates an existing datasource with all its settings:
+
+- Available from the list page actions menu (three-dot icon) and edit page header button
+- Cloned datasource name is prefixed with "Copy of" (Hebrew: "העתק של")
+- Output destinations receive new unique IDs to prevent conflicts
+- Schedule is disabled by default to prevent accidental pipeline execution
+- All archive settings (format, password, inner file path) are preserved
+
+**Operational note:** After cloning, review and update the connection settings if the clone should point to a different source location. The cloned datasource shares the same server reference as the original.
 
 ---
 
