@@ -381,7 +381,7 @@ Plans:
 - [x] 28-02-PLAN.md — Hebrew user guide: import-from-file chapter (DOC-09)
 - [x] 28-03-PLAN.md — Hebrew user guide: clone-datasource chapter (DOC-09)
 - [x] 28-04-PLAN.md — Hebrew user guide: completeness chapter (DOC-09)
-- [ ] 28-05-PLAN.md — Hebrew user guide: restructure (index, getting-started, existing chapters, sidebar) (DOC-09)
+- [x] 28-05-PLAN.md — Hebrew user guide: restructure (index, getting-started, existing chapters, sidebar) (DOC-09)
 - [x] 28-06-PLAN.md — Admin guide + changelog + release notes + config version bump (DOC-10)
 - [ ] 28-07-PLAN.md — Build verification + Docker docs image + visual review checkpoint (DOC-09, DOC-10)
 - [ ] 28-08-PLAN.md — Build all service images v0.4.0 + assemble deployment package (REL-08, REL-09)
@@ -416,7 +416,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 25. Clone Datasource | v0.4 | 2/2 | Complete    | 2026-03-24 |
 | 26. Completeness Checklist | v0.4 | 7/7 | Complete | 2026-03-25 |
 | 27. Import from File | v0.4 | 5/5 | Complete   | 2026-03-25 |
-| 28. Documentation, i18n, Deploy & Release | v0.4 | 5/9 | In Progress|  |
+| 28. Documentation, i18n, Deploy & Release | v0.4 | 6/9 | In Progress|  |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
