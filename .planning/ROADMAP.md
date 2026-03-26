@@ -467,7 +467,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 11/11 | Complete   | 2026-03-26 |
 | 29. Invalid Records Auto-Revalidation | v0.5 | 7/7 | Complete   | 2026-03-26 |
 | 30. OCP Compliance & Deployment Validation | v0.6 | 2/4 | In Progress|  |
-| 31. Feature Test Coverage | v0.6 | 0/0 | Planned    | - |
+| 31. Feature Test Coverage | v0.6 | 1/4 | In Progress|  |
 | 32. Performance & Regression Hardening | v0.6 | 0/0 | Planned    | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
@@ -496,12 +496,12 @@ Plans:
 **Requirements**: TIER 2 tests from QA analysis
 **Depends on:** Phase 30
 **UI hint:** no
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 - [ ] 31-01-PLAN.md — Rewrite clone datasource E2E tests with production patterns
 - [ ] 31-02-PLAN.md — Upgrade import-from-file E2E tests with production patterns
-- [ ] 31-03-PLAN.md — Upgrade completeness checklist E2E tests with API context
+- [x] 31-03-PLAN.md — Upgrade completeness checklist E2E tests with API context
 - [ ] 31-04-PLAN.md — Create i18n/RTL regression tests for v0.4.0/v0.5.0 features
 
 ---
