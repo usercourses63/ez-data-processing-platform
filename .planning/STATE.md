@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Phase complete — ready for verification
-stopped_at: Completed 28-11-PLAN.md
-last_updated: "2026-03-26T12:38:27.186Z"
+stopped_at: Completed 30-02-PLAN.md
+last_updated: "2026-03-26T21:20:33.074Z"
 progress:
-  total_phases: 30
-  completed_phases: 26
-  total_plans: 112
-  completed_plans: 108
+  total_phases: 33
+  completed_phases: 29
+  total_plans: 116
+  completed_plans: 112
 ---
 
 ## Current Position
@@ -60,6 +60,18 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 29]: E2E tests use API context for dynamic datasource lookup and conditional skip for data-dependent tests
 - [Phase 29]: Screenshot refs commented out as MDX comments for Docusaurus build; v0.5.0 used for changelog version
 - [Phase 28]: All non-user-guide Docusaurus docs updated to v0.4.0 with version-scoped sections
+- [Phase 28-09]: Version bumped to v0.5.0 across frontend (package.json), Docusaurus (config + user guide), changelog
+- [Phase 28-09]: Sanity tests fixed: antTabClick helper for RTL, PascalCase API fields, deletedBy param, API-based verification
+- [Phase 28-09]: nginx ConfigMap updated with /hubs/invalid-records proxy for SignalR revalidation notifications
+- [Phase 28-09]: Help page and footer doc links redirect to Docusaurus v0.5.0 at port 30800
+- [Phase 28-09]: Docusaurus viewer Go binaries built for all 4 platforms (Windows/Linux/macOS x64+ARM)
+- [Phase 30]: All 8 new sanity tests are API-only (no page.goto) for speed and reliability
+
+### Roadmap Evolution
+
+- Phase 30 added: OCP Compliance & Deployment Validation (production release gate)
+- Phase 31 added: Feature Test Coverage (completeness, clone, import E2E tests)
+- Phase 32 added: Performance & Regression Hardening (post-OCP deploy, lower priority)
 
 ### Blockers/Concerns
 
@@ -68,6 +80,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T12:38:27.180Z
-Stopped at: Completed 28-11-PLAN.md
+Last session: 2026-03-26T21:20:33.067Z
+Stopped at: Completed 30-02-PLAN.md
 Resume file: None

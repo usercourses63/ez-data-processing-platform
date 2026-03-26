@@ -466,7 +466,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 27. Import from File | v0.4 | 5/5 | Complete   | 2026-03-25 |
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 11/11 | Complete   | 2026-03-26 |
 | 29. Invalid Records Auto-Revalidation | v0.5 | 7/7 | Complete   | 2026-03-26 |
-| 30. OCP Compliance & Deployment Validation | v0.6 | 0/4 | In Progress | - |
+| 30. OCP Compliance & Deployment Validation | v0.6 | 1/4 | In Progress|  |
 | 31. Feature Test Coverage | v0.6 | 0/0 | Planned    | - |
 | 32. Performance & Regression Hardening | v0.6 | 0/0 | Planned    | - |
 
@@ -480,11 +480,11 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **Requirements**: OCP-01 through OCP-13, DEPLOY-01 through DEPLOY-25, SANITY-12 through SANITY-19
 **Depends on:** Phase 29
 **UI hint:** no
-**Plans:** 4 plans (Wave 1: 30-01, 30-02 parallel; Wave 2: 30-03; Wave 3: 30-04)
+**Plans:** 1/4 plans executed
 
 Plans:
 - [ ] 30-01-PLAN.md — Fix OCP gaps (InvalidRecords Dockerfile USER, :latest tags) + OCP compliance verification script (OCP-01 through OCP-13)
-- [ ] 30-02-PLAN.md — 8 new API-based sanity tests for v0.4.0/v0.5.0 features (SANITY-12 through SANITY-19)
+- [x] 30-02-PLAN.md — 8 new API-based sanity tests for v0.4.0/v0.5.0 features (SANITY-12 through SANITY-19)
 - [ ] 30-03-PLAN.md — Clean deploy script: namespace wipe + Helm install + seed + port-forward (DEPLOY-01 through DEPLOY-20)
 - [ ] 30-04-PLAN.md — Run full sanity suite + deep cross-service pipeline test (DEPLOY-21 through DEPLOY-25)
 
