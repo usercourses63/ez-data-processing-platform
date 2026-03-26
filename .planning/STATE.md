@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Phase complete — ready for verification
-stopped_at: Completed 30-02-PLAN.md
-last_updated: "2026-03-26T21:20:33.074Z"
+stopped_at: Completed 30-01-PLAN.md
+last_updated: "2026-03-26T21:21:21.207Z"
 progress:
   total_phases: 33
   completed_phases: 29
   total_plans: 116
-  completed_plans: 112
+  completed_plans: 113
 ---
 
 ## Current Position
@@ -66,6 +66,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 28-09]: Help page and footer doc links redirect to Docusaurus v0.5.0 at port 30800
 - [Phase 28-09]: Docusaurus viewer Go binaries built for all 4 platforms (Windows/Linux/macOS x64+ARM)
 - [Phase 30]: All 8 new sanity tests are API-only (no page.goto) for speed and reliability
+- [Phase 30]: Pinned OTEL collector to v0.96.0, frontend/demo-generator to v0.5.0; OCP compliance script uses runtime pod inspection via kubectl+jq
 
 ### Roadmap Evolution
 
@@ -80,6 +81,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T21:20:33.067Z
-Stopped at: Completed 30-02-PLAN.md
+Last session: 2026-03-26T21:21:21.200Z
+Stopped at: Completed 30-01-PLAN.md
 Resume file: None
