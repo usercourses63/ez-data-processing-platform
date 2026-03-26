@@ -55,7 +55,7 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 - [ ] **REVAL-10**: Playwright E2E test covers revalidation workflow
 - [ ] **REVAL-11**: Hebrew user guide chapter with Mermaid flow diagram and step-by-step instructions
 - [ ] **REVAL-12**: Docusaurus docs updated: changelog, release notes, admin guide
-- [ ] **REVAL-13**: Visual indicator on revalidated records (schema version tag)
+- [x] **REVAL-13**: Visual indicator on revalidated records (schema version tag)
 - [x] **REVAL-14**: Global invalid records TTL default in ConfigMap (4 days)
 - [x] **REVAL-15**: Per-datasource TTL override in basic info tab
 - [x] **REVAL-16**: Daily Quartz.NET purge job for expired invalid records
@@ -132,7 +132,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REVAL-10 | Phase 29 | Pending |
 | REVAL-11 | Phase 29 | Pending |
 | REVAL-12 | Phase 29 | Pending |
-| REVAL-13 | Phase 29 | Pending |
+| REVAL-13 | Phase 29 | Complete |
 | REVAL-14 | Phase 29 | Complete |
 | REVAL-15 | Phase 29 | Complete |
 | REVAL-16 | Phase 29 | Complete |

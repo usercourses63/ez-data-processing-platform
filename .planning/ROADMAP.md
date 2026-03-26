@@ -429,7 +429,7 @@ Plans:
 - [x] 29-02-PLAN.md — TTL: InvalidRecordsTtlDays entity field, ConfigMap default, Quartz.NET daily purge job (REVAL-14, REVAL-15, REVAL-16, REVAL-17)
 - [x] 29-03-PLAN.md — Backend API + SignalR: revalidate-all endpoint, SignalR hub, notifications (REVAL-04, REVAL-05, REVAL-08, REVAL-09)
 - [x] 29-04-PLAN.md — Frontend: Revalidate All buttons (2 locations), YAML download, schema editor link fix, i18n (REVAL-08, REVAL-18, REVAL-19, REVAL-20, REVAL-21, REVAL-22)
-- [ ] 29-05-PLAN.md — Frontend: SignalR notifications, TTL field in BasicInfoTab, schema version tags (REVAL-05, REVAL-06, REVAL-09, REVAL-13, REVAL-15)
+- [x] 29-05-PLAN.md — Frontend: SignalR notifications, TTL field in BasicInfoTab, schema version tags (REVAL-05, REVAL-06, REVAL-09, REVAL-13, REVAL-15)
 - [ ] 29-06-PLAN.md — Playwright E2E test for revalidation workflow (REVAL-10)
 - [ ] 29-07-PLAN.md — Documentation: Hebrew user guide chapter, Docusaurus updates (REVAL-11, REVAL-12, REVAL-23, REVAL-24, REVAL-25, REVAL-26)
 
@@ -463,7 +463,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 26. Completeness Checklist | v0.4 | 7/7 | Complete | 2026-03-25 |
 | 27. Import from File | v0.4 | 5/5 | Complete   | 2026-03-25 |
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 7/9 | In Progress|  |
-| 29. Invalid Records Auto-Revalidation | v0.4 | 4/7 | In Progress|  |
+| 29. Invalid Records Auto-Revalidation | v0.4 | 5/7 | In Progress|  |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
