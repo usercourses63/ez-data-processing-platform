@@ -202,15 +202,23 @@ const DataSourceFormEnhanced: React.FC = () => {
     };
 
     // Archive settings (if present)
+    const archiveFields: Record<string, any> = {};
     if (cloneData.archiveSettings) {
-      formValues.isArchiveSource = cloneData.archiveSettings.IsArchiveSource;
-      formValues.archiveType = cloneData.archiveSettings.ArchiveType;
-      formValues.archivePassword = cloneData.archiveSettings.ArchivePassword;
-      formValues.extractionPattern = cloneData.archiveSettings.ExtractionPattern;
-      formValues.processNestedArchives = cloneData.archiveSettings.ProcessNestedArchives;
+      archiveFields.isArchiveSource = cloneData.archiveSettings.IsArchiveSource;
+      archiveFields.archiveType = cloneData.archiveSettings.ArchiveType;
+      archiveFields.archivePassword = cloneData.archiveSettings.ArchivePassword;
+      archiveFields.extractionPattern = cloneData.archiveSettings.ExtractionPattern;
+      archiveFields.processNestedArchives = cloneData.archiveSettings.ProcessNestedArchives;
+      Object.assign(formValues, archiveFields);
     }
 
     form.setFieldsValue(formValues);
+
+    // Retry archive fields for lazy-loaded connection tab
+    if (cloneData.archiveSettings?.IsArchiveSource) {
+      setTimeout(() => form.setFieldsValue(archiveFields), 500);
+      setTimeout(() => form.setFieldsValue(archiveFields), 1500);
+    }
 
     // Set non-form state: JSON Schema
     if (cloneData.jsonSchema && Object.keys(cloneData.jsonSchema).length > 0) {
@@ -328,6 +336,14 @@ const DataSourceFormEnhanced: React.FC = () => {
       scheduleEnabled: false,
       scheduleFrequency: cloneData.schedule?.frequency || 'Manual',
       cronExpression: cloneData.schedule?.cronExpression || '',
+      // Archive settings from clone (lazy tab may not have mounted)
+      ...(cloneData.archiveSettings?.IsArchiveSource ? {
+        isArchiveSource: true,
+        archiveType: cloneData.archiveSettings.ArchiveType || 'auto',
+        archivePassword: cloneData.archiveSettings.ArchivePassword || '',
+        extractionPattern: cloneData.archiveSettings.ExtractionPattern || '*.*',
+        processNestedArchives: cloneData.archiveSettings.ProcessNestedArchives || false,
+      } : {}),
       ...rawValues, // User-edited values override clone defaults
     } : importData ? {
       // Merge import data for lazy-loaded tab fields (Pitfall 4)
