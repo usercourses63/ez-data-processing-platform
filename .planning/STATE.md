@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Phase complete — ready for verification
-stopped_at: Completed 29-01-PLAN.md
-last_updated: "2026-03-26T11:56:10.979Z"
+stopped_at: Completed 29-02-PLAN.md
+last_updated: "2026-03-26T11:56:18.385Z"
 progress:
   total_phases: 30
   completed_phases: 25
@@ -52,6 +52,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 28]: Hebrew user guide split into 10 workflow-centric chapters with RTL wrapper; old monolithic file kept as draft
 - [Phase 28]: Used build-all-images.sh with docker/ Dockerfiles for all 10 v0.4.0 images
 - [Phase 29]: Schema change detected by comparing BsonDocument JSON before/after mapping; auto-increment SchemaVersion overrides request value
+- [Phase 29]: Daily Quartz.NET purge at 3 AM UTC for expired invalid records with per-datasource TTL override
 
 ### Blockers/Concerns
 
@@ -60,6 +61,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T11:55:57.940Z
-Stopped at: Completed 29-01-PLAN.md
+Last session: 2026-03-26T11:56:18.381Z
+Stopped at: Completed 29-02-PLAN.md
 Resume file: None

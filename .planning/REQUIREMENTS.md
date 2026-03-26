@@ -56,10 +56,10 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 - [ ] **REVAL-11**: Hebrew user guide chapter with Mermaid flow diagram and step-by-step instructions
 - [ ] **REVAL-12**: Docusaurus docs updated: changelog, release notes, admin guide
 - [ ] **REVAL-13**: Visual indicator on revalidated records (schema version tag)
-- [ ] **REVAL-14**: Global invalid records TTL default in ConfigMap (4 days)
-- [ ] **REVAL-15**: Per-datasource TTL override in basic info tab
-- [ ] **REVAL-16**: Daily Quartz.NET purge job for expired invalid records
-- [ ] **REVAL-17**: Default TTL period: 4 days
+- [x] **REVAL-14**: Global invalid records TTL default in ConfigMap (4 days)
+- [x] **REVAL-15**: Per-datasource TTL override in basic info tab
+- [x] **REVAL-16**: Daily Quartz.NET purge job for expired invalid records
+- [x] **REVAL-17**: Default TTL period: 4 days
 - [ ] **REVAL-18**: YAML schema download button in schema editor
 - [ ] **REVAL-19**: js-yaml library for frontend JSON-to-YAML conversion
 - [ ] **REVAL-20**: YAML file naming matches JSON but with .yaml extension
@@ -133,10 +133,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REVAL-11 | Phase 29 | Pending |
 | REVAL-12 | Phase 29 | Pending |
 | REVAL-13 | Phase 29 | Pending |
-| REVAL-14 | Phase 29 | Pending |
-| REVAL-15 | Phase 29 | Pending |
-| REVAL-16 | Phase 29 | Pending |
-| REVAL-17 | Phase 29 | Pending |
+| REVAL-14 | Phase 29 | Complete |
+| REVAL-15 | Phase 29 | Complete |
+| REVAL-16 | Phase 29 | Complete |
+| REVAL-17 | Phase 29 | Complete |
 | REVAL-18 | Phase 29 | Pending |
 | REVAL-19 | Phase 29 | Pending |
 | REVAL-20 | Phase 29 | Pending |
