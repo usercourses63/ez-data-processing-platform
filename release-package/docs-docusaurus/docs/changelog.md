@@ -11,6 +11,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.0] - 2026-03-26
+
+### Added
+
+#### Auto-Revalidation of Invalid Records
+- Automatic revalidation when datasource schema changes (SchemaUpdatedEvent pipeline)
+- "Revalidate All" button on invalid records page header and schema tab
+- Schema versioning: SchemaVersion auto-increments, ValidatedWithSchemaVersion tracks per-record
+- TTL for invalid records: global default 4 days, per-datasource override in basic info tab
+- Daily Quartz.NET purge job at 03:00 UTC for expired invalid records
+- YAML schema download button alongside existing JSON download
+- SignalR toast notifications: "X of Y records resolved"
+- Rate-limited batch processing for large datasets (100 records/batch)
+
+#### Documentation
+- Hebrew user guide chapter for auto-revalidation with Mermaid flow diagram
+- TTL field documented in create-datasource chapter
+- Revalidation FAQ added to troubleshooting chapter
+
+---
+
 ## [0.4.0] - 2026-03-26
 
 ### Added

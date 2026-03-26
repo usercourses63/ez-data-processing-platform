@@ -47,6 +47,7 @@ const sidebars = {
         'user-guide/scheduling',
         'user-guide/monitoring',
         'user-guide/invalid-records',
+        'user-guide/auto-revalidation',
         'user-guide/alerts',
         'user-guide/system-settings',
         'user-guide/troubleshooting',

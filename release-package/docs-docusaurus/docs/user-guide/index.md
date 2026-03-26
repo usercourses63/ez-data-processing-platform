@@ -49,7 +49,8 @@ flowchart LR
     E --> F[תזמון]
     F --> G[ניטור]
     G --> H[רשומות לא תקינות]
-    H --> I[פתרון בעיות]
+    H --> H2[אימות מחדש אוטומטי]
+    H2 --> I[פתרון בעיות]
     B -.-> J[רשימת שלמות]
     C -.-> J
     D -.-> J
@@ -74,9 +75,10 @@ flowchart LR
 | 7 | [תזמון ומעקב](/docs/user-guide/scheduling) | תזמון עיבוד, ביטויי Cron, הפעלה ידנית |
 | 8 | [ניטור מערכת](/docs/user-guide/monitoring) | דשבורד ניטור, בריאות מכשירים, OTEL, Grafana |
 | 9 | [רשומות לא תקינות](/docs/user-guide/invalid-records) | צפייה, סינון, תיקון ושליחה מחדש של רשומות שגויות |
-| 10 | [ניהול התרעות](/docs/user-guide/alerts) | התרעות PromQL -- מקור, עסקיות ומערכת |
-| 11 | [הגדרות מערכת](/docs/user-guide/system-settings) | קטגוריות, שרתי קלט/פלט, התקני NAS |
-| 12 | [פתרון בעיות](/docs/user-guide/troubleshooting) | שגיאות נפוצות, שאלות נפוצות, מילון מונחים |
+| 10 | [אימות מחדש אוטומטי](/docs/user-guide/auto-revalidation) | אימות חוזר אוטומטי לאחר שינוי סכמה, TTL, גרסאות **חדש v0.5.0** |
+| 11 | [ניהול התרעות](/docs/user-guide/alerts) | התרעות PromQL -- מקור, עסקיות ומערכת |
+| 12 | [הגדרות מערכת](/docs/user-guide/system-settings) | קטגוריות, שרתי קלט/פלט, התקני NAS |
+| 13 | [פתרון בעיות](/docs/user-guide/troubleshooting) | שגיאות נפוצות, שאלות נפוצות, מילון מונחים |
 
 ---
 

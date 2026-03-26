@@ -6,6 +6,50 @@ sidebar_position: 2
 
 ---
 
+## v0.5.0 - Auto-Revalidation & Invalid Records Management (March 2026)
+
+**Status:** Production Release
+**Type:** Feature Release - Auto-Revalidation, Schema Versioning, Invalid Records TTL
+
+### Highlights
+
+This release delivers **automatic revalidation** of invalid records when datasource schemas change,
+**schema version tracking** for audit trails, **TTL-based cleanup** of expired invalid records,
+and a **YAML schema download** option.
+
+### Auto-Revalidation
+- Schema changes automatically trigger revalidation of all non-ignored invalid records
+- Records that pass the new schema are routed to output destinations
+- Records that still fail get updated error messages reflecting the new schema
+- Rate-limited batching (100 records/batch) prevents system overload
+
+### Manual Revalidation
+- "Revalidate All" button on invalid records page header (respects active filters)
+- "Revalidate All" button on schema tab (scoped to current datasource, visible when invalid records exist)
+- Confirmation popover shows record count before execution
+
+### Schema Versioning
+- SchemaVersion auto-increments on every schema change
+- ValidatedWithSchemaVersion tracks which schema version validated each record
+- Visual schema version tags on invalid records
+
+### Invalid Records TTL
+- Global default: 4 days retention before automatic hard delete
+- Per-datasource override in basic info tab
+- Daily purge job at 03:00 UTC
+
+### YAML Schema Download
+- "Download YAML" button alongside existing JSON download in schema editor
+- Frontend-only conversion using js-yaml library
+
+### Migration Notes
+- New Kafka topic: `dataprocessing.schema.updated`
+- New ConfigMap key: `invalid-records-ttl-days: 4`
+- InvalidRecordsService requires SignalR hub configuration
+- Quartz.NET purge job added to InvalidRecordsService
+
+---
+
 ## v0.4.0 - Datasource Productivity Features (March 2026)
 
 **Status:** Production Release

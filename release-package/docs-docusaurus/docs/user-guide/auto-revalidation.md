@@ -62,7 +62,7 @@ flowchart TD
 
 ההודעה נעלמת לאחר כ-10 שניות. בנוסף, דשבורד הסטטיסטיקות בדף רשומות לא תקינות מתעדכן בזמן אמת דרך SignalR.
 
-![התראת אימות מחדש](/img/screenshots/revalidation-toast.png)
+{/* ![התראת אימות מחדש](/img/screenshots/revalidation-toast.png) */}
 
 ---
 
@@ -87,7 +87,7 @@ flowchart TD
 - רשומות שתוקנו ידנית ומוכנות לאימות חוזר
 :::
 
-![כפתור אמת מחדש](/img/screenshots/revalidate-all-button.png)
+{/* ![כפתור אמת מחדש](/img/screenshots/revalidate-all-button.png) */}
 
 ---
 
