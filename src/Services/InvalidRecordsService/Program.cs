@@ -50,6 +50,8 @@ var rabbitMqPass = builder.Configuration.GetValue<string>("RabbitMQ:Password") ?
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumer<InvalidRecordsService.Consumers.SchemaUpdatedEventConsumer>();
+
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMqHost, "/", h =>
@@ -67,8 +69,10 @@ builder.Services.AddScoped<InvalidRecordsService.Repositories.IInvalidRecordRepo
     InvalidRecordsService.Repositories.InvalidRecordRepository>();
 builder.Services.AddScoped<InvalidRecordsService.Services.IInvalidRecordService, 
     InvalidRecordsService.Services.InvalidRecordService>();
-builder.Services.AddScoped<InvalidRecordsService.Services.ICorrectionService, 
+builder.Services.AddScoped<InvalidRecordsService.Services.ICorrectionService,
     InvalidRecordsService.Services.CorrectionService>();
+builder.Services.AddScoped<InvalidRecordsService.Services.IRevalidationService,
+    InvalidRecordsService.Services.RevalidationService>();
 
 // Configure health checks
 builder.Services.AddDataProcessingHealthChecks(builder.Configuration, serviceName);

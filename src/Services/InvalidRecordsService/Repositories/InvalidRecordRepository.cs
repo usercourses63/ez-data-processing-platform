@@ -88,6 +88,14 @@ public class InvalidRecordRepository : IInvalidRecordRepository
             .ExecuteAsync();
     }
 
+    public async Task<List<DataProcessingInvalidRecord>> GetActiveByDataSourceAsync(string dataSourceId)
+    {
+        return await DB.Find<DataProcessingInvalidRecord>()
+            .Match(r => r.DataSourceId == dataSourceId && !r.IsIgnored && !r.IsDeleted)
+            .Sort(r => r.CreatedAt, Order.Descending)
+            .ExecuteAsync();
+    }
+
     public async Task<StatisticsDto> GetStatisticsAsync()
     {
         var allRecords = await DB.Find<DataProcessingInvalidRecord>()
