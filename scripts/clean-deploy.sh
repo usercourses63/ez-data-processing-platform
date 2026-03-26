@@ -8,11 +8,13 @@ set -euo pipefail
 # ============================================================================
 # Configuration
 # ============================================================================
-NAMESPACE="ez-platform"
+NAMESPACE="${EZ_NAMESPACE:-ez-platform}"
 HELM_RELEASE="ez-platform"
 HELM_CHART="./helm/ez-platform"
 VALUES_FILE="helm/ez-platform/values.yaml"
-VALUES_DEV_FILE="helm/ez-platform/values-dev.yaml"
+# Production deploy: use only values.yaml (no dev overrides)
+# For dev: set EZ_VALUES_DEV=helm/ez-platform/values-dev.yaml
+VALUES_DEV_FILE="${EZ_VALUES_DEV:-}"
 PORT_FORWARD_SCRIPT="scripts/start-port-forwards.ps1"
 DEMO_DATA_DIR="tools/DemoDataGenerator"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -206,6 +208,17 @@ if helm status "$HELM_RELEASE" -n "$NAMESPACE" &>/dev/null; then
   log_ok "Helm release uninstalled"
 fi
 
+# Clean up cluster-scoped PVs in Released state (from previous namespace)
+# PVs are cluster-scoped — namespace delete does NOT remove them.
+# Released PVs with Retain policy block new PVCs with the same names from binding.
+RELEASED_PVS=$(kubectl get pv --no-headers 2>/dev/null | awk '$5=="Released" {print $1}')
+if [ -n "$RELEASED_PVS" ]; then
+  RELEASED_COUNT=$(echo "$RELEASED_PVS" | wc -l)
+  log_info "Cleaning up $RELEASED_COUNT Released PVs (cluster-scoped, left from previous deploy)..."
+  echo "$RELEASED_PVS" | while read PV; do kubectl delete pv "$PV" --force 2>/dev/null; done
+  log_ok "Released PVs cleaned up"
+fi
+
 # Delete namespace
 log_info "Deleting namespace '$NAMESPACE'..."
 kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=true --timeout=120s 2>/dev/null || true
@@ -236,18 +249,21 @@ log_ok "Namespace '$NAMESPACE' created"
 log_phase "[Phase 3/8] Helm install"
 
 log_info "Installing Helm release '$HELM_RELEASE' from $HELM_CHART..."
-log_info "Values: $VALUES_FILE + $VALUES_DEV_FILE"
 
-if helm install "$HELM_RELEASE" "$HELM_CHART" \
-  -n "$NAMESPACE" \
-  -f "$VALUES_FILE" \
-  -f "$VALUES_DEV_FILE" \
-  --wait=false \
-  --timeout 600s; then
+HELM_CMD=(helm install "$HELM_RELEASE" "$HELM_CHART" -n "$NAMESPACE" -f "$VALUES_FILE")
+if [[ -n "$VALUES_DEV_FILE" && -f "$VALUES_DEV_FILE" ]]; then
+  HELM_CMD+=(-f "$VALUES_DEV_FILE")
+  log_info "Values: $VALUES_FILE + $VALUES_DEV_FILE"
+else
+  log_info "Values: $VALUES_FILE (production)"
+fi
+HELM_CMD+=(--set "global.namespace=$NAMESPACE" --wait=false --timeout 600s)
+
+if "${HELM_CMD[@]}"; then
   log_ok "Helm install submitted"
 else
   log_err "Helm install failed. Check chart templates and values."
-  log_info "Debug: helm install --dry-run --debug $HELM_RELEASE $HELM_CHART -n $NAMESPACE -f $VALUES_FILE -f $VALUES_DEV_FILE"
+  log_info "Debug: helm install --dry-run --debug $HELM_RELEASE $HELM_CHART -n $NAMESPACE -f $VALUES_FILE ${VALUES_DEV_FILE:+-f $VALUES_DEV_FILE}"
   exit 1
 fi
 
@@ -397,10 +413,20 @@ if [ "$SKIP_SEED" = true ]; then
   log_info "Skipping data seeding (--skip-seed)"
 else
   if [ -d "$DEMO_DATA_DIR" ]; then
-    log_info "Running DemoDataGenerator with --direct-connection..."
+    # Include simulator flags for NAS/server creation if simulator is available
+    SIMULATOR_URL="${FILE_SIMULATOR_URL:-http://172.30.26.249:30500}"
+    SIMULATOR_FLAGS=""
+    if curl -s --connect-timeout 3 "$SIMULATOR_URL/health" 2>/dev/null | grep -q "Healthy"; then
+      SIMULATOR_FLAGS="--use-simulator --create-servers --provision-nas --api-url=http://127.0.0.1:5001 --simulator-url $SIMULATOR_URL"
+      log_info "File simulator detected at $SIMULATOR_URL — including server/NAS creation + provisioning"
+    else
+      log_warn "File simulator not available — seeding without servers/NAS"
+    fi
+
+    log_info "Running DemoDataGenerator with --direct-connection $SIMULATOR_FLAGS..."
     pushd "$DEMO_DATA_DIR" > /dev/null
 
-    if dotnet run -- --direct-connection; then
+    if dotnet run -- --direct-connection $SIMULATOR_FLAGS; then
       log_ok "DemoDataGenerator completed successfully"
     else
       log_warn "DemoDataGenerator exited with errors. Data may be partially seeded."

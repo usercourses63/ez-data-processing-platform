@@ -39,7 +39,7 @@ const AppFooter: React.FC = () => {
           )}
 
           <Link
-            href={getDocsUrl('docs')}
+            href={getDocsUrl('docs/user-guide/')}
             target="_blank"
             className="footer-link"
           >

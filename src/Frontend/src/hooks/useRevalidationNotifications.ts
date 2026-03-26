@@ -13,7 +13,7 @@ import * as signalR from '@microsoft/signalr';
 import { App } from 'antd';
 import { useTranslation } from 'react-i18next';
 
-const INVALID_RECORDS_HUB_URL = 'http://localhost:5007/hubs/invalid-records';
+const INVALID_RECORDS_HUB_URL = `${window.location.protocol}//${window.location.host}/hubs/invalid-records`;
 
 interface RevalidationCompletedEvent {
   dataSourceId: string;

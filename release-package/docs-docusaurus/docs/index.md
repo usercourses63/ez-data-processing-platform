@@ -4,9 +4,9 @@ title: Welcome
 slug: /
 ---
 
-# EZ Platform v0.4.0 Documentation
+# EZ Platform v0.5.0 Documentation
 
-Welcome to the official documentation for EZ Platform version 0.4.0.
+Welcome to the official documentation for EZ Platform version 0.5.0.
 
 ## About This Release
 

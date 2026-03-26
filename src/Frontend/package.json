@@ -1,6 +1,6 @@
 {
   "name": "dataprocessing-frontend",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "dependencies": {
     "@microsoft/signalr": "^7.0.11",

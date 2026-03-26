@@ -105,7 +105,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ collapsed = false, onCollapse }) 
           <Button
             type="text"
             icon={<QuestionCircleOutlined />}
-            onClick={() => openDocsInNewTab('docs/user-guide-he')}
+            onClick={() => openDocsInNewTab('docs/user-guide/')}
             aria-label={isRTL ? 'פתח מדריך למשתמש' : 'Open user guide'}
             style={{
               fontSize: '16px',

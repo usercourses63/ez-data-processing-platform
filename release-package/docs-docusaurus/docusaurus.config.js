@@ -6,7 +6,7 @@ const darkCodeTheme = require('prism-react-renderer').themes.dracula;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'EZ Platform v0.4.0',
+  title: 'EZ Platform v0.5.0',
   tagline: 'Data Processing Platform - Official Documentation',
   favicon: 'img/favicon.ico',
 
