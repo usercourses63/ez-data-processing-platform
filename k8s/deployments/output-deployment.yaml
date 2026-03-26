@@ -37,7 +37,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: output
-        image: ez-platform/output:v0.1.1-rc3
+        image: ez-platform/output:v0.3.0
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
