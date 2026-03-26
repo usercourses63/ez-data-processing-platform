@@ -448,6 +448,105 @@ When selecting an AdminServer in the ConnectionTab, credentials (username, passw
 
 For NAS-type data sources, the `ConnectionString` field is no longer required. The connection is determined by the selected NAS device's NFS server and export path, making the explicit connection string redundant.
 
+---
+
+## Import from File (v0.4.0)
+
+The Import from File feature allows users to upload sample data files to auto-create datasources with inferred schemas.
+
+### Components
+
+| Component | Purpose |
+|-----------|---------|
+| `FileUploadModal` | Modal for file selection and upload |
+| `ArchiveFileSelector` | Select a file within an archive (ZIP/TAR.GZ/7Z/RAR) |
+| `DataPreviewTable` | Preview parsed data before applying |
+| `ArchiveSettingsSection` | Archive source settings in ConnectionTab |
+
+### Flow
+
+1. User clicks "Import from File" on datasource list page
+2. `FileUploadModal` opens for file upload (CSV, JSON, XML, Excel, or archive)
+3. For archives: `ArchiveFileSelector` shows archive contents for file selection
+4. Client-side file analysis detects types (integer, number, boolean, date, string)
+5. `DataPreviewTable` shows parsed data for review
+6. On "Continue": datasource is auto-created with inferred schema
+7. User is navigated to the edit form with completeness checklist sidebar
+
+### Archive API Integration
+
+For archive files, the frontend calls the backend Archive API:
+
+```typescript
+// Analyze archive contents
+const analysis = await fetch('/api/v1/archive/analyze', {
+  method: 'POST',
+  body: formData  // multipart with archive file
+});
+
+// Extract specific file from archive
+const extracted = await fetch('/api/v1/archive/extract', {
+  method: 'POST',
+  body: JSON.stringify({ archivePath, fileName, password })
+});
+```
+
+The backend uses **SharpCompress** for multi-format archive support (ZIP, TAR.GZ, 7Z, RAR including encrypted).
+
+### ArchiveSettingsSection
+
+When a datasource is created from an archive file, the ConnectionTab shows an `ArchiveSettingsSection` with:
+- Archive format type
+- Archive password (for encrypted archives)
+- Inner file path (extraction pattern)
+
+These fields are tracked in the completeness checklist when `isArchiveSource=true`.
+
+---
+
+## Completeness Checklist (v0.4.0)
+
+The completeness checklist provides real-time form guidance during datasource creation and editing.
+
+### Components
+
+| Component | Purpose |
+|-----------|---------|
+| `CompletenessPanel` | Sidebar panel showing per-tab completion status |
+| `ProgressRing` | Mini progress indicator in datasource list |
+
+### Classification
+
+Fields are classified into three tiers:
+- **Required** (red border) -- Must be filled for datasource to function
+- **Recommended** (amber border) -- Should be filled for best results
+- **Optional** (gray) -- Nice to have, no impact on functionality
+
+### Features
+
+- Clickable incomplete items navigate to the corresponding tab
+- Missing fields panel highlights which fields need attention
+- Auto-disable toggle for datasources below required completeness threshold
+- AJV schema validation for field-level completeness checking
+- Archive fields tracked when `isArchiveSource=true`
+
+---
+
+## Clone Datasource (v0.4.0)
+
+Clone creates a complete copy of an existing datasource with all settings preserved.
+
+### Access Points
+
+- **List page**: CopyOutlined icon in actions column
+- **Edit page**: Clone button in header
+
+### Preserved Settings
+
+All settings are deep-copied: name (prefixed with "Copy of" / "העתק של"), schema, connection settings, archive settings, output destinations (with new unique IDs). Schedule is disabled by default on clones.
+
+---
+
 ## See Also
 
 - [Schema Editor](schema-editor) - Full-page schema editing

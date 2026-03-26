@@ -2,7 +2,7 @@
 sidebar_position: 1
 title: Component Library
 description: Frontend component documentation with props, usage examples, and RTL support
-last_verified: 2026-02-03
+last_verified: 2026-03-26
 ---
 
 # Component Library
@@ -34,6 +34,17 @@ Components for JSON Schema editing and validation.
 |-----------|---------|----------|
 | [SchemaEditorPage](/docs/components/schema-editor#schemaeditorpage) | Full-page schema editing | `/pages/schema/` |
 | [VanillaJSONEditorWrapper](/docs/components/schema-editor#vanillajsoneditorwrapper) | JSON editor integration | `/components/schema/` |
+
+### Datasource Productivity (v0.4.0)
+
+Components for datasource workflow enhancements added in v0.4.0.
+
+| Component | Purpose | Location |
+|-----------|---------|----------|
+| Clone Datasource | One-click datasource duplication (CopyOutlined button, confirmation modal) | `/pages/datasources/` |
+| [Import from File](/docs/components/datasource-forms#import-from-file-v040) | Upload file to auto-create datasource (FileUploadModal, ArchiveFileSelector, DataPreviewTable) | `/components/datasource/import/` |
+| [Completeness Checklist](/docs/components/datasource-forms#completeness-checklist-v040) | Real-time form completion tracking (CompletenessPanel, ProgressRing, field borders) | `/components/datasource/completeness/` |
+| Archive Settings | Archive source configuration in ConnectionTab (ArchiveSettingsSection) | `/components/datasource/tabs/` |
 
 ### Administration
 
@@ -158,6 +169,12 @@ The component library relies on these key dependencies:
 | `i18next` | 23.x | Internationalization |
 | `vanilla-jsoneditor` | 0.23.x | JSON editing |
 | `jsonjoy-builder` | - | JSON Schema building |
+
+## Version Reference
+
+**v0.4.0** -- Clone Datasource, Import from File, Completeness Checklist, Archive Settings
+**v0.3.0** -- SignalR real-time sync, Device Health improvements, NAS UX
+**v0.2.0** -- NAS device management, System Monitoring, OTEL observability
 
 ## See Also
 

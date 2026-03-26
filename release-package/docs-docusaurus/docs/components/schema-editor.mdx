@@ -2,7 +2,7 @@
 sidebar_position: 3
 title: Schema Editor
 description: JSON Schema editing components with visual builder
-last_verified: 2026-02-03
+last_verified: 2026-03-26
 ---
 
 import Tabs from '@theme/Tabs';
@@ -347,6 +347,49 @@ const CustomSchemaEditor: React.FC<{
   );
 };
 ```
+
+---
+
+## Schema Builder Toolbar (v0.4.0)
+
+The Schema Builder page (`/schema/builder`) includes a toolbar with additional tools:
+
+### Regex Helper Dialog
+
+The **Regex Helper** dialog assists users in constructing regular expressions for schema `pattern` constraints:
+
+- Common pattern presets (email, phone, date, URL, IP address)
+- Live regex testing with sample input
+- Pattern explanation in Hebrew and English
+- Accessible via toolbar button in schema editor
+
+### Example JSON Generator
+
+The **Example JSON Generator** creates sample data that conforms to the current schema:
+
+- Auto-generates values matching type constraints
+- Respects `minimum`, `maximum`, `minLength`, `maxLength` constraints
+- Produces realistic-looking data for testing
+- Available as "Generate Example" button in toolbar
+
+### Schema Templates Library
+
+The **Schema Templates Library** provides pre-built schema templates for common data patterns:
+
+- Business templates: Sales transactions, invoices, customer records
+- Technical templates: Log entries, API responses, event payloads
+- Templates are customizable after selection
+- Available via "Templates" button in toolbar
+
+---
+
+## v0.4.0 Changes
+
+### YAML Schema Download
+
+In v0.4.0/v0.5.0, the schema editor includes a "Download YAML" button alongside the existing JSON download. This uses frontend-only conversion via the `js-yaml` library -- no backend round-trip required.
+
+---
 
 ## See Also
 
