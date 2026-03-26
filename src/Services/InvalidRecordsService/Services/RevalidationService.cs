@@ -66,7 +66,7 @@ public class RevalidationService : IRevalidationService
                 try
                 {
                     // Get original record data as JSON string
-                    var json = record.OriginalRecord.ToJson();
+                    var json = record.OriginalRecord.ToString();
                     var fileContent = Encoding.UTF8.GetBytes(json);
 
                     var validationRequest = new ValidationRequestEvent
