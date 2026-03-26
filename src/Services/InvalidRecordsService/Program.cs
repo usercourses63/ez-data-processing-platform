@@ -7,6 +7,7 @@ using System.Diagnostics;
 using MassTransit;
 using Quartz;
 using InvalidRecordsService.Jobs;
+using InvalidRecordsService.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,17 +93,21 @@ builder.Services.AddQuartz(q =>
 });
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
+// Add SignalR for real-time revalidation notifications
+builder.Services.AddSignalR();
+
 // Add rate limiting
 builder.Services.AddDataProcessingRateLimiting(builder.Configuration);
 
-// Configure CORS for development
+// Configure CORS for development (SetIsOriginAllowed required for SignalR with credentials)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -136,6 +141,7 @@ app.UseDataProcessingRateLimiting();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<InvalidRecordsHub>("/hubs/invalid-records");
 
 // Map health checks
 app.UseDataProcessingHealthChecks();

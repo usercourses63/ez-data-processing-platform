@@ -402,6 +402,11 @@ public class InvalidRecordService : IInvalidRecordService
         }
     }
 
+    public async Task<int> GetRevalidatableCountAsync(string? dataSourceId)
+    {
+        return await _repository.GetActiveCountAsync(dataSourceId);
+    }
+
     /// <summary>
     /// Export invalid records to CSV format
     /// </summary>

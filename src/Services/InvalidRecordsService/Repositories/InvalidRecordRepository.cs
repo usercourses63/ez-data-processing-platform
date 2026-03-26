@@ -146,4 +146,29 @@ public class InvalidRecordRepository : IInvalidRecordRepository
         var deleteResult = await DB.DeleteAsync<DataProcessingInvalidRecord>(r => ids.Contains(r.ID));
         return (int)deleteResult.DeletedCount;
     }
+
+    public async Task<int> GetActiveCountAsync(string? dataSourceId)
+    {
+        var query = DB.Find<DataProcessingInvalidRecord>();
+
+        if (!string.IsNullOrEmpty(dataSourceId))
+        {
+            query.Match(r => r.DataSourceId == dataSourceId && !r.IsIgnored && !r.IsDeleted);
+        }
+        else
+        {
+            query.Match(r => !r.IsIgnored && !r.IsDeleted);
+        }
+
+        var records = await query.ExecuteAsync();
+        return records.Count;
+    }
+
+    public async Task<List<DataProcessingInvalidRecord>> GetAllActiveAsync()
+    {
+        return await DB.Find<DataProcessingInvalidRecord>()
+            .Match(r => !r.IsIgnored && !r.IsDeleted)
+            .Sort(r => r.CreatedAt, Order.Descending)
+            .ExecuteAsync();
+    }
 }

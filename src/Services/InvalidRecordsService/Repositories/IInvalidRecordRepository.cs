@@ -14,4 +14,6 @@ public interface IInvalidRecordRepository
     Task UpdateStatusAsync(string id, string reviewedBy, string? notes, bool ignore);
     Task DeleteAsync(string id);
     Task<int> BulkDeleteAsync(List<string> ids);
+    Task<int> GetActiveCountAsync(string? dataSourceId);
+    Task<List<DataProcessingInvalidRecord>> GetAllActiveAsync();
 }

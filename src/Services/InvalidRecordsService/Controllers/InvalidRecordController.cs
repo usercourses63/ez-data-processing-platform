@@ -12,15 +12,18 @@ public class InvalidRecordController : ControllerBase
 {
     private readonly IInvalidRecordService _service;
     private readonly ICorrectionService _correctionService;
+    private readonly IRevalidationService _revalidationService;
     private readonly ILogger<InvalidRecordController> _logger;
 
     public InvalidRecordController(
         IInvalidRecordService service,
         ICorrectionService correctionService,
+        IRevalidationService revalidationService,
         ILogger<InvalidRecordController> logger)
     {
         _service = service;
         _correctionService = correctionService;
+        _revalidationService = revalidationService;
         _logger = logger;
     }
 
@@ -509,6 +512,68 @@ public class InvalidRecordController : ControllerBase
                     messageEnglish = "Failed to export data"
                 }
             });
+        }
+    }
+
+    /// <summary>
+    /// Trigger bulk revalidation of invalid records.
+    /// Per D-08: Called from invalid records page header and schema tab in datasource edit.
+    /// Per D-09: Returns count before execution, confirmation handled by frontend.
+    /// </summary>
+    [HttpPost("revalidate-all")]
+    public async Task<IActionResult> RevalidateAll([FromBody] RevalidateAllRequest? request = null)
+    {
+        var correlationId = HttpContext.Items["CorrelationId"]?.ToString() ?? "N/A";
+        var dataSourceId = request?.DataSourceId;
+
+        _logger.LogInformation(
+            "POST /api/v1/invalid-records/revalidate-all - DataSourceId: {DataSourceId}, CorrelationId: {CorrelationId}",
+            dataSourceId ?? "all", correlationId);
+
+        try
+        {
+            var result = await _revalidationService.BulkRevalidateByDataSourceAsync(
+                dataSourceId ?? string.Empty,
+                request?.TriggeredBy ?? "ManualButton");
+
+            return Ok(new
+            {
+                isSuccess = true,
+                data = result,
+                message = $"{result.Published} רשומות נשלחו לאימות מחדש",
+                messageEnglish = $"{result.Published} records sent for revalidation"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed revalidate-all operation");
+            return StatusCode(500, new
+            {
+                isSuccess = false,
+                error = new
+                {
+                    message = "שגיאה באימות מחדש",
+                    messageEnglish = "Failed revalidation operation"
+                }
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get count of revalidatable records for confirmation popover (per D-09)
+    /// </summary>
+    [HttpGet("revalidate-count")]
+    public async Task<IActionResult> GetRevalidateCount([FromQuery] string? dataSourceId = null)
+    {
+        try
+        {
+            var count = await _service.GetRevalidatableCountAsync(dataSourceId);
+            return Ok(new { isSuccess = true, data = new { count } });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get revalidatable count");
+            return StatusCode(500, new { isSuccess = false });
         }
     }
 

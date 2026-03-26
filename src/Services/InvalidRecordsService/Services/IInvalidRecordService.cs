@@ -11,4 +11,5 @@ public interface IInvalidRecordService
     Task UpdateStatusAsync(string id, UpdateStatusRequest request);
     Task<BulkOperationResult> BulkDeleteAsync(BulkOperationRequest request);
     Task<byte[]> ExportToCsvAsync(ExportRequest request);
+    Task<int> GetRevalidatableCountAsync(string? dataSourceId);
 }
