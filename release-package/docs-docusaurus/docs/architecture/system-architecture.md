@@ -6,7 +6,7 @@ sidebar_position: 1
 
 > **Executive Architecture Overview**
 > Data Processing & Validation Platform
-> Status: Production Release (v0.2.0)
+> Status: Production Release (v0.4.0, March 2026)
 
 ---
 
@@ -436,12 +436,12 @@ When creating a data source with NAS protocol:
 
 | Service | Port | Replicas | Primary Responsibility |
 |---------|------|----------|------------------------|
-| **Frontend** | 3000 | 2 | React UI with Hebrew/RTL support |
+| **Frontend** | 7000 | 2 | React UI with Hebrew/RTL support |
 | **DataSource Management** | 5001 | 1 | Configuration & Schema CRUD |
 | **Metrics Configuration** | 5002 | 1 | Metric definitions & alerts |
 | **Validation** | 5003 | 1 | JSON Schema 2020-12 validation |
 | **Scheduling** | 5004 | 1 | Cron-based job orchestration |
-| **Invalid Records** | 5006 | 1 | Error tracking & reprocessing |
+| **Invalid Records** | 5007 | 1 | Error tracking, reprocessing & auto-revalidation |
 | **File Discovery** | 5007 | 2 | File polling & deduplication |
 | **File Processor** | 5008 | 2 | Multi-format conversion |
 | **Output** | 5009 | 3 | Multi-destination export |
@@ -609,6 +609,101 @@ When creating a data source with NAS protocol:
 
 ---
 
+## v0.4.0 Architecture Additions
+
+### Clone Datasource
+
+Clone is a frontend-only feature that duplicates any datasource with all settings preserved. The implementation uses a `handleSubmit` merge pattern where the cloned data is deep-copied and submitted as a new entity:
+
+- Schema, connection settings, archive settings, and output destinations are all preserved
+- Output destinations receive new unique IDs to prevent conflicts
+- Schedule is disabled by default on clones to prevent accidental pipeline execution
+- No backend changes required -- uses existing `POST /api/v1/datasource` endpoint
+
+### Import from File
+
+Import from File provides a complete flow from file upload to auto-created datasource:
+
+```
+User uploads file (CSV/JSON/XML/Excel/Archive)
+         |
+         v
+  Frontend: File analysis + type detection
+  (Archives: POST /api/v1/archive/analyze → extract)
+         |
+         v
+  Schema inference (schemaAutoSuggest)
+  - Type detection: integer, number, boolean, date, string
+  - Constraint suggestions: email, phone, date formats
+         |
+         v
+  DataPreviewTable (preview parsed data)
+         |
+         v
+  Auto-create datasource (POST /api/v1/datasource)
+         |
+         v
+  Navigate to edit form with completeness checklist
+```
+
+**Archive API (Backend):** The DataSourceManagement service includes archive endpoints powered by **SharpCompress**:
+- `POST /api/v1/archive/analyze` -- Analyze archive contents (ZIP, TAR.GZ, 7Z, RAR)
+- `POST /api/v1/archive/extract` -- Extract specific file from archive
+- Supports encrypted archives (password-protected ZIP/7Z/RAR)
+- nginx `client_max_body_size` set to 100MB for archive uploads
+
+### Completeness Checklist
+
+The completeness checklist is a real-time form guidance system:
+
+- **3-tier classification**: Required (red) / Recommended (amber) / Optional (gray)
+- **Per-tab completion status**: CompletenessPanel sidebar shows each tab's status
+- **ProgressRing**: Mini progress indicator in datasource list
+- **Auto-disable**: Datasources below the required completeness threshold are automatically disabled
+- **AJV validation**: Field-level completeness checking via JSON Schema validation
+- **Archive-aware**: When `isArchiveSource=true`, archive fields are tracked in completeness
+
+---
+
+## v0.3.0 Architecture Additions
+
+### SignalR Real-Time Communication
+
+v0.3.0 adds **SignalR WebSocket** for real-time multi-user synchronization. Every backend controller performing CRUD operations broadcasts `EntityChanged` events:
+
+```
+Frontend (React) <──WebSocket──> SignalR Hubs
+                                    |
+                    ┌───────────────┼───────────────┐
+                    v               v               v
+              MonitoringHub    EntityChanged    Entity Sync
+              (/hubs/monitoring)  (CRUD events)  (useEntitySync)
+```
+
+**Implemented on:** DataSourceController, ServersController, CategoriesController, NasDevicesController, InvalidRecordsController
+
+### Two-Tier Logging Architecture
+
+```
+Infrastructure Containers  →  Fluent Bit DaemonSet  →  Elasticsearch (ez-logs-YYYY.MM.DD)
+Application Services       →  Serilog/OTEL SDK       →  OTEL Collector → Elasticsearch + Jaeger + Prometheus
+```
+
+### Device Health Monitoring
+
+Automated health checks via Quartz.NET (30s interval) with consecutive failure tracking:
+- 0 failures = Healthy, 1-2 = Degraded, 3+ = Down
+- Configurable latency thresholds: NAS 2000ms, AdminServer 5000ms
+- Frontend: Device Health tab with 15s polling + SignalR real-time updates
+
+### NAS UX Improvements
+
+- Delete auto-deprovisions K8s PV/PVC before soft-delete
+- Status tags use i18n keys (Hebrew/English)
+- Role enum accepts both string and numeric values
+
+---
+
 ## v0.2.0 Architecture Additions
 
 ### SignalR Real-Time Communication
@@ -674,4 +769,4 @@ Consecutive failure tracking: 0 = Healthy, 1-2 = Degraded, 3+ = Down.
 
 ---
 
-*Generated: March 2026 | EZ Platform v0.2.0 | Production Release*
+*Generated: March 2026 | EZ Platform v0.4.0 | Production Release*

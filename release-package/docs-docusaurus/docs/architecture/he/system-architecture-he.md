@@ -6,7 +6,7 @@ sidebar_position: 1
 
 > **Executive Architecture Overview**
 > Data Processing & Validation Platform
-> Status: 92% Complete (Production Validation Phase)
+> Status: Production Release (v0.4.0, March 2026)
 
 ---
 
@@ -433,7 +433,47 @@ EZ Platform is a microservices-based data processing platform that provides:
 - **Kubernetes-native deployment** with proper scaling strategies
 - **JSON Schema 2020-12** validation with Corvus validator
 - **Business metrics** extraction and alerting
+- **SignalR real-time** multi-user synchronization (v0.3.0)
+- **Device health monitoring** with automated checks (v0.3.0)
+- **NAS device management** with auto PV/PVC provisioning (v0.2.0)
 
 ---
 
-*Generated: December 25, 2025 | EZ Platform v1.0 | 92% Complete*
+## v0.4.0 - תכונות חדשות
+
+### שכפול מקור נתונים (Clone Datasource)
+
+שכפול מקור נתונים מאפשר יצירת עותק מלא של מקור נתונים קיים כולל כל ההגדרות: סכמה, חיבור, הגדרות ארכיון ויעדי פלט.
+
+### ייבוא מקובץ (Import from File)
+
+ייבוא מקובץ מאפשר יצירה אוטומטית של מקור נתונים מקובץ דוגמה (CSV, JSON, XML, Excel). תמיכה בארכיונים (ZIP, TAR.GZ, 7Z, RAR) כולל ארכיונים מוצפנים באמצעות Archive API ו-SharpCompress בצד השרת.
+
+**נקודות קצה של Archive API:**
+- `POST /api/v1/archive/analyze` - ניתוח תוכן ארכיון
+- `POST /api/v1/archive/extract` - חילוץ קובץ מתוך ארכיון
+
+### שלמות מקור נתונים (Completeness Checklist)
+
+רשימת שלמות בזמן אמת עם מעקב אחר התקדמות, גבולות שדות מקודדי צבע, ומנגנון השבתה אוטומטית למקורות נתונים שלא עומדים בסף השלמות הנדרש.
+
+---
+
+## v0.3.0 - תכונות חדשות
+
+### עדכונים בזמן אמת עם SignalR
+
+כל פעולות CRUD משדרות אירועי EntityChanged דרך WebSocket לכל הלקוחות המחוברים. מיושם על: DataSource, Servers, Categories, NasDevices.
+
+### ניטור בריאות התקנים (Device Health)
+
+בדיקות בריאות אוטומטיות באמצעות Quartz.NET כל 30 שניות. מעקב אחר כשלים רצופים: 0=תקין, 1-2=מדורג, 3+=מנותק.
+
+### שיפורי NAS UX
+
+- מחיקה אוטומטית של PV/PVC בעת מחיקת התקן NAS
+- תגיות סטטוס בעברית ובאנגלית (i18n)
+
+---
+
+*Generated: March 2026 | EZ Platform v0.4.0 | Production Release*
