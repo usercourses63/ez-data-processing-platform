@@ -107,6 +107,12 @@ public class DataProcessingInvalidRecord : DataProcessingBaseEntity
     public bool IsIgnored { get; set; } = false;
 
     /// <summary>
+    /// Schema version that was used when this record was originally validated.
+    /// Used to detect records that may benefit from revalidation after schema changes.
+    /// </summary>
+    public int ValidatedWithSchemaVersion { get; set; } = 1;
+
+    /// <summary>
     /// Adds a validation error to this record
     /// </summary>
     public void AddValidationError(string error, string? fieldName = null, string? expectedValue = null, string? actualValue = null)
