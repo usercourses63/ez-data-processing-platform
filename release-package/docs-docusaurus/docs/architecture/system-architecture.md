@@ -366,7 +366,7 @@ When creating a data source with NAS protocol:
 - Relative Path: `sales/2026`
 - Full Path in Pod: `/mnt/production-nas-01/sales/2026`
 
-**See also:** [Administrator Guide](/admin) for NAS device management procedures.
+**See also:** [Administrator Guide](/docs/admin) for NAS device management procedures.
 
 ---
 

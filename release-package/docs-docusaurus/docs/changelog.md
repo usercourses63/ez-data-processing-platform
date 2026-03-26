@@ -334,4 +334,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-**For detailed release notes:** See [Release Notes](/release-notes)
+**For detailed release notes:** See [Release Notes](/docs/release-notes)

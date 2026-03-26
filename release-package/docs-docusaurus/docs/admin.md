@@ -208,7 +208,7 @@ kubectl describe pvc {device-name}-pvc -n ez-platform
 
 ### Hebrew User Guide
 
-For end-user documentation in Hebrew, see: [מדריך למשתמש](/user-guide-he#ניהול-התקני-nas)
+For end-user documentation in Hebrew, see: [מדריך למשתמש](/docs/user-guide/)
 
 ---
 

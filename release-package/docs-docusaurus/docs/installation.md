@@ -839,11 +839,11 @@ Use this checklist after installation:
 
 After successful installation:
 
-1. **Read User Guide**: [USER-GUIDE-HE.md](../user-guide/USER-GUIDE-HE.md) (Hebrew)
+1. **Read User Guide**: [User Guide](/docs/user-guide/) (Hebrew)
 2. **Configure Categories**: Go to Admin Settings → Categories
 3. **Create DataSources**: Follow user guide for datasource setup
 4. **Set Up Monitoring**: Configure Grafana dashboards
-5. **Review Admin Guide**: [ADMIN-GUIDE.md](../admin/ADMIN-GUIDE.md)
+5. **Review Admin Guide**: [Admin Guide](/docs/admin)
 
 ---
 
@@ -851,7 +851,7 @@ After successful installation:
 
 For issues or questions:
 - Check [Troubleshooting](#troubleshooting) section
-- Review [Admin Guide](../admin/ADMIN-GUIDE.md)
+- Review [Admin Guide](/docs/admin)
 - Check logs: `kubectl logs <pod-name> -n ez-platform`
 - GitHub Issues: [Report Issue](https://github.com/usercourses63/ez-data-processing-platform/issues)
 

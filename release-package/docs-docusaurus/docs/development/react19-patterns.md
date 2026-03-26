@@ -548,7 +548,7 @@ import VirtualList from 'rc-virtual-list';
 
 ## Testing Patterns
 
-See [E2E Testing Documentation](/docs/testing/TESTING) for comprehensive testing guidance.
+See the [Development Guide](/docs/development/) for comprehensive testing guidance.
 
 ### Component Testing
 

@@ -221,9 +221,9 @@ sidebar_position: 10
 - כפתור עזרה: פותח את פורטל התיעוד
 
 **תיעוד:**
-- [מדריך מנהל מערכת](/admin)
-- [מדריך התקנה](/installation)
-- [הערות גרסה](/release-notes)
-- [רכיבי ממשק](/components/index)
+- [מדריך מנהל מערכת](/docs/admin)
+- [מדריך התקנה](/docs/installation)
+- [הערות גרסה](/docs/release-notes)
+- [רכיבי ממשק](/docs/components/)
 
 </div>

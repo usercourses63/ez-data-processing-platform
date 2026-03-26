@@ -15,15 +15,12 @@ sidebar_position: 1
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [OCP Compatibility Issues and Resolutions](#ocp-compatibility-issues-and-resolutions) ← **NEW in v2.0**
+2. [OCP Compatibility Issues and Resolutions](#ocp-compatibility-issues-and-resolutions)
 3. [Initial Environment Setup](#initial-environment-setup)
 4. [Deployment Process Overview](#deployment-process-overview)
 5. [Critical Issues and Resolutions](#critical-issues-and-resolutions)
-6. [Configuration Details](#configuration-details)
-7. [Final Working Configuration](#final-working-configuration)
-8. [Verification and Testing](#verification-and-testing)
-9. [Lessons Learned](#lessons-learned)
-10. [Quick Reference](#quick-reference)
+6. [Quick Reference](#quick-reference)
+7. [Success Criteria](#success-criteria)
 
 ---
 

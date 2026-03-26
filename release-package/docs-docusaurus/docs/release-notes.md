@@ -495,7 +495,7 @@ powershell.exe -ExecutionPolicy Bypass -File scripts/start-port-forwards.ps1
 http://localhost:3000
 ```
 
-**See:** [Installation Guide](../installation/INSTALLATION-GUIDE.md) for detailed instructions
+**See:** [Installation Guide](/docs/installation) for detailed instructions
 
 ---
 
@@ -646,11 +646,11 @@ None (initial release)
 
 ## Documentation
 
-- **Installation Guide**: [INSTALLATION-GUIDE.md](../installation/INSTALLATION-GUIDE.md)
-- **Admin Guide**: [ADMIN-GUIDE.md](../admin/ADMIN-GUIDE.md)
-- **User Guide (Hebrew)**: [USER-GUIDE-HE.md](../user-guide/USER-GUIDE-HE.md)
-- **Project Standards**: [PROJECT_STANDARDS.md](../PROJECT_STANDARDS.md)
-- **MVP Deployment Plan**: [MVP-DEPLOYMENT-PLAN.md](../planning/Phase-MVP-Deployment/MVP-DEPLOYMENT-PLAN.md)
+- **Installation Guide**: [Installation](/docs/installation)
+- **Admin Guide**: [Admin Guide](/docs/admin)
+- **User Guide (Hebrew)**: [User Guide](/docs/user-guide/)
+- **Architecture**: [System Architecture](/docs/architecture/system-architecture)
+- **Deployment Guide**: [Deployment Plan](/docs/deployment/deployment-plan)
 
 ---
 
@@ -675,7 +675,7 @@ None (initial release)
 - **Documentation**: See `docs/` directory
 
 ### Common Issues
-See [Troubleshooting Guide](../admin/ADMIN-GUIDE.md#troubleshooting)
+See [Troubleshooting Guide](/docs/admin#troubleshooting)
 
 ---
 
@@ -742,6 +742,6 @@ See [Troubleshooting Guide](../admin/ADMIN-GUIDE.md#troubleshooting)
 
 ---
 
-*For installation instructions, see [Installation Guide](/installation)*
-*For user documentation, see [Hebrew User Guide](/user-guide-he)*
-*For administrator documentation, see [Admin Guide](/admin)*
+*For installation instructions, see [Installation Guide](/docs/installation)*
+*For user documentation, see [Hebrew User Guide](/docs/user-guide/)*
+*For administrator documentation, see [Admin Guide](/docs/admin)*

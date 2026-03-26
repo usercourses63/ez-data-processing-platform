@@ -118,15 +118,15 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/installation',
+                to: '/docs/installation',
               },
               {
                 label: 'Admin Guide',
-                to: '/admin',
+                to: '/docs/admin',
               },
               {
                 label: 'Architecture',
-                to: '/architecture/system-architecture',
+                to: '/docs/architecture/system-architecture',
               },
             ],
           },
@@ -135,15 +135,15 @@ const config = {
             items: [
               {
                 label: 'Release Notes',
-                to: '/release-notes',
+                to: '/docs/release-notes',
               },
               {
                 label: 'Changelog',
-                to: '/changelog',
+                to: '/docs/changelog',
               },
               {
                 label: 'Deployment Guide',
-                to: '/deployment/deployment-plan',
+                to: '/docs/deployment/deployment-plan',
               },
             ],
           },

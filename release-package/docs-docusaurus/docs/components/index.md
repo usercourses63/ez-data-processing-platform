@@ -22,9 +22,9 @@ Form components used in the data source creation and editing workflow.
 
 | Component | Purpose | Location |
 |-----------|---------|----------|
-| [BasicInfoTab](datasource-forms#basicinfotab) | Name, category, description fields | `/datasources/tabs/` |
-| [ConnectionTab](datasource-forms#connectiontab) | Protocol and server selection | `/datasources/tabs/` |
-| [SchemaTab](datasource-forms#schematab) | JSON Schema configuration | `/datasources/tabs/` |
+| [BasicInfoTab](/docs/components/datasource-forms#basicinfotab) | Name, category, description fields | `/datasources/tabs/` |
+| [ConnectionTab](/docs/components/datasource-forms#connectiontab) | Protocol and server selection | `/datasources/tabs/` |
+| [SchemaTab](/docs/components/datasource-forms#schematab) | JSON Schema configuration | `/datasources/tabs/` |
 
 ### Schema Editor
 
@@ -32,8 +32,8 @@ Components for JSON Schema editing and validation.
 
 | Component | Purpose | Location |
 |-----------|---------|----------|
-| [SchemaEditorPage](schema-editor#schemaeditorpage) | Full-page schema editing | `/pages/schema/` |
-| [VanillaJSONEditorWrapper](schema-editor#vanillajsoneditorwrapper) | JSON editor integration | `/components/schema/` |
+| [SchemaEditorPage](/docs/components/schema-editor#schemaeditorpage) | Full-page schema editing | `/pages/schema/` |
+| [VanillaJSONEditorWrapper](/docs/components/schema-editor#vanillajsoneditorwrapper) | JSON editor integration | `/components/schema/` |
 
 ### Administration
 
@@ -41,7 +41,7 @@ Admin panel components for system configuration.
 
 | Component | Purpose | Location |
 |-----------|---------|----------|
-| [NasDevicesTab](nas-devices#nasdevicestab) | NAS device management | `/admin/tabs/` |
+| [NasDevicesTab](/docs/components/nas-devices#nasdevicestab) | NAS device management | `/admin/tabs/` |
 
 ### Monitoring
 
@@ -49,8 +49,8 @@ Real-time monitoring and device health components.
 
 | Component | Purpose | Location |
 |-----------|---------|----------|
-| [System Monitoring](system-monitoring) | Real-time dashboard with SignalR integration | `/pages/monitoring/` |
-| [Device Health](device-health) | NAS and AdminServer health monitoring | `/pages/monitoring/components/` |
+| [System Monitoring](/docs/components/system-monitoring) | Real-time dashboard with SignalR integration | `/pages/monitoring/` |
+| [Device Health](/docs/components/device-health) | NAS and AdminServer health monitoring | `/pages/monitoring/components/` |
 
 ## Design Principles
 
@@ -161,6 +161,6 @@ The component library relies on these key dependencies:
 
 ## See Also
 
-- [Hebrew User Guide](/docs/user-guide-he) - End-user documentation
-- [Architecture](/docs/architecture/ARCHITECTURE) - System architecture
+- [Hebrew User Guide](/docs/user-guide/) - End-user documentation
+- [Architecture](/docs/architecture/system-architecture) - System architecture
 - [Admin Guide](/docs/admin) - Administration reference

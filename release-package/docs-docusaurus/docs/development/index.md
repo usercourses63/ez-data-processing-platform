@@ -9,11 +9,11 @@ Resources for EZ Platform frontend and backend development.
 
 ## Available Guides
 
-### [API Coordination](./api-coordination)
+### [API Coordination](/docs/development/api-coordination)
 
 Process for coordinating frontend/backend API changes. Covers contract-first development, versioning strategy, and change communication.
 
-### [React 19 Patterns](./react19-patterns)
+### [React 19 Patterns](/docs/development/react19-patterns)
 
 React 19 patterns and best practices used in EZ Platform. Includes lazy loading, hooks, RTL support, and common anti-patterns to avoid.
 
@@ -92,5 +92,5 @@ See `scripts/start-port-forwards.ps1` for the complete port list.
 ## Related Documentation
 
 - [Component Documentation](/docs/components) - UI component library
-- [Architecture Guide](/docs/architecture/ARCHITECTURE) - System architecture
-- [Deployment Guide](/docs/deployment/DEPLOYMENT) - Deployment procedures
+- [Architecture Guide](/docs/architecture/system-architecture) - System architecture
+- [Deployment Guide](/docs/deployment/deployment-plan) - Deployment procedures

@@ -457,8 +457,8 @@ kubectl create secret generic mongodb-creds \
 
 For issues and questions:
 - **Documentation:** [Full documentation site](../index.md)
-- **Installation Guide:** [Standard installation](INSTALLATION-GUIDE.md)
-- **Admin Guide:** [System administration](../admin/ADMIN-GUIDE.md)
+- **Installation Guide:** [Standard installation](/docs/installation)
+- **Admin Guide:** [System administration](/docs/admin)
 - **Helm Chart README:** `helm/ez-platform/README.md`
 
 ---
