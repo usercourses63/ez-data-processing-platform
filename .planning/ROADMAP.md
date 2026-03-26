@@ -6,6 +6,8 @@
 - v0.2 **Production Validation & Release** — Phases 11-21 (in progress)
 - v0.3 **NAS UX + Monitoring + Release** — Phase 22-24 (in progress)
 - v0.4 **Datasource Productivity Features** — Phases 25-28 (planned)
+- v0.5 **Auto-Revalidation & Release** — Phase 29 (complete)
+- v0.6 **OCP Production Readiness** — Phases 30-32 (planned)
 
 ## Next Milestone
 
@@ -462,12 +464,55 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 25. Clone Datasource | v0.4 | 2/2 | Complete    | 2026-03-24 |
 | 26. Completeness Checklist | v0.4 | 7/7 | Complete | 2026-03-25 |
 | 27. Import from File | v0.4 | 5/5 | Complete   | 2026-03-25 |
-| 28. Documentation, i18n, Deploy & Release | v0.4 | 10/11 | In Progress|  |
-| 29. Invalid Records Auto-Revalidation | v0.4 | 7/7 | Complete   | 2026-03-26 |
+| 28. Documentation, i18n, Deploy & Release | v0.4 | 11/11 | Complete   | 2026-03-26 |
+| 29. Invalid Records Auto-Revalidation | v0.5 | 7/7 | Complete   | 2026-03-26 |
+| 30. OCP Compliance & Deployment Validation | v0.6 | 0/4 | In Progress | - |
+| 31. Feature Test Coverage | v0.6 | 0/0 | Planned    | - |
+| 32. Performance & Regression Hardening | v0.6 | 0/0 | Planned    | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
 **v0.4 Totals:** 14/30 plans complete (47%)
 
+### Phase 30: OCP Compliance & Deployment Validation
+
+**Goal:** Production release gate — verify OCP security compliance, clean Helm deploy pipeline, v0.5.0 feature sanity tests, cross-service event flow validation, infrastructure health checks
+**Requirements**: OCP-01 through OCP-13, DEPLOY-01 through DEPLOY-25, SANITY-12 through SANITY-19
+**Depends on:** Phase 29
+**UI hint:** no
+**Plans:** 4 plans (Wave 1: 30-01, 30-02 parallel; Wave 2: 30-03; Wave 3: 30-04)
+
+Plans:
+- [ ] 30-01-PLAN.md — Fix OCP gaps (InvalidRecords Dockerfile USER, :latest tags) + OCP compliance verification script (OCP-01 through OCP-13)
+- [ ] 30-02-PLAN.md — 8 new API-based sanity tests for v0.4.0/v0.5.0 features (SANITY-12 through SANITY-19)
+- [ ] 30-03-PLAN.md — Clean deploy script: namespace wipe + Helm install + seed + port-forward (DEPLOY-01 through DEPLOY-20)
+- [ ] 30-04-PLAN.md — Run full sanity suite + deep cross-service pipeline test (DEPLOY-21 through DEPLOY-25)
+
 ---
-*Roadmap updated: 2026-03-26 after Phase 29 planning*
+
+### Phase 31: Feature Test Coverage
+
+**Goal:** Complete E2E test coverage for v0.4.0/v0.5.0 features — completeness checklist, clone datasource, import from file, i18n/RTL regression
+**Requirements**: TIER 2 tests from QA analysis
+**Depends on:** Phase 30
+**UI hint:** no
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 31 to break down)
+
+---
+
+### Phase 32: Performance & Regression Hardening
+
+**Goal:** Performance baselines, regression suite, i18n deep testing — post-OCP deploy quality improvement
+**Requirements**: TIER 3 tests from QA analysis
+**Depends on:** Phase 31 (lower priority, can be deferred)
+**UI hint:** no
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 32 to break down)
+
+---
+*Roadmap updated: 2026-03-26 after Phase 29 complete, v0.5.0 release*
