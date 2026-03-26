@@ -496,10 +496,13 @@ Plans:
 **Requirements**: TIER 2 tests from QA analysis
 **Depends on:** Phase 30
 **UI hint:** no
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 31 to break down)
+- [ ] 31-01-PLAN.md — Rewrite clone datasource E2E tests with production patterns
+- [ ] 31-02-PLAN.md — Upgrade import-from-file E2E tests with production patterns
+- [ ] 31-03-PLAN.md — Upgrade completeness checklist E2E tests with API context
+- [ ] 31-04-PLAN.md — Create i18n/RTL regression tests for v0.4.0/v0.5.0 features
 
 ---
 
