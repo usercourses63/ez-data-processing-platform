@@ -64,6 +64,11 @@ spec:
             configMapKeyRef:
               name: services-config
               key: otlp-endpoint
+        - name: InvalidRecords__TtlDays
+          valueFrom:
+            configMapKeyRef:
+              name: services-config
+              key: invalid-records-ttl-days
         resources:
           requests:
             cpu: "50m"

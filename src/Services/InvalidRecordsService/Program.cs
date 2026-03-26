@@ -5,6 +5,8 @@ using MongoDB.Entities;
 using MongoDB.Driver;
 using System.Diagnostics;
 using MassTransit;
+using Quartz;
+using InvalidRecordsService.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +75,18 @@ builder.Services.AddDataProcessingHealthChecks(builder.Configuration, serviceNam
 
 // Configure metrics
 builder.Services.AddSingleton<BusinessMetrics>();
+
+// Configure Quartz.NET for background jobs (TTL purge)
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("InvalidRecordsTtlPurgeJob");
+    q.AddJob<InvalidRecordsTtlPurgeJob>(opts => opts.WithIdentity(jobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("InvalidRecordsTtlPurge-trigger")
+        .WithCronSchedule("0 0 3 * * ?"));  // Daily at 3 AM UTC
+});
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 // Add rate limiting
 builder.Services.AddDataProcessingRateLimiting(builder.Configuration);
