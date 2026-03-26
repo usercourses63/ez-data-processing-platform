@@ -39,4 +39,8 @@ LABEL org.opencontainers.image.revision="${COMMIT_SHA}"
 COPY --from=build /app/publish .
 EXPOSE 5006
 HEALTHCHECK --interval=30s --timeout=3s CMD curl -f http://localhost:5006/health || exit 1
+
+# OCP Compliance: Run as non-root user
+USER 1000:1000
+
 ENTRYPOINT ["dotnet", "InvalidRecordsService.dll"]

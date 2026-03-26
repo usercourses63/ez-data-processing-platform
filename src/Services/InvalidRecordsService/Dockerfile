@@ -33,9 +33,12 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:5006
+ENV ASPNETCORE_URLS=http://+:5007
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-EXPOSE 5006
+EXPOSE 5007
+
+# OCP Compliance: Run as non-root user
+USER 1000:1000
 
 ENTRYPOINT ["dotnet", "InvalidRecordsService.dll"]

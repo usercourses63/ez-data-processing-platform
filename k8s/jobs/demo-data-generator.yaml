@@ -17,7 +17,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: demo-data-generator
-        image: ez-platform/demo-data-generator:latest
+        image: ez-platform/demo-data-generator:v0.5.0
         imagePullPolicy: Never
         args:
           - "--mongodb-connection=mongodb"
