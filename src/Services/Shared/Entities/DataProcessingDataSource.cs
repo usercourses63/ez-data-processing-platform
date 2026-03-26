@@ -102,6 +102,13 @@ public class DataProcessingDataSource : DataProcessingBaseEntity
     public int SchemaVersion { get; set; } = 1;
 
     /// <summary>
+    /// Number of days to retain invalid records for this datasource.
+    /// When null, the global default from ConfigMap (invalid-records-ttl-days) is used.
+    /// Per D-15: allows per-datasource override of global TTL.
+    /// </summary>
+    public int? InvalidRecordsTtlDays { get; set; }
+
+    /// <summary>
     /// Indicates if the data source is currently active
     /// </summary>
     public bool IsActive { get; set; } = true;

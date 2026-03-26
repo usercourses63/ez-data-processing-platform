@@ -36,3 +36,7 @@ data:
 
   # Elasticsearch Configuration
   elasticsearch-endpoint: "http://elasticsearch:9200"
+
+  # Invalid Records TTL - default retention period in days
+  # Records older than this are purged daily by InvalidRecordsTtlPurgeJob
+  invalid-records-ttl-days: "4"

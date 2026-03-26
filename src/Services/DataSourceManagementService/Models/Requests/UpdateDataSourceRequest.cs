@@ -135,6 +135,12 @@ public class UpdateDataSourceRequest
     public DataProcessing.Shared.Services.ArchiveSettings? ArchiveSettings { get; set; }
 
     /// <summary>
+    /// Number of days to retain invalid records for this datasource (v0.4.0).
+    /// When null, the global default from ConfigMap (invalid-records-ttl-days) is used.
+    /// </summary>
+    public int? InvalidRecordsTtlDays { get; set; }
+
+    /// <summary>
     /// Optional NAS device ID for NFS-based file access (v0.2.0).
     /// When set, FilePath is auto-computed from NAS device configuration.
     /// </summary>

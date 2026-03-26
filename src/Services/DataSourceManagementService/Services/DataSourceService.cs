@@ -840,7 +840,8 @@ public class DataSourceService : IDataSourceService
             ArchiveSettings = request.ArchiveSettings,
             NasDeviceId = request.NasDeviceId ?? nasDeviceId,
             NasSubPath = request.NasSubPath ?? nasSubPath,
-            FileServerId = fileServerId
+            FileServerId = fileServerId,
+            InvalidRecordsTtlDays = request.InvalidRecordsTtlDays
         };
     }
 
@@ -944,6 +945,12 @@ public class DataSourceService : IDataSourceService
         if (request.ArchiveSettings != null)
         {
             entity.ArchiveSettings = request.ArchiveSettings;
+        }
+
+        // Map InvalidRecordsTtlDays (v0.4.0)
+        if (request.InvalidRecordsTtlDays.HasValue)
+        {
+            entity.InvalidRecordsTtlDays = request.InvalidRecordsTtlDays.Value;
         }
 
         // Map NAS device reference (v0.2.0) — check both top-level and ConfigurationSettings
