@@ -2,11 +2,12 @@
 sidebar_position: 2
 ---
 
-# EZ Platform - Installation Guide v0.1.0-beta
+# EZ Platform - Installation Guide v0.4.0
 
-**Last Updated:** December 29, 2025
-**Version:** 0.1.0-beta
+**Last Updated:** March 2026
+**Version:** 0.4.0
 **Platform:** Kubernetes
+**Status:** Production Ready
 
 ---
 
@@ -16,9 +17,10 @@ sidebar_position: 2
 2. [Quick Start](#quick-start)
 3. [Detailed Installation](#detailed-installation)
 4. [Configuration Options](#configuration-options)
-5. [Post-Installation Verification](#post-installation-verification)
-6. [Troubleshooting](#troubleshooting)
-7. [Uninstallation](#uninstallation)
+5. [v0.4.0 Features Configuration](#v040-features-configuration)
+6. [Post-Installation Verification](#post-installation-verification)
+7. [Troubleshooting](#troubleshooting)
+8. [Uninstallation](#uninstallation)
 
 ---
 
@@ -30,21 +32,25 @@ sidebar_position: 2
 |-----------|---------|-------------|
 | **Kubernetes** | v1.25+ | v1.28+ |
 | **kubectl** | Configured and connected | Latest version |
+| **Helm** | v3.8+ | v3.12+ |
 | **CPU** | 4 cores | 8 cores |
 | **Memory** | 16GB | 32GB |
 | **Storage** | 50GB | 100GB |
 | **Network** | Internet access for images | - |
 
+### Required Tools
+- `kubectl` (v1.25+)
+- `helm` (v3.x) for chart-based deployment
+- `git` (for cloning repository)
+- `Node.js` (v18+) for frontend development
+- `Docker` (for building custom images)
+
 ### Kubernetes Cluster Options
-- **Minikube**: For local development/testing
+- **Minikube**: For local development/testing (Hyper-V or Docker driver)
 - **k3s**: Lightweight production
 - **EKS/AKS/GKE**: Cloud providers
+- **OpenShift (OCP)**: Enterprise Kubernetes (OCP-compatible since v0.1.1-rc2)
 - **On-premise**: Any K8s distribution
-
-### Tools Required
-- `kubectl` (v1.25+)
-- `git` (for cloning repository)
-- Optional: `helm` (v3.x) for future Helm chart support
 
 ---
 
@@ -63,7 +69,7 @@ kubectl create namespace ez-platform
 
 ### 3. Deploy Infrastructure
 ```bash
-# Deploy MongoDB, Kafka, Elasticsearch, Hazelcast, etc.
+# Deploy MongoDB, Kafka, Elasticsearch, Hazelcast, RabbitMQ, etc.
 kubectl apply -f k8s/infrastructure/
 
 # Wait for infrastructure to be ready (3-5 minutes)
@@ -73,7 +79,7 @@ kubectl wait --for=condition=ready pod -l app=kafka -n ez-platform --timeout=300
 
 ### 4. Deploy Services
 ```bash
-# Deploy all microservices
+# Deploy ConfigMaps, microservices, and services
 kubectl apply -f k8s/configmaps/
 kubectl apply -f k8s/deployments/
 kubectl apply -f k8s/services/
@@ -83,8 +89,8 @@ kubectl wait --for=condition=ready pod -l component=service -n ez-platform --tim
 ```
 
 ### 5. Set Up Port Forwarding
-```bash
-# Windows PowerShell
+```powershell
+# Windows PowerShell (RECOMMENDED - configures all 18 ports)
 powershell.exe -ExecutionPolicy Bypass -File scripts/start-port-forwards.ps1
 
 # Linux/Mac
@@ -92,9 +98,9 @@ powershell.exe -ExecutionPolicy Bypass -File scripts/start-port-forwards.ps1
 ```
 
 ### 6. Access Frontend
-```bash
+```
 # Open browser
-http://localhost:3000
+http://localhost:7000
 
 # Grafana monitoring
 http://localhost:3001
@@ -110,96 +116,80 @@ http://localhost:3001
 ### Step 1: Namespace Setup
 
 ```bash
-# Create namespace
 kubectl create namespace ez-platform
-
-# Verify namespace
 kubectl get namespace ez-platform
 ```
-
-Expected output:
-```
-NAME          STATUS   AGE
-ez-platform   Active   5s
-```
-
----
 
 ### Step 2: Infrastructure Deployment
 
 Infrastructure components must be deployed first as services depend on them.
 
-#### 2.1 MongoDB (3-node Replica Set)
+#### 2.1 MongoDB (Replica Set)
 ```bash
 kubectl apply -f k8s/infrastructure/mongodb-deployment.yaml
 
 # Wait for MongoDB to be ready
 kubectl wait --for=condition=ready pod -l app=mongodb -n ez-platform --timeout=300s
 
-# Verify MongoDB pods
-kubectl get pods -l app=mongodb -n ez-platform
+# Initialize replica set (required for first deployment)
+kubectl exec mongodb-0 -n ez-platform -- mongosh --eval \
+  'rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongodb-0.mongodb:27017"}]})'
 ```
 
-Expected: 3 pods running (mongodb-0, mongodb-1, mongodb-2)
-
-#### 2.2 Apache Kafka (3-node Cluster)
+#### 2.2 Apache Kafka + ZooKeeper
 ```bash
 kubectl apply -f k8s/infrastructure/kafka-deployment.yaml
 kubectl apply -f k8s/infrastructure/zookeeper-deployment.yaml
 
-# Wait for Kafka to be ready
 kubectl wait --for=condition=ready pod -l app=kafka -n ez-platform --timeout=300s
-
-# Verify Kafka pods
-kubectl get pods -l app=kafka -n ez-platform
 ```
 
-Expected: 3 Kafka pods + 1 Zookeeper pod running
+#### 2.3 RabbitMQ (Internal Messaging)
+```bash
+kubectl apply -f k8s/infrastructure/rabbitmq-deployment.yaml
+```
 
-#### 2.3 Hazelcast (2-node Cluster)
+RabbitMQ is used for internal service-to-service event communication via MassTransit. Kafka is used for external data source inputs and output destinations.
+
+#### 2.4 Hazelcast (Distributed Cache)
 ```bash
 kubectl apply -f k8s/infrastructure/hazelcast-deployment.yaml
-
-# Verify Hazelcast cluster formation
-kubectl logs -l app=hazelcast -n ez-platform --tail=10
 ```
 
-Expected: Logs show "Members {2}" indicating 2-node cluster
-
-#### 2.4 Monitoring Stack
+#### 2.5 Monitoring Stack
 ```bash
-# Deploy Prometheus (System + Business)
+# Prometheus (System + Business)
 kubectl apply -f k8s/infrastructure/prometheus-system-deployment.yaml
 kubectl apply -f k8s/infrastructure/prometheus-business-deployment.yaml
 
-# Deploy Grafana
+# Grafana, Elasticsearch, Jaeger, OTEL Collector
 kubectl apply -f k8s/infrastructure/grafana-deployment.yaml
-
-# Deploy Elasticsearch & Jaeger
 kubectl apply -f k8s/infrastructure/elasticsearch-deployment.yaml
 kubectl apply -f k8s/deployments/jaeger.yaml
-
-# Deploy OpenTelemetry Collector
 kubectl apply -f k8s/infrastructure/otel-collector.yaml
-```
 
----
+# Fluent Bit (infrastructure log collection)
+kubectl apply -f k8s/deployments/fluent-bit.yaml
+```
 
 ### Step 3: ConfigMaps
 
 ```bash
-# Deploy service configuration
 kubectl apply -f k8s/configmaps/services-config.yaml
-
-# Verify ConfigMap
 kubectl get configmap services-config -n ez-platform -o yaml
 ```
 
----
+### Step 4: RBAC (Required for NAS Device Management)
 
-### Step 4: Microservices Deployment
+```bash
+kubectl apply -f k8s/rbac/nas-device-rbac.yaml
+```
 
-Deploy services in order (respecting dependencies):
+This grants the DataSourceManagement service permissions to create and manage PersistentVolumes and PersistentVolumeClaims for NAS devices.
+
+### Step 5: Microservices Deployment
+
+Deploy all 9 microservices:
 
 ```bash
 # Core services
@@ -216,61 +206,27 @@ kubectl apply -f k8s/deployments/output.yaml
 kubectl apply -f k8s/deployments/invalidrecords.yaml
 kubectl apply -f k8s/deployments/metrics-configuration.yaml
 
-# Frontend
+# Frontend (React 19 + nginx)
 kubectl apply -f k8s/deployments/frontend.yaml
 
 # Services
 kubectl apply -f k8s/services/
 ```
 
----
-
-### Step 5: Verify Deployment
-
-```bash
-# Check all pods are running
-kubectl get pods -n ez-platform
-
-# Expected: ~25-30 pods total, all Running or Completed
-```
-
-Verify each component:
-```bash
-# Infrastructure pods
-kubectl get pods -l component=infrastructure -n ez-platform
-
-# Service pods
-kubectl get pods -l component=service -n ez-platform
-
-# Monitoring pods
-kubectl get pods -l component=monitoring -n ez-platform
-```
-
----
-
 ### Step 6: Port Forwarding
 
-**Windows:**
+**Windows (Recommended):**
 ```powershell
-# Run in PowerShell (keeps running, don't close)
 powershell.exe -ExecutionPolicy Bypass -File "scripts/start-port-forwards.ps1"
 ```
 
-**Linux/Mac:**
-```bash
-# Make script executable
-chmod +x scripts/start-port-forwards.sh
+**Port Mapping (18 services):**
 
-# Run script (keeps running)
-./scripts/start-port-forwards.sh
-```
-
-**Port Mapping:**
 | Service | Port | URL |
 |---------|------|-----|
-| Frontend | 3000 | http://localhost:3000 |
-| DataSource API | 5001 | http://localhost:5001 |
-| Metrics API | 5002 | http://localhost:5002 |
+| Frontend | 7000 | http://localhost:7000 |
+| DataSource Management API | 5001 | http://localhost:5001 |
+| Metrics Configuration API | 5002 | http://localhost:5002 |
 | Validation API | 5003 | http://localhost:5003 |
 | Scheduling API | 5004 | http://localhost:5004 |
 | Invalid Records API | 5007 | http://localhost:5007 |
@@ -282,12 +238,10 @@ chmod +x scripts/start-port-forwards.sh
 | Jaeger UI | 16686 | http://localhost:16686 |
 | Elasticsearch | 9200 | http://localhost:9200 |
 | MongoDB | 27017 | mongodb://localhost:27017 |
-| **RabbitMQ** | 5672 | amqp://localhost:5672 (MassTransit internal messaging) |
-| **RabbitMQ Management** | 15672 | http://localhost:15672 (UI: guest/guest) |
-| Kafka External | 9094 | kafka://localhost:9094 (data sources/outputs) |
+| Kafka External | 9094 | kafka://localhost:9094 |
+| RabbitMQ | 5672 | amqp://localhost:5672 |
 | Hazelcast | 5701 | - |
-| OTEL Collector (gRPC) | 4317 | - |
-| OTEL Collector (HTTP) | 4318 | - |
+| OTEL Collector (gRPC/HTTP) | 4317/4318 | - |
 
 ---
 
@@ -297,9 +251,8 @@ chmod +x scripts/start-port-forwards.sh
 
 **Default:** MongoDB at `mongodb:27017`, database: `ezplatform`
 
-To override:
 ```yaml
-# Edit k8s/configmaps/services-config.yaml
+# k8s/configmaps/services-config.yaml
 data:
   mongodb-connection: "your-mongodb-url"
   database-name: "your-database-name"
@@ -307,14 +260,36 @@ data:
 
 ### Kafka Configuration
 
-**Default:** Internal cluster at `kafka:9092`
+**Default:** Internal cluster at `kafka:9092`, external access at `localhost:9094`
 
-To use external Kafka:
 ```yaml
-# Edit k8s/configmaps/services-config.yaml
 data:
   kafka-server: "your-kafka-broker:9092"
 ```
+
+### ConfigMap Key Reference
+
+```yaml
+# k8s/configmaps/services-config.yaml
+data:
+  mongodb-connection: "mongodb"
+  kafka-server: "kafka:9092"
+  hazelcast-server: "hazelcast:5701"
+  prometheus-endpoint: "http://prometheus:9090"
+  otlp-endpoint: "http://otel-collector:4317"
+  elasticsearch-endpoint: "http://elasticsearch:9200"
+  database-name: "ezplatform"
+```
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `ConnectionStrings__DefaultConnection` | MongoDB connection string |
+| `ConnectionStrings__DatabaseName` | Database name override |
+| `Kafka__Brokers` | Kafka bootstrap servers |
+| `OpenTelemetry__OtlpEndpoint` | OTEL Collector endpoint |
+| `Hazelcast__Servers` | Hazelcast cluster address |
 
 ### Resource Limits
 
@@ -328,15 +303,8 @@ limits:
   memory: 512Mi
 ```
 
-To adjust:
-```bash
-kubectl edit deployment <service-name> -n ez-platform
-# Modify resources section
-```
-
 ### Replica Scaling
 
-Scale services horizontally:
 ```bash
 # Scale FileProcessor to 3 replicas
 kubectl scale deployment fileprocessor --replicas=3 -n ez-platform
@@ -347,11 +315,78 @@ kubectl scale deployment validation --replicas=2 -n ez-platform
 
 ---
 
+## v0.4.0 Features Configuration
+
+### Clone Datasource
+
+No additional configuration required. Clone is a frontend-only feature available from:
+- List page actions menu (CopyOutlined icon)
+- Edit page header button
+
+All settings are preserved: schema, connection, archive settings, output destinations. Schedule is disabled by default on clones.
+
+### Import from File
+
+Import from File supports uploading CSV, JSON, XML, and Excel sample files to auto-create datasources.
+
+**Archive support** (ZIP, TAR.GZ, 7Z, RAR including encrypted archives) requires the backend Archive API:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/archive/analyze` | POST | Analyze archive contents and list files |
+| `/api/v1/archive/extract` | POST | Extract specific file from archive |
+
+**nginx configuration** -- For archive uploads, ensure the frontend nginx has sufficient body size:
+
+```nginx
+# In nginx.conf (frontend deployment)
+client_max_body_size 100m;
+```
+
+The Archive API uses **SharpCompress** on the backend for multi-format archive support.
+
+### Completeness Checklist
+
+No additional configuration required. The completeness checklist provides:
+- Real-time progress tracking with color-coded field borders
+- Per-tab completion status in sidebar panel
+- Auto-disable for incomplete datasources below the required threshold
+- Missing fields navigation for quick form completion
+
+### NAS Device Management (v0.2.0+)
+
+NAS devices enable dynamic Kubernetes PV/PVC auto-provisioning for NFS storage:
+
+1. Configure NAS devices in **Admin > System Settings > NAS Devices**
+2. Test NFS connectivity before provisioning
+3. Click "Provision" to auto-create PV/PVC in Kubernetes
+4. Use provisioned NAS devices as connection targets in datasources
+
+**RBAC required:** `k8s/rbac/nas-device-rbac.yaml` must be applied.
+
+### SignalR Real-Time Updates (v0.3.0+)
+
+SignalR provides real-time sync across all connected browser sessions:
+- CRUD operations broadcast `EntityChanged` events via WebSocket
+- SignalR hub at `/hubs/monitoring` for live monitoring data
+- Frontend `useEntitySync` hook auto-refreshes on entity changes
+
+No additional configuration required -- SignalR is enabled by default on all relevant services.
+
+### Auto-Revalidation (v0.5.0)
+
+Schema changes automatically trigger revalidation of invalid records:
+- New Kafka topic: `dataprocessing.schema.updated`
+- New ConfigMap key: `invalid-records-ttl-days: 4` (default TTL for invalid records)
+- Daily purge job at 03:00 UTC for expired invalid records
+- InvalidRecordsService requires SignalR hub configuration
+
+---
+
 ## Post-Installation Verification
 
 ### 1. Health Checks
 
-Check all services are healthy:
 ```bash
 # DataSource Management
 curl http://localhost:5001/health
@@ -367,77 +402,41 @@ Expected: `{"status":"Healthy",...}`
 
 ### 2. Frontend Access
 
-1. Open browser: http://localhost:3000
-2. You should see: "EZ - מערכת לניהול,ניטור ושינוע סג\"חים"
-3. Sidebar shows: מקורות נתונים, רשומות לא תקינות, התרעות, etc.
+1. Open browser: http://localhost:7000
+2. Verify Hebrew interface loads
+3. Sidebar shows: Data Sources, Invalid Records, Alerts, System Monitoring, etc.
 
 ### 3. Admin Settings
 
-1. Navigate to: http://localhost:3000/admin/settings
-2. Click "קטגוריות" tab
-3. Verify categories are loaded (should show 10-16 categories)
+1. Navigate to: http://localhost:7000/admin/settings
+2. Verify categories tab shows 10+ categories
+3. Verify NAS Devices tab is accessible
+4. Verify Servers tab is accessible
 
 ### 4. Monitoring Stack
 
-**Grafana:**
-```bash
-# Access Grafana
-http://localhost:3001
-
-# Login
-Username: admin
-Password: EZPlatform2025!Beta
-
-# Verify dashboards
-- Business Metrics Dashboard
-- Infrastructure Metrics Dashboard
-```
-
-**Jaeger:**
-```bash
-# Access Jaeger
-http://localhost:16686
-
-# Check for services
-- Should see: dataprocessing.* services
-```
-
-**Prometheus:**
-```bash
-# System metrics
-http://localhost:9090
-
-# Business metrics
-http://localhost:9091
-
-# Test query
-up{namespace="ez-platform"}
-```
+**Grafana:** http://localhost:3001 (admin / EZPlatform2025!Beta)
+**Jaeger:** http://localhost:16686
+**Prometheus System:** http://localhost:9090
+**Prometheus Business:** http://localhost:9091
 
 ### 5. Database Connection
 
 ```bash
-# Connect to MongoDB
 kubectl exec -it mongodb-0 -n ez-platform -- mongosh
-
 # In mongosh:
 use ezplatform
 show collections
 db.DataSources.countDocuments()
-exit
 ```
 
 ### 6. Create Test DataSource
 
-1. Go to http://localhost:3000/datasources
-2. Click "הוסף מקור נתונים"
-3. Fill in basic info:
-   - Name: "Test DataSource"
-   - Supplier: "Test Supplier"
-   - Category: Select any
-4. Configure connection (Local folder)
-5. Save
-6. Verify appears in list
+1. Go to http://localhost:7000/datasources
+2. Click "Import from File" to test the new import feature, or click "Create" for manual creation
+3. Fill in basic info, configure connection, set schema
+4. Verify the completeness checklist shows real-time progress
+5. Save and verify it appears in the list
 
 ---
 
@@ -445,200 +444,112 @@ exit
 
 ### Issue: Pods Not Starting
 
-**Check pod status:**
 ```bash
 kubectl get pods -n ez-platform
 kubectl describe pod <pod-name> -n ez-platform
-```
-
-**Common causes:**
-- Insufficient resources (CPU/Memory)
-- Image pull errors
-- PVC not binding
-
-**Solution:**
-```bash
-# Check events
 kubectl get events -n ez-platform --sort-by='.lastTimestamp'
-
-# Check resource quotas
-kubectl top pods -n ez-platform
 ```
 
 ### Issue: Port Forward Connection Refused
 
-**Cause:** Port forwards died or weren't started
-
-**Solution:**
 ```bash
 # Kill existing port forwards
 taskkill /F /IM kubectl.exe  # Windows
 pkill -f "kubectl port-forward"  # Linux/Mac
 
-# Restart port forwards
+# Restart
 powershell.exe -ExecutionPolicy Bypass -File scripts/start-port-forwards.ps1
 ```
 
 ### Issue: Frontend Shows "Connection Refused"
 
-**Check backend service:**
 ```bash
-# Verify DataSourceManagement is running
 kubectl get pods -l app=datasource-management -n ez-platform
-
-# Check logs
 kubectl logs deployment/datasource-management -n ez-platform --tail=50
-
-# Verify port forward
-netstat -an | findstr "5001"  # Windows
-lsof -i :5001  # Linux/Mac
 ```
 
 ### Issue: MongoDB Connection Errors
 
-**Check MongoDB pods:**
 ```bash
 kubectl get pods -l app=mongodb -n ez-platform
-
-# All 3 pods should be Running
-```
-
-**Test connection:**
-```bash
 kubectl exec -it mongodb-0 -n ez-platform -- mongosh --eval "db.adminCommand('ping')"
 ```
 
+For replica set issues, re-initialize:
+```bash
+kubectl exec mongodb-0 -n ez-platform -- mongosh --eval \
+  'rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongodb-0.mongodb:27017"}]})'
+```
+
+Use `?directConnection=true` in connection strings when connecting to a single-node replica set from outside the cluster.
+
 ### Issue: Kafka Messages Not Flowing
 
-**Check Kafka cluster:**
 ```bash
 kubectl get pods -l app=kafka -n ez-platform
-
-# View Kafka logs
-kubectl logs kafka-0 -n ez-platform --tail=50
+kubectl exec -it kafka-0 -n ez-platform -- kafka-topics.sh --bootstrap-server localhost:9092 --list
 ```
 
-**Test Kafka connectivity:**
+**Kafka Cluster ID Mismatch:** If you see `InconsistentClusterIdException`, delete both Kafka and ZooKeeper StatefulSets and PVCs, then redeploy.
+
+### Issue: Archive Upload Fails (v0.4.0)
+
+Verify nginx `client_max_body_size` is set to at least 100MB in the frontend deployment. Check DataSourceManagement service logs for SharpCompress errors.
+
+### Issue: NAS Mount Failures
+
 ```bash
-kubectl exec -it kafka-0 -n ez-platform -- \
-  kafka-topics.sh --bootstrap-server localhost:9092 --list
+# Check NAS device provisioning status
+curl http://localhost:5001/api/v1/nasdevices
+
+# Verify PV/PVC exist
+kubectl get pv -n ez-platform
+kubectl get pvc -n ez-platform
 ```
 
-### Issue: Hazelcast Cluster Not Forming
+### Issue: SignalR Connection Drops
 
-**Check Hazelcast logs:**
-```bash
-kubectl logs -l app=hazelcast -n ez-platform
-
-# Look for: "Members {2}" indicating 2-node cluster
-```
-
-**If nodes can't connect:**
-```bash
-# Restart Hazelcast pods
-kubectl rollout restart deployment/hazelcast -n ez-platform
-```
-
-### Issue: No Data in Grafana
-
-**Verify Prometheus scraping:**
-```bash
-# Check Prometheus targets
-http://localhost:9090/targets
-
-# All targets should show "UP"
-```
-
-**Verify data sources in Grafana:**
-```bash
-# Settings → Data Sources
-# Should see: System-Prometheus, Business-Prometheus, Elasticsearch-Logs
-```
+SignalR connections may drop on pod restarts. The frontend auto-reconnects with configurable backoff. If persistent issues, check CORS configuration and WebSocket support in your ingress controller.
 
 ---
 
 ## Uninstallation
 
-### Clean Uninstall (Removes Everything)
+### Clean Uninstall
 
 ```bash
-# Delete all resources
 kubectl delete namespace ez-platform
-
-# This removes:
-# - All deployments
-# - All services
-# - All ConfigMaps and Secrets
-# - All PersistentVolumeClaims (data is deleted!)
 ```
 
 ### Preserve Data Uninstall
 
 ```bash
-# Delete deployments but keep PVCs
 kubectl delete deployment --all -n ez-platform
 kubectl delete service --all -n ez-platform
-
 # PVCs remain - data preserved
 kubectl get pvc -n ez-platform
-```
-
-### Reinstall After Uninstall
-
-```bash
-# Wait for namespace deletion to complete
-kubectl get namespace ez-platform
-
-# Once deleted, follow Quick Start from Step 2
 ```
 
 ---
 
 ## Volume Mounting for File-Based DataSources
 
-### Overview
-
-For **Local folder** datasources, you need to mount external directories into the FileDiscovery pod so it can access files.
-
 ### Option 1: HostPath (Development/Minikube)
 
-**For Minikube:**
 ```bash
 # Mount host directory into Minikube
 minikube mount C:\Users\UserC\data\uploads:/mnt/data/uploads
-
-# Keep this terminal running
 ```
 
-**Update FileDiscovery deployment:**
+### Option 2: NAS Device (Recommended)
+
+Use the built-in NAS Device Management (Admin > System Settings > NAS Devices) for automatic PV/PVC provisioning via NFS.
+
+### Option 3: PersistentVolume (Production)
+
+Create PV/PVC manually for cloud storage:
+
 ```yaml
-# Edit k8s/deployments/filediscovery.yaml
-spec:
-  template:
-    spec:
-      containers:
-      - name: filediscovery
-        volumeMounts:
-        - name: external-data
-          mountPath: /mnt/external-data
-      volumes:
-      - name: external-data
-        hostPath:
-          path: /mnt/data/uploads  # Path in Minikube
-          type: Directory
-```
-
-**Then restart:**
-```bash
-kubectl apply -f k8s/deployments/filediscovery.yaml
-kubectl rollout restart deployment/filediscovery -n ez-platform
-```
-
-### Option 2: PersistentVolume (Production)
-
-**Create PV and PVC:**
-```yaml
-# k8s/storage/file-input-pv.yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -647,153 +558,32 @@ spec:
   capacity:
     storage: 100Gi
   accessModes:
-    - ReadWriteMany  # Multiple pods can read
-  nfs:  # Or other shared storage
+    - ReadWriteMany
+  nfs:
     server: your-nfs-server.com
     path: "/exports/data-input"
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: file-input-pvc
-  namespace: ez-platform
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 100Gi
-```
-
-**Apply and mount:**
-```bash
-kubectl apply -f k8s/storage/file-input-pv.yaml
-
-# Update filediscovery deployment to use PVC
-kubectl set volume deployment/filediscovery \
-  --add --name=file-input \
-  --mount-path=/mnt/external-data \
-  --type=persistentVolumeClaim \
-  --claim-name=file-input-pvc \
-  -n ez-platform
-```
-
-### Option 3: Cloud Storage (AWS/Azure/GCP)
-
-**AWS EFS:**
-```yaml
-# Use EFS CSI driver
-storageClassName: efs-sc
-```
-
-**Azure Files:**
-```yaml
-# Use Azure File storage class
-storageClassName: azurefile
-```
-
-### Output Volume Mounting
-
-**Similar process for Output service:**
-```bash
-# Mount output directory
-kubectl set volume deployment/output \
-  --add --name=file-output \
-  --mount-path=/mnt/external-output \
-  --type=persistentVolumeClaim \
-  --claim-name=file-output-pvc \
-  -n ez-platform
-```
-
-### Verify Mounts
-
-```bash
-# Check FileDiscovery can see files
-kubectl exec deployment/filediscovery -n ez-platform -- ls -la /mnt/external-data
-
-# Check Output can write
-kubectl exec deployment/output -n ez-platform -- touch /mnt/external-output/test.txt
 ```
 
 ---
 
-## Advanced Configuration
-
-### Custom Storage Class
-
-If your cluster uses a different storage class:
-
-```bash
-# Find available storage classes
-kubectl get storageclass
-
-# Edit PVCs to use your storage class
-kubectl edit pvc ezplatform-mongodb-data-pvc -n ez-platform
-
-# Change:
-# storageClassName: standard
-# To:
-# storageClassName: your-storage-class
-```
-
-### External MongoDB
-
-To use existing MongoDB instead of bundled:
-
-```bash
-# Edit k8s/configmaps/services-config.yaml
-mongodb-connection: "mongodb://your-external-mongodb:27017"
-
-# Skip MongoDB deployment
-# Don't apply: k8s/infrastructure/mongodb-deployment.yaml
-```
-
-### External Kafka
-
-To use existing Kafka cluster:
-
-```bash
-# Edit k8s/configmaps/services-config.yaml
-kafka-server: "your-kafka-broker:9092"
-
-# Skip Kafka deployment
-# Don't apply: k8s/infrastructure/kafka-deployment.yaml
-```
-
-### Enable HTTPS
-
-```bash
-# Create TLS secret
-kubectl create secret tls ez-platform-tls \
-  --cert=path/to/cert.pem \
-  --key=path/to/key.pem \
-  -n ez-platform
-
-# Apply ingress
-kubectl apply -f k8s/ingress/ingress-https.yaml
-```
-
----
-
-## Resource Requirements by Component
+## Resource Requirements
 
 ### Infrastructure Layer
+
 | Component | CPU (req/limit) | Memory (req/limit) | Storage |
 |-----------|-----------------|---------------------|---------|
-| MongoDB (x3) | 250m/1000m | 512Mi/2Gi | 20GB per pod |
-| Kafka (x3) | 500m/2000m | 1Gi/4Gi | 10GB per pod |
+| MongoDB | 250m/1000m | 512Mi/2Gi | 20GB per pod |
+| Kafka | 500m/2000m | 1Gi/4Gi | 10GB per pod |
 | Zookeeper | 250m/500m | 512Mi/1Gi | 5GB |
-| Hazelcast (x2) | 250m/1000m | 512Mi/2Gi | - |
+| Hazelcast | 250m/1000m | 512Mi/2Gi | - |
+| RabbitMQ | 250m/500m | 512Mi/1Gi | 5GB |
 | Elasticsearch | 500m/2000m | 2Gi/4Gi | 30GB |
-| Prometheus System | 250m/1000m | 1Gi/2Gi | 15GB |
-| Prometheus Business | 250m/1000m | 1Gi/2Gi | 15GB |
+| Prometheus (x2) | 250m/1000m | 1Gi/2Gi | 15GB each |
 | Grafana | 250m/1000m | 512Mi/2Gi | 10GB |
 | Jaeger | 250m/1000m | 512Mi/1Gi | - |
 
-**Total Infrastructure:** ~4.5 CPU, ~12GB RAM, ~120GB storage
+### Services Layer (9 Microservices)
 
-### Services Layer
 | Service | CPU (req/limit) | Memory (req/limit) |
 |---------|-----------------|---------------------|
 | DataSourceManagement | 50m/500m | 128Mi/512Mi |
@@ -806,30 +596,24 @@ kubectl apply -f k8s/ingress/ingress-https.yaml
 | MetricsConfiguration | 50m/500m | 128Mi/512Mi |
 | Frontend | 50m/250m | 128Mi/256Mi |
 
-**Total Services:** ~0.5 CPU, ~1.2GB RAM
-
-### Grand Total
-- **CPU**: ~5 cores (request), ~20 cores (limit)
-- **Memory**: ~13GB (request), ~35GB (limit)
-- **Storage**: ~120GB
-
 ---
 
 ## Verification Checklist
 
-Use this checklist after installation:
-
 - [ ] Namespace created: `kubectl get namespace ez-platform`
-- [ ] MongoDB running: 3 pods ready
-- [ ] Kafka running: 3 pods ready
-- [ ] Hazelcast cluster: 2 members
-- [ ] All services deployed: 9 pods running
-- [ ] Frontend accessible: http://localhost:3000
+- [ ] MongoDB running and replica set initialized
+- [ ] Kafka running
+- [ ] RabbitMQ running
+- [ ] All 9 microservices deployed and running
+- [ ] Frontend accessible: http://localhost:7000
 - [ ] Health checks passing: `/health` on all services
 - [ ] Grafana accessible: http://localhost:3001
 - [ ] Jaeger accessible: http://localhost:16686
 - [ ] Can create datasource via UI
-- [ ] Categories management working: http://localhost:3000/admin/settings
+- [ ] Clone datasource works (v0.4.0)
+- [ ] Import from File works (v0.4.0)
+- [ ] Completeness checklist displays (v0.4.0)
+- [ ] NAS Devices tab accessible in Admin Settings
 - [ ] No CrashLoopBackOff pods
 - [ ] No pending PVCs
 
@@ -840,10 +624,11 @@ Use this checklist after installation:
 After successful installation:
 
 1. **Read User Guide**: [User Guide](/docs/user-guide/) (Hebrew)
-2. **Configure Categories**: Go to Admin Settings → Categories
-3. **Create DataSources**: Follow user guide for datasource setup
-4. **Set Up Monitoring**: Configure Grafana dashboards
-5. **Review Admin Guide**: [Admin Guide](/docs/admin)
+2. **Configure Categories**: Go to Admin Settings > Categories
+3. **Set Up NAS Devices**: Go to Admin Settings > NAS Devices
+4. **Create DataSources**: Use Import from File for quick setup, or create manually
+5. **Set Up Monitoring**: Configure Grafana dashboards
+6. **Review Admin Guide**: [Admin Guide](/docs/admin)
 
 ---
 
@@ -852,11 +637,11 @@ After successful installation:
 For issues or questions:
 - Check [Troubleshooting](#troubleshooting) section
 - Review [Admin Guide](/docs/admin)
+- Review [Deployment Troubleshooting Guide](/docs/deployment/deployment-troubleshooting-guide)
 - Check logs: `kubectl logs <pod-name> -n ez-platform`
-- GitHub Issues: [Report Issue](https://github.com/usercourses63/ez-data-processing-platform/issues)
 
 ---
 
-**Installation Guide Version:** 1.0
-**Platform Version:** v0.1.0-beta
-**Last Updated:** December 29, 2025
+**Installation Guide Version:** 4.0
+**Platform Version:** v0.4.0
+**Last Updated:** March 2026

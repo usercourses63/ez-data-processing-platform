@@ -1,6 +1,6 @@
 {
   "name": "ez-platform-docs",
-  "version": "0.1.1-rc1",
+  "version": "0.4.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
