@@ -11,6 +11,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-03-26
+
+### Added
+
+#### Clone Datasource
+- Clone from list page actions menu or edit page header button
+- Pre-fills all form fields including schema, connection, archive settings, output destinations
+- Cloned name prefixed with "Copy of" (Hebrew: "העתק של")
+- Output destinations get new unique IDs; schedule disabled by default
+- Archive settings (format, password, inner file path) preserved in clone
+
+#### Import from File
+- Upload CSV, JSON, XML, or Excel sample files to auto-create datasources
+- Archive support: ZIP, TAR.GZ, 7Z, RAR (including password-protected via SharpCompress backend)
+- Client-side file analysis with type detection (integer, number, boolean, date, string)
+- Smart constraint suggestions (email format, phone patterns, date formats) via schemaAutoSuggest
+- Preview table shows parsed data before applying to form
+- Headerless CSV generates synthetic field names (field_1, field_2, ... field_N)
+- Auto-create datasource on "Continue" (not just pre-fill)
+- Backend CsvToJsonConverter maps headerless CSV columns by schema field position order
+
+#### Completeness Checklist
+- Real-time completeness percentage on create and edit forms
+- Per-tab completion status with color-coded indicators (red=required, green=filled, amber=recommended, gray=optional)
+- Clickable incomplete items navigate directly to the corresponding tab
+- Missing fields panel shows which fields need attention
+- Mini progress ring in datasource list for at-a-glance status
+- Auto-disable toggle for datasources below required completeness threshold
+- AJV schema validation for field-level completeness checking
+
+#### Documentation
+- Hebrew user guide completely refactored into workflow-centric chapters
+- Automated Playwright screenshot pipeline for documentation
+- Mermaid diagram support added to Docusaurus
+- Per-feature Hebrew chapters: Import from File, Clone, Completeness
+
+---
+
 ## [0.3.0] - 2026-03-20
 
 ### Added
@@ -287,10 +325,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v0.3.0
+### Planned for v0.5.0
 - User authentication and authorization
 - Multi-tenancy support
-- Archive extraction E2E validation (ZIP, TAR.GZ, RAR, 7Z)
 - Advanced scheduling options
 - Performance optimizations
 - Production security hardening (MongoDB auth, Elasticsearch security)

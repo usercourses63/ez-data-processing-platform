@@ -6,6 +6,48 @@ sidebar_position: 2
 
 ---
 
+## v0.4.0 - Datasource Productivity Features (March 2026)
+
+**Status:** Production Release
+**Type:** Feature Release - Clone, Import from File, Completeness Checklist
+
+### Highlights
+
+This release delivers three productivity features for datasource management:
+**Clone Datasource** for quick duplication, **Import from File** for auto-creating
+datasources from sample data files, and **Completeness Checklist** for real-time
+form guidance.
+
+### Clone Datasource
+- Duplicate any datasource from the list page or edit page
+- All settings preserved: schema, connection, archive settings, output destinations
+- Schedule disabled by default to prevent accidental pipeline execution
+
+### Import from File
+- Upload CSV/JSON/XML/Excel files to auto-create datasources
+- Archive support (ZIP, TAR.GZ, 7Z, RAR) including encrypted archives
+- Smart schema inference with type detection and pattern matching
+- Data preview before applying to form
+
+### Completeness Checklist
+- Real-time progress tracking with color-coded field borders
+- Per-tab completion status in sidebar panel
+- Auto-disable for incomplete datasources
+- Missing fields navigation for quick form completion
+
+### Migration Notes
+- No database migration required (frontend-only features)
+- Backend archive API endpoints added (SharpCompress): `/api/v1/archive/analyze`, `/api/v1/archive/extract`
+- nginx `client_max_body_size` should be set to at least 100MB for archive uploads
+- Frontend image must be rebuilt (new components for clone, import, completeness)
+
+### Known Limitations
+- Excel import processes only the first sheet
+- Archive files >100MB may experience slower processing
+- Completeness percentage includes recommended fields (not just required)
+
+---
+
 ## v0.3.0 - NAS UX + Monitoring + Pipeline Fixes (March 2026)
 
 **Status:** Production Release
@@ -691,10 +733,9 @@ See [Troubleshooting Guide](../admin/ADMIN-GUIDE.md#troubleshooting)
 
 ## Next Release (Planned)
 
-**v0.3.0 (Estimated: Q2 2026)**
+**v0.5.0 (Estimated: Q3 2026)**
 - User authentication & authorization
 - Multi-tenancy support
-- Archive extraction validation (ZIP, TAR.GZ, RAR, 7Z)
 - Advanced scheduling options
 - Performance optimizations
 - Enhanced monitoring dashboards
