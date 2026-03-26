@@ -46,12 +46,12 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 - [x] **REVAL-01**: SchemaUpdatedEvent published when datasource JsonSchema is modified
 - [x] **REVAL-02**: InvalidRecordsService consumes SchemaUpdatedEvent and queries affected non-ignored invalid records
 - [x] **REVAL-03**: Bulk ValidationRequestEvent published for all affected records with IsReprocess=true
-- [ ] **REVAL-04**: Records that pass new schema deleted from invalid records and routed to OutputService
-- [ ] **REVAL-05**: Records that still fail updated with new error messages from new schema
+- [x] **REVAL-04**: Records that pass new schema deleted from invalid records and routed to OutputService
+- [x] **REVAL-05**: Records that still fail updated with new error messages from new schema
 - [x] **REVAL-06**: Schema versioning: SchemaVersion auto-increments, ValidatedWithSchemaVersion tracks original
 - [x] **REVAL-07**: Rate limiting: batches of 100 with 1-second delays for >1000 records
-- [ ] **REVAL-08**: Frontend "Revalidate All" button in 2 locations (invalid records page header, schema tab)
-- [ ] **REVAL-09**: SignalR notification shows "X of Y records resolved by schema change"
+- [x] **REVAL-08**: Frontend "Revalidate All" button in 2 locations (invalid records page header, schema tab)
+- [x] **REVAL-09**: SignalR notification shows "X of Y records resolved by schema change"
 - [ ] **REVAL-10**: Playwright E2E test covers revalidation workflow
 - [ ] **REVAL-11**: Hebrew user guide chapter with Mermaid flow diagram and step-by-step instructions
 - [ ] **REVAL-12**: Docusaurus docs updated: changelog, release notes, admin guide
@@ -123,12 +123,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REVAL-01 | Phase 29 | Complete |
 | REVAL-02 | Phase 29 | Complete |
 | REVAL-03 | Phase 29 | Complete |
-| REVAL-04 | Phase 29 | Pending |
-| REVAL-05 | Phase 29 | Pending |
+| REVAL-04 | Phase 29 | Complete |
+| REVAL-05 | Phase 29 | Complete |
 | REVAL-06 | Phase 29 | Complete |
 | REVAL-07 | Phase 29 | Complete |
-| REVAL-08 | Phase 29 | Pending |
-| REVAL-09 | Phase 29 | Pending |
+| REVAL-08 | Phase 29 | Complete |
+| REVAL-09 | Phase 29 | Complete |
 | REVAL-10 | Phase 29 | Pending |
 | REVAL-11 | Phase 29 | Pending |
 | REVAL-12 | Phase 29 | Pending |

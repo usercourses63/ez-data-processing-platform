@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Phase complete — ready for verification
-stopped_at: Completed 29-02-PLAN.md
-last_updated: "2026-03-26T11:56:18.385Z"
+stopped_at: Completed 29-03-PLAN.md
+last_updated: "2026-03-26T12:01:56.250Z"
 progress:
   total_phases: 30
   completed_phases: 25
   total_plans: 112
-  completed_plans: 102
+  completed_plans: 103
 ---
 
 ## Current Position
@@ -53,6 +53,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 28]: Used build-all-images.sh with docker/ Dockerfiles for all 10 v0.4.0 images
 - [Phase 29]: Schema change detected by comparing BsonDocument JSON before/after mapping; auto-increment SchemaVersion overrides request value
 - [Phase 29]: Daily Quartz.NET purge at 3 AM UTC for expired invalid records with per-datasource TTL override
+- [Phase 29]: SignalR CORS uses SetIsOriginAllowed + AllowCredentials for InvalidRecordsService hub
 
 ### Blockers/Concerns
 
@@ -61,6 +62,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T11:56:18.381Z
-Stopped at: Completed 29-02-PLAN.md
+Last session: 2026-03-26T12:01:51.533Z
+Stopped at: Completed 29-03-PLAN.md
 Resume file: None
