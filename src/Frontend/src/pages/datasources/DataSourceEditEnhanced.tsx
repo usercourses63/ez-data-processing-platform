@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { Typography, Card, Form, Button, Space, Alert, Spin, App, Divider, Tabs, Skeleton } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined, BarChartOutlined } from '@ant-design/icons';
 import { type JSONSchema } from 'jsonjoy-builder';
 import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
@@ -27,8 +27,17 @@ const DataSourceEditEnhanced: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const { message } = App.useApp();
   const [form] = Form.useForm();
+
+  // Activate tab from navigation state (e.g., from EditRecordModal schema link)
+  useEffect(() => {
+    const state = location.state as { activeTab?: string } | null;
+    if (state?.activeTab) {
+      setActiveTab(state.activeTab);
+    }
+  }, [location.state]);
 
   // State
   const [loading, setLoading] = useState<boolean>(false);
@@ -615,7 +624,7 @@ const DataSourceEditEnhanced: React.FC = () => {
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="schema" className="completeness-tab" onSubmit={(e) => { e.stopPropagation(); e.preventDefault(); }}>
-                            <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} />
+                            <SchemaTab jsonSchema={jsonSchema} onChange={handleSchemaChange} dataSourceId={id} />
                           </div>
                         </Suspense>
                       )

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Form, Input, Button, message, Descriptions, Typography, Space, Tooltip, Tag, Alert, Select } from 'antd';
 import { WarningOutlined, InfoCircleOutlined, CheckCircleOutlined, EditOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { InvalidRecord } from '../../services/invalidrecords-api-client';
 import { translateErrors, TranslatedError } from '../../utils/validationErrorTranslator';
 
@@ -41,6 +42,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [failedFields, setFailedFields] = useState<FieldError[]>([]);
@@ -560,8 +562,12 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
             {record.dataSourceId && (
               <Tooltip title="ערוך הגדרות Schema">
                 <Link
-                  href={`/datasources/${record.dataSourceId}/schema`}
-                  target="_blank"
+                  onClick={() => {
+                    navigate(`/datasources/${record.dataSourceId}/edit`, {
+                      state: { activeTab: 'schema' }
+                    });
+                    onClose();
+                  }}
                   style={{ fontSize: 12 }}
                 >
                   <EditOutlined /> ערוך Schema
