@@ -45,9 +45,9 @@
 - [x] **Phase 27: Import from File** - Upload sample file to auto-fill schema and form fields, archive support (completed 2026-03-26)
 - [ ] **Phase 28: Polish, i18n & Release** - Hebrew translations, Playwright E2E tests, v0.4.0 release packaging
 
-### v0.5 Data Quality & Reprocessing
+### v0.4 (continued) — Data Quality & Release
 
-- [ ] **Phase 29: Invalid Records Auto-Revalidation** - Auto-revalidate invalid records when datasource schema changes, bulk reprocessing pipeline, schema versioning
+- [ ] **Phase 29: Invalid Records Auto-Revalidation** - Auto-revalidate invalid records when datasource schema changes, bulk reprocessing pipeline, schema versioning, Hebrew user guide chapter with screenshots + Mermaid diagrams
 
 ## Phase Details
 
@@ -392,8 +392,8 @@ Plans:
 - [ ] 28-09-PLAN.md — Fresh install + sanity tests + final release approval (REL-10, REL-11)
 
 ### Phase 29: Invalid Records Auto-Revalidation
-**Goal**: When a datasource schema is updated, automatically revalidate existing invalid records against the new schema. Records that now pass are reprocessed and routed to output.
-**Depends on**: Phase 28 (v0.4.0 released)
+**Goal**: When a datasource schema is updated, automatically revalidate existing invalid records against the new schema. Records that now pass are reprocessed and routed to output. Includes full documentation with Hebrew user guide chapter.
+**Depends on**: Phase 28 (docs + images complete)
 **Success Criteria** (what must be TRUE):
   1. SchemaUpdatedEvent published when datasource JsonSchema is modified
   2. InvalidRecordsService consumes event and queries affected invalid records
@@ -405,6 +405,8 @@ Plans:
   8. Frontend "Revalidate All" button triggers manual bulk revalidation
   9. SignalR notification shows "X of Y records resolved by schema change"
   10. Playwright E2E test: strict schema → import with violations → relax schema → verify auto-resolve
+  11. Hebrew user guide chapter for auto-revalidation feature with screenshots, Mermaid flow diagram, step-by-step instructions (same template as clone/import/completeness chapters)
+  12. Docusaurus docs updated: changelog, release notes, admin guide section for revalidation pipeline
 **Plans**: TBD
 
 ---
