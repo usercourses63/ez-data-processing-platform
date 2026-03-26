@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Phase complete — ready for verification
-stopped_at: Completed 29-03-PLAN.md
-last_updated: "2026-03-26T12:01:56.250Z"
+stopped_at: Completed 29-04-PLAN.md
+last_updated: "2026-03-26T12:03:01.703Z"
 progress:
   total_phases: 30
   completed_phases: 25
   total_plans: 112
-  completed_plans: 103
+  completed_plans: 104
 ---
 
 ## Current Position
@@ -54,6 +54,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 29]: Schema change detected by comparing BsonDocument JSON before/after mapping; auto-increment SchemaVersion overrides request value
 - [Phase 29]: Daily Quartz.NET purge at 3 AM UTC for expired invalid records with per-datasource TTL override
 - [Phase 29]: SignalR CORS uses SetIsOriginAllowed + AllowCredentials for InvalidRecordsService hub
+- [Phase 29]: Used location.state for cross-page tab activation from EditRecordModal to Schema tab
+- [Phase 29]: YAML download via js-yaml is frontend-only (no backend round-trip)
 
 ### Blockers/Concerns
 
@@ -62,6 +64,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T12:01:51.533Z
-Stopped at: Completed 29-03-PLAN.md
+Last session: 2026-03-26T12:03:01.699Z
+Stopped at: Completed 29-04-PLAN.md
 Resume file: None
