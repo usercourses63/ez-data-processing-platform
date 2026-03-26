@@ -36,19 +36,47 @@ sidebar_position: 1
 
 ---
 
+## מפת ניווט במדריך
+
+```mermaid
+flowchart LR
+    A[התחלת עבודה] --> B[יצירת מקור]
+    A --> C[ייבוא מקובץ]
+    A --> D[שכפול מקור]
+    B --> E[סכמה ואימות]
+    C --> E
+    D --> E
+    E --> F[תזמון]
+    F --> G[ניטור]
+    G --> H[רשומות לא תקינות]
+    H --> I[פתרון בעיות]
+    B -.-> J[רשימת שלמות]
+    C -.-> J
+    D -.-> J
+    G -.-> K[התרעות]
+    A -.-> L[הגדרות מערכת]
+```
+
+![סקירת רשימת מקורות נתונים](/img/screenshots/datasource-list-overview.png)
+
+---
+
 ## תוכן עניינים
 
 | פרק | נושא | תיאור |
 |-----|-------|--------|
 | 1 | [התחלת עבודה](/docs/user-guide/getting-started) | כניסה למערכת, ניווט וסקירת הממשק |
-| 2 | [יצירת מקור נתונים](/docs/user-guide/create-datasource) | יצירת מקור נתונים חדש שלב אחר שלב |
+| 2 | [יצירת מקור נתונים](/docs/user-guide/create-datasource) | יצירת מקור נתונים חדש -- כל הלשוניות, השדות והאפשרויות |
 | 3 | [ייבוא מקור נתונים מקובץ](/docs/user-guide/import-from-file) | יצירה אוטומטית ממקובץ דוגמה **חדש v0.4.0** |
 | 4 | [שכפול מקור נתונים](/docs/user-guide/clone-datasource) | העתקת מקור קיים **חדש v0.4.0** |
 | 5 | [רשימת שלמות](/docs/user-guide/completeness) | מעקב אחר השלמת הגדרות **חדש v0.4.0** |
-| 6 | [הגדרת סכמה ואימות](/docs/user-guide/schema-validation) | הגדרת JSON Schema, תבניות, עורך חזותי |
+| 6 | [הגדרת סכמה ואימות](/docs/user-guide/schema-validation) | הגדרת JSON Schema, תבניות, עורך Monaco, Regex |
 | 7 | [תזמון ומעקב](/docs/user-guide/scheduling) | תזמון עיבוד, ביטויי Cron, הפעלה ידנית |
-| 8 | [ניטור מערכת](/docs/user-guide/monitoring) | דשבורד ניטור, בריאות מכשירים, Traces |
-| 9 | [פתרון בעיות](/docs/user-guide/troubleshooting) | שגיאות נפוצות, שאלות נפוצות, מילון מונחים |
+| 8 | [ניטור מערכת](/docs/user-guide/monitoring) | דשבורד ניטור, בריאות מכשירים, OTEL, Grafana |
+| 9 | [רשומות לא תקינות](/docs/user-guide/invalid-records) | צפייה, סינון, תיקון ושליחה מחדש של רשומות שגויות |
+| 10 | [ניהול התרעות](/docs/user-guide/alerts) | התרעות PromQL -- מקור, עסקיות ומערכת |
+| 11 | [הגדרות מערכת](/docs/user-guide/system-settings) | קטגוריות, שרתי קלט/פלט, התקני NAS |
+| 12 | [פתרון בעיות](/docs/user-guide/troubleshooting) | שגיאות נפוצות, שאלות נפוצות, מילון מונחים |
 
 ---
 
