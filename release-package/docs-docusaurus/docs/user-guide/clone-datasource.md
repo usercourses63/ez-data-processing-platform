@@ -16,7 +16,7 @@ sidebar_position: 5
 
 ניתן להפעיל שכפול משני מקומות במערכת: מתפריט הפעולות בדף רשימת המקורות, או מכפתור השכפול בדף העריכה.
 
-![סקירת רשימת מקורות נתונים](../static/img/screenshots/datasource-list-overview.png)
+![סקירת רשימת מקורות נתונים](/img/screenshots/datasource-list-overview.png)
 
 ---
 
@@ -52,19 +52,19 @@ flowchart LR
 
 מתפריט הפעולות, בחרו באפשרות **"שכפל"**. תופיע תיבת אישור.
 
-![כפתור שכפול ברשימה](../static/img/screenshots/clone-button-list.png)
+![כפתור שכפול ברשימה](/img/screenshots/clone-button-list.png)
 
 ### שלב 5: אישור השכפול
 
 בתיבת האישור יופיע שם המקור שעומד להישכפל, יחד עם הערה שהתזמון יושבת בעותק החדש. לחצו **"שכפל"** לאישור.
 
-![תיבת אישור שכפול](../static/img/screenshots/clone-confirm-dialog.png)
+![תיבת אישור שכפול](/img/screenshots/clone-confirm-dialog.png)
 
 ### שלב 6: עריכת העותק החדש
 
 טופס יצירת מקור חדש ייפתח עם כל השדות מלאים מהמקור המקורי. השם ישתנה אוטומטית ל-**"העתק של [שם מקורי]"**. ערכו את השדות הנדרשים ושמרו.
 
-![טופס שכפול עם נתונים מלאים](../static/img/screenshots/clone-form-prefilled.png)
+![טופס שכפול עם נתונים מלאים](/img/screenshots/clone-form-prefilled.png)
 
 ---
 

@@ -16,7 +16,7 @@ sidebar_position: 4
 
 **ארכיונים נתמכים:** ZIP, TAR.GZ/TGZ, 7Z, RAR -- כולל ארכיונים מוצפנים בסיסמה
 
-![כפתור ייבוא מקובץ](../../static/img/screenshots/import-button.png)
+![כפתור ייבוא מקובץ](/img/screenshots/import-button.png)
 
 ---
 
@@ -46,7 +46,7 @@ flowchart TD
 
 ניתן גם לגרור קובץ ישירות לאזור הכפתור (drag & drop).
 
-![כפתור ייבוא](../../static/img/screenshots/import-button.png)
+![כפתור ייבוא](/img/screenshots/import-button.png)
 
 ### שלב 2: בחירת קובץ
 
@@ -59,13 +59,13 @@ flowchart TD
 
 **אם נבחר קובץ ארכיון** -- המערכת תפתח דפדפן ארכיון המציג את כל קבצי הנתונים שבתוכו. בחר את הקובץ הרצוי מתוך הרשימה.
 
-![בחירת קובץ מארכיון](../../static/img/screenshots/import-archive-selector.png)
+![בחירת קובץ מארכיון](/img/screenshots/import-archive-selector.png)
 
 ### שלב 3: ארכיון מוצפן (במידת הצורך)
 
 אם הארכיון מוגן בסיסמה, המערכת תציג שדה להזנת הסיסמה. הזן את הסיסמה ולחץ **"נתח קובץ נבחר"** כדי לפתוח את הארכיון ולהמשיך בתהליך. הסיסמה נשמרת אוטומטית בהגדרות מקור הנתונים שייווצר.
 
-![הזנת סיסמת ארכיון](../../static/img/screenshots/import-password-input.png)
+![הזנת סיסמת ארכיון](/img/screenshots/import-password-input.png)
 
 ### שלב 4: תצוגה מקדימה וזיהוי שדות
 
@@ -78,7 +78,7 @@ flowchart TD
 
 בחלק העליון של חלון התצוגה מוצג מידע על הקובץ: שם, גודל, מספר שורות ומספר שדות שזוהו.
 
-![תצוגה מקדימה של CSV](../../static/img/screenshots/import-preview-csv.png)
+![תצוגה מקדימה של CSV](/img/screenshots/import-preview-csv.png)
 
 ### שלב 5: עריכת סכמה
 
@@ -110,7 +110,7 @@ flowchart TD
 
 פאנל **השלמה** בצד ימין מציג את אחוז ההשלמה ומסמן שדות חובה חסרים.
 
-![הגדרות ארכיון בעריכה](../../static/img/screenshots/import-edit-archive-settings.png)
+![הגדרות ארכיון בעריכה](/img/screenshots/import-edit-archive-settings.png)
 
 ---
 

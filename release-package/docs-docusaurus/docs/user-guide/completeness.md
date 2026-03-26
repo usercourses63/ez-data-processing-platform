@@ -18,7 +18,7 @@ sidebar_position: 6
 
 פאנל השלמות מופיע בצד ימין של טופס היצירה והעריכה, ומציג טבעת התקדמות עם אחוז כללי ופירוט לפי לשונית.
 
-![פאנל שלמות](../static/img/screenshots/completeness-sidebar.png)
+![פאנל שלמות](/img/screenshots/completeness-sidebar.png)
 
 ---
 
@@ -60,7 +60,7 @@ stateDiagram-v2
 
 צבעי הגבולות מתעדכנים באופן מיידי תוך כדי הקלדה -- אין צורך לשמור את הטופס כדי לראות את השינוי.
 
-![צבעי גבולות שדות](../static/img/screenshots/completeness-field-borders.png)
+![צבעי גבולות שדות](/img/screenshots/completeness-field-borders.png)
 
 ---
 
@@ -93,7 +93,7 @@ stateDiagram-v2
 
 בתחתית הפאנל מוצגת רשימת השדות שדורשים תשומת לב, ממוינת לפי עדיפות -- שדות חובה מופיעים ראשונים, ואחריהם שדות מומלצים. כל שדה מוצג עם שם הלשונית שאליה הוא שייך.
 
-![פאנל שדות חסרים](../static/img/screenshots/completeness-missing-fields.png)
+![פאנל שדות חסרים](/img/screenshots/completeness-missing-fields.png)
 
 ---
 
@@ -107,7 +107,7 @@ stateDiagram-v2
 
 מחוון זה מאפשר לזהות במבט מהיר אילו מקורות נתונים דורשים תשומת לב נוספת.
 
-![מחוון שלמות ברשימה](../static/img/screenshots/completeness-list-indicator.png)
+![מחוון שלמות ברשימה](/img/screenshots/completeness-list-indicator.png)
 
 ---
 

@@ -26,6 +26,11 @@ const config = {
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
+  // Enable Mermaid diagram rendering in markdown
+  markdown: {
+    mermaid: true,
+  },
+
   // Internationalization
   i18n: {
     defaultLocale: 'en',
@@ -63,6 +68,7 @@ const config = {
   ],
 
   themes: [
+    '@docusaurus/theme-mermaid',
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
       /** @type {import('@easyops-cn/docusaurus-search-local').PluginOptions} */
