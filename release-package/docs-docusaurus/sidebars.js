@@ -34,10 +34,19 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'User Guide',
+      label: 'User Guide / \u05DE\u05D3\u05E8\u05D9\u05DA \u05DC\u05DE\u05E9\u05EA\u05DE\u05E9',
       collapsed: false,
       items: [
-        'user-guide-he',
+        'user-guide/index',
+        'user-guide/getting-started',
+        'user-guide/create-datasource',
+        'user-guide/import-from-file',
+        'user-guide/clone-datasource',
+        'user-guide/completeness',
+        'user-guide/schema-validation',
+        'user-guide/scheduling',
+        'user-guide/monitoring',
+        'user-guide/troubleshooting',
       ],
     },
     {
