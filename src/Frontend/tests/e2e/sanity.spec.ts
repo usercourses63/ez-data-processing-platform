@@ -17,7 +17,8 @@ const INVALID_API    = 'http://127.0.0.1:5007';
 const FILEPROCESSOR_API = 'http://127.0.0.1:5008';
 const OUTPUT_API     = 'http://127.0.0.1:5009';
 const FRONTEND_URL   = 'http://127.0.0.1:7000';
-const DOCS_URL       = process.env.DOCS_URL || 'http://127.0.0.1:30800';
+// Docs service is NodePort 30800 — accessible at minikube IP, not localhost
+const DOCS_URL       = process.env.DOCS_URL || 'http://172.30.22.206:30800';
 
 // Services with accessible health endpoints (port-forwarded)
 const HEALTH_ENDPOINTS = [
