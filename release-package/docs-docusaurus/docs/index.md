@@ -43,8 +43,21 @@ See the full **[Release Notes](/docs/release-notes)** for migration notes and kn
 - **[Monitoring](/docs/admin#monitoring--alerts)** - Grafana, Prometheus, Jaeger
 - **[Maintenance Tools](/docs/admin#maintenance-tools--utilities)** - Reset, backup, utilities
 
-### User Documentation
+### User Documentation (13 Chapters)
 - **[Hebrew User Guide](/docs/user-guide/)** - מדריך מלא בעברית
+- **[Getting Started](/docs/user-guide/getting-started)** - First steps
+- **[Create Datasource](/docs/user-guide/create-datasource)** - Manual datasource creation
+- **[Clone Datasource](/docs/user-guide/clone-datasource)** - Duplicate existing datasources (v0.4.0)
+- **[Import from File](/docs/user-guide/import-from-file)** - Auto-create from sample files (v0.4.0)
+- **[Completeness](/docs/user-guide/completeness)** - Form completion guidance (v0.4.0)
+- **[Schema Validation](/docs/user-guide/schema-validation)** - JSON Schema management
+- **[Scheduling](/docs/user-guide/scheduling)** - Automated polling
+- **[Alerts](/docs/user-guide/alerts)** - Alert rule management
+- **[System Settings](/docs/user-guide/system-settings)** - NAS/Server/Category admin
+- **[Invalid Records](/docs/user-guide/invalid-records)** - Validation failure management
+- **[Auto-Revalidation](/docs/user-guide/auto-revalidation)** - Schema change revalidation (v0.5.0)
+- **[Monitoring](/docs/user-guide/monitoring)** - System monitoring dashboard
+- **[Troubleshooting](/docs/user-guide/troubleshooting)** - Common issues
 
 ### Architecture
 - **[System Architecture](/docs/architecture/system-architecture)** - Complete system design
@@ -90,9 +103,9 @@ Frontend: http://<NODE-IP>:30080
 Example: http://192.168.1.50:30080
 ```
 
-**Development (localhost):**
+**Development (localhost via port-forward):**
 ```
-Frontend: http://localhost:3000
+Frontend: http://localhost:7000
 Grafana: http://localhost:3001
 Jaeger: http://localhost:16686
 Prometheus: http://localhost:9090

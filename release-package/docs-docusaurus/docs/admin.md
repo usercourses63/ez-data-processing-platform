@@ -85,6 +85,8 @@ NAS (Network Attached Storage) devices provide shared network storage for file p
 
 **Hebrew interface:** הגדרות מערכת > התקני NAS
 
+**See also:** [System Settings User Guide](/docs/user-guide/system-settings) for step-by-step NAS/Server/Category management.
+
 ### NAS Device Lifecycle
 
 ```
@@ -1560,6 +1562,17 @@ kubectl describe pvc <name> -n ez-platform
 
 ---
 
-**Admin Guide Version:** 3.0
-**Platform Version:** v0.3.0
+### User Guide Cross-References
+
+For end-user workflows related to admin tasks:
+- [System Settings](/docs/user-guide/system-settings) -- NAS devices, servers, categories
+- [Alerts](/docs/user-guide/alerts) -- Alert rule configuration
+- [Invalid Records](/docs/user-guide/invalid-records) -- Managing validation failures
+- [Auto-Revalidation](/docs/user-guide/auto-revalidation) -- Schema change revalidation
+- [Troubleshooting](/docs/user-guide/troubleshooting) -- Common user issues
+
+---
+
+**Admin Guide Version:** 4.0
+**Platform Version:** v0.4.0
 **Last Updated:** March 2026
