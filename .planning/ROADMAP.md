@@ -45,6 +45,10 @@
 - [x] **Phase 27: Import from File** - Upload sample file to auto-fill schema and form fields, archive support (completed 2026-03-26)
 - [ ] **Phase 28: Polish, i18n & Release** - Hebrew translations, Playwright E2E tests, v0.4.0 release packaging
 
+### v0.5 Data Quality & Reprocessing
+
+- [ ] **Phase 29: Invalid Records Auto-Revalidation** - Auto-revalidate invalid records when datasource schema changes, bulk reprocessing pipeline, schema versioning
+
 ## Phase Details
 
 ### Phase 11: Bug Fixes & UI Polish
@@ -387,12 +391,28 @@ Plans:
 - [x] 28-08-PLAN.md — Build all service images v0.4.0 + assemble deployment package (REL-08, REL-09)
 - [ ] 28-09-PLAN.md — Fresh install + sanity tests + final release approval (REL-10, REL-11)
 
+### Phase 29: Invalid Records Auto-Revalidation
+**Goal**: When a datasource schema is updated, automatically revalidate existing invalid records against the new schema. Records that now pass are reprocessed and routed to output.
+**Depends on**: Phase 28 (v0.4.0 released)
+**Success Criteria** (what must be TRUE):
+  1. SchemaUpdatedEvent published when datasource JsonSchema is modified
+  2. InvalidRecordsService consumes event and queries affected invalid records
+  3. Bulk ValidationRequestEvent published for all non-ignored invalid records of affected datasource
+  4. Records that pass new schema are deleted from invalid records and routed to OutputService
+  5. Records that still fail are updated with new error messages from new schema
+  6. Schema versioning: DataProcessingDataSource.SchemaVersion auto-increments, DataProcessingInvalidRecord.ValidatedWithSchemaVersion tracks original schema
+  7. Rate limiting: batches of 100 with 1-second delays for datasources with >1000 invalid records
+  8. Frontend "Revalidate All" button triggers manual bulk revalidation
+  9. SignalR notification shows "X of Y records resolved by schema change"
+  10. Playwright E2E test: strict schema → import with violations → relax schema → verify auto-resolve
+**Plans**: TBD
+
 ---
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21 -> 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28
+Phases execute in numeric order: 11 -> 12 -> 13 -> 14 -> 15 -> 15.1 -> 16 -> 17 -> 18 -> 19 -> 20 -> 21 -> 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28 -> 29
 
 Note: Phases 14 and 17 can run in parallel with earlier phases as they have no strict dependencies.
 
@@ -421,6 +441,16 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
 **v0.4 Totals:** 14/23 plans complete (61%)
+
+### Phase 1: Invalid Records Auto-Revalidation - When datasource schema is updated automatically revalidate existing invalid records against the new schema
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 0
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 1 to break down)
 
 ---
 *Roadmap updated: 2026-03-26 after Phase 28 planning*
