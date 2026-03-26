@@ -12,6 +12,7 @@ import {
   DatabaseOutlined,
   ClearOutlined,
   WarningOutlined,
+  SyncOutlined,
 } from '@ant-design/icons';
 import { invalidRecordsApiClient, InvalidRecord, Statistics } from '../../services/invalidrecords-api-client';
 import dayjs, { Dayjs } from 'dayjs';
@@ -20,6 +21,7 @@ import {
   translateErrors,
   extractErroredFields,
 } from '../../utils/validationErrorTranslator';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -33,6 +35,8 @@ interface DataSource {
 }
 
 const InvalidRecordsManagement: React.FC = () => {
+  const { t } = useTranslation();
+  const [revalidating, setRevalidating] = useState(false);
   const [selectedDataSource, setSelectedDataSource] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedErrorType, setSelectedErrorType] = useState<string>('all');
@@ -362,6 +366,24 @@ const InvalidRecordsManagement: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDataSource, selectedErrorType, selectedTimeRange, dateRange, currentPage]);
 
+  const handleRevalidateAll = async () => {
+    setRevalidating(true);
+    try {
+      const dsFilter = selectedDataSource !== 'all' ? selectedDataSource : undefined;
+      const result = await invalidRecordsApiClient.revalidateAll(dsFilter);
+      if (result.isSuccess) {
+        message.success(t('revalidation.revalidateSuccess', { count: result.data?.published || 0 }));
+        await Promise.all([fetchRecords(), fetchStatistics(), fetchFilteredStatistics()]);
+      } else {
+        message.error(result.error?.message || t('revalidation.revalidateError'));
+      }
+    } catch (err) {
+      message.error(t('revalidation.revalidateError'));
+    } finally {
+      setRevalidating(false);
+    }
+  };
+
   const handleReprocess = (record: InvalidRecord) => {
     // Open edit modal instead of direct reprocess
     setSelectedRecord(record);
@@ -628,6 +650,22 @@ const InvalidRecordsManagement: React.FC = () => {
           </Title>
         </div>
         <Space>
+          <Popconfirm
+            title={t('revalidation.revalidateConfirmTitle')}
+            description={selectedDataSource !== 'all' ? t('revalidation.revalidateConfirmDatasource') : t('revalidation.revalidateConfirmAll')}
+            onConfirm={handleRevalidateAll}
+            okText={t('revalidation.revalidateAll')}
+            cancelText={t('common.cancel')}
+          >
+            <Button
+              icon={<SyncOutlined spin={revalidating} />}
+              loading={revalidating}
+              type="default"
+              disabled={totalCount === 0}
+            >
+              {t('revalidation.revalidateAll')}
+            </Button>
+          </Popconfirm>
           <Popconfirm
             title="מחק רשומות מסוננות?"
             description={`פעולה זו תמחק ${totalCount} רשומות לא תקינות לפי הפילטרים הנוכחיים ותעדכן את הסטטיסטיקות. האם להמשיך?`}

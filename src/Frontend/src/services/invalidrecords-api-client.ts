@@ -73,6 +73,13 @@ interface BulkOperationResult {
   }>;
 }
 
+interface BulkRevalidationResult {
+  totalRecords: number;
+  published: number;
+  skipped: number;
+  failed: number;
+}
+
 const API_BASE_URL = import.meta.env.VITE_INVALIDRECORDS_API_URL || '/api/v1/invalid-records';
 
 export class InvalidRecordsApiClient {
@@ -324,6 +331,24 @@ export class InvalidRecordsApiClient {
   }
 
   /**
+   * Revalidate all invalid records (optionally filtered by dataSourceId)
+   */
+  async revalidateAll(dataSourceId?: string): Promise<ApiResponse<BulkRevalidationResult>> {
+    return this.request<BulkRevalidationResult>('/revalidate-all', {
+      method: 'POST',
+      body: JSON.stringify({ DataSourceId: dataSourceId, TriggeredBy: 'ManualButton' }),
+    });
+  }
+
+  /**
+   * Get count of revalidatable records for confirmation popover
+   */
+  async getRevalidateCount(dataSourceId?: string): Promise<ApiResponse<{ count: number }>> {
+    const params = dataSourceId ? `?dataSourceId=${dataSourceId}` : '';
+    return this.request<{ count: number }>(`/revalidate-count${params}`);
+  }
+
+  /**
    * Health check
    */
   async healthCheck(): Promise<{ service: string; status: string; timestamp: string }> {
@@ -341,4 +366,4 @@ export class InvalidRecordsApiClient {
 export const invalidRecordsApiClient = new InvalidRecordsApiClient();
 
 // Export types
-export type { InvalidRecord, ValidationError, Statistics, BulkOperationResult, InvalidRecordListParams };
+export type { InvalidRecord, ValidationError, Statistics, BulkOperationResult, BulkRevalidationResult, InvalidRecordListParams };

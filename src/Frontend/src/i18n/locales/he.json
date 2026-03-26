@@ -1314,6 +1314,21 @@
       }
     }
   },
+  "revalidation": {
+    "revalidateAll": "אמת מחדש הכל",
+    "revalidateConfirmTitle": "אימות מחדש",
+    "revalidateConfirmAll": "לאמת מחדש את כל הרשומות?",
+    "revalidateConfirmDatasource": "לאמת מחדש את כל הרשומות של מקור נתונים זה?",
+    "revalidateSuccess": "{{count}} רשומות נשלחו לאימות מחדש",
+    "revalidateError": "שגיאה באימות מחדש",
+    "revalidating": "מאמת מחדש...",
+    "recordsResolved": "{{resolved}} מתוך {{total}} רשומות תוקנו על ידי שינוי סכמה",
+    "schemaVersionLabel": "גרסת סכמה",
+    "revalidated": "אומת מחדש",
+    "yamlDownload": "הורד YAML",
+    "ttlDays": "שמירת רשומות שגויות (ימים)",
+    "ttlDaysTooltip": "מספר ימים לשמירת רשומות שגויות. ברירת מחדל: 4 ימים"
+  },
   "footer": {
     "copyright": "© {{year}} פלטפורמת EZ. כל הזכויות שמורות.",
     "version": "גרסה",

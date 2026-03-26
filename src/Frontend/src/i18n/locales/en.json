@@ -663,6 +663,21 @@
       }
     }
   },
+  "revalidation": {
+    "revalidateAll": "Revalidate All",
+    "revalidateConfirmTitle": "Revalidation",
+    "revalidateConfirmAll": "Revalidate all records?",
+    "revalidateConfirmDatasource": "Revalidate all records for this datasource?",
+    "revalidateSuccess": "{{count}} records sent for revalidation",
+    "revalidateError": "Revalidation failed",
+    "revalidating": "Revalidating...",
+    "recordsResolved": "{{resolved}} of {{total}} records resolved by schema change",
+    "schemaVersionLabel": "Schema Version",
+    "revalidated": "Revalidated",
+    "yamlDownload": "Download YAML",
+    "ttlDays": "Invalid records retention (days)",
+    "ttlDaysTooltip": "Number of days to retain invalid records. Default: 4 days"
+  },
   "footer": {
     "copyright": "© {{year}} EZ Platform. All rights reserved.",
     "version": "Version",
