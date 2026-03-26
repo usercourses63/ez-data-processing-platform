@@ -4,7 +4,7 @@
 
 EZ Platform is a data processing platform built with microservices architecture (.NET 10.0 backend, React 19 frontend) deployed on Kubernetes. It provides file discovery, format conversion, schema validation, and multi-destination output with full Hebrew/RTL support.
 
-**Status:** Production Ready - v0.3.0
+**Status:** Production Ready - v0.4.0
 **Architecture:** 9 Microservices + React Frontend + Kubernetes + Kafka + MongoDB (3-node Replica Set)
 **Last Updated:** March 20, 2026
 
@@ -873,8 +873,8 @@ start http://localhost:16686 # Jaeger
 
 ---
 
-*Last Updated: January 12, 2026*
-*Version: v0.3.0*
+*Last Updated: March 26, 2026*
+*Version: v0.4.0*
 *Status: Production Ready - Week 5 Validation Phase*
 
 [byterover-mcp]

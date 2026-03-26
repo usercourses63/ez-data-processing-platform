@@ -9,43 +9,43 @@ services:
   filediscovery:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   fileprocessor:
     replicas: 2
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   validation:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   output:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   datasourceManagement:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   metricsConfiguration:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   invalidrecords:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   scheduling:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   frontend:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
   docs:
     replicas: 1
     image:
-      tag: v0.2.0
+      tag: v0.4.0
 
 # Single-node infrastructure for dev
 mongodb:
