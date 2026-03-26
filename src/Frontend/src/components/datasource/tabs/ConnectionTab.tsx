@@ -621,8 +621,8 @@ export const ConnectionTab: React.FC<ConnectionTabProps> = ({
         </>
       )}
 
-      {/* Archive Settings - Only for file-based protocols (not Kafka/HTTP), including NAS */}
-      {(selectedServer || selectedNasDevice) && effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && (
+      {/* Archive Settings - Show for all file-based protocols (not Kafka/HTTP) */}
+      {effectiveConnectionType !== 'kafka' && effectiveConnectionType !== 'http' && (
         <ArchiveSettingsSection
           form={form}
           t={t}

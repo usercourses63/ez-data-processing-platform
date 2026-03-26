@@ -252,13 +252,13 @@ const DataSourceEditEnhanced: React.FC = () => {
           notifyOnSuccess: notificationSettings.onSuccess || false,
           notifyOnFailure: notificationSettings.onFailure !== false,
           notificationRecipients: notificationSettings.recipients?.join(', ') || '',
-          // Archive settings (v0.4.0)
-          ...((additionalConfig as any).ArchiveSettings?.IsArchiveSource ? {
+          // Archive settings (v0.4.0) - top-level on data.Data, not inside AdditionalConfiguration
+          ...((data.Data as any).ArchiveSettings?.IsArchiveSource ? {
             isArchiveSource: true,
-            archiveType: (additionalConfig as any).ArchiveSettings.ArchiveType || 'auto',
-            archivePassword: (additionalConfig as any).ArchiveSettings.ArchivePassword || '',
-            extractionPattern: (additionalConfig as any).ArchiveSettings.ExtractionPattern || '',
-            processNestedArchives: (additionalConfig as any).ArchiveSettings.ProcessNestedArchives || false,
+            archiveType: (data.Data as any).ArchiveSettings.ArchiveType || 'auto',
+            archivePassword: (data.Data as any).ArchiveSettings.ArchivePassword || '',
+            extractionPattern: (data.Data as any).ArchiveSettings.ExtractionPattern || '',
+            processNestedArchives: (data.Data as any).ArchiveSettings.ProcessNestedArchives || false,
           } : {}),
         });
 
