@@ -15,10 +15,39 @@
  * - List page: power icon button in actions
  * - RTL layout: sidebar positioning
  */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, APIRequestContext, request } from '@playwright/test';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://127.0.0.1:7000';
 const DATASOURCE_API = process.env.DATASOURCE_API || 'http://127.0.0.1:5001';
+
+let apiContext: APIRequestContext;
+
+test.beforeAll(async () => {
+  apiContext = await request.newContext({ ignoreHTTPSErrors: true });
+});
+
+test.afterAll(async () => {
+  await apiContext.dispose();
+});
+
+// Shared helper: extract entity ID from API response (handles Data wrapper)
+const extractId = (body: any): string | undefined => {
+  return body?.Data?.ID || body?.ID || body?.data?.ID || body?.data?.id || body?.id;
+};
+
+// Shared helper: extract entity data from API response (handles Data wrapper)
+const extractData = (body: any): any => {
+  return body?.Data || body?.data || body;
+};
+
+// Shared helper: click Ant Design tab in RTL mode (Playwright .click() doesn't trigger React state change)
+const antTabClick = async (page: Page, tabKey: string) => {
+  await page.evaluate((key) => {
+    const el = document.querySelector(`[id$="-tab-${key}"]`) as HTMLElement;
+    if (el) el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  }, tabKey);
+  await page.waitForTimeout(1000);
+};
 
 // Helper: open Ant Design Select and pick an option
 const antSelect = async (page: Page, inputId: string, optionMatcher?: string | RegExp, optionIndex = 0) => {
@@ -242,34 +271,48 @@ test.describe('Completeness Checklist', () => {
   // Test 7: Edit form sidebar shows progress reflecting existing data
   // =========================================================================
   test('edit form shows progress reflecting existing data', async ({ page }) => {
-    // Navigate to list and find a datasource to edit
-    await navigateAndWait(page, `${FRONTEND_URL}/datasources`);
-    await page.waitForSelector('.ant-table-tbody tr', { timeout: 15000 });
-    await page.waitForTimeout(1000);
+    // Create a test datasource via API with known fields for deterministic testing
+    const createPayload = {
+      Name: 'Completeness-Edit-Test',
+      SupplierName: 'Test Supplier',
+      Category: 'Sales',
+      ConnectionType: 'LocalFolder',
+      FileType: 'CSV',
+      Status: 'Active',
+    };
 
-    // Click edit on the first datasource
-    const firstRow = page.locator('.ant-table-tbody tr').first();
-    const editBtn = firstRow.locator('button').filter({ has: page.locator('.anticon-edit') }).first();
-    await editBtn.click();
-    await page.waitForURL(/\/datasources\/.*\/edit/, { timeout: 10000 });
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
+    const createResp = await apiContext.post(`${DATASOURCE_API}/api/v1/datasources`, {
+      data: createPayload,
+    });
+    const createBody = await createResp.json();
+    const dsId = extractId(createBody);
+    expect(dsId).toBeTruthy();
 
-    // Verify sidebar exists with progress > 0% (existing data should have fields filled)
-    const progressCircle = page.locator('div.ant-progress-circle');
-    await expect(progressCircle).toBeVisible({ timeout: 30000 });
+    try {
+      // Navigate directly to the edit page for this datasource
+      await navigateAndWait(page, `${FRONTEND_URL}/datasources/${dsId}/edit`);
 
-    const ariaValue = await progressCircle.first().getAttribute('aria-valuenow');
-    const percent = parseInt(ariaValue || '0', 10);
-    // Existing datasource should have at least name, supplier, category filled
-    expect(percent).toBeGreaterThan(0);
+      // Verify sidebar exists with progress > 0% (existing data should have fields filled)
+      const progressCircle = page.locator('div.ant-progress-circle');
+      await expect(progressCircle).toBeVisible({ timeout: 30000 });
 
-    // Verify completed tabs show green check icons in sidebar
-    const sidebarCard = getSidebarCard(page);
-    const greenChecks = sidebarCard.locator('.anticon-check-circle');
-    const greenCount = await greenChecks.count();
-    // At least basic tab should be complete (seeded data has name, supplier, category)
-    expect(greenCount).toBeGreaterThanOrEqual(1);
+      const ariaValue = await progressCircle.first().getAttribute('aria-valuenow');
+      const percent = parseInt(ariaValue || '0', 10);
+      // Created datasource has name, supplier, category, connectionType, fileType filled
+      expect(percent).toBeGreaterThan(0);
+
+      // Verify completed tabs show green check icons in sidebar
+      const sidebarCard = getSidebarCard(page);
+      const greenChecks = sidebarCard.locator('.anticon-check-circle');
+      const greenCount = await greenChecks.count();
+      // At least basic tab should be complete (name, supplier, category are filled)
+      expect(greenCount).toBeGreaterThanOrEqual(1);
+    } finally {
+      // Cleanup: delete the test datasource via API
+      if (dsId) {
+        await apiContext.delete(`${DATASOURCE_API}/api/v1/datasources/${dsId}?deletedBy=SanityTest`);
+      }
+    }
   });
 
   // =========================================================================
