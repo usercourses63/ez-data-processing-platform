@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Phase complete — ready for verification
-stopped_at: Completed 28-04-PLAN.md
-last_updated: "2026-03-26T07:03:25.708Z"
+stopped_at: Completed 28-01-PLAN.md
+last_updated: "2026-03-26T07:09:57.438Z"
 progress:
   total_phases: 29
   completed_phases: 25
   total_plans: 103
-  completed_plans: 94
+  completed_plans: 95
 ---
 
 ## Current Position
@@ -47,6 +47,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 28-polish-i18n-release]: Hebrew user guide uses per-chapter template with RTL div wrapper and Mermaid diagrams
 - [Phase 28]: Hebrew import-from-file chapter uses per-chapter template with RTL wrapper, Mermaid diagram, screenshot refs
 - [Phase 28]: Hebrew completeness chapter uses actual he.json keys for consistent terminology
+- [Phase 28]: Used playwright library (not @playwright/test) for screenshot capture script; fixed broken relative image paths in user guide docs
 
 ### Blockers/Concerns
 
@@ -55,6 +56,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T07:03:25.704Z
-Stopped at: Completed 28-04-PLAN.md
+Last session: 2026-03-26T07:09:57.433Z
+Stopped at: Completed 28-01-PLAN.md
 Resume file: None
