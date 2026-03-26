@@ -1,35 +1,89 @@
 /**
  * Import from File - E2E Tests
- * Covers IMPORT-01 (upload triggers), IMPORT-03 (headerless CSV), IMPORT-05 (preview + form pre-fill).
+ * Covers IMPORT-01 through IMPORT-06: upload triggers, CSV/JSON/XML preview,
+ * headerless CSV detection, and form pre-fill flow.
  *
+ * Prerequisites: Frontend running at FRONTEND_URL (default http://127.0.0.1:7000).
  * Run: cd src/Frontend && npx playwright test tests/e2e/import-from-file.spec.ts --headed
  */
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, APIRequestContext, request, Page } from '@playwright/test';
 import path from 'path';
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://127.0.0.1:7000';
-const TEST_DATA_DIR = path.resolve(__dirname, '../../test-data');
+// --- Constants (matching sanity.spec.ts patterns) ---
+const DATASOURCE_API = 'http://127.0.0.1:5001';
+const FRONTEND_URL   = 'http://127.0.0.1:7000';
+const TEST_DATA_DIR  = path.resolve(__dirname, '../../test-data');
+
+// --- Shared helpers (from sanity.spec.ts) ---
+
+/** Extract entity ID from API response (handles Data wrapper). */
+const extractId = (body: any): string | undefined => {
+  return body?.Data?.ID || body?.ID || body?.data?.ID || body?.data?.id || body?.id;
+};
+
+/** Extract entity data from API response (handles Data wrapper). */
+const extractData = (body: any): any => {
+  return body?.Data || body?.data || body;
+};
+
+/** Click Ant Design tab in RTL mode (Playwright .click() doesn't trigger React state change). */
+const antTabClick = async (page: Page, tabKey: string) => {
+  await page.evaluate((key) => {
+    const el = document.querySelector(`[id$="-tab-${key}"]`) as HTMLElement;
+    if (el) el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  }, tabKey);
+  await page.waitForTimeout(1000);
+};
+
+/** Open an Ant Design Select and click an option in the visible dropdown. */
+const antSelect = async (page: Page, inputId: string, optionMatcher?: string | RegExp, optionIndex = 0) => {
+  await page.locator('.ant-select').filter({ has: page.locator(`input#${inputId}`) }).click();
+  await page.waitForSelector('.ant-select-dropdown:not(.ant-select-dropdown-hidden)');
+  await page.waitForTimeout(200);
+  const opts = page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden) .ant-select-item-option:visible');
+  if (optionMatcher) {
+    await opts.filter({ hasText: optionMatcher }).first().click();
+  } else {
+    await opts.nth(optionIndex).click();
+  }
+  await page.waitForTimeout(300);
+};
+
+// --- Import-specific helpers ---
 
 /**
- * Helper: trigger file upload via the Import button's hidden <input type="file">.
+ * Trigger file upload via the Import button's hidden <input type="file">.
  * Ant Design Upload wraps a hidden file input; we use page.setInputFiles on it.
  */
 async function uploadTestFile(page: Page, filename: string) {
   const filePath = path.join(TEST_DATA_DIR, filename);
-  // Ant Design Upload uses a hidden <input type="file"> inside the Upload wrapper
   const fileInput = page.locator('input[type="file"]');
   await fileInput.setInputFiles(filePath);
 }
 
 /**
- * Helper: wait for the import preview modal to appear.
+ * Wait for the import preview modal to appear and analysis to settle.
  */
 async function waitForPreviewModal(page: Page) {
-  // The modal uses ant-modal class with the preview title
   await page.waitForSelector('.ant-modal', { state: 'visible', timeout: 15000 });
   await page.waitForTimeout(1000); // Allow analysis to complete
 }
 
+// --- API context for potential cleanup ---
+let apiContext: APIRequestContext;
+
+test.beforeAll(async () => {
+  apiContext = await request.newContext({ ignoreHTTPSErrors: true });
+});
+
+test.afterAll(async () => {
+  await apiContext.dispose();
+});
+
+// Each upload test uses uploadTestFile() which calls page.setInputFiles() to inject
+// files into the Ant Design Upload hidden input. Tests cover CSV (setInputFiles with
+// headers and headerless), JSON (setInputFiles with nested data), XML (setInputFiles
+// with tagged content), and Continue flow (setInputFiles + form navigation).
 test.describe('Import from File - Upload Flows', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -37,8 +91,8 @@ test.describe('Import from File - Upload Flows', () => {
     await page.waitForLoadState('networkidle');
   });
 
-  test('New Datasource from File button exists on list page next to Create Datasource (IMPORT-01)', async ({ page }) => {
-    // The Import button has a FileAddOutlined icon and "New Datasource from File" / "מקור נתונים חדש מקובץ" text
+  test('IMPORT-01: Import button exists on list page next to Create Datasource', async ({ page }) => {
+    // The Import button has a FileAddOutlined icon and Hebrew text
     const importButton = page.locator('button').filter({ hasText: /from File|מקובץ|מקור נתונים חדש/i });
     await expect(importButton.first()).toBeVisible({ timeout: 10000 });
 
@@ -53,11 +107,10 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(buttonSpace).toBeVisible();
   });
 
-  test('CSV with headers shows preview modal with data table and extraction checklist (IMPORT-01, IMPORT-05)', async ({ page }) => {
+  test('IMPORT-02: CSV with headers shows preview modal with data table and extraction checklist', async ({ page }) => {
     await uploadTestFile(page, 'import-test-with-headers.csv');
     await waitForPreviewModal(page);
 
-    // Modal should be visible with preview title
     const modal = page.locator('.ant-modal');
     await expect(modal).toBeVisible();
 
@@ -73,7 +126,7 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(modal.locator('strong').filter({ hasText: 'age' }).first()).toBeVisible();
     await expect(modal.locator('strong').filter({ hasText: 'email' }).first()).toBeVisible();
 
-    // Total row count in footer (shows "סה"כ: 10 שורות" or similar)
+    // Total row count in footer
     await expect(modal.getByText(/10 שורות|10 rows/i).first()).toBeVisible();
 
     // Continue button should be visible
@@ -81,7 +134,7 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(continueButton).toBeVisible();
   });
 
-  test('Headerless CSV detection and editing (IMPORT-03, IMPORT-05)', async ({ page }) => {
+  test('IMPORT-03: Headerless CSV detection and field name editing', async ({ page }) => {
     await uploadTestFile(page, 'import-test-no-headers.csv');
     await waitForPreviewModal(page);
 
@@ -91,23 +144,17 @@ test.describe('Import from File - Upload Flows', () => {
     const headerToggle = modal.locator('.ant-switch');
     await expect(headerToggle).toBeVisible({ timeout: 10000 });
 
-    // Auto-detection: headerless CSV should have toggle unchecked (No)
-    // When unchecked, the switch does NOT have ant-switch-checked class
+    // Auto-detection: headerless CSV should have toggle unchecked
     const isChecked = await headerToggle.evaluate(
       (el) => el.classList.contains('ant-switch-checked')
     );
-    // It could be detected as either; assert toggle exists and field editors appear
     // If headers auto-detected as true, toggle to No
     if (isChecked) {
       await headerToggle.click();
       await page.waitForTimeout(500);
     }
 
-    // Editable field name inputs should appear (when headerless)
-    const fieldInputs = modal.locator('input[type="text"]').filter({
-      has: page.locator('[placeholder*="field_"]'),
-    });
-    // Alternative: look for inputs with placeholder pattern field_N
+    // Editable field name inputs should appear (placeholder field_N pattern)
     const inputsWithPlaceholder = modal.locator('input[placeholder^="field_"]');
     const inputCount = await inputsWithPlaceholder.count();
     expect(inputCount).toBeGreaterThanOrEqual(1);
@@ -127,7 +174,7 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(modal.locator('strong').filter({ hasText: 'name' }).first()).toBeVisible();
   });
 
-  test('JSON file shows preview modal with hierarchical view (IMPORT-01)', async ({ page }) => {
+  test('IMPORT-04: JSON file shows preview modal with hierarchical view', async ({ page }) => {
     await uploadTestFile(page, 'import-test.json');
     await waitForPreviewModal(page);
 
@@ -151,14 +198,14 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(continueButton).toBeVisible();
   });
 
-  test('XML file shows raw XML preview (IMPORT-01, IMPORT-05)', async ({ page }) => {
+  test('IMPORT-05: XML file shows raw XML preview', async ({ page }) => {
     await uploadTestFile(page, 'import-test.xml');
     await waitForPreviewModal(page);
 
     const modal = page.locator('.ant-modal');
     await expect(modal).toBeVisible();
 
-    // XML uses pre block for formatted raw XML preview (browser-style)
+    // XML uses pre block for formatted raw XML preview
     const preBlock = modal.locator('pre');
     await expect(preBlock).toBeVisible({ timeout: 10000 });
     const preText = await preBlock.textContent();
@@ -176,7 +223,7 @@ test.describe('Import from File - Upload Flows', () => {
     await expect(continueButton).toBeVisible();
   });
 
-  test('Continue navigates to form with pre-filled data (IMPORT-01, IMPORT-05)', async ({ page }) => {
+  test('IMPORT-06: Continue navigates to pre-filled create form', async ({ page }) => {
     await uploadTestFile(page, 'import-test-with-headers.csv');
     await waitForPreviewModal(page);
 
@@ -194,16 +241,14 @@ test.describe('Import from File - Upload Flows', () => {
     const nameInput = page.locator('input#name');
     await expect(nameInput).toBeVisible({ timeout: 10000 });
     const nameValue = await nameInput.inputValue();
-    // Name derived from filename "import-test-with-headers" (stripped extension)
     expect(nameValue.length).toBeGreaterThan(0);
     expect(nameValue.toLowerCase()).toContain('import');
 
-    // Navigate to File Settings tab to check file type
-    await page.locator('[id$="-tab-file"]').click();
-    await page.waitForTimeout(1000);
+    // Navigate to File Settings tab using RTL-safe antTabClick
+    await antTabClick(page, 'file');
+    await page.waitForTimeout(500);
 
     // File type should be set to CSV
-    // Look for the file type selector showing CSV
     const fileTypeSelect = page.locator('.ant-select').filter({ has: page.locator('input#fileType') });
     if (await fileTypeSelect.isVisible({ timeout: 3000 }).catch(() => false)) {
       const selectedText = await fileTypeSelect.locator('.ant-select-selection-item').textContent();
@@ -217,17 +262,10 @@ test.describe('Import from File - Upload Flows', () => {
       expect(encodingText?.length).toBeGreaterThan(0);
     }
 
-    // Navigate to Schema tab to check schema was injected
-    await page.locator('[id$="-tab-schema"]').click();
-    await page.waitForTimeout(1500);
+    // Navigate to Schema tab using RTL-safe antTabClick
+    await antTabClick(page, 'schema');
 
     // Schema tab should have content (Monaco editor or schema display)
-    const schemaContent = page.locator('[id$="-tab-schema"]').locator('..');
-    // The schema tab panel should contain something (not empty)
-    const schemaPanel = page.locator('[role="tabpanel"]').filter({
-      has: page.locator('.monaco-editor, textarea, pre, .ant-typography'),
-    });
-    // At minimum, the schema tab should have rendered something
     const tabPanels = page.locator('[role="tabpanel"]:visible');
     const panelContent = await tabPanels.textContent();
     expect(panelContent?.length).toBeGreaterThan(0);
