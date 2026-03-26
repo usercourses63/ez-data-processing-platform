@@ -305,8 +305,22 @@ public class DataSourceService : IDataSourceService
             _logger.LogInformation("RetentionDays from request: {RetentionDays}, HasValue: {HasValue}, CorrelationId: {CorrelationId}",
                 request.RetentionDays, request.RetentionDays.HasValue, correlationId);
 
+            // Capture old schema for change detection before mapping
+            var oldSchemaJson = existingDataSource.JsonSchema?.ToJson() ?? "";
+            var previousSchemaVersion = existingDataSource.SchemaVersion;
+
             // Map request to existing entity
             MapUpdateRequestToEntity(request, existingDataSource);
+
+            // Detect schema change and auto-increment SchemaVersion
+            var newSchemaJson = existingDataSource.JsonSchema?.ToJson() ?? "";
+            var schemaChanged = oldSchemaJson != newSchemaJson && !string.IsNullOrEmpty(newSchemaJson) && newSchemaJson != "{ }";
+            if (schemaChanged)
+            {
+                existingDataSource.SchemaVersion = previousSchemaVersion + 1;
+                _logger.LogInformation("Schema changed for datasource {DataSourceId}, version {OldVersion} -> {NewVersion}, publishing SchemaUpdatedEvent. CorrelationId: {CorrelationId}",
+                    existingDataSource.ID, previousSchemaVersion, existingDataSource.SchemaVersion, correlationId);
+            }
 
             // Validate NAS device and auto-populate FilePath if NasDeviceId is set
             await ValidateAndPopulateNasDeviceAsync(existingDataSource);
@@ -354,6 +368,31 @@ public class DataSourceService : IDataSourceService
             {
                 _logger.LogError(publishEx, "Failed to publish DataSourceUpdatedEvent for {DataSourceId}. CorrelationId: {CorrelationId}",
                     existingDataSource.ID, correlationId);
+            }
+
+            // Publish SchemaUpdatedEvent if schema changed (triggers auto-revalidation of invalid records)
+            if (schemaChanged)
+            {
+                try
+                {
+                    await _publishEndpoint.Publish(new SchemaUpdatedEvent
+                    {
+                        CorrelationId = correlationId,
+                        DataSourceId = existingDataSource.ID,
+                        DataSourceName = existingDataSource.Name,
+                        PreviousSchemaVersion = previousSchemaVersion,
+                        NewSchemaVersion = existingDataSource.SchemaVersion,
+                        UpdatedBy = existingDataSource.UpdatedBy ?? "System"
+                    });
+
+                    _logger.LogInformation("Published SchemaUpdatedEvent for {DataSourceId}, schema version {OldVersion} -> {NewVersion}. CorrelationId: {CorrelationId}",
+                        existingDataSource.ID, previousSchemaVersion, existingDataSource.SchemaVersion, correlationId);
+                }
+                catch (Exception publishEx)
+                {
+                    _logger.LogError(publishEx, "Failed to publish SchemaUpdatedEvent for {DataSourceId}. CorrelationId: {CorrelationId}",
+                        existingDataSource.ID, correlationId);
+                }
             }
 
             return ApiResponse<object>.Success(new { message = "מקור הנתונים עודכן בהצלחה" }, correlationId);
