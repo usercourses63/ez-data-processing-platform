@@ -485,7 +485,8 @@
     "status": "Status",
     "date": "Date",
     "time": "Time",
-    "duration": "Duration"
+    "duration": "Duration",
+    "days": "days"
   },
   "errors": {
     "generic": "A system error occurred",

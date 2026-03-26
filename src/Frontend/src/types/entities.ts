@@ -28,6 +28,7 @@ export interface DataSource extends BaseEntity {
   metadata?: string;
   fileFormat?: string;
   retentionDays?: number;
+  invalidRecordsTtlDays?: number;
   lastProcessedAt?: string;
   totalFilesProcessed: number;
   totalErrorRecords: number;

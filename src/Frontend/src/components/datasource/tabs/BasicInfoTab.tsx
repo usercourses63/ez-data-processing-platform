@@ -117,6 +117,24 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
         </Col>
       </Row>
 
+      <Row gutter={16}>
+        <Col xs={24} lg={12}>
+          <Form.Item
+            name="InvalidRecordsTtlDays"
+            label={t('revalidation.ttlDays')}
+            tooltip={t('revalidation.ttlDaysTooltip')}
+          >
+            <InputNumber
+              min={1}
+              max={365}
+              placeholder="4"
+              style={{ width: '100%' }}
+              addonAfter={t('common.days') || '\u05D9\u05DE\u05D9\u05DD'}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+
       <Form.Item
         name="description"
         label={t('datasources.fields.description')}
