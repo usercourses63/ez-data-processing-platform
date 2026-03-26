@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Phase complete — ready for verification
-stopped_at: Completed 29-05-PLAN.md
-last_updated: "2026-03-26T12:09:20.306Z"
+stopped_at: Completed 29-06-PLAN.md
+last_updated: "2026-03-26T12:12:41.749Z"
 progress:
   total_phases: 30
   completed_phases: 25
   total_plans: 112
-  completed_plans: 105
+  completed_plans: 106
 ---
 
 ## Current Position
@@ -57,6 +57,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 29]: Used location.state for cross-page tab activation from EditRecordModal to Schema tab
 - [Phase 29]: YAML download via js-yaml is frontend-only (no backend round-trip)
 - [Phase 29]: Used App.useApp() for SignalR toast notifications per CLAUDE.md (not static message import)
+- [Phase 29]: E2E tests use API context for dynamic datasource lookup and conditional skip for data-dependent tests
 
 ### Blockers/Concerns
 
@@ -65,6 +66,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T12:09:20.301Z
-Stopped at: Completed 29-05-PLAN.md
+Last session: 2026-03-26T12:12:40.256Z
+Stopped at: Completed 29-06-PLAN.md
 Resume file: None
