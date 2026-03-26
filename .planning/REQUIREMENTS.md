@@ -53,8 +53,8 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 - [x] **REVAL-08**: Frontend "Revalidate All" button in 2 locations (invalid records page header, schema tab)
 - [x] **REVAL-09**: SignalR notification shows "X of Y records resolved by schema change"
 - [x] **REVAL-10**: Playwright E2E test covers revalidation workflow
-- [ ] **REVAL-11**: Hebrew user guide chapter with Mermaid flow diagram and step-by-step instructions
-- [ ] **REVAL-12**: Docusaurus docs updated: changelog, release notes, admin guide
+- [x] **REVAL-11**: Hebrew user guide chapter with Mermaid flow diagram and step-by-step instructions
+- [x] **REVAL-12**: Docusaurus docs updated: changelog, release notes, admin guide
 - [x] **REVAL-13**: Visual indicator on revalidated records (schema version tag)
 - [x] **REVAL-14**: Global invalid records TTL default in ConfigMap (4 days)
 - [x] **REVAL-15**: Per-datasource TTL override in basic info tab
@@ -65,10 +65,10 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 - [x] **REVAL-20**: YAML file naming matches JSON but with .yaml extension
 - [x] **REVAL-21**: Fix broken schema editor link in correction dialog
 - [x] **REVAL-22**: Schema editor link navigates to /datasources/{id}/edit with Schema tab active
-- [ ] **REVAL-23**: Hebrew user guide follows per-chapter template (same as clone/import/completeness)
-- [ ] **REVAL-24**: TTL behavior documented in create-datasource chapter
-- [ ] **REVAL-25**: Revalidate All button documented in invalid-records chapter
-- [ ] **REVAL-26**: Changelog and release notes updated for revalidation pipeline
+- [x] **REVAL-23**: Hebrew user guide follows per-chapter template (same as clone/import/completeness)
+- [x] **REVAL-24**: TTL behavior documented in create-datasource chapter
+- [x] **REVAL-25**: Revalidate All button documented in invalid-records chapter
+- [x] **REVAL-26**: Changelog and release notes updated for revalidation pipeline
 
 ## Future Requirements
 
@@ -130,8 +130,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REVAL-08 | Phase 29 | Complete |
 | REVAL-09 | Phase 29 | Complete |
 | REVAL-10 | Phase 29 | Complete |
-| REVAL-11 | Phase 29 | Pending |
-| REVAL-12 | Phase 29 | Pending |
+| REVAL-11 | Phase 29 | Complete |
+| REVAL-12 | Phase 29 | Complete |
 | REVAL-13 | Phase 29 | Complete |
 | REVAL-14 | Phase 29 | Complete |
 | REVAL-15 | Phase 29 | Complete |
@@ -142,10 +142,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REVAL-20 | Phase 29 | Complete |
 | REVAL-21 | Phase 29 | Complete |
 | REVAL-22 | Phase 29 | Complete |
-| REVAL-23 | Phase 29 | Pending |
-| REVAL-24 | Phase 29 | Pending |
-| REVAL-25 | Phase 29 | Pending |
-| REVAL-26 | Phase 29 | Pending |
+| REVAL-23 | Phase 29 | Complete |
+| REVAL-24 | Phase 29 | Complete |
+| REVAL-25 | Phase 29 | Complete |
+| REVAL-26 | Phase 29 | Complete |
 
 **Coverage:**
 - v0.4.0 requirements: 45 total
