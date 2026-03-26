@@ -41,6 +41,35 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 
 - [ ] **CLONE-04**: Clone also duplicates associated metric configurations (with new IDs and updated datasource reference)
 
+### Invalid Records Auto-Revalidation
+
+- [ ] **REVAL-01**: SchemaUpdatedEvent published when datasource JsonSchema is modified
+- [ ] **REVAL-02**: InvalidRecordsService consumes SchemaUpdatedEvent and queries affected non-ignored invalid records
+- [ ] **REVAL-03**: Bulk ValidationRequestEvent published for all affected records with IsReprocess=true
+- [ ] **REVAL-04**: Records that pass new schema deleted from invalid records and routed to OutputService
+- [ ] **REVAL-05**: Records that still fail updated with new error messages from new schema
+- [ ] **REVAL-06**: Schema versioning: SchemaVersion auto-increments, ValidatedWithSchemaVersion tracks original
+- [ ] **REVAL-07**: Rate limiting: batches of 100 with 1-second delays for >1000 records
+- [ ] **REVAL-08**: Frontend "Revalidate All" button in 2 locations (invalid records page header, schema tab)
+- [ ] **REVAL-09**: SignalR notification shows "X of Y records resolved by schema change"
+- [ ] **REVAL-10**: Playwright E2E test covers revalidation workflow
+- [ ] **REVAL-11**: Hebrew user guide chapter with Mermaid flow diagram and step-by-step instructions
+- [ ] **REVAL-12**: Docusaurus docs updated: changelog, release notes, admin guide
+- [ ] **REVAL-13**: Visual indicator on revalidated records (schema version tag)
+- [ ] **REVAL-14**: Global invalid records TTL default in ConfigMap (4 days)
+- [ ] **REVAL-15**: Per-datasource TTL override in basic info tab
+- [ ] **REVAL-16**: Daily Quartz.NET purge job for expired invalid records
+- [ ] **REVAL-17**: Default TTL period: 4 days
+- [ ] **REVAL-18**: YAML schema download button in schema editor
+- [ ] **REVAL-19**: js-yaml library for frontend JSON-to-YAML conversion
+- [ ] **REVAL-20**: YAML file naming matches JSON but with .yaml extension
+- [ ] **REVAL-21**: Fix broken schema editor link in correction dialog
+- [ ] **REVAL-22**: Schema editor link navigates to /datasources/{id}/edit with Schema tab active
+- [ ] **REVAL-23**: Hebrew user guide follows per-chapter template (same as clone/import/completeness)
+- [ ] **REVAL-24**: TTL behavior documented in create-datasource chapter
+- [ ] **REVAL-25**: Revalidate All button documented in invalid-records chapter
+- [ ] **REVAL-26**: Changelog and release notes updated for revalidation pipeline
+
 ## Future Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -62,6 +91,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | Auto-save / draft mode | Complexity vs value -- users can use clone as workaround |
 | File upload to server | Import is for schema inference only, not file ingestion |
 | OpenTelemetry MassTransit trace propagation | Deferred from v0.3, still not in scope |
+| Auto-revalidation analytics dashboard | Track which schema changes resolved most records (deferred) |
+| Webhook notification on revalidation completion | In addition to SignalR (deferred) |
+| Schema diff viewer | Show what changed between schema versions (deferred) |
 
 ## Traceability
 
@@ -88,12 +120,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REL-09 | Phase 28 | Complete |
 | REL-10 | Phase 28 | Pending |
 | REL-11 | Phase 28 | Pending |
+| REVAL-01 | Phase 29 | Pending |
+| REVAL-02 | Phase 29 | Pending |
+| REVAL-03 | Phase 29 | Pending |
+| REVAL-04 | Phase 29 | Pending |
+| REVAL-05 | Phase 29 | Pending |
+| REVAL-06 | Phase 29 | Pending |
+| REVAL-07 | Phase 29 | Pending |
+| REVAL-08 | Phase 29 | Pending |
+| REVAL-09 | Phase 29 | Pending |
+| REVAL-10 | Phase 29 | Pending |
+| REVAL-11 | Phase 29 | Pending |
+| REVAL-12 | Phase 29 | Pending |
+| REVAL-13 | Phase 29 | Pending |
+| REVAL-14 | Phase 29 | Pending |
+| REVAL-15 | Phase 29 | Pending |
+| REVAL-16 | Phase 29 | Pending |
+| REVAL-17 | Phase 29 | Pending |
+| REVAL-18 | Phase 29 | Pending |
+| REVAL-19 | Phase 29 | Pending |
+| REVAL-20 | Phase 29 | Pending |
+| REVAL-21 | Phase 29 | Pending |
+| REVAL-22 | Phase 29 | Pending |
+| REVAL-23 | Phase 29 | Pending |
+| REVAL-24 | Phase 29 | Pending |
+| REVAL-25 | Phase 29 | Pending |
+| REVAL-26 | Phase 29 | Pending |
 
 **Coverage:**
-- v0.4.0 requirements: 19 total
-- Mapped to phases: 19
+- v0.4.0 requirements: 45 total
+- Mapped to phases: 45
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after roadmap creation (traceability updated)*
+*Last updated: 2026-03-26 after Phase 29 planning*

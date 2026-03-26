@@ -394,6 +394,7 @@ Plans:
 ### Phase 29: Invalid Records Auto-Revalidation
 **Goal**: When a datasource schema is updated, automatically revalidate existing invalid records against the new schema. Records that now pass are reprocessed and routed to output. Includes full documentation with Hebrew user guide chapter.
 **Depends on**: Phase 28 (docs + images complete)
+**Requirements**: REVAL-01, REVAL-02, REVAL-03, REVAL-04, REVAL-05, REVAL-06, REVAL-07, REVAL-08, REVAL-09, REVAL-10, REVAL-11, REVAL-12, REVAL-13, REVAL-14, REVAL-15, REVAL-16, REVAL-17, REVAL-18, REVAL-19, REVAL-20, REVAL-21, REVAL-22, REVAL-23, REVAL-24, REVAL-25, REVAL-26
 **Success Criteria** (what must be TRUE):
   1. SchemaUpdatedEvent published when datasource JsonSchema is modified
   2. InvalidRecordsService consumes event and queries affected invalid records
@@ -402,12 +403,35 @@ Plans:
   5. Records that still fail are updated with new error messages from new schema
   6. Schema versioning: DataProcessingDataSource.SchemaVersion auto-increments, DataProcessingInvalidRecord.ValidatedWithSchemaVersion tracks original schema
   7. Rate limiting: batches of 100 with 1-second delays for datasources with >1000 invalid records
-  8. Frontend "Revalidate All" button triggers manual bulk revalidation
+  8. Frontend "Revalidate All" button triggers manual bulk revalidation (2 locations)
   9. SignalR notification shows "X of Y records resolved by schema change"
-  10. Playwright E2E test: strict schema → import with violations → relax schema → verify auto-resolve
-  11. Hebrew user guide chapter for auto-revalidation feature with screenshots, Mermaid flow diagram, step-by-step instructions (same template as clone/import/completeness chapters)
+  10. Playwright E2E test covers revalidation workflow
+  11. Hebrew user guide chapter for auto-revalidation feature with Mermaid flow diagram, step-by-step instructions
   12. Docusaurus docs updated: changelog, release notes, admin guide section for revalidation pipeline
-**Plans**: TBD
+  13. Visual indicator on revalidated records: schema version tag
+  14. Global TTL default configured in ConfigMap: invalid-records-ttl-days: 4
+  15. Per-datasource TTL override in basic info tab
+  16. Daily Quartz.NET purge job for expired invalid records
+  17. Default TTL period: 4 days
+  18. YAML schema download button in schema editor
+  19. js-yaml library for frontend YAML conversion
+  20. Same file naming as JSON but with .yaml extension
+  21. Fix broken schema editor link in correction dialog
+  22. Schema editor link navigates to /datasources/{id}/edit with Schema tab active
+  23. Hebrew user guide chapter follows same template as clone/import/completeness chapters
+  24. TTL behavior documented in create-datasource chapter
+  25. Revalidate All button documented in invalid records chapter
+  26. Changelog and release notes updated for revalidation pipeline
+**Plans**: 7 plans (Wave 1: 29-01, 29-02 parallel; Wave 2: 29-03, 29-04 parallel; Wave 3: 29-05; Wave 4: 29-06, 29-07 parallel)
+
+Plans:
+- [ ] 29-01-PLAN.md — Backend core: SchemaUpdatedEvent, schema versioning, consumer, bulk revalidation with rate limiting (REVAL-01, REVAL-02, REVAL-03, REVAL-06, REVAL-07)
+- [ ] 29-02-PLAN.md — TTL: InvalidRecordsTtlDays entity field, ConfigMap default, Quartz.NET daily purge job (REVAL-14, REVAL-15, REVAL-16, REVAL-17)
+- [ ] 29-03-PLAN.md — Backend API + SignalR: revalidate-all endpoint, SignalR hub, notifications (REVAL-04, REVAL-05, REVAL-08, REVAL-09)
+- [ ] 29-04-PLAN.md — Frontend: Revalidate All buttons (2 locations), YAML download, schema editor link fix, i18n (REVAL-08, REVAL-18, REVAL-19, REVAL-20, REVAL-21, REVAL-22)
+- [ ] 29-05-PLAN.md — Frontend: SignalR notifications, TTL field in BasicInfoTab, schema version tags (REVAL-05, REVAL-06, REVAL-09, REVAL-13, REVAL-15)
+- [ ] 29-06-PLAN.md — Playwright E2E test for revalidation workflow (REVAL-10)
+- [ ] 29-07-PLAN.md — Documentation: Hebrew user guide chapter, Docusaurus updates (REVAL-11, REVAL-12, REVAL-23, REVAL-24, REVAL-25, REVAL-26)
 
 ---
 
@@ -439,20 +463,11 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 26. Completeness Checklist | v0.4 | 7/7 | Complete | 2026-03-25 |
 | 27. Import from File | v0.4 | 5/5 | Complete   | 2026-03-25 |
 | 28. Documentation, i18n, Deploy & Release | v0.4 | 7/9 | In Progress|  |
+| 29. Invalid Records Auto-Revalidation | v0.4 | 0/7 | Planned | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
-**v0.4 Totals:** 14/23 plans complete (61%)
-
-### Phase 1: Invalid Records Auto-Revalidation - When datasource schema is updated automatically revalidate existing invalid records against the new schema
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 0
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 1 to break down)
+**v0.4 Totals:** 14/30 plans complete (47%)
 
 ---
-*Roadmap updated: 2026-03-26 after Phase 28 planning*
+*Roadmap updated: 2026-03-26 after Phase 29 planning*
