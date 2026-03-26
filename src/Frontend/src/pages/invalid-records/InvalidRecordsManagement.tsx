@@ -360,6 +360,17 @@ const InvalidRecordsManagement: React.FC = () => {
     return () => window.removeEventListener('entity-changed', handler);
   }, [selectedDataSource, selectedErrorType, selectedTimeRange, dateRange, currentPage]);
 
+  // Auto-refresh when revalidation completes (per D-06: live stats update)
+  useEffect(() => {
+    const handler = () => {
+      fetchRecords();
+      fetchStatistics();
+      fetchFilteredStatistics();
+    };
+    window.addEventListener('revalidation-completed', handler);
+    return () => window.removeEventListener('revalidation-completed', handler);
+  }, [selectedDataSource, selectedErrorType, selectedTimeRange, dateRange, currentPage]);
+
   useEffect(() => {
     fetchRecords();
     fetchFilteredStatistics();
@@ -581,7 +592,19 @@ const InvalidRecordsManagement: React.FC = () => {
     >
       <Row justify="space-between" align="top">
         <Col flex="auto">
-          <Title level={5}>רשומה #{record.id}</Title>
+          <Space align="center" style={{ marginBottom: 4 }}>
+            <Title level={5} style={{ margin: 0 }}>רשומה #{record.id}</Title>
+            {record.validatedWithSchemaVersion != null && (
+              <Tag color="blue">
+                {t('revalidation.schemaVersionLabel')} v{record.validatedWithSchemaVersion}
+              </Tag>
+            )}
+            {record.isRevalidated && (
+              <Tag color="green">
+                {t('revalidation.revalidated')}
+              </Tag>
+            )}
+          </Space>
           <Descriptions size="small" column={1}>
             <Descriptions.Item label="מקור נתונים">{record.dataSourceName}</Descriptions.Item>
             <Descriptions.Item label="קובץ">{record.fileName}</Descriptions.Item>

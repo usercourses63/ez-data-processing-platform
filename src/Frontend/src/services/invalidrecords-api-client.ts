@@ -44,6 +44,8 @@ interface InvalidRecord {
   reviewedAt?: string;
   reviewNotes?: string;
   isIgnored: boolean;
+  validatedWithSchemaVersion?: number;
+  isRevalidated?: boolean;
 }
 
 interface InvalidRecordListResponse {

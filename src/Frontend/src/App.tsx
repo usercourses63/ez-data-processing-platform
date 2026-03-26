@@ -16,10 +16,17 @@ import AppFooter from './components/layout/AppFooter';
 import RegexHelperProvider from './components/schema/RegexHelperProvider';
 import { LoadingState, ErrorBoundary } from './components/shared';
 import { useEntitySync } from './hooks/useEntitySync';
+import { useRevalidationNotifications } from './hooks/useRevalidationNotifications';
 
 // Invisible component that maintains global SignalR connection for CRUD sync
 const EntitySyncProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   useEntitySync();
+  return <>{children}</>;
+};
+
+// Invisible component for revalidation SignalR notifications (must be inside AntApp for useApp())
+const RevalidationNotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useRevalidationNotifications();
   return <>{children}</>;
 };
 
@@ -117,6 +124,7 @@ const App: React.FC = () => {
       }}
     >
       <AntApp>
+      <RevalidationNotificationProvider>
       <RegexHelperProvider>
         <Router>
           <Layout className={`app-layout ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -158,6 +166,7 @@ const App: React.FC = () => {
         </Layout>
       </Router>
       </RegexHelperProvider>
+      </RevalidationNotificationProvider>
       </AntApp>
     </ConfigProvider>
     </EntitySyncProvider>
