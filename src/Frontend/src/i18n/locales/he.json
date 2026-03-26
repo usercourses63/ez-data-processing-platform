@@ -1326,6 +1326,7 @@
     "recordsResolved": "{{resolved}} מתוך {{total}} רשומות תוקנו על ידי שינוי סכמה",
     "schemaVersionLabel": "גרסת סכמה",
     "revalidated": "אומת מחדש",
+    "jsonDownload": "הורד JSON",
     "yamlDownload": "הורד YAML",
     "ttlDays": "שמירת רשומות שגויות (ימים)",
     "ttlDaysTooltip": "מספר ימים לשמירת רשומות שגויות. ברירת מחדל: 4 ימים"

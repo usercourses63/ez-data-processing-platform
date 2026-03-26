@@ -26,6 +26,17 @@ export const SchemaTab: React.FC<SchemaTabProps> = ({ jsonSchema, onChange, data
     }
   }, [dataSourceId]);
 
+  const handleDownloadJson = () => {
+    const json = JSON.stringify(jsonSchema, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `schema-${dataSourceId || 'untitled'}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleDownloadYaml = () => {
     const yaml = jsYaml.dump(jsonSchema);
     const blob = new Blob([yaml], { type: 'application/x-yaml' });
@@ -61,6 +72,9 @@ export const SchemaTab: React.FC<SchemaTabProps> = ({ jsonSchema, onChange, data
       />
 
       <Space style={{ marginBottom: 16 }}>
+        <Button icon={<DownloadOutlined />} onClick={handleDownloadJson}>
+          {t('revalidation.jsonDownload', 'הורד JSON')}
+        </Button>
         <Button icon={<DownloadOutlined />} onClick={handleDownloadYaml}>
           {t('revalidation.yamlDownload')}
         </Button>

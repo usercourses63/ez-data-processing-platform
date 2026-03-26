@@ -675,6 +675,7 @@
     "recordsResolved": "{{resolved}} of {{total}} records resolved by schema change",
     "schemaVersionLabel": "Schema Version",
     "revalidated": "Revalidated",
+    "jsonDownload": "Download JSON",
     "yamlDownload": "Download YAML",
     "ttlDays": "Invalid records retention (days)",
     "ttlDaysTooltip": "Number of days to retain invalid records. Default: 4 days"

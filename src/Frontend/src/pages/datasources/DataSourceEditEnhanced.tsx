@@ -464,6 +464,7 @@ const DataSourceEditEnhanced: React.FC = () => {
         Metadata: null,
         FileFormat: mergedConfig.fileConfig.type || null,
         RetentionDays: values.retentionDays ?? dataSource.AdditionalConfiguration?.RetentionDays,
+        InvalidRecordsTtlDays: values.InvalidRecordsTtlDays ?? (dataSource as any).InvalidRecordsTtlDays ?? null,
         Version: dataSource.Version ?? 1
       };
 
