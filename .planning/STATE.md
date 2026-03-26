@@ -1,13 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.4
-milestone_name: Datasource Productivity Features
-status: Phase 27 complete — advancing to Phase 28
-last_updated: "2026-03-26T00:30:00.000Z"
+milestone: v0.2
+milestone_name: Production Validation & Release
+status: Phase complete — ready for verification
+stopped_at: Completed 28-03-PLAN.md
+last_updated: "2026-03-26T07:03:19.052Z"
 progress:
-  total_phases: 28
-  completed_phases: 27
-  total_plans: 94
+  total_phases: 29
+  completed_phases: 25
+  total_plans: 103
   completed_plans: 94
 ---
 
@@ -43,6 +44,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - Archive fields tracked in completeness when isArchiveSource=true
 - Clone preserves all archive settings (lazy tab merge fix)
 - Hebrew i18n for all auto-create messages
+- [Phase 28-polish-i18n-release]: Hebrew user guide uses per-chapter template with RTL div wrapper and Mermaid diagrams
 
 ### Blockers/Concerns
 
@@ -51,6 +53,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26
-Stopped at: Phase 27 approved, advancing to Phase 28
+Last session: 2026-03-26T07:03:08.418Z
+Stopped at: Completed 28-03-PLAN.md
 Resume file: None

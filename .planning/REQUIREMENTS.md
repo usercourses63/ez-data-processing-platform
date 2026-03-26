@@ -30,7 +30,7 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 
 ### Documentation & Release
 
-- [ ] **DOC-09**: Hebrew user guide refactored with detailed coverage of all v0.4.0 features (clone, import, checklist)
+- [x] **DOC-09**: Hebrew user guide refactored with detailed coverage of all v0.4.0 features (clone, import, checklist)
 - [ ] **DOC-10**: Docusaurus documentation updated for v0.4.0 (changelog, component docs, admin guide)
 - [ ] **REL-08**: All service images built from source with v0.4.0 tag
 - [ ] **REL-09**: Deployment package assembled (deployment-v0.4.0-{timestamp}/) with Helm chart, images, install scripts
@@ -82,7 +82,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHECK-03 | Phase 26 | Complete |
 | CHECK-04 | Phase 26 | Complete |
 | CLONE-04 | Phase 28 | Pending |
-| DOC-09 | Phase 28 | Pending |
+| DOC-09 | Phase 28 | Complete |
 | DOC-10 | Phase 28 | Pending |
 | REL-08 | Phase 28 | Pending |
 | REL-09 | Phase 28 | Pending |
