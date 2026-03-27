@@ -1,11 +1,11 @@
 # EZ Platform Installation Script
-# Version: 0.2.0
+# Version: 0.5.0
 # Date: March 2026
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "  EZ Platform v0.2.0 Installation" -ForegroundColor Cyan
+Write-Host "  EZ Platform v0.5.0 Installation" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -100,13 +100,11 @@ Write-Host ""
 Write-Host "Installing EZ Platform to namespace: $Namespace" -ForegroundColor Yellow
 Write-Host ""
 
-# Build helm install command
+# Build helm install command (no --wait: we do a two-phase wait to handle MongoDB RS init)
 $HelmArgs = @(
     "install", "ez-platform", "./helm/ez-platform",
     "--namespace", $Namespace,
-    "--create-namespace",
-    "--wait",
-    "--timeout", $WaitTimeout
+    "--create-namespace"
 )
 
 if ($ValuesFile -ne "") {
@@ -119,7 +117,7 @@ Write-Host "Running: helm $($HelmArgs -join ' ')" -ForegroundColor Gray
 Write-Host ""
 
 try {
-    # Execute installation
+    # Execute installation (no --wait — pods start in background)
     & helm @HelmArgs
 
     if ($LASTEXITCODE -ne 0) {
@@ -128,11 +126,19 @@ try {
 
     Write-Host ""
 
-    # Explicit rs.initiate() — belt-and-suspenders alongside the Helm post-install hook.
-    # Needed because the hook runs after --wait, but a slow mongosh probe on first startup
-    # can cause --wait to time out before the hook fires. This call is idempotent.
+    # ── Phase 1: Wait for MongoDB to become ready before initialising RS ──────
+    # datasource-management crashes with MongoNotPrimaryException if RS is not
+    # initialized. MongoDB must be Primary before any application service starts.
+    Write-Host "Waiting for MongoDB to become ready..." -ForegroundColor Yellow
+    $mongoReady = kubectl wait --for=condition=ready pod/mongodb-0 -n $Namespace --timeout=300s 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "MongoDB did not become ready in time: $mongoReady"
+    }
+    Write-Host "[OK] MongoDB pod is ready" -ForegroundColor Green
+
+    # ── Phase 2: Initialize MongoDB replica set ───────────────────────────────
     Write-Host "Initializing MongoDB replica set..." -ForegroundColor Yellow
-    Start-Sleep -Seconds 5
+    Start-Sleep -Seconds 3
     $rsInit = kubectl exec -n $Namespace mongodb-0 -- mongosh --quiet --eval "
       try {
         var s = rs.status();
@@ -145,7 +151,19 @@ try {
     if ($LASTEXITCODE -eq 0) {
         Write-Host "[OK] MongoDB replica set ready: $rsInit" -ForegroundColor Green
     } else {
-        Write-Host "[WARN] rs.initiate() skipped (Helm hook may handle it): $rsInit" -ForegroundColor Yellow
+        throw "rs.initiate() failed: $rsInit"
+    }
+    Write-Host ""
+
+    # ── Phase 3: Wait for all remaining pods ─────────────────────────────────
+    Write-Host "Waiting for all pods to become ready (timeout: $WaitTimeout)..." -ForegroundColor Yellow
+    $allReady = kubectl wait --for=condition=ready pod --all -n $Namespace --timeout=$WaitTimeout 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[WARN] Some pods did not reach Ready state:" -ForegroundColor Yellow
+        kubectl get pods -n $Namespace --no-headers | Where-Object { $_ -notmatch "Running|Completed" }
+        # Not a hard failure — some transient pods (Jobs) may not be Ready
+    } else {
+        Write-Host "[OK] All pods are ready" -ForegroundColor Green
     }
     Write-Host ""
 

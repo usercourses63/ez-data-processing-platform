@@ -9,26 +9,33 @@
  */
 import { test, expect, APIRequestContext, request, Page } from '@playwright/test';
 
-const DATASOURCE_API = 'http://127.0.0.1:5001';
-const METRICS_API    = 'http://127.0.0.1:5002';
-const VALIDATION_API = 'http://127.0.0.1:5003';
-const SCHEDULING_API = 'http://127.0.0.1:5004';
-const INVALID_API    = 'http://127.0.0.1:5007';
-const FILEPROCESSOR_API = 'http://127.0.0.1:5008';
-const OUTPUT_API     = 'http://127.0.0.1:5009';
-const FRONTEND_URL   = 'http://127.0.0.1:7000';
+// NodePort base — frontend + all proxied API routes go through nginx at :30080
+// Backend APIs not proxied by nginx (validation:5003, fileprocessor:5008, output:5009)
+// still use port-forward addresses; run scripts/start-port-forwards.ps1 first.
+const MINIKUBE_IP    = process.env.MINIKUBE_IP    || '172.30.22.206';
+const NODEPORT_BASE  = process.env.BASE_URL        || `http://${MINIKUBE_IP}:30080`;
+const DATASOURCE_API = process.env.DATASOURCE_API  || `http://${MINIKUBE_IP}:30080`;
+const METRICS_API    = process.env.METRICS_API     || `http://${MINIKUBE_IP}:30080`;
+const VALIDATION_API = process.env.VALIDATION_API  || 'http://127.0.0.1:5003';
+const SCHEDULING_API = process.env.SCHEDULING_API  || `http://${MINIKUBE_IP}:30080`;
+const INVALID_API    = process.env.INVALID_API     || 'http://127.0.0.1:5007';
+const FILEPROCESSOR_API = process.env.FILEPROCESSOR_API || 'http://127.0.0.1:5008';
+const OUTPUT_API     = process.env.OUTPUT_API      || 'http://127.0.0.1:5009';
+// Frontend and Docs use NodePort directly
+const FRONTEND_URL   = NODEPORT_BASE;
 // Docs service is NodePort 30800 — accessible at minikube IP, not localhost
-const DOCS_URL       = process.env.DOCS_URL || 'http://172.30.22.206:30800';
+const DOCS_URL       = process.env.DOCS_URL || `http://${MINIKUBE_IP}:30800`;
 
-// Services with accessible health endpoints (port-forwarded)
+// Service health endpoints — /health is NOT proxied by nginx, so these always
+// use port-forward addresses (run scripts/start-port-forwards.ps1 before the suite).
 const HEALTH_ENDPOINTS = [
-  { name: 'datasource-management', url: `${DATASOURCE_API}/health` },
-  { name: 'metrics-configuration',  url: `${METRICS_API}/health` },
-  { name: 'validation',              url: `${VALIDATION_API}/health` },
-  { name: 'scheduling',              url: `${SCHEDULING_API}/health` },
-  { name: 'invalidrecords',          url: `${INVALID_API}/health` },
-  { name: 'fileprocessor',           url: `${FILEPROCESSOR_API}/health` },
-  { name: 'output',                  url: `${OUTPUT_API}/health` },
+  { name: 'datasource-management', url: `http://127.0.0.1:5001/health` },
+  { name: 'metrics-configuration',  url: `http://127.0.0.1:5002/health` },
+  { name: 'validation',              url: `http://127.0.0.1:5003/health` },
+  { name: 'scheduling',              url: `http://127.0.0.1:5004/health` },
+  { name: 'invalidrecords',          url: `http://127.0.0.1:5007/health` },
+  { name: 'fileprocessor',           url: `http://127.0.0.1:5008/health` },
+  { name: 'output',                  url: `http://127.0.0.1:5009/health` },
 ];
 
 let apiContext: APIRequestContext;
@@ -687,6 +694,79 @@ test('@Sanity SANITY-19: Incomplete datasource has expected missing fields', asy
     const isIncomplete = !filePattern || filePattern === '*.*' || schemaEmpty;
     expect(isIncomplete, 'Minimal datasource should be missing FilePattern or Schema').toBe(true);
   } finally {
-    if (dsId) await apiContext.delete(`${DATASOURCE_API}/api/v1/DataSource/${dsId}?deletedBy=SanityTest`);
+    if (dsId) {
+      // Brief pause to avoid 429 rate-limit after the rapid preceding test sequence
+      await new Promise(r => setTimeout(r, 1500));
+      await apiContext.delete(`${DATASOURCE_API}/api/v1/DataSource/${dsId}?deletedBy=SanityTest`);
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SANITY-20: All frontend menu pages load (deployment gate — headed Chrome)
+// Navigates every sidebar route, verifies page renders without error boundary
+// or infinite spinner. Uses baseURL from playwright.config.ts (NodePort 30080).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// SANITY-20: All menu pages load without error boundary or infinite spinner
+test('@Sanity SANITY-20: All frontend menu pages load correctly', async ({ page }) => {
+  test.setTimeout(90000); // 90s — 10 pages × ~5s each plus navigation buffer
+
+  const menuPages = [
+    { route: '/datasources',       label: 'DataSources' },
+    { route: '/dashboard',         label: 'Dashboard' },
+    { route: '/schema-management', label: 'Schema Management' },
+    { route: '/alerts',            label: 'Alerts' },
+    { route: '/invalid-records',   label: 'Invalid Records' },
+    { route: '/monitoring',        label: 'Monitoring' },
+    { route: '/admin/settings',    label: 'Admin Settings' },
+    { route: '/ai-assistant',      label: 'AI Assistant' },
+    { route: '/validation',        label: 'Validation' },
+    { route: '/help',              label: 'Help' },
+  ];
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  for (const { route, label } of menuPages) {
+    // Navigate using relative path — Playwright resolves against baseURL (NodePort 30080)
+    await page.goto(route, { waitUntil: 'networkidle', timeout: 15000 });
+
+    // URL should remain on the expected route (not redirected to a catch-all error page)
+    const currentUrl = page.url();
+    expect(currentUrl, `${label}: URL should contain ${route}`).toContain(route);
+
+    // Wait for the Ant Design layout to hydrate — proves React has fully mounted
+    // (networkidle fires before React finishes rendering the component tree)
+    await page.waitForSelector('.ant-layout, .ant-layout-sider, #root > *', {
+      state: 'visible',
+      timeout: 10000,
+    });
+
+    // React error boundary renders a distinct error result block
+    const errorBoundaryVisible = await page
+      .locator('.ant-result-error, [class*="error-boundary"], [class*="ErrorBoundary"]')
+      .isVisible({ timeout: 1000 })
+      .catch(() => false);
+    expect(errorBoundaryVisible, `${label}: must not show a React error boundary`).toBe(false);
+
+    // Page must have meaningful content — not just an empty DOM shell.
+    // Empty-state pages (e.g. fresh install with no data) may show only a short
+    // "no data" message ("אין נתונים" = 10 Hebrew chars), so threshold is kept low.
+    const bodyText = await page.evaluate(() => document.body.innerText.trim());
+    expect(bodyText.length, `${label}: body must have content (got ${bodyText.length} chars)`).toBeGreaterThan(3);
+
+    // If a spinner is still running after networkidle, wait 3s and re-check
+    // (some pages fire a final async request just after load)
+    const spinnerStillActive = await page
+      .locator('.ant-spin-spinning')
+      .isVisible({ timeout: 500 })
+      .catch(() => false);
+    if (spinnerStillActive) {
+      await page.waitForTimeout(3000);
+      const stuck = await page.locator('.ant-spin-spinning').isVisible({ timeout: 500 }).catch(() => false);
+      expect(stuck, `${label}: page must not be stuck in a loading spinner`).toBe(false);
+    }
+
+    console.log(`SANITY-20: ✓ ${label} (${route})`);
   }
 });
