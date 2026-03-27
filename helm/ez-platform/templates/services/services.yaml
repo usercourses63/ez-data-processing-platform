@@ -169,6 +169,9 @@ spec:
     targetPort: {{ .Values.services.frontend.containerPort | default 8080 }}
     protocol: TCP
     name: http
+    {{- if .Values.services.frontend.service.nodePort }}
+    nodePort: {{ .Values.services.frontend.service.nodePort }}
+    {{- end }}
   selector:
     app: frontend
 

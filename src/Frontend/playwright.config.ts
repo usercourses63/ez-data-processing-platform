@@ -52,7 +52,7 @@ export default defineConfig({
   use: {
     // Base URL to use in actions like `await page.goto('/')`
     // Default to port 7000 for K8s port-forwarded frontend, fallback to 3000 for local dev
-    baseURL: process.env.BASE_URL || 'http://127.0.0.1:7000',
+    baseURL: process.env.BASE_URL || 'http://172.30.22.206:30080',
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -134,33 +134,34 @@ export default defineConfig({
       fullyParallel: false, // Sequential — tests depend on seeded state
     },
 
-    // Sanity suite — API-level fast checks for CI deployment gate
-    // Runs ONLY sanity.spec.ts, completes in < 5 minutes
-    // No NAS/SFTP/cross-cluster dependencies
+    // Sanity suite — deployment gate: headed Chrome, NodePort access, frontend visible in browser
+    // Success condition: frontend loads and is displayed in Chrome (no port-forward required)
     {
       name: 'sanity',
       testMatch: ['**/sanity.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
-        // API tests don't need a real browser — chromium is used only for SANITY-07 (frontend load)
-        baseURL: process.env.BASE_URL || 'http://127.0.0.1:7000',
+        channel: 'chrome',
+        baseURL: process.env.BASE_URL || 'http://172.30.22.206:30080',
         actionTimeout: 15000,
         navigationTimeout: 30000,
+        launchOptions: { headless: false },
       },
-      timeout: 60000, // 60s per test — API calls are fast
-      fullyParallel: false, // Sequential to avoid concurrent mutations on seeded data
+      timeout: 60000,
+      fullyParallel: false,
     },
 
-    // Sanity watch — same tests but headed with slow-mo so developer can observe each step
+    // Sanity watch — same tests with slow-mo for step-by-step observation
     {
       name: 'sanity-watch',
       testMatch: ['**/sanity.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.BASE_URL || 'http://127.0.0.1:7000',
+        channel: 'chrome',
+        baseURL: process.env.BASE_URL || 'http://172.30.22.206:30080',
         actionTimeout: 30000,
         navigationTimeout: 60000,
-        launchOptions: { slowMo: 2500 },
+        launchOptions: { headless: false, slowMo: 2500 },
       },
       timeout: 120000,
       fullyParallel: false,
