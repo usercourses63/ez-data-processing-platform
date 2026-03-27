@@ -140,7 +140,7 @@ if (Test-Path "./images") {
             "ez-platform/invalidrecords"         = "v0.5.0"
             "ez-platform/scheduling"             = "v0.5.0"
             "ez-platform/metrics-configuration"  = "v0.5.0"
-            "frontend"                           = "v0.5.0-fix1"
+            "frontend"                           = "v0.5.0-fix2"
             "ez-platform/docusaurus"             = "v0.5.0"
         }
 
