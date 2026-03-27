@@ -294,9 +294,10 @@ test('@Sanity SANITY-11: NAS pipeline — create datasource with NAS device via 
   const nasDevices = await nasResp.json();
   const nasList = Array.isArray(nasDevices) ? nasDevices : nasDevices?.data ?? nasDevices?.Data?.Items ?? [];
 
-  // Find an erichough NAS device (nfs-input-data preferred)
+  // Find a provisioned NAS device (nfs-input-data preferred, but must be provisioned)
   const inputNas = nasList.find((d: any) =>
-    (d.Name || d.name || '').includes('nfs-input-data')
+    (d.Name || d.name || '').includes('nfs-input-data') &&
+    (d.IsProvisioned || d.isProvisioned) === true
   ) || nasList.find((d: any) =>
     (d.IsProvisioned || d.isProvisioned) === true
   );
@@ -670,6 +671,8 @@ test('@Sanity SANITY-18: Archive datasource fields accepted by API', async () =>
 
 // SANITY-19: Incomplete datasource has expected missing fields
 test('@Sanity SANITY-19: Incomplete datasource has expected missing fields', async () => {
+  // Brief pause to avoid rate-limiting from rapid sequential creates in SANITY-17/18
+  await new Promise(r => setTimeout(r, 2000));
   // Create a minimal datasource (only required Name) — should be "incomplete"
   const dsName = `Sanity-Incomplete-${Date.now()}`;
   const createResp = await apiContext.post(`${DATASOURCE_API}/api/v1/DataSource`, {

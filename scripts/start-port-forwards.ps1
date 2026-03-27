@@ -18,7 +18,7 @@ $portForwards = @(
     @{Name="Datasource Management"; Port=5001; Service="datasource-management"; TargetPort=5001},
     @{Name="Validation"; Port=5003; Service="validation"; TargetPort=5003},
     @{Name="Scheduling"; Port=5004; Service="scheduling"; TargetPort=5004},
-    @{Name="Invalid Records"; Port=5007; Service="invalidrecords"; TargetPort=5006},
+    @{Name="Invalid Records"; Port=5007; Service="invalidrecords"; TargetPort=5007},
     @{Name="FileProcessor"; Port=5008; Service="fileprocessor"; TargetPort=5008},
     @{Name="Output"; Port=5009; Service="output"; TargetPort=5009},
     @{Name="Metrics Config"; Port=5002; Service="metrics-configuration"; TargetPort=5002},
@@ -31,7 +31,7 @@ $portForwards = @(
     @{Name="OTEL Collector gRPC"; Port=4317; Service="otel-collector"; TargetPort=4317},
     @{Name="OTEL Collector HTTP"; Port=4318; Service="otel-collector"; TargetPort=4318},
     # Infrastructure
-    @{Name="MongoDB"; Port=27017; Service="mongodb"; TargetPort=27017},
+    @{Name="MongoDB"; Port=27017; Service="mongodb-service"; TargetPort=27017},
     @{Name="Kafka"; Port=9094; Service="kafka-external"; TargetPort=9094},
     @{Name="RabbitMQ"; Port=5672; Service="rabbitmq"; TargetPort=5672},
     @{Name="Hazelcast"; Port=5701; Service="hazelcast"; TargetPort=5701},

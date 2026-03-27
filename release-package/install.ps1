@@ -152,7 +152,7 @@ if (Test-Path "./images") {
             $tagEsc  = [regex]::Escape($expectedTag)
             # Match any line that contains this repo with a different tag
             $staleRefs = $allCachedImages | Where-Object {
-                $_ -match "$repoEsc:" -and $_ -notmatch "$repoEsc:$tagEsc"
+                $_ -match "${repoEsc}:" -and $_ -notmatch "${repoEsc}:${tagEsc}"
             }
             foreach ($ref in $staleRefs) {
                 $imageRef = $ref.Trim()
