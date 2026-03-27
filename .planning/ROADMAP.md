@@ -468,7 +468,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 29. Invalid Records Auto-Revalidation | v0.5 | 7/7 | Complete   | 2026-03-26 |
 | 30. OCP Compliance & Deployment Validation | v0.6 | 2/4 | In Progress|  |
 | 31. Feature Test Coverage | v0.6 | 4/4 | Complete   | 2026-03-26 |
-| 32. Performance & Regression Hardening | v0.6 | 0/0 | Planned    | - |
+| 32. Clean Install & E2E Acceptance Test | v0.6 | 0/3 | Planned    | - |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
@@ -506,16 +506,18 @@ Plans:
 
 ---
 
-### Phase 32: Performance & Regression Hardening
+### Phase 32: Clean Install & E2E Acceptance Test
 
-**Goal:** Performance baselines, regression suite, i18n deep testing — post-OCP deploy quality improvement
-**Requirements**: TIER 3 tests from QA analysis
-**Depends on:** Phase 31 (lower priority, can be deferred)
-**UI hint:** no
-**Plans:** 0 plans
+**Goal:** Deploy v0.5.0 from the offline deployment package onto a completely clean cluster simulating a new OCP environment, then run end-to-end acceptance tests: NAS provisioning (frontend only), datasource CRUD (frontend only), full pipeline cycle, no-output edge case, and Help button -> Docusaurus v0.5.0 navigation
+**Requirements**: D-01 through D-19, D-25 through D-28
+**Depends on:** Phase 31
+**UI hint:** yes (Chrome extension browser automation for frontend flows)
+**Plans:** 3 plans (Wave 1: 32-01; Wave 2: 32-02; Wave 3: 32-03)
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 32 to break down)
+- [ ] 32-01-PLAN.md -- Clean install: namespace wipe + PV cleanup + image load + install.ps1 --local + port-forwards + seed data (D-01 through D-10)
+- [ ] 32-02-PLAN.md -- NAS provisioning + datasource CRUD acceptance via frontend UI (D-11 through D-17)
+- [ ] 32-03-PLAN.md -- Pipeline acceptance test (full cycle + no-output) + Help button -> Docusaurus v0.5.0 (D-18, D-19, D-25 through D-28)
 
 ---
-*Roadmap updated: 2026-03-26 after Phase 29 complete, v0.5.0 release*
+*Roadmap updated: 2026-03-27 after Phase 32 planned, v0.6 clean install acceptance test*
