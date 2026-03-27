@@ -82,17 +82,26 @@ const antSelect = async (page: Page, inputId: string, optionMatcher?: string | R
 };
 
 // SANITY-01: All health endpoints respond 200 or 204
+// Retries up to 3x with 5s backoff — port-forwards can briefly drop after pod rollouts
 test('@Sanity SANITY-01: All service health endpoints respond', async () => {
   for (const svc of HEALTH_ENDPOINTS) {
-    const response = await apiContext.get(svc.url);
+    let lastStatus = 0;
+    let lastErr = '';
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await apiContext.get(svc.url, { timeout: 8000 });
+        lastStatus = response.status();
+        if (lastStatus >= 200 && lastStatus < 300) break;
+      } catch (e: any) {
+        lastErr = e.message ?? String(e);
+        if (attempt < 3) await new Promise(r => setTimeout(r, 5000));
+      }
+    }
     expect(
-      response.status(),
-      `${svc.name} health check failed (${svc.url})`
+      lastStatus,
+      `${svc.name} health check failed after 3 attempts (${svc.url}) — last error: ${lastErr}`
     ).toBeGreaterThanOrEqual(200);
-    expect(
-      response.status(),
-      `${svc.name} health check unexpected status (${svc.url})`
-    ).toBeLessThan(300);
+    expect(lastStatus).toBeLessThan(300);
   }
 });
 
