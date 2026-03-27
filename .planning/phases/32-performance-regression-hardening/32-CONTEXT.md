@@ -45,7 +45,19 @@ Deploy v0.5.0 from the offline deployment package onto a completely clean cluste
 ### Pipeline Tests
 - **D-18:** Full pipeline test: create a valid datasource with output destination → trigger processing → verify records appear in output
 - **D-19:** No-output pipeline test: create a datasource WITHOUT any output destination configured → trigger processing → verify job completes with no error (not a failure, no error log)
-- **D-20:** Test method: Playwright automated E2E tests
+- **D-20:** Test method: Playwright automated E2E tests AND/OR Claude-in-Chrome extension (see Test Tooling below)
+
+### Documentation Test
+- **D-25:** Test the Help button in the frontend: clicking Help must redirect to Docusaurus user guide, NOT a static HTML page
+- **D-26:** Docusaurus must serve v0.5.0 user guide content — verify the page title/heading shows v0.5.0
+- **D-27:** Port auto-detection must work without manual config: `getDocsBaseUrl()` in `src/Frontend/src/utils/docs-url.ts` computes `http://{hostname}:30800` on dev/private-IP — test must confirm the correct URL is used (NodePort 30800, Docusaurus service)
+- **D-28:** Success criteria: Help click → browser lands on `http://{minikubeIP}:30800/docs/user-guide/` → page renders Docusaurus v0.5.0 user guide (not blank, not 404, not old static content)
+
+### Test Tooling
+- **D-29:** Use Claude-in-Chrome extension (`mcp__claude-in-chrome__*`) for browser automation — it is pre-connected, no connection verification needed
+- **D-30:** Chrome extension can replace OR supplement Playwright spec files at planner's discretion — both are valid for this phase
+- **D-31:** Do NOT add a "verify Chrome extension is working" step — assume it works, just use it directly
+- **D-32:** Chrome extension is preferred for interactive tests that are hard to automate in headless Playwright (e.g., docs redirect, NAS provisioning UI flow)
 
 ### Test Patterns (carry forward from Phase 30-31)
 - **D-21:** Use `extractId()` / `extractData()` helpers for API response handling
@@ -65,6 +77,9 @@ Deploy v0.5.0 from the offline deployment package onto a completely clean cluste
 - "Datasource CRUD including create from file, clone — all from frontend, no API"
 - "Full cycle": create datasource → set schema → set output → execute pipeline → verify records processed
 - "Pipeline without any output runs OK without errors" — no-output is a valid configuration, not an error state
+- "Documentation navigation should succeed" — Help button must open Docusaurus v0.5.0 user guide, not a static page
+- "Test the correct port is used without any manual configuration" — `getDocsBaseUrl()` auto-detects NodePort 30800 on private IPs
+- "Use Chrome extension — it is connected and working, do not rely on any other connection test"
 
 </specifics>
 
@@ -85,6 +100,12 @@ Deploy v0.5.0 from the offline deployment package onto a completely clean cluste
 - `src/Frontend/tests/e2e/clone-datasource.spec.ts` — Clone test patterns (Phase 31)
 - `src/Frontend/tests/e2e/import-from-file.spec.ts` — Import-from-file test patterns (Phase 31)
 
+### Documentation URL Logic
+- `src/Frontend/src/utils/docs-url.ts` — `getDocsBaseUrl()`: auto-detects dev vs prod, returns `http://{hostname}:30800` on private IPs
+- `src/Frontend/src/pages/help/HelpPage.tsx` — Redirects to `{docsBaseUrl}/docs/user-guide/` on mount
+- `src/Frontend/src/components/layout/AppHeader.tsx` — Help button using `openDocsInNewTab`
+- `k8s/deployments/docs-deployment.yaml` — Docusaurus deployment, NodePort 30800
+
 ### DemoDataGenerator
 - `tools/DemoDataGenerator/` — Source code for data generator
 - `CLAUDE.md` §DemoDataGenerator — Correct command flags and simulator options
@@ -103,6 +124,7 @@ Deploy v0.5.0 from the offline deployment package onto a completely clean cluste
 - `antTabClick`, `antSelect`, `extractId`, `extractData` helpers in `sanity.spec.ts` — copy into new test file (do not import)
 - Playwright multi-project config with `sanity` and `chromium` projects
 - `apiContext` fixture for backend API calls within Playwright tests
+- Claude-in-Chrome MCP tools: `mcp__claude-in-chrome__navigate`, `mcp__claude-in-chrome__find`, `mcp__claude-in-chrome__javascript_tool`, `mcp__claude-in-chrome__get_page_text`, `mcp__claude-in-chrome__tabs_create_mcp` — for browser-driven interactive tests
 
 ### Established Patterns
 - API-first verification for pipeline results (check DB via API, not UI pagination)
