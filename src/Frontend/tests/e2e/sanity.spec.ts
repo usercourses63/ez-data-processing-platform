@@ -644,6 +644,7 @@ test('@Sanity SANITY-17: Create datasource with CSV-inferred schema pattern', as
     const savedSchema = updated.JsonSchema || updated.jsonSchema || {};
     expect(JSON.stringify(savedSchema), 'Schema should contain field_1').toContain('field_1');
   } finally {
+    await new Promise(r => setTimeout(r, 11000));
     await apiContext.delete(`${DATASOURCE_API}/api/v1/DataSource/${dsId}?deletedBy=SanityTest`);
   }
 });
@@ -674,14 +675,17 @@ test('@Sanity SANITY-18: Archive datasource fields accepted by API', async () =>
     // At minimum, the datasource was created with archive fields without error
     expect(dsData.Name || dsData.name, 'Archive datasource name should match').toBe(dsName);
   } finally {
-    if (dsId) await apiContext.delete(`${DATASOURCE_API}/api/v1/DataSource/${dsId}?deletedBy=SanityTest`);
+    if (dsId) {
+      await new Promise(r => setTimeout(r, 11000));
+      await apiContext.delete(`${DATASOURCE_API}/api/v1/DataSource/${dsId}?deletedBy=SanityTest`);
+    }
   }
 });
 
 // SANITY-19: Incomplete datasource has expected missing fields
 test('@Sanity SANITY-19: Incomplete datasource has expected missing fields', async () => {
-  // Brief pause to avoid rate-limiting from rapid sequential creates in SANITY-17/18
-  await new Promise(r => setTimeout(r, 2000));
+  // No pre-delay needed — SANITY-18 cleanup already waits 11s before deleting
+
   // Create a minimal datasource (only required Name) — should be "incomplete"
   const dsName = `Sanity-Incomplete-${Date.now()}`;
   const createResp = await apiContext.post(`${DATASOURCE_API}/api/v1/DataSource`, {
