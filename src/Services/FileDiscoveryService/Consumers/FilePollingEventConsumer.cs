@@ -98,6 +98,10 @@ public class FilePollingEventConsumer : IConsumer<FilePollingEvent>
             var serverType = DetectServerType(datasource);
             var connector = _connectorFactory.GetConnector(serverType);
 
+            // Get deduplication TTL for post-publish hash marking
+            var ttlHours = _configuration.GetValue("FileDiscovery:DeduplicationTTLHours", 24);
+            var ttl = TimeSpan.FromHours(ttlHours);
+
             for (int i = 0; i < files.Count; i++)
             {
                 var file = files[i];
@@ -129,6 +133,23 @@ public class FilePollingEventConsumer : IConsumer<FilePollingEvent>
 
                     sequenceNumber++;
                 }
+
+                // Mark file as processed in Hazelcast AFTER successful publish
+                // This prevents stale hashes blocking retries if publish fails
+                var fileHash = FileHashCalculator.CalculateHash(file);
+                await _fileHashService.AddProcessedFileHashAsync(
+                    datasource.ID!,
+                    fileHash,
+                    new ProcessedFileHashInfo
+                    {
+                        FileName = file.FileName,
+                        FilePath = file.FilePath,
+                        FileSizeBytes = file.FileSizeBytes,
+                        LastModifiedUtc = file.LastModifiedUtc,
+                        ProcessedAt = DateTime.UtcNow,
+                        CorrelationId = message.CorrelationId
+                    },
+                    ttl);
             }
 
             // Update last processed timestamp and release lock
@@ -185,9 +206,8 @@ public class FilePollingEventConsumer : IConsumer<FilePollingEvent>
             "[{CorrelationId}] Using {ConnectorType} for datasource {DataSourceName}",
             correlationId, connector.ConnectorType, datasource.Name);
 
-        // Get deduplication TTL from configuration (default: 24 hours)
+        // Get deduplication TTL hours from configuration for logging (default: 24 hours)
         var ttlHours = _configuration.GetValue("FileDiscovery:DeduplicationTTLHours", 24);
-        var ttl = TimeSpan.FromHours(ttlHours);
 
         try
         {
@@ -221,20 +241,8 @@ public class FilePollingEventConsumer : IConsumer<FilePollingEvent>
                         continue;
                     }
 
-                    // Add to Hazelcast with TTL (automatic expiration, no cleanup needed)
-                    await _fileHashService.AddProcessedFileHashAsync(
-                        datasource.ID!,
-                        fileHash,
-                        new ProcessedFileHashInfo
-                        {
-                            FileName = metadata.FileName,
-                            FilePath = metadata.FilePath,
-                            FileSizeBytes = metadata.FileSizeBytes,
-                            LastModifiedUtc = metadata.LastModifiedUtc,
-                            ProcessedAt = DateTime.UtcNow,
-                            CorrelationId = correlationId
-                        },
-                        ttl);
+                    // NOTE: Hash is NOT added here — it is added AFTER successful publish
+                    // in Consume() to prevent stale hashes blocking retries on publish failure
 
                     newFiles.Add(metadata);
 
