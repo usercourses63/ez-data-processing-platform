@@ -512,11 +512,11 @@ Plans:
 **Requirements**: D-01 through D-19, D-25 through D-28
 **Depends on:** Phase 31
 **UI hint:** yes (Chrome extension browser automation for frontend flows)
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 32-01-PLAN.md -- Clean install: namespace wipe + PV cleanup + image load + install.ps1 --local + port-forwards + seed data (D-01 through D-10)
-- [ ] 32-02-PLAN.md -- NAS provisioning + datasource CRUD acceptance via frontend UI (D-11 through D-17)
+- [x] 32-02-PLAN.md -- NAS provisioning + datasource CRUD acceptance via frontend UI (D-11 through D-17)
 - [ ] 32-03-PLAN.md -- Pipeline acceptance test (full cycle + no-output) + Help button -> Docusaurus v0.5.0 (D-18, D-19, D-25 through D-28)
 
 ---
