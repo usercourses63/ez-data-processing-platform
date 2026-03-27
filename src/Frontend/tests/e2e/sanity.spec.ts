@@ -698,8 +698,8 @@ test('@Sanity SANITY-19: Incomplete datasource has expected missing fields', asy
     expect(isIncomplete, 'Minimal datasource should be missing FilePattern or Schema').toBe(true);
   } finally {
     if (dsId) {
-      // Brief pause to avoid 429 rate-limit after the rapid preceding test sequence
-      await new Promise(r => setTimeout(r, 1500));
+      // Rate-limiter retry-after is 10s — wait 11s before cleanup DELETE
+      await new Promise(r => setTimeout(r, 11000));
       await apiContext.delete(`${DATASOURCE_API}/api/v1/DataSource/${dsId}?deletedBy=SanityTest`);
     }
   }
