@@ -96,6 +96,80 @@ kubectl delete clusterrole nas-pv-manager --ignore-not-found=true 2>$null | Out-
 Write-Host "[OK] RBAC cleanup complete" -ForegroundColor Green
 Write-Host ""
 
+# ── Load Docker images into minikube (offline / air-gapped install) ───────────
+# Automatically skipped when ./images/ is absent (OCP / registry-pull environments).
+if (Test-Path "./images") {
+    $minikubeAvailable = $null -ne (Get-Command minikube -ErrorAction SilentlyContinue)
+    if (-not $minikubeAvailable) {
+        Write-Host "[WARN] minikube not found — skipping image load (registry pull assumed)" -ForegroundColor Yellow
+    } else {
+        Write-Host "Loading Docker images into minikube..." -ForegroundColor Yellow
+
+        $serviceTars = Get-ChildItem "./images/services/*.tar" -ErrorAction SilentlyContinue
+        if ($serviceTars) {
+            Write-Host "  Service images:" -ForegroundColor Gray
+            foreach ($tar in $serviceTars) {
+                Write-Host "    $($tar.Name)..." -ForegroundColor Gray
+                minikube image load $tar.FullName 2>$null
+            }
+        }
+
+        $infraTars = Get-ChildItem "./images/infrastructure/*.tar" -ErrorAction SilentlyContinue
+        if ($infraTars) {
+            Write-Host "  Infrastructure images:" -ForegroundColor Gray
+            foreach ($tar in $infraTars) {
+                Write-Host "    $($tar.Name)..." -ForegroundColor Gray
+                minikube image load $tar.FullName 2>$null
+            }
+        }
+        Write-Host "[OK] All images loaded" -ForegroundColor Green
+        Write-Host ""
+
+        # ── Remove stale image versions from minikube cache ───────────────────
+        # After loading the correct versions, delete any old tags for the same
+        # repositories (e.g. frontend:v12, datasource-management:v0.3.0-fix1).
+        # This prevents Kubernetes from accidentally scheduling an old image when
+        # imagePullPolicy: IfNotPresent is in use.
+        Write-Host "Removing stale image versions from minikube cache..." -ForegroundColor Yellow
+        $ExpectedImages = @{
+            "ez-platform/datasource-management" = "v0.5.0"
+            "ez-platform/filediscovery"          = "v0.5.0"
+            "ez-platform/fileprocessor"          = "v0.5.0"
+            "ez-platform/validation"             = "v0.5.0"
+            "ez-platform/output"                 = "v0.5.0"
+            "ez-platform/invalidrecords"         = "v0.5.0"
+            "ez-platform/scheduling"             = "v0.5.0"
+            "ez-platform/metrics-configuration"  = "v0.5.0"
+            "frontend"                           = "v0.5.0-fix1"
+            "ez-platform/docusaurus"             = "v0.5.0"
+        }
+
+        $allCachedImages = minikube image ls 2>$null
+        $removedCount = 0
+        foreach ($repo in $ExpectedImages.Keys) {
+            $expectedTag = $ExpectedImages[$repo]
+            $repoEsc = [regex]::Escape($repo)
+            $tagEsc  = [regex]::Escape($expectedTag)
+            # Match any line that contains this repo with a different tag
+            $staleRefs = $allCachedImages | Where-Object {
+                $_ -match "$repoEsc:" -and $_ -notmatch "$repoEsc:$tagEsc"
+            }
+            foreach ($ref in $staleRefs) {
+                $imageRef = $ref.Trim()
+                Write-Host "  Removing stale: $imageRef" -ForegroundColor Gray
+                minikube image rm $imageRef 2>$null | Out-Null
+                $removedCount++
+            }
+        }
+        if ($removedCount -gt 0) {
+            Write-Host "[OK] Removed $removedCount stale image tag(s)" -ForegroundColor Green
+        } else {
+            Write-Host "[OK] No stale image versions found" -ForegroundColor Green
+        }
+        Write-Host ""
+    }
+}
+
 # Installation
 Write-Host "Installing EZ Platform to namespace: $Namespace" -ForegroundColor Yellow
 Write-Host ""
