@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
-status: Phase complete — ready for verification
-stopped_at: Completed 31-02-PLAN.md
-last_updated: "2026-03-26T23:48:00.149Z"
+status: Executing Phase 32
+stopped_at: Completed 32-01-PLAN.md
+last_updated: "2026-03-27T18:00:00.000Z"
 progress:
   total_phases: 33
   completed_phases: 31
-  total_plans: 120
-  completed_plans: 119
+  total_plans: 123
+  completed_plans: 120
 ---
 
 ## Current Position
 
-Phase: 28 (polish-i18n-release) — NOT STARTED
-Plan: 0 of 0
+Phase: 32 (performance-regression-hardening) — EXECUTING
+Plan: 2 of 3
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Files flow reliably from any source through validation to any destination
-**Current focus:** Phase 28 — Polish, i18n & Release
+**Current focus:** Phase 32 — performance-regression-hardening
 
 ## Performance Metrics
 
@@ -71,6 +71,9 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 31]: Clone E2E tests: inline helper copies for test isolation, try/finally API cleanup
 - [Phase 31]: Used Hebrew regex /[\u05D0-\u05EA]/ for feature-specific i18n regression testing
 - [Phase 31]: Import E2E tests: reused sanity.spec.ts helpers (antTabClick, extractId) for consistency
+- [Phase 32-01]: Static NFS only for acceptance gate — dynamic NAS pods use alpine:latest (wrong image), separate bug deferred
+- [Phase 32-01]: Port-forwards must be restarted after --provision-nas rollout (pod rollout severs existing kubectl port-forward)
+- [Phase 32-01]: Full RBAC wipe (ClusterRole + ClusterRoleBinding) required before Helm reinstall
 
 ### Roadmap Evolution
 
@@ -85,6 +88,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-26T23:48:00.144Z
-Stopped at: Completed 31-02-PLAN.md
+Last session: 2026-03-27T18:00:00.000Z
+Stopped at: Completed 32-01-PLAN.md
 Resume file: None

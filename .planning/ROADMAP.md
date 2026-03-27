@@ -468,7 +468,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 29. Invalid Records Auto-Revalidation | v0.5 | 7/7 | Complete   | 2026-03-26 |
 | 30. OCP Compliance & Deployment Validation | v0.6 | 2/4 | In Progress|  |
 | 31. Feature Test Coverage | v0.6 | 4/4 | Complete   | 2026-03-26 |
-| 32. Clean Install & E2E Acceptance Test | v0.6 | 0/3 | Planned    | - |
+| 32. Clean Install & E2E Acceptance Test | v0.6 | 1/3 | In Progress|  |
 
 **v0.2 Totals:** 12/35 plans complete (34%)
 **v0.3 Totals:** 1/3 plans complete (33%)
@@ -512,10 +512,10 @@ Plans:
 **Requirements**: D-01 through D-19, D-25 through D-28
 **Depends on:** Phase 31
 **UI hint:** yes (Chrome extension browser automation for frontend flows)
-**Plans:** 3 plans (Wave 1: 32-01; Wave 2: 32-02; Wave 3: 32-03)
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] 32-01-PLAN.md -- Clean install: namespace wipe + PV cleanup + image load + install.ps1 --local + port-forwards + seed data (D-01 through D-10)
+- [x] 32-01-PLAN.md -- Clean install: namespace wipe + PV cleanup + image load + install.ps1 --local + port-forwards + seed data (D-01 through D-10)
 - [ ] 32-02-PLAN.md -- NAS provisioning + datasource CRUD acceptance via frontend UI (D-11 through D-17)
 - [ ] 32-03-PLAN.md -- Pipeline acceptance test (full cycle + no-output) + Help button -> Docusaurus v0.5.0 (D-18, D-19, D-25 through D-28)
 
