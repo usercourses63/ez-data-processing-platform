@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
-status: Executing Phase 32
-stopped_at: Completed 32-02-PLAN.md
-last_updated: "2026-03-27T18:00:00.000Z"
+status: Completed Phase 32
+stopped_at: Completed 32-03-PLAN.md
+last_updated: "2026-03-27T20:00:00.000Z"
 progress:
   total_phases: 33
-  completed_phases: 31
+  completed_phases: 32
   total_plans: 123
-  completed_plans: 121
+  completed_plans: 122
 ---
 
 ## Current Position
 
-Phase: 32 (performance-regression-hardening) — EXECUTING
-Plan: 3 of 3
+Phase: 32 (performance-regression-hardening) — COMPLETE
+Plan: 3 of 3 (all complete)
 
 ## Project Reference
 
@@ -76,6 +76,9 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 32-01]: Full RBAC wipe (ClusterRole + ClusterRoleBinding) required before Helm reinstall
 - [Phase 32-02]: Chrome MCP tools unavailable in executor; used API calls as fallback for CRUD validation
 - [Phase 32-02]: All 6 static NFS NAS devices provisioned successfully on clean cluster
+- [Phase 32-03]: MassTransit uses RabbitMQ (not Kafka) for pipeline messaging — CLAUDE.md docs are inaccurate; pipeline tasks confirmed via 28 RabbitMQ message acks
+- [Phase 32-03]: FTP passive mode blocked by NodePort (data channel not exposed); NFS connector needs pod mount path; full file cycle test deferred
+- [Phase 32-03]: Docusaurus NodePort 30800 verified at HTTP 200, v0.5.0 content, getDocsBaseUrl() auto-detection confirmed working
 
 ### Roadmap Evolution
 
@@ -90,6 +93,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-27T18:10:00.000Z
-Stopped at: Completed 32-02-PLAN.md
+Last session: 2026-03-27T20:00:00.000Z
+Stopped at: Completed 32-03-PLAN.md
 Resume file: None
