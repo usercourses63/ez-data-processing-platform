@@ -1,17 +1,17 @@
-# EZ Platform v0.2.0 - Complete Image Manifest
+# EZ Platform v0.5.0 - Complete Image Manifest
 # All Docker images required for offline installation
 
 ## Application Services (10 images)
-ez-platform/datasource-management:v0.2.0
-ez-platform/filediscovery:v0.2.0
-ez-platform/fileprocessor:v0.2.0
-ez-platform/validation:v0.2.0
-ez-platform/output:v0.2.0
-ez-platform/invalidrecords:v0.2.0
-ez-platform/scheduling:v0.2.0
-ez-platform/metrics-configuration:v0.2.0
-frontend:v0.2.0
-ez-platform/docusaurus:v0.2.0
+ez-platform/datasource-management:v0.5.0
+ez-platform/filediscovery:v0.5.0
+ez-platform/fileprocessor:v0.5.0
+ez-platform/validation:v0.5.0
+ez-platform/output:v0.5.0
+ez-platform/invalidrecords:v0.5.0
+ez-platform/scheduling:v0.5.0
+ez-platform/metrics-configuration:v0.5.0
+frontend:v0.5.0-fix1
+ez-platform/docusaurus:v0.5.0
 
 ## Infrastructure Services (11 images)
 mongo:8.0

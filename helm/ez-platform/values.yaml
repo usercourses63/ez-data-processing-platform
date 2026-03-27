@@ -68,7 +68,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/filediscovery
-      tag: v0.3.0
+      tag: v0.5.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -96,7 +96,7 @@ services:
     replicas: 5
     image:
       repository: ez-platform/fileprocessor
-      tag: v0.4.0-import
+      tag: v0.5.0
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -127,7 +127,7 @@ services:
     replicas: 3
     image:
       repository: ez-platform/validation
-      tag: v0.3.0
+      tag: v0.5.0
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -155,7 +155,7 @@ services:
     replicas: 3
     image:
       repository: ez-platform/output
-      tag: v0.3.0
+      tag: v0.5.0
     strategy:
       maxSurge: 2
       maxUnavailable: 1
@@ -183,7 +183,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/datasource-management
-      tag: v0.4.0-reval1
+      tag: v0.5.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -211,7 +211,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/metrics-configuration
-      tag: v0.3.0
+      tag: v0.5.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -239,7 +239,7 @@ services:
     replicas: 2
     image:
       repository: ez-platform/invalidrecords
-      tag: v0.4.0-reval2
+      tag: v0.5.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -267,7 +267,7 @@ services:
     replicas: 1
     image:
       repository: ez-platform/scheduling
-      tag: v0.3.0
+      tag: v0.5.0
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -297,7 +297,7 @@ services:
       repository: frontend
       tag: v0.5.0-fix1
       pullPolicy: IfNotPresent
-    containerPort: 80
+    containerPort: 8080
     strategy:
       maxSurge: 1
       maxUnavailable: 0
@@ -368,10 +368,12 @@ mongodb:
   livenessProbe:
     initialDelaySeconds: 60
     periodSeconds: 10
+    timeoutSeconds: 10
     failureThreshold: 3
   readinessProbe:
     initialDelaySeconds: 30
     periodSeconds: 10
+    timeoutSeconds: 10
     failureThreshold: 3
   extraEnv: []
   external:

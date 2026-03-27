@@ -85,6 +85,7 @@ spec:
             - "db.adminCommand('ping')"
           initialDelaySeconds: {{ .Values.mongodb.livenessProbe.initialDelaySeconds | default 60 }}
           periodSeconds: {{ .Values.mongodb.livenessProbe.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.mongodb.livenessProbe.timeoutSeconds | default 10 }}
           failureThreshold: {{ .Values.mongodb.livenessProbe.failureThreshold | default 3 }}
         readinessProbe:
           exec:
@@ -94,6 +95,7 @@ spec:
             - "db.adminCommand('ping')"
           initialDelaySeconds: {{ .Values.mongodb.readinessProbe.initialDelaySeconds | default 30 }}
           periodSeconds: {{ .Values.mongodb.readinessProbe.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.mongodb.readinessProbe.timeoutSeconds | default 10 }}
           failureThreshold: {{ .Values.mongodb.readinessProbe.failureThreshold | default 3 }}
       volumes:
       - name: mongodb-tmp

@@ -87,6 +87,15 @@ while ($i -lt $args.Count) {
     }
 }
 
+# Pre-install: clean up cluster-scoped RBAC resources that survive namespace deletion
+# ClusterRole and ClusterRoleBinding are not namespace-scoped, so helm uninstall / kubectl delete namespace
+# does NOT remove them. On reinstall, helm install fails with "already exists".
+Write-Host "Cleaning up cluster-scoped RBAC resources (safe on fresh cluster)..." -ForegroundColor Yellow
+kubectl delete clusterrolebinding nas-device-manager-pv-binding --ignore-not-found=true 2>$null | Out-Null
+kubectl delete clusterrole nas-pv-manager --ignore-not-found=true 2>$null | Out-Null
+Write-Host "[OK] RBAC cleanup complete" -ForegroundColor Green
+Write-Host ""
+
 # Installation
 Write-Host "Installing EZ Platform to namespace: $Namespace" -ForegroundColor Yellow
 Write-Host ""
@@ -118,6 +127,28 @@ try {
     }
 
     Write-Host ""
+
+    # Explicit rs.initiate() — belt-and-suspenders alongside the Helm post-install hook.
+    # Needed because the hook runs after --wait, but a slow mongosh probe on first startup
+    # can cause --wait to time out before the hook fires. This call is idempotent.
+    Write-Host "Initializing MongoDB replica set..." -ForegroundColor Yellow
+    Start-Sleep -Seconds 5
+    $rsInit = kubectl exec -n $Namespace mongodb-0 -- mongosh --quiet --eval "
+      try {
+        var s = rs.status();
+        print('RS already initialized: ' + s.set);
+      } catch(e) {
+        rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongodb-0.mongodb-service:27017'}]});
+        print('RS initiated');
+      }
+    " 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[OK] MongoDB replica set ready: $rsInit" -ForegroundColor Green
+    } else {
+        Write-Host "[WARN] rs.initiate() skipped (Helm hook may handle it): $rsInit" -ForegroundColor Yellow
+    }
+    Write-Host ""
+
     Write-Host "==========================================" -ForegroundColor Green
     Write-Host "  Installation Successful!" -ForegroundColor Green
     Write-Host "==========================================" -ForegroundColor Green

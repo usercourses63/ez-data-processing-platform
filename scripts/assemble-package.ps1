@@ -45,6 +45,44 @@ foreach ($tar in $serviceTars) { Copy-Item $tar.FullName (Join-Path $PkgDir "ima
 $infraTars = Get-ChildItem (Join-Path $OutputBase "images\infrastructure\*.tar") -ErrorAction SilentlyContinue
 foreach ($tar in $infraTars) { Copy-Item $tar.FullName (Join-Path $PkgDir "images\infrastructure\") }
 
+# Verify Helm values.yaml image tags match IMAGE-MANIFEST.txt before packaging.
+# This prevents stale tags from silently ending up in the deployment package.
+Write-Host "Verifying Helm image tags match IMAGE-MANIFEST.txt..." -ForegroundColor Cyan
+$manifestFile = Join-Path $RepoRoot "release-package\IMAGE-MANIFEST.txt"
+$valuesFile   = Join-Path $RepoRoot "helm\ez-platform\values.yaml"
+$manifestTags = @{}
+foreach ($line in (Get-Content $manifestFile)) {
+    $line = $line.Trim()
+    if ($line -match '^[^#\s]' -and $line -match ':') {
+        $parts = $line -split ':'
+        $repo  = $parts[0]
+        $tag   = $parts[1]
+        $manifestTags[$repo] = $tag
+    }
+}
+$valuesContent = Get-Content $valuesFile -Raw
+$tagMismatches = @()
+foreach ($repo in $manifestTags.Keys) {
+    $expectedTag = $manifestTags[$repo]
+    # Match lines like:  repository: <repo>  followed by  tag: <tag>
+    if ($valuesContent -match "repository: $([regex]::Escape($repo))\r?\n\s+tag: ([^\r\n]+)") {
+        $actualTag = $Matches[1].Trim()
+        if ($actualTag -ne $expectedTag) {
+            $tagMismatches += "  $repo : values.yaml='$actualTag'  manifest='$expectedTag'"
+        }
+    }
+}
+if ($tagMismatches.Count -gt 0) {
+    Write-Host ""
+    Write-Host "[X] IMAGE TAG MISMATCH — update helm/ez-platform/values.yaml before packaging:" -ForegroundColor Red
+    $tagMismatches | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    Write-Host ""
+    Write-Host "Fix: set each tag in values.yaml to match IMAGE-MANIFEST.txt, then re-run." -ForegroundColor Yellow
+    exit 1
+}
+Write-Host "[OK] All Helm image tags match IMAGE-MANIFEST.txt" -ForegroundColor Green
+Write-Host ""
+
 # Copy Helm chart
 New-Item -ItemType Directory -Force -Path (Join-Path $PkgDir "helm") | Out-Null
 Copy-Item -Recurse (Join-Path $RepoRoot "helm\ez-platform") (Join-Path $PkgDir "helm\")
