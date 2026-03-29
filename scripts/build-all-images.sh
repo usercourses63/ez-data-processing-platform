@@ -17,6 +17,17 @@ echo "Output:         $OUTPUT_DIR"
 
 mkdir -p "$OUTPUT_DIR"
 
+# Pre-build validation: nginx proxy ports must match Helm service ports
+echo ""
+echo "Running nginx ↔ Helm port validation..."
+if bash scripts/validate-nginx-ports.sh --ci; then
+  echo "Port validation passed."
+else
+  echo "ERROR: Port validation failed — fix nginx.conf before building frontend image."
+  exit 1
+fi
+echo ""
+
 # 10 application services: name|dockerfile|image
 SERVICES=(
   "datasource-management|docker/DataSourceManagementService.Dockerfile|ez-platform/datasource-management"

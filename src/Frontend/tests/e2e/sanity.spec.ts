@@ -719,6 +719,36 @@ test('@Sanity SANITY-19: Incomplete datasource has expected missing fields', asy
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SANITY-21: Nginx proxy routes — verify all backend services are reachable
+// through the frontend nginx reverse proxy (NodePort). Catches port mismatches
+// between nginx.conf and actual K8s service ports (e.g. the 5006→5007 bug).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+test('@Sanity SANITY-21: All nginx proxy routes reach backend services', async () => {
+  // Each entry: the proxied path through the frontend nginx + expected minimum status
+  // We test via the NodePort (FRONTEND_URL) so the request goes through nginx.
+  const proxyRoutes = [
+    { path: '/api/v1/datasource',       name: 'datasource-management' },
+    { path: '/api/v1/invalid-records',   name: 'invalidrecords' },
+    { path: '/api/v1/metrics',           name: 'metrics-configuration' },
+    { path: '/api/v1/global-alerts',     name: 'metrics-configuration (alerts)' },
+    { path: '/api/v1/scheduling/datasources', name: 'scheduling' },
+    { path: '/api/v1/schema',            name: 'schema (via datasource-management)' },
+  ];
+
+  for (const route of proxyRoutes) {
+    const resp = await apiContext.get(`${FRONTEND_URL}${route.path}`);
+    // 200 = data returned, 404 = route exists but no matching resource — both prove nginx proxied correctly.
+    // Only 502/503/504 means nginx couldn't reach the backend (port mismatch or service down).
+    expect(
+      resp.status(),
+      `${route.name} proxy (${route.path}): expected 2xx/4xx, got ${resp.status()} — nginx may have wrong backend port`
+    ).toBeLessThan(500);
+    console.log(`SANITY-21: ✓ ${route.name} (${route.path}) → ${resp.status()}`);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // SANITY-20: All frontend menu pages load (deployment gate — headed Chrome)
 // Navigates every sidebar route, verifies page renders without error boundary
 // or infinite spinner. Uses baseURL from playwright.config.ts (NodePort 30080).
