@@ -1,384 +1,475 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-02-02
+**Analysis Date:** 2026-05-24
 
 ## Directory Layout
 
 ```
-EZ/
+ez/
 ├── src/
-│   ├── Services/                              # All backend microservices
-│   │   ├── Shared/                            # Shared library (base classes, utilities)
-│   │   │   ├── Configuration/                 # DI setup modules
-│   │   │   ├── Connectors/                    # Data source connectors (plugins)
-│   │   │   ├── Converters/                    # Format converters
-│   │   │   ├── Entities/                      # MongoDB entity base classes
-│   │   │   ├── Messages/                      # MassTransit event contracts
-│   │   │   ├── Consumers/                     # Base consumer class with tracing
-│   │   │   ├── Monitoring/                    # Metrics and observability
-│   │   │   ├── Middleware/                    # Request middleware
-│   │   │   ├── Services/                      # Utility services (archive, cache)
-│   │   │   └── Utilities/                     # Helper functions
-│   │   ├── DataSourceManagementService/       # Service 1: Data source CRUD
-│   │   ├── FileDiscoveryService/              # Service 2: File polling
-│   │   ├── FileProcessorService/              # Service 3: File reading/conversion
-│   │   ├── ValidationService/                 # Service 4: Schema validation
-│   │   ├── OutputService/                     # Service 5: Multi-destination output
-│   │   ├── SchedulingService/                 # Service 6: Job scheduling (Quartz)
-│   │   ├── MetricsConfigurationService/       # Service 7: Metrics and alerts
-│   │   ├── InvalidRecordsService/             # Service 8: Invalid record management
-│   │   └── DataSourceChatService/             # Service 9: AI assistant (beta)
-│   └── Frontend/                              # React application
+│   ├── Services/                              # 9 .NET 10 microservices + Shared kernel
+│   │   ├── Shared/                            # Shared library — referenced by every service
+│   │   │   ├── Configuration/                 # DI setup (Database, MassTransit, OTEL, Hazelcast, etc.)
+│   │   │   ├── Connectors/                    # FTP/SFTP/S3/NFS/SMB/HTTP/Kafka/Local data-source connectors
+│   │   │   ├── Consumers/                     # `DataProcessingConsumerBase<T>` base class
+│   │   │   ├── Converters/                    # CSV/JSON/XML/Excel ↔ JSON converters + reconstructors
+│   │   │   ├── Entities/                      # `DataProcessingBaseEntity` + 11 domain entities
+│   │   │   ├── Extensions/                    # MongoDB query extensions
+│   │   │   ├── Messages/                      # `IDataProcessingMessage` + 12 event contracts
+│   │   │   ├── Middleware/                    # `CorrelationIdMiddleware`
+│   │   │   ├── Monitoring/                    # `BusinessMetrics`, `DataProcessingMetrics`
+│   │   │   ├── Services/                      # Cross-cutting services (cache, hash, archive, credentials)
+│   │   │   ├── Utilities/                     # `CronExpressionConverter`, `FileHashCalculator`
+│   │   │   └── DataProcessing.Shared.csproj   # Project file referenced by all services
+│   │   ├── DataSourceManagementService/       # Primary API (port 5001) + MonitoringHub
+│   │   ├── DataSourceManagementService.Tests/ # Test project
+│   │   ├── MetricsConfigurationService/       # Business metrics + alerts (port 5002)
+│   │   ├── ValidationService/                 # JSON schema validation (port 5003)
+│   │   ├── SchedulingService/                 # Quartz cron polling (port 5004)
+│   │   ├── InvalidRecordsService/             # Invalid record CRUD + revalidation (port 5007)
+│   │   ├── FileProcessorService/              # Format conversion (port 5008)
+│   │   ├── FileProcessorService.Tests/        # Test project
+│   │   ├── FileDiscoveryService/              # File polling worker
+│   │   ├── OutputService/                     # Multi-destination output (port 5009)
+│   │   └── DataSourceChatService/             # Optional AI assistant API
+│   └── Frontend/                              # React 19 + Vite SPA (port 7000)
 │       ├── src/
-│       │   ├── pages/                         # Route components
-│       │   ├── components/                    # Reusable UI components
-│       │   ├── services/                      # API client services
-│       │   ├── hooks/                         # Custom React hooks
-│       │   ├── types/                         # TypeScript interfaces
-│       │   ├── utils/                         # Utility functions
-│       │   ├── i18n/                          # Internationalization (Hebrew/English)
-│       │   ├── config/                        # Frontend config
-│       │   └── App.tsx                        # Root component
-│       ├── public/                            # Static assets
-│       ├── tests/e2e/                         # Playwright E2E tests
-│       └── package.json                       # Frontend dependencies
-├── deploy/                                    # Kubernetes manifests
-│   ├── kubernetes/                            # K8s resource definitions
-│   ├── docker/                                # Docker images
-│   ├── helm/                                  # Helm charts
-│   ├── prometheus/                            # Prometheus configuration
-│   ├── grafana/                               # Grafana dashboards
-│   └── otel-collector/                        # OpenTelemetry collector config
-├── tools/                                     # Development and utility tools
-│   ├── DemoDataGenerator/                     # Generate sample data
-│   ├── ServiceOrchestrator/                   # Service lifecycle management
-│   ├── E2EDataSourceGenerator/                # Create test data sources
-│   ├── KafkaMessageExtractor/                 # Debug Kafka messages
-│   └── HazelcastReset/                        # Reset cache
-├── tests/                                     # Integration and unit tests
-│   ├── IntegrationTests/                      # Full pipeline tests
-│   ├── ValidationService.Tests/               # Service-specific tests
+│       │   ├── pages/                         # Route components (Dashboard, datasources, monitoring, schema, …)
+│       │   ├── components/                    # Reusable components (datasource, metrics, schema, layout, shared)
+│       │   ├── services/                      # API client modules (one per backend feature)
+│       │   ├── hooks/                         # `useEntitySync`, `useMonitoringHub`, `useOptimisticMutation`, …
+│       │   ├── api/                           # Cross-cutting API clients
+│       │   ├── utils/                         # Schema validators, file analyzers, helpers
+│       │   ├── types/                         # TypeScript types (api.ts, entities.ts, forms.ts, monitoring.types.ts)
+│       │   ├── i18n/                          # i18next setup + locales (he, en)
+│       │   ├── config/                        # App config (`version.ts`)
+│       │   ├── App.tsx                        # Router + ConfigProvider + QueryClient root
+│       │   └── index.tsx                      # ReactDOM bootstrap
+│       ├── tests/
+│       │   ├── e2e/                           # Playwright sanity specs
+│       │   └── webapp-testing/                # Python Playwright comprehensive scripts
+│       ├── public/
+│       ├── playwright.config.ts
+│       ├── vite.config.ts
+│       ├── tsconfig.json
+│       ├── package.json
+│       └── Dockerfile
+├── tests/                                     # Backend test projects (xUnit, .NET)
+│   ├── DataSourceManagement.Tests/
+│   ├── IntegrationTests/
+│   ├── InvalidRecordsService.Tests/
+│   ├── MetricsConfiguration.Tests/
 │   ├── OutputService.Tests/
-│   └── Shared.Tests/
-├── docs/                                      # Documentation
-│   ├── planning/                              # Implementation plans
-│   ├── data_processing_prd.md                 # Product requirements
-│   ├── PROJECT_STANDARDS.md                   # Coding standards
-│   └── COMPREHENSIVE-PROJECT-ANALYSIS.md      # Detailed analysis
-├── scripts/                                   # PowerShell helper scripts
-│   ├── start-port-forwards.ps1                # Port forwarding setup
-│   ├── bootstrap-k8s-cluster.ps1              # K8s bootstrap
-│   └── setup-dev-environment.ps1              # Dev setup
-├── test-data/                                 # Test data files
-│   └── excel-creator/                         # Excel file generation tool
-├── .planning/codebase/                        # GSD codebase analysis docs
-├── .vscode/                                   # VS Code settings
-├── CLAUDE.md                                  # Project instructions
-└── .gitignore                                 # Git ignore rules
+│   ├── SchedulingService.Tests/
+│   ├── Shared.Tests/
+│   ├── ValidationService.Tests/
+│   └── performance/                           # Python perf/CRUD verification scripts
+├── tools/                                     # Auxiliary .NET tools + scripts
+│   ├── DemoDataGenerator/
+│   ├── E2EDataSourceGenerator/
+│   ├── HazelcastReset/
+│   ├── KafkaMessageExtractor/
+│   ├── ServiceOrchestrator/
+│   └── TestDataGenerator/
+├── docker/                                    # Dockerfiles for every image
+│   ├── DataSourceManagementService.Dockerfile
+│   ├── FileDiscoveryService.Dockerfile
+│   ├── … (one per service)
+│   └── nginx.conf
+├── release-package/                           # Authoritative k8s manifests for releases
+│   └── k8s/
+│       ├── configmaps/                        # services-config.yaml, prometheus-* configs
+│       ├── deployments/                       # One deployment per microservice + sidecars
+│       ├── infrastructure/                    # MongoDB, Kafka, Hazelcast, Prometheus, Grafana, Elasticsearch
+│       ├── services/                          # all-services.yaml, frontend-nodeport.yaml
+│       ├── ingress/                           # ez-platform-ingress.yaml
+│       ├── jobs/                              # demo-data-generator.yaml
+│       ├── namespace.yaml                     # `ez-platform` namespace
+│       ├── network-policies.yaml              # Default deny + explicit allows
+│       └── ocp-routes.yaml                    # OpenShift routes
+├── deployment-v0.1.1-rc3-20260112-125216/     # Frozen prior-release k8s snapshot
+├── scripts/                                   # PowerShell deployment + dev scripts
+│   ├── start-port-forwards.ps1                # CRITICAL: configures all 18 port forwards
+│   ├── bootstrap-k8s-cluster.ps1
+│   ├── build-all-images.ps1                   # also .sh variant
+│   ├── deploy-local-rc3.ps1
+│   ├── export-images-*.ps1
+│   ├── assemble-package.ps1                   # also .sh variant
+│   └── ci-local.sh
+├── docs/                                      # Project documentation
+│   ├── architecture/                          # ARCHITECTURE.md, SYSTEM-ARCHITECTURE.md, HTML diagrams
+│   ├── admin/                                 # Admin operations
+│   ├── archive/                               # Archived material
+│   ├── planning/                              # MVP plan, deployment plan
+│   ├── data_processing_prd.md
+│   ├── PROJECT_STANDARDS.md
+│   └── COMPREHENSIVE-PROJECT-ANALYSIS.md
+├── .planning/                                 # GSD planning workspace
+│   ├── PROJECT.md
+│   ├── REQUIREMENTS.md
+│   ├── ROADMAP.md
+│   ├── MILESTONES.md
+│   ├── STATE.md
+│   ├── codebase/                              # ← Output of `/gsd-map-codebase` (this directory)
+│   ├── phases/                                # Phase plans (01-* through 32-*)
+│   ├── milestones/
+│   ├── debug/
+│   ├── research/
+│   └── todos/
+├── test-data/                                 # CSV/Excel/JSON test inputs (E2E-001 … LoadTest-10000)
+├── sample-data/                               # Sample Hebrew datasource JSON
+├── test-files/                                # Misc fixture files
+├── test-results/                              # Generated test artifacts
+├── design-artifacts/
+├── publish/                                   # `dotnet publish` output
+├── dist/                                      # Distribution artifacts
+├── deploy/                                    # Deployment helpers
+├── DataProcessingPlatform.sln                 # Visual Studio solution
+├── Directory.Build.props                      # MSBuild defaults for all projects
+├── Directory.Packages.props                   # Central NuGet version management
+├── global.json                                # .NET SDK pin
+├── docker-compose.development.yml             # Local-only compose
+├── start-all-services.ps1
+├── stop-all-services.ps1
+├── CLAUDE.md                                  # Project instructions for AI tooling
+├── README.md
+└── CHANGELOG.md
 ```
 
 ## Directory Purposes
 
-**src/Services/Shared:**
-- Purpose: Reusable code shared across all microservices
-- Contains: Base classes, configuration, connectors, converters, entities, events, middleware
-- Key files:
-  - `Configuration/OpenTelemetryConfiguration.cs` - OTEL setup
-  - `Configuration/MassTransitConfiguration.cs` - RabbitMQ/event setup
-  - `Consumers/DataProcessingConsumerBase.cs` - Consumer base class
-  - `Connectors/IConnectorFactory.cs` - Connector plugin pattern
+**`src/Services/Shared/`:**
+- Purpose: Shared kernel referenced by every microservice (via `ProjectReference` to `DataProcessing.Shared.csproj`)
+- Contains: Base classes, message contracts, connectors, converters, telemetry, configuration extensions
+- Key files: `Entities/DataProcessingBaseEntity.cs`, `Consumers/DataProcessingConsumerBase.cs`, `Messages/IDataProcessingMessage.cs`, `Connectors/ConnectorFactory.cs`, `Configuration/MassTransitConfiguration.cs`
 
-**src/Services/[ServiceName]/:**
-- Purpose: Individual microservice with standard structure
-- Contains: Controllers (API), Services (business logic), Repositories (data access), Consumers (event handling)
-- Pattern:
-  - Controllers inherit from ControllerBase
-  - Services are scoped, injected via DI
-  - Repositories use MongoDB.Entities
-  - Consumers inherit from DataProcessingConsumerBase<T>
+**`src/Services/*Service/` (each microservice):**
+- Purpose: One bounded context per service, deployable as a separate Kubernetes pod
+- Contains: `Program.cs` (entry point), `Controllers/` (HTTP), `Services/` (business logic), `Repositories/` (MongoDB), `Consumers/` (events), `Jobs/` (Quartz), `Models/` (DTOs), `Hubs/` (SignalR where applicable), `appsettings.json`, `Dockerfile`
+- Key files: `Program.cs`, `*.csproj`
 
-**src/Services/DataSourceManagementService:**
-- Purpose: Data source CRUD, configuration, schema management
-- Key files:
-  - `Controllers/DataSourceController.cs` - REST API endpoints
-  - `Services/DataSourceService.cs` - Business logic
-  - `Services/Schema/SchemaService.cs` - Schema operations
-  - `Services/ConnectionTest/ConnectionTestService.cs` - Connection testing
-  - `Repositories/DataSourceRepository.cs` - MongoDB queries
+**`src/Services/*Service.Tests/`:**
+- Purpose: xUnit integration tests for the matching service
+- Contains: `*Tests.cs` files, fixtures, test helpers
 
-**src/Services/FileDiscoveryService:**
-- Purpose: Scheduled file polling from data sources
-- Key files:
-  - `Services/FileDiscoveryService.cs` - Main polling logic
-  - Uses `IDataSourceConnector` to list files
-  - Publishes `FileDiscoveredEvent` for each file
-  - Tracks processed hashes for deduplication
+**`src/Frontend/src/pages/`:**
+- Purpose: Top-level route components, lazy-loaded by `App.tsx`
+- Contains: Subdirectories per feature (`datasources/`, `metrics/`, `schema/`, `monitoring/`, `admin/`, `invalid-records/`, `validation/`, `alerts/`, `ai-assistant/`, `help/`, `notifications/`)
+- Key files: `Dashboard.tsx`, `datasources/DataSourceList.tsx`, `monitoring/SystemMonitoring.tsx`
 
-**src/Services/FileProcessorService:**
-- Purpose: File reading, format conversion, caching
-- Key files:
-  - `Consumers/FileDiscoveredEventConsumer.cs` - Event handler
-  - Uses connectors to read files
-  - Uses converters to transform to JSON
-  - Caches JSON in Hazelcast
-  - Publishes `ValidationRequestEvent`
+**`src/Frontend/src/components/`:**
+- Purpose: Reusable React components grouped by feature
+- Contains: `datasource/`, `metrics/`, `schema/`, `invalid-records/`, `layout/`, `shared/`
+- Key files: `layout/AppHeader.tsx`, `layout/AppSidebar.tsx`, `shared/DataTable.tsx`, `shared/ErrorBoundary.tsx`
 
-**src/Services/ValidationService:**
-- Purpose: Schema validation, record splitting
-- Key files:
-  - `Consumers/ValidationRequestEventConsumer.cs` - Event handler
-  - `Services/ValidationService.cs` - Corvus.Json.Validator integration
-  - Stores `DataProcessingValidationResult` entities
-  - Publishes `ValidationCompletedEvent`
+**`src/Frontend/src/services/`:**
+- Purpose: REST clients (`fetch`) — one module per backend feature
+- Contains: `dashboard-api-client.ts`, `metrics-api-client.ts`, `schema-api-client.ts`, `nas-devices-api-client.ts`, `servers-api-client.ts`, `invalidrecords-api-client.ts`, `categories-api-client.ts`, `health-status-api-client.ts`, plus `queryKeys.ts` (React Query key constants)
 
-**src/Services/OutputService:**
-- Purpose: Data reconstruction and multi-destination output
-- Key files:
-  - `Consumers/ValidationCompletedEventConsumer.cs` - Event handler
-  - `Handlers/` - Output handler implementations (Kafka, Folder, SFTP, HTTP, S3, FTP)
-  - `Services/FormatReconstructorService.cs` - Format conversion
-  - Routes to multiple output destinations
+**`src/Frontend/src/hooks/`:**
+- Purpose: Custom React hooks
+- Contains: `useEntitySync.ts` (global SignalR CRUD sync), `useMonitoringHub.ts` (live cluster state), `useOptimisticMutation.ts`, `useRealtimeSchemaValidation.ts`, `useRevalidationNotifications.ts`
 
-**src/Services/SchedulingService:**
-- Purpose: Quartz.NET job scheduling for file polling
-- Key files:
-  - `Jobs/FilePollingJob.cs` - Scheduled job definition
-  - Triggers FileDiscoveryService at cron intervals
+**`src/Frontend/src/utils/`:**
+- Purpose: Pure-function helpers (no React)
+- Contains: `schemaValidator.ts`, `schemaAutoSuggest.ts`, `schemaExampleGenerator.ts`, `validationErrorTranslator.ts`, `fileAnalyzer/`, `docs-url.ts`
 
-**src/Services/MetricsConfigurationService:**
-- Purpose: Metrics and alert rule management
-- Key files:
-  - `Controllers/MetricsController.cs` - API endpoints
-  - `Services/MetricsService.cs` - Metrics CRUD
-  - Stores PromQL queries and thresholds
+**`src/Frontend/src/i18n/`:**
+- Purpose: i18next configuration and translation files
+- Contains: `index.ts` (setup), `locales/he.json`, `locales/en.json`, `jsonjoy-hebrew.ts`
 
-**src/Services/InvalidRecordsService:**
-- Purpose: Invalid record management and analysis
-- Key files:
-  - `Controllers/InvalidRecordsController.cs` - API endpoints
-  - `Repositories/InvalidRecordRepository.cs` - MongoDB queries
-  - Stores and retrieves invalid record details
+**`release-package/k8s/`:**
+- Purpose: Authoritative Kubernetes manifests applied by deploy scripts
+- Contains: `configmaps/`, `deployments/`, `services/`, `infrastructure/`, `ingress/`, `jobs/`, `namespace.yaml`, `network-policies.yaml`, `ocp-routes.yaml`
+- Key files: `deployments/*-deployment.yaml` (one per microservice), `configmaps/services-config.yaml`
 
-**src/Frontend/src:**
-- Purpose: React user interface
-- Contains: Pages, components, services, hooks, utilities
+**`scripts/`:**
+- Purpose: PowerShell + Bash automation for build, package, deploy, port-forward
+- Key files: `start-port-forwards.ps1` (mandatory dev tool), `bootstrap-k8s-cluster.ps1`, `deploy-local-rc3.ps1`, `build-all-images.ps1`
 
-**src/Frontend/src/pages:**
-- Purpose: Route components for each major feature
-- Key files:
-  - `datasources/DataSourceList.tsx` - Data source list view
-  - `datasources/DataSourceForm.tsx` - Create/edit data source
-  - `schema/SchemaManagement.tsx` - Schema management
-  - `metrics/MetricConfigurationWizard.tsx` - Metrics and alerts
-  - `validation/ValidationResults.tsx` - Validation results view
-  - `invalid-records/InvalidRecordsManagement.tsx` - Invalid records
-  - `monitoring/SystemMonitoring.tsx` - System status
+**`tools/`:**
+- Purpose: Auxiliary .NET console apps and Node/Python scripts for data generation and debugging
+- Contains: `DemoDataGenerator/`, `E2EDataSourceGenerator/`, `HazelcastReset/`, `KafkaMessageExtractor/`, `ServiceOrchestrator/`, `TestDataGenerator/`
 
-**src/Frontend/src/components:**
-- Purpose: Reusable UI components
-- Subfolders:
-  - `datasource/` - Data source UI components
-  - `schema/` - Schema builder components
-  - `metrics/` - Metrics configuration components
-  - `layout/` - Header, sidebar, footer
-  - `shared/` - Common components (ErrorBoundary, LoadingState, etc.)
+**`.planning/`:**
+- Purpose: GSD (Get Stuff Done) workflow workspace — milestone tracking, phase plans, codebase mapping output
+- Contains: `phases/01-*` through `phases/32-*` (sequential implementation phases), `codebase/` (this dir), `milestones/`, `debug/`, `research/`, `todos/`
+- Key files: `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `MILESTONES.md`, `STATE.md`
 
-**src/Frontend/src/services:**
-- Purpose: API client services for backend communication
-- Key files:
-  - `queryKeys.ts` - React Query cache keys
-  - `datasources-api-client.ts` - Data source API calls
-  - `schema-api-client.ts` - Schema API calls
-  - `metrics-api-client.ts` - Metrics API calls
-  - `invalidrecords-api-client.ts` - Invalid records API calls
+**`docs/`:**
+- Purpose: Long-form documentation
+- Contains: `architecture/` (system diagrams in MD + HTML), `admin/`, `archive/`, `planning/`, root-level status reports
+- Key files: `architecture/ARCHITECTURE.md`, `PROJECT_STANDARDS.md`, `data_processing_prd.md`
 
-**deploy/kubernetes:**
-- Purpose: Kubernetes resource definitions
-- Contains: Deployments, services, configmaps, StatefulSets
-- Key files:
-  - `configmaps/services-config.yaml` - Service configuration
-  - `deployments/` - Microservice deployments
-  - `infrastructure/` - MongoDB, Kafka, Hazelcast, etc.
-  - `services/` - Service definitions for networking
+**`docker/`:**
+- Purpose: One Dockerfile per service image plus shared nginx config
+- Contains: `*Service.Dockerfile` files, `nginx.conf`
 
-**tests/:**
-- Purpose: Integration and unit tests
-- Contains:
-  - `IntegrationTests/` - Full pipeline E2E tests
-  - `ValidationService.Tests/` - Validation service tests
-  - `OutputService.Tests/` - Output service tests
-  - `Shared.Tests/` - Shared library tests
-
-**tools/:**
-- Purpose: Development and debugging tools
-- Key tools:
-  - `DemoDataGenerator/` - Creates sample data sources and test data
-  - `ServiceOrchestrator/` - Manages service lifecycle (start/stop/restart)
-  - `E2EDataSourceGenerator/` - Creates test data sources with demo files
-  - `KafkaMessageExtractor/` - Extracts Kafka messages for debugging
-  - `HazelcastReset/` - Clears Hazelcast cache
+**`test-data/`:**
+- Purpose: Pre-staged input files for end-to-end scenarios
+- Contains: `E2E-001/`, `E2E-003/`, `E2E-004/`, `E2E-005/`, `E2E-006/`, `LoadTest-100/`, `LoadTest-1000/`, `LoadTest-10000/`, plus generated files
 
 ## Key File Locations
 
 **Entry Points:**
-- Backend services: `src/Services/[ServiceName]/Program.cs` (ASP.NET Core bootstrap)
-- Frontend: `src/Frontend/src/main.tsx` or `src/Frontend/src/index.tsx` (React entry)
-- Tests: `tests/IntegrationTests/Hooks/SetupHook.cs` (test bootstrap)
+- `src/Services/DataSourceManagementService/Program.cs` — primary API + SignalR hub
+- `src/Services/MetricsConfigurationService/Program.cs`
+- `src/Services/ValidationService/Program.cs`
+- `src/Services/SchedulingService/Program.cs`
+- `src/Services/InvalidRecordsService/Program.cs`
+- `src/Services/FileProcessorService/Program.cs`
+- `src/Services/FileDiscoveryService/Program.cs`
+- `src/Services/OutputService/Program.cs`
+- `src/Services/DataSourceChatService/Program.cs`
+- `src/Frontend/src/index.tsx` — React DOM bootstrap
+- `src/Frontend/src/App.tsx` — Router root with lazy-loaded pages
 
 **Configuration:**
-- Service DI setup: `src/Services/Shared/Configuration/*.cs` (8 files for different concerns)
-- Frontend env config: `src/Frontend/src/config/`
-- Kubernetes config: `deploy/kubernetes/configmaps/services-config.yaml`
-- Docker builds: `src/Services/[ServiceName]/Dockerfile`
+- `Directory.Build.props` — MSBuild defaults
+- `Directory.Packages.props` — central NuGet version management
+- `global.json` — .NET SDK version pin
+- `src/Services/*Service/appsettings.json` — per-service config (MongoDB, Kafka, RabbitMQ, OTEL endpoint)
+- `release-package/k8s/configmaps/services-config.yaml` — runtime config in cluster
+- `src/Frontend/vite.config.ts` — frontend build
+- `src/Frontend/playwright.config.ts` — E2E test runner
 
-**Core Logic:**
-- Data source management: `src/Services/DataSourceManagementService/Services/DataSourceService.cs`
-- File discovery: `src/Services/FileDiscoveryService/Services/FileDiscoveryService.cs`
-- Format conversion: `src/Services/Shared/Converters/` (CSV, XML, Excel, JSON)
-- Schema validation: `src/Services/ValidationService/Services/ValidationService.cs`
-- Message publishing: `src/Services/Shared/Configuration/MassTransitConfiguration.cs`
-- Connector plugin system: `src/Services/Shared/Connectors/ConnectorFactory.cs`
+**Core Logic — Shared:**
+- `src/Services/Shared/Entities/DataProcessingBaseEntity.cs` — base entity
+- `src/Services/Shared/Consumers/DataProcessingConsumerBase.cs` — consumer base
+- `src/Services/Shared/Messages/IDataProcessingMessage.cs` — message contract
+- `src/Services/Shared/Connectors/ConnectorFactory.cs` — connector selection
+- `src/Services/Shared/Configuration/MassTransitConfiguration.cs` — Kafka topic conventions
+- `src/Services/Shared/Configuration/OpenTelemetryConfiguration.cs` — OTLP pipeline
+- `src/Services/Shared/Configuration/LoggingConfiguration.cs` — Serilog setup
+- `src/Services/Shared/Monitoring/BusinessMetrics.cs` — 20 business metrics
+
+**Core Logic — Frontend:**
+- `src/Frontend/src/App.tsx` — router, ConfigProvider (RTL), QueryClient
+- `src/Frontend/src/hooks/useEntitySync.ts` — global SignalR CRUD sync
+- `src/Frontend/src/hooks/useMonitoringHub.ts` — live cluster state
+
+**SignalR Hubs (server side):**
+- `src/Services/DataSourceManagementService/Hubs/MonitoringHub.cs` — `/hubs/monitoring`
+- `src/Services/InvalidRecordsService/Hubs/InvalidRecordsHub.cs` — invalid-record notifications
+
+**Pipeline Consumers:**
+- `src/Services/FileDiscoveryService/Consumers/FilePollingEventConsumer.cs`
+- `src/Services/FileProcessorService/Consumers/FileDiscoveredEventConsumer.cs`
+- `src/Services/ValidationService/Consumers/ValidationRequestEventConsumer.cs`
+- `src/Services/OutputService/Consumers/ValidationCompletedEventConsumer.cs`
+
+**Output Handlers:**
+- `src/Services/OutputService/Handlers/FolderOutputHandler.cs`
+- `src/Services/OutputService/Handlers/FtpOutputHandler.cs`
+- `src/Services/OutputService/Handlers/SftpOutputHandler.cs`
+- `src/Services/OutputService/Handlers/S3OutputHandler.cs`
+- `src/Services/OutputService/Handlers/KafkaOutputHandler.cs`
+- `src/Services/OutputService/Handlers/HttpOutputHandler.cs`
 
 **Testing:**
-- Integration tests: `tests/IntegrationTests/` (full pipeline)
-- Service-specific tests: `tests/[ServiceName].Tests/`
-- E2E playwright: `src/Frontend/tests/e2e/` (user workflows)
+- `tests/*.Tests/` — xUnit backend test projects
+- `src/Frontend/tests/e2e/` — Playwright E2E (`sanity.spec.ts`)
+- `src/Frontend/tests/webapp-testing/` — Python Playwright deep-UI tests
+- `src/Frontend/playwright.config.ts` — baseURL http://localhost:7000
 
 ## Naming Conventions
 
-**Files:**
-- Services: `[Feature]Service.cs` (e.g., `DataSourceService.cs`, `ValidationService.cs`)
-- Controllers: `[Resource]Controller.cs` (e.g., `DataSourceController.cs`)
-- Consumers: `[Event]Consumer.cs` (e.g., `FileDiscoveredEventConsumer.cs`)
-- Repositories: `[Entity]Repository.cs` (e.g., `DataSourceRepository.cs`)
-- Models: Request = `Create/Update[Entity]Request.cs`, Response = `[Entity]Response.cs`
-- React components: `[ComponentName].tsx` (PascalCase, e.g., `DataSourceList.tsx`)
-- API clients: `[feature]-api-client.ts` (kebab-case, e.g., `datasources-api-client.ts`)
-
-**Directories:**
-- Services: PascalCase folder per service (e.g., `DataSourceManagementService`)
-- Components: lowercase folders by feature (e.g., `datasource/`, `schema/`, `metrics/`)
-- Configuration modules: lowercase with scope (e.g., `configuration/`, `connectors/`)
-
-**C# Classes:**
-- Entities: `DataProcessing[Feature]` or `[Feature]` (e.g., `DataProcessingDataSource`)
-- Events: `[Action]Event` (e.g., `FileDiscoveredEvent`, `ValidationCompletedEvent`)
-- Services: `I[Name]Service` (interface), `[Name]Service` (implementation)
-- Consumers: `[Event]Consumer` (e.g., `FileDiscoveredEventConsumer`)
-- Repositories: `I[Entity]Repository` (interface), `[Entity]Repository` (implementation)
+**.NET projects (`.csproj`):**
+- Pattern: `DataProcessing.<ServiceArea>.csproj`
+- Examples: `DataProcessing.Shared.csproj`, `DataProcessing.DataSourceManagement.csproj`, `DataProcessing.Validation.csproj`, `DataProcessing.FileDiscovery.csproj`, `DataProcessing.FileProcessor.csproj`, `DataProcessing.Output.csproj`, `DataProcessing.Scheduling.csproj`, `DataProcessing.Chat.csproj`
+- Exceptions: `InvalidRecordsService.csproj` and `MetricsConfigurationService.csproj` use service-name-direct naming (legacy)
 
 **Namespaces:**
-- Pattern: `DataProcessing.[ServiceArea]` (e.g., `DataProcessing.DataSourceManagement`, `DataProcessing.Validation`)
-- Shared: `DataProcessing.Shared.[Module]` (e.g., `DataProcessing.Shared.Configuration`)
+- Pattern: `DataProcessing.<ServiceArea>[.<Subdir>]`
+- Examples: `DataProcessing.Shared.Entities`, `DataProcessing.Shared.Messages`, `DataProcessing.DataSourceManagement.Controllers`, `DataProcessing.Validation.Consumers`, `DataProcessing.Output.Handlers`, `DataProcessing.Scheduling.Jobs`, `DataProcessing.FileDiscovery.Workers`
 
-**React Patterns:**
-- Custom hooks: `use[HookName].ts` (e.g., `useDataSources.ts`, `useMetrics.ts`)
-- Context providers: `[Feature]Provider.tsx`
-- API response types: `IApiResponse`, `IPagedResult` (I prefix for interfaces)
+**Service folders:**
+- Pattern: `<ServiceName>Service/` (PascalCase + `Service` suffix)
+- Examples: `DataSourceManagementService/`, `ValidationService/`, `FileProcessorService/`, `OutputService/`, `SchedulingService/`, `InvalidRecordsService/`, `MetricsConfigurationService/`, `FileDiscoveryService/`, `DataSourceChatService/`
+
+**Interfaces:**
+- Pattern: `I` prefix + capability noun
+- Examples: `IDataSourceService`, `IDataSourceRepository`, `IConnectorFactory`, `IDataSourceConnector`, `IFormatConverter`, `IFormatReconstructor`, `IOutputHandler`, `IFileHashService`, `IArchiveService`, `ICredentialResolver`, `IValidationService`, `ISchemaService`
+
+**Service implementations:**
+- Pattern: `<Capability>Service` for business-logic classes
+- Examples: `DataSourceService`, `CategoryService`, `ServerService`, `NasDeviceService`, `DeviceHealthService`, `ConnectionTestService`, `SchemaService`, `ValidationService`, `RevalidationService`, `CorrectionService`
+
+**Repositories:**
+- Pattern: `<Entity>Repository` (implements `I<Entity>Repository`)
+- Examples: `DataSourceRepository`, `SchemaRepository`, `MetricRepository`, `GlobalAlertRepository`, `InvalidRecordRepository`
+
+**Consumers:**
+- Pattern: `<Event>Consumer` (e.g., `<Verb><Subject>EventConsumer`)
+- Examples: `FilePollingEventConsumer`, `FileDiscoveredEventConsumer`, `ValidationRequestEventConsumer`, `ValidationCompletedEventConsumer`, `DataSourceCreatedConsumer`, `DataSourceUpdatedConsumer`, `DataSourceDeletedConsumer`, `SchemaUpdatedEventConsumer`, `PipelineEventConsumer`
+
+**Events / Messages:**
+- Pattern: `<Verb-ed-or-Subject>Event` implementing `IDataProcessingMessage`
+- Examples: `FilePollingEvent`, `FileDiscoveredEvent`, `FileProcessingCompletedEvent`, `FileProcessingFailedEvent`, `ValidationRequestEvent`, `ValidationCompletedEvent`, `DataSourceCreatedEvent`, `DataSourceUpdatedEvent`, `DataSourceDeletedEvent`, `SchemaUpdatedEvent`
+- Request/response pair: `GetMetricsConfigurationRequest` / `GetMetricsConfigurationResponse`
+
+**Entities:**
+- Pattern: `<Subject>` or `DataProcessing<Subject>` (the latter when the type is shared across services)
+- Examples: `DataProcessingBaseEntity`, `DataProcessingDataSource`, `DataProcessingSchema`, `DataProcessingInvalidRecord`, `DataProcessingValidationResult`, `AdminServer`, `NasDevice`, `DataSourceCategory`, `OutputConfiguration`, `ProcessedFileHash`, `ScheduledDataSource`, `DeviceHealthCheckResult`
+
+**Quartz jobs:**
+- Pattern: `<Action>Job` implementing `IJob`
+- Examples: `DataSourcePollingJob`, `DeviceHealthCheckJob`, `InvalidRecordsTtlPurgeJob`, plus `FileDiscoveryWorker` (legacy `Worker` suffix in `FileDiscoveryService/Workers/`)
+
+**Controllers:**
+- Pattern: `<Resource>Controller` with attribute `[Route("api/v1/[controller]")]`
+- Examples: `DataSourceController`, `CategoriesController`, `ServersController`, `NasDevicesController`, `SchemaController`, `ConnectionTestController`, `DashboardController`, `HealthStatusController`, `FileOperationsController`, `ArchiveController`, `MetricController`, `MetricDataController`, `GlobalAlertController`, `InvalidRecordController`, `SchedulingController`
+
+**SignalR hubs:**
+- Pattern: `<Domain>Hub` inheriting from `Hub`
+- Examples: `MonitoringHub`, `InvalidRecordsHub`
+
+**Output handlers:**
+- Pattern: `<Destination>OutputHandler` implementing `IOutputHandler`
+- Examples: `FolderOutputHandler`, `FtpOutputHandler`, `SftpOutputHandler`, `S3OutputHandler`, `KafkaOutputHandler`, `HttpOutputHandler`
+
+**Connectors:**
+- Pattern: `<Protocol>Connector` implementing `IDataSourceConnector`
+- Examples: `LocalFileConnector`, `FtpConnector`, `SftpConnector`, `S3Connector`, `NfsConnector`, `SmbConnector`, `HttpApiConnector`, `KafkaConnector`
+
+**Frontend files:**
+- React components: PascalCase `.tsx` (e.g., `DataSourceList.tsx`, `SystemMonitoring.tsx`, `AppHeader.tsx`)
+- Hooks: `use<Name>.ts` camelCase (e.g., `useEntitySync.ts`, `useMonitoringHub.ts`)
+- Services / API clients: kebab-case `.ts` (e.g., `metrics-api-client.ts`, `nas-devices-api-client.ts`)
+- Utilities: camelCase `.ts` (e.g., `schemaValidator.ts`, `validationErrorTranslator.ts`)
+- Types: camelCase or kebab-case `.ts` (e.g., `api.ts`, `monitoring.types.ts`, `kubernetes.types.ts`, `schema-api.ts`)
+
+**Kafka topics:**
+- Pattern: `dataprocessing.<service>.<event>` (lowercase, dot-separated)
+- Examples: `dataprocessing.scheduling.filepolling`, `dataprocessing.filesreceiver.validationrequest`, `dataprocessing.validation.completed`, `dataprocessing.global.processingfailed`
+
+**Kubernetes resources:**
+- Deployments: `<servicename>-deployment.yaml` (lowercase) — e.g., `datasource-management-deployment.yaml`, `filediscovery-deployment.yaml`, `validation-deployment.yaml`
+- Namespace: `ez-platform`
 
 ## Where to Add New Code
 
-**New Feature (e.g., Add new data source type):**
-- Primary code: `src/Services/DataSourceManagementService/Services/[Feature]Service.cs`
-- Controller: `src/Services/DataSourceManagementService/Controllers/[Feature]Controller.cs`
-- Repository: `src/Services/DataSourceManagementService/Repositories/[Feature]Repository.cs`
-- Entity: `src/Services/Shared/Entities/DataProcessing[Feature].cs` (if shared)
-- Tests: `tests/IntegrationTests/[Feature]Tests.cs`
+**New backend microservice:**
+- Create `src/Services/<NewName>Service/` with subfolders `Controllers/`, `Services/`, `Repositories/`, `Consumers/`, `Models/`, `Properties/`
+- Add `<NewName>Service/Program.cs` following the boilerplate in `src/Services/DataSourceManagementService/Program.cs` (logging → OTEL → MongoDB.Entities → Hazelcast → MassTransit → controllers)
+- Project file: `DataProcessing.<Name>.csproj` referencing `../Shared/DataProcessing.Shared.csproj`
+- Add Dockerfile: `docker/<NewName>Service.Dockerfile`
+- Add k8s deployment: `release-package/k8s/deployments/<lowercase-name>-deployment.yaml`
+- Add port-forward entry in `scripts/start-port-forwards.ps1`
+- Register in `DataProcessingPlatform.sln`
 
-**New Connector (e.g., Add GCS file source):**
-- Implementation: `src/Services/Shared/Connectors/GcsConnector.cs`
-- Inherit from: `IDataSourceConnector` interface
-- Register in: `src/Services/Shared/Connectors/ConnectorFactory.cs` (add factory method)
-- DI registration: Services.AddScoped<GcsConnector>() in Program.cs where needed
+**New REST endpoint in existing service:**
+- Controller: `src/Services/<Service>/Controllers/<Resource>Controller.cs` with `[Route("api/v1/[controller]")]`
+- Request/response DTOs: `src/Services/<Service>/Models/Requests/` and `Models/Responses/`
+- Business logic: add to or create `src/Services/<Service>/Services/I<Capability>Service.cs` + `<Capability>Service.cs`
+- Repository (if persisting new entity): `src/Services/<Service>/Repositories/I<Entity>Repository.cs` + `<Entity>Repository.cs`
+- For CRUD endpoints — inject `IHubContext<MonitoringHub>` and broadcast `EntityChanged`; add the entity type to `queryKeyMap` in `src/Frontend/src/hooks/useEntitySync.ts`
 
-**New Converter (e.g., Add YAML conversion):**
-- Implementation: `src/Services/Shared/Converters/YamlToJsonConverter.cs` (extends `IConverter` pattern)
-- Registration: Add to DI in services needing it (FileProcessorService, OutputService)
-- Usage: Converter selection by file extension in FileProcessorService
+**New event / message contract:**
+- Add `src/Services/Shared/Messages/<Subject>Event.cs` implementing `IDataProcessingMessage`
+- Producer: inject `IPublishEndpoint` and call `Publish`
+- Consumer in target service: `src/Services/<Service>/Consumers/<Subject>EventConsumer.cs` extending `DataProcessingConsumerBase<<Subject>Event>` (preferred) or implementing `IConsumer<<Subject>Event>` directly
+- Register consumer in target service `Program.cs` via `x.AddConsumer<…>()`
+- If high-volume / pipeline: add topic name to `MassTransitConfiguration.ConfigureKafkaTopics` (`src/Services/Shared/Configuration/MassTransitConfiguration.cs`)
 
-**New Output Handler (e.g., Add BigQuery output):**
-- Implementation: `src/Services/OutputService/Handlers/BigQueryOutputHandler.cs`
-- Inherit from: `IOutputHandler`
-- Register in: `OutputService/Program.cs` - `services.AddScoped<IOutputHandler, BigQueryOutputHandler>()`
-- Configuration: Add handler type to OutputConfiguration entity
+**New entity (shared across services):**
+- Add `src/Services/Shared/Entities/<Name>.cs` inheriting `DataProcessingBaseEntity`
+- Initialize indexes in each service's `Program.cs` where the entity is queried (see DataSourceManagement pattern around `Program.cs:234`)
 
-**New API Endpoint:**
-- Controller method: `src/Services/[ServiceName]/Controllers/[Controller].cs`
-- Route: `[HttpGet/Post/Put/Delete("api/v1/[route]")]`
-- DTO models: `src/Services/[ServiceName]/Models/Requests/*.cs` and `Responses/*.cs`
-- Service method: `src/Services/[ServiceName]/Services/[Service].cs`
-- Documentation: XML comments with `<summary>`, `<response>` tags
+**New entity (single-service):**
+- Add `src/Services/<Service>/Models/` (DTO) or local Entities folder; do not pollute Shared unless cross-service
 
-**New Message Event (e.g., Add pipeline completion event):**
-- Contract: `src/Services/Shared/Messages/[Event]Event.cs`
-- Implements: `IDataProcessingMessage`
-- Consumer: `src/Services/[ServiceName]/Consumers/[Event]Consumer.cs`
-- Extends: `DataProcessingConsumerBase<[Event]Event>`
-- Override: `ProcessMessage()` method with event handling logic
-- Registration: Add to MassTransit config in consuming service's Program.cs
+**New connector / output destination:**
+- Connector: `src/Services/Shared/Connectors/<Protocol>Connector.cs` implementing `IDataSourceConnector`; register in `ConnectorFactory.cs`
+- Output handler: `src/Services/OutputService/Handlers/<Destination>OutputHandler.cs` implementing `IOutputHandler`; register in `Program.cs` (DI picks it up via `IEnumerable<IOutputHandler>`)
 
-**New React Page:**
-- File: `src/Frontend/src/pages/[feature]/[Page].tsx`
-- Route: Add route to `src/Frontend/src/App.tsx` in Routes section
-- API client: Create or extend `src/Frontend/src/services/[feature]-api-client.ts`
-- Components: Reusable UI in `src/Frontend/src/components/[feature]/`
-- Query keys: Add to `src/Frontend/src/services/queryKeys.ts`
+**New format converter:**
+- `src/Services/Shared/Converters/<Source>To<Target>Converter.cs` implementing `IFormatConverter`
+- Reconstructor counterpart for output: `<Target>To<Source>Reconstructor.cs` implementing `IFormatReconstructor`
 
-**New React Component:**
-- File: `src/Frontend/src/components/[feature]/[Component].tsx`
-- Type: Create interfaces in `src/Frontend/src/types/[feature].ts` or inline
-- Props: Use TypeScript interfaces for type safety
-- Query hooks: Use `queryKeys` pattern with React Query (TanStack)
-- Styling: Ant Design components + CSS modules when needed
+**New frontend page:**
+- Create `src/Frontend/src/pages/<feature>/<PageName>.tsx`
+- Register lazy import in `src/Frontend/src/App.tsx` (alongside the existing `lazy(() => import(...))` calls)
+- Add route in the `Routes` element of `App.tsx`
+- Add sidebar entry in `src/Frontend/src/components/layout/AppSidebar.tsx`
+- Add translation keys to `src/Frontend/src/i18n/locales/he.json` and `en.json`
 
-**Utilities/Helpers:**
-- Shared C# utils: `src/Services/Shared/Utilities/[Utility].cs`
-- Service-specific utils: `src/Services/[ServiceName]/[Utility].cs`
-- Frontend utils: `src/Frontend/src/utils/[utility].ts`
+**New frontend reusable component:**
+- Pick the right folder: `components/datasource/`, `components/metrics/`, `components/schema/`, `components/invalid-records/`, `components/layout/`, or `components/shared/` (only generic primitives)
+- For form parts of the 7-tab datasource form, place in `components/datasource/tabs/`
+
+**New API client:**
+- `src/Frontend/src/services/<feature>-api-client.ts` (kebab-case)
+- Define types in `src/Frontend/src/types/<feature>.ts`
+- Add React Query keys to `src/Frontend/src/services/queryKeys.ts`
+
+**New React hook:**
+- `src/Frontend/src/hooks/use<Name>.ts`
+
+**New Quartz job:**
+- `src/Services/<Service>/Jobs/<Action>Job.cs` implementing `IJob` with `[DisallowConcurrentExecution]` if the job must not overlap
+- Register in `Program.cs` via `builder.Services.AddQuartz(q => q.AddJob<…>())`
+
+**New SignalR hub:**
+- `src/Services/<Service>/Hubs/<Name>Hub.cs` inheriting `Hub`
+- Register in `Program.cs`: `services.AddSignalR()` then `app.MapHub<…>("/hubs/<name>")`
+
+**New shared utility:**
+- Stateless helpers: `src/Services/Shared/Utilities/`
+- Cross-cutting middleware: `src/Services/Shared/Middleware/`
+- DI extension methods: `src/Services/Shared/Configuration/`
+
+**New Kubernetes manifest:**
+- Deployment: `release-package/k8s/deployments/<service>-deployment.yaml` (and mirror to `deployment-v0.1.1-rc3-…` for the frozen release if needed)
+- Service: append to `release-package/k8s/services/all-services.yaml`
+- Network policy: edit `release-package/k8s/network-policies.yaml`
+- Ingress: edit `release-package/k8s/ingress/ez-platform-ingress.yaml`
+
+**New phase plan:**
+- `.planning/phases/<NN>-<slug>/` with phase markdown files; follow numbering from the existing 01–32 sequence
 
 ## Special Directories
 
-**src/Services/Shared/Configuration:**
-- Purpose: Dependency injection setup modules
-- Generated: No (source)
+**`release-package/k8s/`:**
+- Purpose: Authoritative Kubernetes manifests for the current release; this is what deploy scripts apply
+- Generated: No (hand-maintained)
 - Committed: Yes
-- Key files:
-  - `OpenTelemetryConfiguration.cs` - OTEL metrics, traces, logs setup
-  - `MassTransitConfiguration.cs` - RabbitMQ and event topics
-  - `DatabaseConfiguration.cs` - MongoDB.Entities init
-  - `HazelcastConfiguration.cs` - Hazelcast client with resilience
-  - `LoggingConfiguration.cs` - Serilog setup with OTEL
-  - `HealthCheckConfiguration.cs` - Service health endpoints
 
-**src/Services/Shared/Messages:**
-- Purpose: MassTransit event contracts
-- Generated: No
+**`deployment-v0.1.1-rc3-20260112-125216/`:**
+- Purpose: Frozen snapshot of a prior release's k8s manifests, kept for rollback reference
+- Generated: Snapshot from release tooling
 - Committed: Yes
-- Pattern: All events implement `IDataProcessingMessage` with CorrelationId, Timestamp, PublishedBy, MessageVersion
 
-**deploy/kubernetes:**
-- Purpose: K8s manifests for cluster deployment
-- Generated: No
+**`publish/`:**
+- Purpose: Output of `dotnet publish` (DLLs, runtime files)
+- Generated: Yes — by build scripts
+- Committed: No (per `.gitignore` convention)
+
+**`dist/`:**
+- Purpose: Distribution artifacts (compiled frontend, packaged releases)
+- Generated: Yes
+- Committed: No
+
+**`node_modules/`, `bin/`, `obj/`:**
+- Purpose: Package + build output
+- Generated: Yes
+- Committed: No
+
+**`test-results/`, `playwright-report/`:**
+- Purpose: Test runner output
+- Generated: Yes (per test run)
+- Committed: No
+
+**`tests/performance/`:**
+- Purpose: Python scripts for CRUD verification and performance testing (separate from xUnit `.Tests` projects)
+- Generated: No (hand-written scripts)
 - Committed: Yes
-- Contains: All resource definitions for services, infrastructure, networking
 
-**tools/:**
-- Purpose: Development and operational tools
-- Generated: Tool outputs go to separate folders (e.g., `deploy/` for deployment artifacts)
-- Committed: Yes (source code), No (generated output)
-- Each tool is a separate .csproj
-
-**test-data/**
-- Purpose: Sample data for testing
-- Generated: Some files generated by DemoDataGenerator
-- Committed: Base test data committed, generated data in .gitignore
-
-**.planning/codebase/**
-- Purpose: GSD codebase analysis documents
-- Generated: Yes (by GSD mapping command)
+**`.planning/codebase/`:**
+- Purpose: Output of `/gsd-map-codebase` (this directory) consumed by `/gsd-plan-phase` and `/gsd-execute-phase`
+- Generated: Yes — produced by codebase mapper agents
 - Committed: Yes
-- Files: ARCHITECTURE.md, STRUCTURE.md, STACK.md, INTEGRATIONS.md, CONVENTIONS.md, TESTING.md, CONCERNS.md
 
 ---
 
-*Structure analysis: 2026-02-02*
+*Structure analysis: 2026-05-24*

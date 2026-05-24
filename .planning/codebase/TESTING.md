@@ -1,414 +1,447 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-02-02
+**Analysis Date:** 2026-05-24
 
-## Test Framework
+## Test Pyramid
+
+EZ Platform uses an **E2E-first** strategy with the following weighting:
+
+```
+        ┌──────────────────┐
+        │  E2E Tests (60%) │  ← Primary focus — 6 passing scenarios
+        └──────────────────┘
+             ┌────────────┐
+             │ Integration│  ← Critical paths — 83 tests
+             │ Tests (25%)│
+             └────────────┘
+                  ┌────┐
+                  │Unit│  ← Critical logic — 25 tests
+                  │15% │
+                  └────┘
+```
+
+The ratio reflects deliberate strategy: backend behavior is exercised through real Kubernetes-deployed services rather than mocked at the controller boundary. Unit tests cover pure converters (CSV, JSON, XML, Excel) and other isolatable utilities.
+
+## Test Frameworks
+
+### Backend (.NET)
 
 **Runner:**
-- Frontend: Playwright `@playwright/test` v1.49.0
-- Config: `src/Frontend/playwright.config.ts`
-- Backend: Integration tests use xUnit/.NET test frameworks (project structure indicates testing via `*.Tests` projects)
+- xUnit (referenced via `<PackageReference Include="xunit" />` + `xunit.runner.visualstudio`)
+- Test SDK: `Microsoft.NET.Test.Sdk`
+- Coverage: `coverlet.collector`
+- Config: per-project `<IsTestProject>true</IsTestProject>` in `*.Tests.csproj`. See `src/Services/FileProcessorService.Tests/FileProcessorService.Tests.csproj`.
 
-**Assertion Library:**
-- Playwright: Native `expect()` API with TypeScript support
-- Backend: NUnit/xUnit assertions (inferred from service structure)
+**Assertion library:**
+- FluentAssertions (`result.Should().NotBeNull(); records!.Count.Should().Be(2);`)
+- Reference: `src/Services/FileProcessorService.Tests/CsvToJsonConverterHeaderlessTests.cs:47-53`.
 
-**Run Commands:**
+**Mocking:**
+- Moq (`new Mock<ILogger<CsvToJsonConverter>>()` then `.Object`)
+
+**Run commands:**
 ```bash
-# Frontend E2E tests - all browsers
-npm run test:e2e
+# Run a specific service's test project
+cd src/Services/FileProcessorService.Tests
+dotnet test
 
-# Watch mode with UI
-npm run test:e2e:ui
+# Run all backend tests from solution root
+dotnet test DataProcessingPlatform.sln
 
-# Headed mode (visible browser)
-npm run test:e2e:headed
-
-# View report
-npm run test:e2e:report
+# With coverage
+dotnet test --collect:"XPlat Code Coverage"
 ```
+
+### Frontend (E2E)
+
+**Runner:**
+- Playwright `@playwright/test` `^1.49.0`
+- Config: `src/Frontend/playwright.config.ts`
+- Default base URL: `http://172.30.22.206:30080` (Minikube NodePort) — overridable via `BASE_URL` env var. Local port-forward base would be `http://localhost:7000`.
+
+**Browsers:** chromium-only by default. Multi-browser projects (Firefox/WebKit) are not configured.
+
+**Reporters:**
+- `html` (saved, never auto-opened)
+- `json` → `test-results/results.json`
+- `list` (terminal)
+
+**Run commands (from `src/Frontend/package.json:44-57`):**
+```bash
+cd src/Frontend
+npm run test:e2e                  # Full E2E suite
+npm run test:e2e:headed           # With visible browser
+npm run test:e2e:ui               # Playwright UI mode
+npm run test:e2e:report           # Open last HTML report
+npm run test:e2e:p0               # Only @P0-tagged specs
+npm run test:e2e:p1               # @P0 or @P1-tagged specs
+npm run test:e2e:sanity           # Sanity gate suite (headless)
+npm run test:e2e:sanity:headed    # Sanity gate, headed Chrome
+npm run test:e2e:sanity:watch     # Sanity with slowMo: 2500ms for step-by-step
+```
+
+### Webapp-testing (Python Playwright)
+
+**Runner:** Python `playwright.sync_api`, plain-Python scripts (no pytest framework).
+
+**Purpose:** comprehensive UI verification with reconnaissance-first approach. Tools complement Playwright E2E — they exercise edge cases (tooltips, modal content, cancel flows, uniqueness, error handling, popconfirms).
+
+**Location:** `src/Frontend/tests/webapp-testing/`
+
+**Scripts:**
+- `recon.py` — DOM discovery script; prints button structure, icon classes, modal contents
+- `clone_comprehensive_test.py` — clone datasource feature: action buttons, tooltips, list-page clone, details-page clone, uniqueness, popconfirm
+- `completeness_comprehensive_test.py` — datasource completeness checklist
+- `import_comprehensive_test.py` — file-import workflows
+
+**Run command:**
+```bash
+cd src/Frontend
+python tests/webapp-testing/clone_comprehensive_test.py
+python tests/webapp-testing/completeness_comprehensive_test.py
+python tests/webapp-testing/import_comprehensive_test.py
+```
+
+**Pattern:** Each script launches headless chromium, runs reconnaissance first (`recon.py` style) to discover the DOM, then asserts behavior with a custom `report(name, passed, detail)` helper that accumulates results.
 
 ## Test File Organization
 
-**Location (Frontend):**
-- Base directory: `src/Frontend/tests/e2e/`
-- Files: `datasource.spec.ts`, `invalid-records.spec.ts`, `metrics.spec.ts`, `alerts.spec.ts`
-- Path pattern: `tests/e2e/[feature].spec.ts`
+### Backend
 
-**Naming (Frontend):**
-- Feature-based: one spec file per major feature
-- Suffix: `.spec.ts` (Playwright convention)
-- File structure: Group related tests in single spec file
-
-**Structure (Frontend):**
+**Location:** Sibling `*.Tests` project alongside the service:
 ```
-tests/
-├── e2e/
-│   ├── datasource.spec.ts
-│   ├── invalid-records.spec.ts
-│   ├── metrics.spec.ts
-│   └── alerts.spec.ts
-├── fixtures/
-└── README.md
+src/Services/
+├── DataSourceManagementService/
+├── DataSourceManagementService.Tests/      # OptimisticLockingTests.cs (stubs)
+├── FileProcessorService/
+└── FileProcessorService.Tests/             # CsvToJsonConverterHeaderlessTests.cs
 ```
 
-**Backend:**
-- Integration tests in service-specific `*.Tests` projects
-- Located alongside service code (project structure suggests `[ServiceName].Tests` folders)
-- Pattern: `src/Services/[ServiceName].Tests/`
+**Naming:**
+- Test class: `[ClassUnderTest]Tests` (e.g. `OptimisticLockingTests`, `CsvToJsonConverterHeaderlessTests`)
+- Test method: `Method_Scenario_ExpectedOutcome` (e.g. `Update_WithStaleVersion_Returns409Conflict`, `HeaderlessCsv_WithSchemaPropertyNames_ProducesSchemaFieldNames`)
 
-## Test Structure
+**Currently only two backend test projects exist** (`DataSourceManagementService.Tests` and `FileProcessorService.Tests`); the other 7 services rely on E2E coverage. This is a recognized coverage gap (see CONCERNS).
 
-**Test Suite Organization (Playwright):**
+### Frontend E2E
+
+**Location:** `src/Frontend/tests/e2e/`
+
+**Structure:**
+```
+tests/e2e/
+├── sanity.spec.ts                   # SANITY-01..SANITY-21 deployment gate
+├── p0-pipeline-flow.spec.ts         # @P0 critical paths
+├── p0-datasource-creation.spec.ts
+├── p0-nas-lifecycle.spec.ts
+├── p0-server-management.spec.ts
+├── p1-datasource-edit.spec.ts
+├── p1-datasource-tabs.spec.ts
+├── multi-user-live-sync.spec.ts     # SignalR sync
+├── signalr-monitoring.spec.ts
+├── v030-e2e-ftp-pipeline.spec.ts    # E2E-001..E2E-006 pipeline tests
+├── v030-e2e-nas-pipeline.spec.ts
+├── v030-selection-verification.spec.ts
+├── *-api.spec.ts                    # API-only specs
+├── *-ui.spec.ts                     # UI-driven specs
+├── e2e-validation/                  # Sequential full-pipeline tests (180s timeout)
+├── protocols/                       # Cross-cluster protocol tests (120s timeout, serial)
+├── fixtures/                        # test-data.csv, test-data.json, test-data.xlsx, test-data.xml
+├── helpers/                         # ez-api-client.ts, simulator-client.ts, ui-helpers.ts, test-data.ts, report-generator.ts, api-utils.ts
+├── support/                         # index.ts barrel + helpers/fixtures
+└── snapshots/                       # visual regression baselines
+```
+
+**Naming:**
+- Files: `kebab-case.spec.ts`
+- Tests: `<TEST-ID>: <description>` (e.g. `'SANITY-01: All service health endpoints respond'`, `'PL-001: create datasource with HTTP input server'`)
+- Tags: `@Sanity`, `@P0`, `@P1`, `@Pipeline` (prefix in test name for `--grep` filtering)
+
+## Playwright Configuration
+
+**Reference:** `src/Frontend/playwright.config.ts`
+
+**Global settings:**
+- `fullyParallel: true` (workers may run tests in parallel)
+- `workers: process.env.CI ? 4 : undefined`
+- `retries: process.env.CI ? 2 : 0`
+- `forbidOnly: !!process.env.CI` — fail build if `test.only` left in source
+- `timeout: 60000` per test (default)
+- `actionTimeout: 10000`, `navigationTimeout: 30000`
+- `trace: 'on-first-retry'`, `screenshot: 'only-on-failure'`, `video: 'on-first-retry'`
+
+**Visual regression:**
+- Snapshot directory: `./tests/e2e/snapshots/`
+- `toHaveScreenshot` allows `maxDiffPixelRatio: 0.3`, `threshold: 0.2`, `animations: 'disabled'`, `scale: 'device'`
+- 30% pixel tolerance accounts for live data (timestamps) and RTL layout variance.
+
+**Projects:**
+- `chromium` — default Desktop Chrome
+- `protocols` — cross-cluster protocol tests; `fullyParallel: false`, 120s timeout, 30s action timeout
+- `e2e-validation` — full pipeline tests; `fullyParallel: false`, 180s timeout
+- `sanity` — headed Chrome via `channel: 'chrome'`, NodePort base URL, 60s timeout, `headless: false`
+- `sanity-watch` — `slowMo: 2500ms` for step-by-step observation
+
+**Global hooks:**
+- `globalSetup` / `globalTeardown` in `tests/e2e/protocols/global-setup`, gated to run only when `--project=protocols` or `PROTOCOL_TESTS=true`.
+
+**webServer:** disabled by default (K8s port-forward expected on :7000). Set `RUN_WEBSERVER=true` to start `npm start` locally.
+
+## Test Structure (E2E)
+
+**Suite organization pattern:**
+
 ```typescript
-// From datasource.spec.ts (lines 9-15)
-test.describe('DataSource Management', () => {
-  test.beforeEach(async ({ page }) => {
-    // Navigate to the data sources page
-    await page.goto('/');
-    // Wait for page to load
-    await page.waitForLoadState('networkidle');
-  });
+import { test, expect, APIRequestContext, request, Page } from '@playwright/test';
 
-  test('should display the data sources list', async ({ page }) => {
-    // Test implementation
+const BASE_URL = process.env.BASE_URL || 'http://172.30.22.206:30080';
+const DATASOURCE_API = process.env.DATASOURCE_API || `${BASE_URL}`;
+
+let apiContext: APIRequestContext;
+
+test.beforeAll(async () => {
+  apiContext = await request.newContext({ ignoreHTTPSErrors: true });
+});
+
+test.afterAll(async () => {
+  await apiContext.dispose();
+});
+
+// Sequential mode for stateful suites:
+test.describe.configure({ mode: 'serial' });
+
+test.describe('@P0 @Pipeline CSV Pipeline Flow', () => {
+  test('PL-001: create datasource with HTTP input server', async ({ page, cleanup, request }) => {
+    // ...
   });
 });
 ```
 
-**Patterns:**
-- `test.describe()`: Group related tests
-- `test.beforeEach()`: Setup before each test
-- `test()`: Individual test case
-- Test naming: descriptive "should" phrases (line 17, 25, 33, etc.)
+Reference: `src/Frontend/tests/e2e/sanity.spec.ts:10-49`, `src/Frontend/tests/e2e/p0-pipeline-flow.spec.ts:9-37`.
 
-**Setup/Teardown:**
-- `beforeEach`: Navigate to page, wait for load state (lines 10-15)
-- `afterEach`: Implicit cleanup via browser context isolation
-- No explicit teardown in provided examples; Playwright handles cleanup
-
-**Assertion Pattern:**
-```typescript
-// Role-based locators (recommended)
-await expect(page.getByRole('button', { name: /submit/i })).toBeVisible();
-
-// Test ID locators
-await expect(page.getByTestId('datasource-filter')).toBeTruthy();
-
-// Text-based locators
-await expect(page.getByText('ניהול מקורות נתונים')).toBeVisible();
-```
+**Shared helpers (extract to top of file when used 2+ times):**
+- `extractId(body)` and `extractData(body)` — defensive accessors for `body?.Data?.ID || body?.ID || body?.id` (handles both PascalCase backend wrapper and camelCase responses).
+- `antSelect(page, inputId, optionMatcher?, optionIndex?)` — opens Ant Design `<Select>` and clicks a dropdown option. Required because Playwright `.click()` doesn't trigger React state changes on Ant's custom controls.
+- `antTabClick(page, tabKey)` — clicks an Ant Design tab via `document.querySelector('[id$="-tab-${key}"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))`. Native click doesn't fire React synthetic events in RTL mode.
+- See `src/Frontend/tests/e2e/sanity.spec.ts:51-82`.
 
 ## Mocking
 
-**Framework:** Playwright does not use Jest/Vitest mocks
-- **Network interception:** `page.waitForResponse()` for monitoring API calls
-- **Local storage:** Via `page.context().storageState()`
-- **Test data fixtures:** Fixture files in `tests/fixtures/` (referenced in lines 254, 264)
+**Backend (unit):**
+```csharp
+var logger = new Mock<ILogger<CsvToJsonConverter>>();
+_converter = new CsvToJsonConverter(logger.Object);
+```
+- Only mock pure dependencies (loggers, interfaces with no observable side effects).
+- DO NOT mock MongoDB, MassTransit, or HTTP clients in unit tests — those are exercised in E2E.
+- Reference: `src/Services/FileProcessorService.Tests/CsvToJsonConverterHeaderlessTests.cs:20-24`.
 
-**Patterns (Network Mocking):**
+**Frontend:**
+- E2E tests do not mock; they hit real backend APIs via `apiContext` and real UI in chromium.
+- API specs use Playwright `APIRequestContext` directly to call `DATASOURCE_API`, bypassing the UI.
+- For SignalR multi-user testing, two browser contexts are opened simultaneously to verify cross-session sync (`multi-user-live-sync.spec.ts`, `multi-user-sync.spec.ts`).
+
+## Fixtures and Test Data
+
+**Test data files (`src/Frontend/tests/e2e/fixtures/`):**
+- `test-data.csv` — basic CSV
+- `test-data.json` — JSON payload
+- `test-data.xlsx` — Excel workbook
+- `test-data.xml` — XML payload
+- `generate-xlsx.js` — script to (re)generate the xlsx fixture
+
+**Helper modules (`src/Frontend/tests/e2e/helpers/`):**
+- `ez-api-client.ts` — typed wrappers for `/api/v1/Servers`, `/api/v1/NasDevices`, `/api/v1/FileOperations` with PascalCase request payloads (`AdminServerPayload`, `NasDeviceRole` enum, etc.). Reference: `tests/e2e/helpers/ez-api-client.ts:8-60`.
+- `simulator-client.ts` — calls file-simulator service to seed pipeline test data
+- `ui-helpers.ts` — shared UI navigation (RTL-aware clicks, etc.)
+- `test-data.ts` — programmatic test data builders
+- `report-generator.ts` — generates matrix HTML reports for protocol suite
+
+**Unique naming convention:** Tests use `Date.now()` for entity name uniqueness:
 ```typescript
-// Wait for API response
-await page.waitForResponse(resp => resp.url().includes('/api/data'));
-
-// Monitor requests
-page.on('request', req => requests.push(req.url()));
-
-// Wait for network idle
-await page.waitForLoadState('networkidle');
+const dsName = `Sanity-UI-${Date.now()}`;
+const dsName = `PL001 Pipeline ${Date.now()}`;
 ```
 
-**Test Data Fixtures:**
-```typescript
-// From README.md lines 254-270
-export const testDataSource = {
-  name: 'E2E Test Source',
-  description: 'Created by automated tests',
-  type: 'local-file',
-  path: '/data/test',
-  format: 'csv'
-};
+**Cleanup pattern:** Tests own their cleanup. Always `try { ... } finally { await apiContext.delete(...); }`. The `cleanup` fixture (provided in `tests/e2e/support`) tracks IDs and reaps them after the test.
 
-test('should create datasource', async ({ page }) => {
-  await page.getByLabel(/name/i).fill(testDataSource.name);
-});
-```
+## E2E Scenarios (6 Passing)
 
-**What to Mock:**
-- API responses: intercept with `page.waitForResponse()`
-- External services: test against real services in staging (recommended per README)
-- Network conditions: via Playwright device emulation
+Pipeline-level acceptance scenarios validated end-to-end through Kubernetes-deployed services:
 
-**What NOT to Mock:**
-- UI interactions (always simulate real user clicks)
-- Form validation (always test actual form behavior)
-- Navigation (always verify URL changes)
+| ID | Scenario | Description |
+|----|----------|-------------|
+| **E2E-001** | Basic pipeline | FileDiscovery → Validation → Output happy path with CSV |
+| **E2E-002** | Large file processing | 100+ records through the full pipeline |
+| **E2E-003** | Invalid records handling | Schema violations routed to InvalidRecordsService |
+| **E2E-004** | Multi-destination output | Folder + Kafka destinations from a single datasource |
+| **E2E-005** | Scheduled polling | Quartz.NET job triggers FileDiscovery → pipeline |
+| **E2E-006** | Error recovery & retry | MassTransit retry logic handles transient failures |
 
-## Fixtures and Factories
+**Source files:**
+- `src/Frontend/tests/e2e/v030-e2e-ftp-pipeline.spec.ts`
+- `src/Frontend/tests/e2e/v030-e2e-nas-pipeline.spec.ts`
+- `src/Frontend/tests/e2e/v030-selection-verification.spec.ts`
+- `src/Frontend/tests/e2e/e2e-validation/` (sequential project, 180s/test)
 
-**Test Data:**
-- Location: `tests/fixtures/` directory (implicit, referenced in README lines 254-261)
-- Pattern: Object literals with test data constants
-- Reusability: Import fixtures in multiple test files
+## Sanity Suite (Deployment Gate)
 
-**Example Structure (from README):**
-```typescript
-// fixtures/datasources.ts
-export const testDataSource = {
-  name: 'E2E Test Source',
-  description: 'Created by automated tests',
-  type: 'local-file',
-  path: '/data/test',
-  format: 'csv'
-};
-```
+**Purpose:** Fast (< 5 min), API-level checks for a freshly deployed + seeded cluster. Runs after `DemoDataGenerator` seeding in CI's `sanity-deploy` job.
 
-**Cleanup Pattern:**
-```typescript
-// From README lines 274-277
-test.afterEach(async ({ page }) => {
-  // Clean up test data via API
-  await page.request.delete('/api/datasources?name=E2E*');
-});
-```
+**File:** `src/Frontend/tests/e2e/sanity.spec.ts` (821 lines, 21 tests)
+
+**Tests:**
+- SANITY-01: All 7 service health endpoints respond (3x retry, 5s backoff)
+- SANITY-02: Seeded datasources visible
+- SANITY-03: Create + delete datasource via UI (all 8 tabs) — uses Ant Design RTL workarounds
+- SANITY-04: Seeded categories visible
+- SANITY-05: Metrics endpoint responsive
+- SANITY-06: Scheduling endpoint responsive
+- SANITY-07: Frontend loads, title not empty (Hebrew or English)
+- SANITY-08: Docs homepage opens
+- SANITY-09: Hebrew user guide loads with Hebrew characters (regex `/[א-ת]/`)
+- SANITY-10: Help button opens docs popup
+- SANITY-11: NAS pipeline — create datasource with NAS device (skips if no provisioned NAS)
+- SANITY-12: Revalidate-all endpoint
+- SANITY-13: SchemaVersion increments on schema update
+- SANITY-14: TTL field persists
+- SANITY-15: Clone datasource (name prefix)
+- SANITY-16: Clone preserves schema + output destinations
+- SANITY-17: Create datasource with CSV-inferred schema
+- SANITY-18: Archive datasource fields
+- SANITY-19: Incomplete datasource flagging
+- SANITY-20: All 10 menu pages load without error boundary or infinite spinner (headed Chrome)
+- SANITY-21: All nginx proxy routes reach backend services (catches port-mismatch bugs like the 5006→5007 regression)
+
+**Run gate:** `npm run test:e2e:sanity` must pass before deployments are considered acceptance-complete.
 
 ## Coverage
 
-**Requirements:** No coverage target enforced
-- Playwright tests are E2E, not unit tests
-- Coverage metrics not tracked in visible config
-- Focus on critical user journeys (6 main E2E scenarios per CLAUDE.md)
+**Backend:**
+- No enforced coverage threshold; `coverlet.collector` configured but no `[Collect Coverage]` enforced.
+- View coverage: `dotnet test --collect:"XPlat Code Coverage"` then inspect `TestResults/*/coverage.cobertura.xml`.
 
-**View Coverage:**
-- HTML report: `npm run test:e2e:report`
-- JSON output: configured to `test-results/results.json` (playwright.config.ts line 26)
+**Frontend:**
+- No unit test runner configured (`@testing-library/react` and `@testing-library/jest-dom` are devDeps but there is no `npm test` script and no `jest.config` / `vitest.config`).
+- Coverage = E2E coverage; the sanity + P0 + P1 + pipeline suites are the de facto coverage metric.
 
 ## Test Types
 
-**Unit Tests:**
-- Not explicitly configured in frontend
-- Backend services likely have unit tests in `*.Tests` projects
-- For this analysis, focus is on E2E and integration
+**Unit tests (backend, ~15%):**
+- Scope: pure functions, converters, formatters with no I/O.
+- Examples: `CsvToJsonConverterHeaderlessTests` covering header / headerless / SchemaPropertyNames mapping.
+- Approach: Arrange / Act / Assert with FluentAssertions and Moq for `ILogger<T>`.
 
-**Integration Tests (Frontend E2E):**
-- Scope: Full user workflows across multiple pages
-- Approach: Test actual browser navigation, form submission, API calls
-- Examples: datasource.spec.ts tests full CRUD flow with multiple tabs
+**Integration tests (~25%):**
+- Backend integration tests are largely stubbed pending `WebApplicationFactory` setup. See `OptimisticLockingTests.cs` (skipped: "Stub -- implement with WebApplicationFactory").
+- Effective integration coverage today comes from API-level E2E specs (`*-api.spec.ts`) that hit deployed services directly.
 
-**E2E Tests (Playwright):**
-- Framework: `@playwright/test`
-- Configuration: `playwright.config.ts` (7 test projects for cross-browser testing)
-- Test matrix:
-  - Chromium (Desktop)
-  - Firefox (Desktop)
-  - Safari (Desktop)
-  - Chrome Mobile (Pixel 5)
-  - Safari Mobile (iPhone 12)
-
-**6 Main E2E Scenarios (from CLAUDE.md):**
-1. **E2E-001:** Basic pipeline (FileDiscovery → Validation → Output)
-2. **E2E-002:** Large file processing (100+ records)
-3. **E2E-003:** Invalid records handling
-4. **E2E-004:** Multi-destination output (Folder + Kafka)
-5. **E2E-005:** Scheduled polling verification
-6. **E2E-006:** Error recovery & retry logic
+**E2E tests (~60%):**
+- Full Kubernetes-deployed pipeline tested via Playwright.
+- API specs: `categories-api.spec.ts`, `datasource-api.spec.ts`, `file-operations-api.spec.ts`, `import-archive-api.spec.ts`, `scheduling-api.spec.ts`, `schema-api.spec.ts`.
+- UI specs: `categories-ui.spec.ts`, `invalid-records-bulk-ui.spec.ts`, `scheduling-ui.spec.ts`, `schema-validation-ui.spec.ts`, etc.
+- Visual regression: `rtl-visual.spec.ts` + Playwright `toHaveScreenshot()`.
 
 ## Common Patterns
 
-**Async Testing:**
+**Async / await with Playwright:**
 ```typescript
-// From datasource.spec.ts lines 25-31
-test('should navigate to create new data source', async ({ page }) => {
-  await page.getByRole('button', { name: /הוסף מקור נתונים חדש|הוסף/ }).click();
-  await expect(page).toHaveURL(/create|new/);
-});
-
-// With network wait
-await page.waitForResponse(resp => resp.url().includes('/api/'));
-```
-
-**Waiting Strategies (from README lines 139-152):**
-```typescript
-// Wait for element visibility
-await expect(page.getByText(/loaded/i)).toBeVisible({ timeout: 30000 });
-
-// Wait for navigation
-await page.waitForURL(/\/details/);
-
-// Wait for API response
-await page.waitForResponse(resp => resp.url().includes('/api/data'));
-
-// Wait for network idle
-await page.waitForLoadState('networkidle');
-```
-
-**Locator Best Practices:**
-
-1. **Role-based (most accessible):**
-```typescript
-// From README lines 120-125
-await page.getByRole('button', { name: /submit/i });
-await page.getByRole('heading', { name: /title/i });
-await page.getByRole('tab', { name: /settings/i });
-```
-
-2. **Test IDs (complex components):**
-```typescript
-// From README lines 128-130
-await page.getByTestId('datasource-filter');
-await page.locator('[data-testid="metric-type-select"]');
-```
-
-3. **Text-based with regex (flexible):**
-```typescript
-// From README lines 133-136
-await page.getByText(/create|add|new/i);
-await page.getByLabel(/name/i);
-```
-
-**Playwright Configuration (playwright.config.ts):**
-- Parallel execution: `fullyParallel: true` (line 12)
-- Retries on CI: `retries: process.env.CI ? 2 : 0` (line 18)
-- Single worker on CI: `workers: process.env.CI ? 1 : undefined` (line 21)
-- Global timeout: 60 seconds per test (line 52)
-- Action timeout: 10 seconds (line 45)
-- Navigation timeout: 30 seconds (line 48)
-- Expect timeout: 10 seconds (line 56)
-
-**Video/Screenshots Configuration (playwright.config.ts lines 35-42):**
-```typescript
-trace: 'on-first-retry',        // Trace on first retry
-screenshot: 'only-on-failure',  // Screenshots on failure
-video: 'on-first-retry',        // Video on first retry
-```
-
-## Error Testing
-
-**Pattern (E2E approach):**
-```typescript
-// From datasource.spec.ts - testing error states
-test('should handle validation errors', async ({ page }) => {
-  // Submit form without required fields
-  await page.getByRole('button', { name: /save|submit/i }).click();
-
-  // Verify error message displayed
-  await expect(page.getByText(/required|error/i)).toBeVisible();
-});
-```
-
-**Error Scenarios (from test structure):**
-- Invalid connection configuration (connection test failures)
-- Missing required fields (form validation)
-- Duplicate data source names (API validation)
-- Invalid JSON schemas (schema validation)
-- Network timeouts (connection test edge cases)
-
-**Debugging Failed Tests (from README lines 196-213):**
-
-1. **Trace Viewer:**
-```bash
-npx playwright test --trace on
-npx playwright show-trace test-results/*/trace.zip
-```
-
-2. **Debug Mode:**
-```bash
-npx playwright test --debug
-npx playwright test --debug-on-fail
-```
-
-3. **Screenshots/Videos:**
-- Configured in `playwright.config.ts`
-- Output: `test-results/` directory
-
-## Test Environment Configuration
-
-**Base URL:**
-```typescript
-// playwright.config.ts line 33
-baseURL: process.env.BASE_URL || 'http://localhost:3000'
-```
-
-**Environment Overrides (from README lines 78-92):**
-```bash
-# Local development (default)
-npx playwright test
-
-# Staging environment
-BASE_URL=https://staging.ez-platform.com npx playwright test
-
-# Production (read-only tests)
-BASE_URL=https://ez-platform.com npx playwright test --grep @smoke
-```
-
-**CI/CD Integration (from README lines 157-194):**
-- GitHub Actions matrix testing
-- Install dependencies: `npm ci`
-- Install browsers: `npx playwright install --with-deps`
-- Run tests with CI flag: `CI=true npx playwright test`
-- Upload artifacts on failure
-
-## Performance Testing Patterns
-
-**Page Load Performance (from README lines 225-233):**
-```typescript
-test('should load dashboard quickly', async ({ page }) => {
-  const startTime = Date.now();
-  await page.goto('/metrics/dashboard');
-  await page.waitForSelector('.recharts-wrapper');
-  const loadTime = Date.now() - startTime;
-
-  expect(loadTime).toBeLessThan(5000); // 5 seconds max
-});
-```
-
-**Network Request Optimization (from README lines 237-247):**
-```typescript
-test('should not make excessive API calls', async ({ page }) => {
-  const requests: string[] = [];
-  page.on('request', req => requests.push(req.url()));
-
-  await page.goto('/');
+test('SANITY-NN: description', async ({ page }) => {
+  await page.goto(FRONTEND_URL);
   await page.waitForLoadState('networkidle');
-
-  const apiCalls = requests.filter(r => r.includes('/api/'));
-  expect(apiCalls.length).toBeLessThan(20);
+  await expect(page.locator('selector')).toBeVisible();
 });
 ```
 
-## Test Data Management
-
-**Fixture Pattern:**
-- Location: `tests/fixtures/` directory
-- Import in test files: `import { testDataSource } from '../fixtures/datasources'`
-- Reuse across multiple test files
-- Constants for consistent data
-
-**Cleanup Strategy:**
+**Defensive response parsing (handles backend Data wrapper):**
 ```typescript
-test.afterEach(async ({ page }) => {
-  // Delete test data via API
-  await page.request.delete('/api/datasources?name=E2E*');
-});
+const body = await response.json();
+const items = Array.isArray(body)
+  ? body
+  : body?.Data?.Items ?? body?.data?.items ?? body?.data ?? body?.items ?? [];
 ```
 
-## Current Test Coverage Status
+**Rate-limit-aware cleanup (cluster has 10s retry-after):**
+```typescript
+try {
+  // ... test work ...
+} finally {
+  await new Promise(r => setTimeout(r, 11000));  // wait past rate limit
+  await apiContext.delete(`${DATASOURCE_API}/api/v1/DataSource/${dsId}?deletedBy=SanityTest`);
+}
+```
 
-**E2E Tests (All Passing):**
-- 6 main scenarios (per CLAUDE.md)
-- 4 test files implemented: datasource.spec.ts, invalid-records.spec.ts, metrics.spec.ts, alerts.spec.ts
-- Cross-browser testing: Chromium, Firefox, Safari, Mobile Chrome, Mobile Safari
+**Error testing in backend unit tests:**
+```csharp
+[Fact]
+public async Task Update_WithStaleVersion_Returns409Conflict()
+{
+    // Arrange
+    var stale = await CreateAndReadVersion();
+    await BumpVersion();
+    
+    // Act
+    var response = await PutWithVersion(stale);
+    
+    // Assert
+    response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+}
+```
 
-**Known Test Gaps (per CLAUDE.md):**
-- Multiple file formats: Only CSV fully tested (XML, Excel, JSON not covered)
-- High load testing: Max tested 100 records (10,000+ not tested)
-- Multi-destination scaling: Only 2 destinations tested (4+ not tested)
+**Skipped test stubs (mark with reason):**
+```csharp
+[Fact(Skip = "Stub -- implement with WebApplicationFactory")]
+public async Task SomeTest() { ... }
+```
+Reference: `src/Services/DataSourceManagementService.Tests/OptimisticLockingTests.cs:11`.
 
-**Test Readiness:**
-- Hebrew UI support verified (lines 19, 27, 71, etc. in datasource.spec.ts)
-- RTL layout testing via Ant Design components
-- Mobile viewports included in test matrix
+## `/gsd:add-tests` Workflow
+
+Per `CLAUDE.md` Testing Requirements, every phase that touches frontend UI MUST run both testing tools before the phase is complete.
+
+**Step 1: `/gsd:add-tests {phase}` — Unit + E2E test generation**
+- Classifies modified files into TDD (unit) / E2E (Playwright) / Skip.
+- Generates Vitest unit tests for pure functions (frontend has Vitest devDeps available; no config exists yet so generation is the trigger to add one).
+- Generates Playwright E2E specs for UI behavior.
+- Run with `--headed` flag during local validation: `npx playwright test --headed`.
+
+**Step 2: `webapp-testing` skill — Comprehensive UI verification**
+- Python Playwright scripts under `src/Frontend/tests/webapp-testing/`.
+- Reconnaissance-first: `recon.py` discovers DOM, then targeted `*_comprehensive_test.py` scripts assert behavior.
+- Exercises edge cases NOT covered by `/gsd:add-tests`:
+  - Tooltip visibility on hover
+  - Modal title + body content
+  - Cancel flow (close modal without action)
+  - Uniqueness (multiple clones of the same datasource)
+  - Duplicate-name error handling
+  - Form pre-fill verification after clone
+
+**Tools complement each other:**
+- `/gsd:add-tests` → unit tests + basic E2E flows
+- `webapp-testing` → comprehensive UI verification with edge cases
+
+Reference in planning: `.planning/phases/26-completeness-checklist/26-04-PLAN.md:465` — "Testing policy satisfied: both /gsd:add-tests and webapp-testing tools exercised".
+
+## Known Test Gaps
+
+**To be addressed in future releases (per CLAUDE.md):**
+
+| Gap | Current State | Risk |
+|-----|---------------|------|
+| **File format coverage** | Only CSV fully E2E tested. XML, Excel, JSON converters exist but lack end-to-end pipeline tests. | XML/Excel/JSON regressions ship undetected. |
+| **High-load testing** | Maximum tested: 100 records (E2E-002). No load tests at 1k, 10k, or 100k records. | Performance cliffs (memory, Hazelcast TTL, MongoDB query plans) not validated. |
+| **Multi-destination scaling** | Only 2 destinations tested (E2E-004 Folder + Kafka). No tests at 4+ destinations. | Fan-out throughput, backpressure, partial-failure semantics unknown. |
+| **Backend integration tests** | `OptimisticLockingTests` are stubs (`Skip = "Stub -- implement with WebApplicationFactory"`). No service has full `WebApplicationFactory` integration coverage. | 409 Conflict semantics, MassTransit retry policies, optimistic locking validated only at E2E layer. |
+| **Frontend unit tests** | No Vitest/Jest runner configured despite `@testing-library/react` being installed. Pure helpers (`completenessUtils`, `humanizeCron`, schema validators) lack unit coverage. | Logic regressions in pure functions caught only through full Playwright runs. |
+| **Backend service test coverage** | Only 2 of 9 services have a `.Tests` project (`DataSourceManagementService.Tests`, `FileProcessorService.Tests`). Validation, Output, Scheduling, FileDiscovery, InvalidRecords, MetricsConfiguration, DataSourceChat have no unit tests. | High-blast-radius changes in those services rely on E2E + manual validation. |
+
+## Run-Order Considerations
+
+- Sanity suite assumes seeded data. Run `cd tools/DemoDataGenerator && dotnet run` after a fresh deploy before invoking `npm run test:e2e:sanity`.
+- Port forwards must be active for tests that hit non-NodePort backends (Validation 5003, FileProcessor 5008, Output 5009, InvalidRecords 5007). Run `scripts/start-port-forwards.ps1` first.
+- Stateful suites (`p0-*`, `v030-*`, `multi-user-*`) declare `test.describe.configure({ mode: 'serial' })` so workers don't trample each other.
+- Rate limiter on the cluster returns 429 with `retry-after: 10s`; cleanup loops wait 11s before `DELETE` calls.
 
 ---
 
-*Testing analysis: 2026-02-02*
+*Testing analysis: 2026-05-24*
