@@ -24,11 +24,11 @@ const CategoryManagementTab: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: deleteCategory,
     onSuccess: () => {
-      message.success(t('admin.categories.deleteSuccess') || 'קטגוריה נמחקה בהצלחה');
+      message.success(t('admin.categories.deleteSuccess'));
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
     onError: (error: any) => {
-      message.error(error.message || t('admin.categories.deleteError') || 'שגיאה במחיקת קטגוריה');
+      message.error(error.message || t('admin.categories.deleteError'));
     },
   });
 
@@ -37,11 +37,11 @@ const CategoryManagementTab: React.FC = () => {
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       toggleCategoryActive(id, isActive),
     onSuccess: () => {
-      message.success(t('admin.categories.toggleSuccess') || 'סטטוס קטגוריה עודכן בהצלחה');
+      message.success(t('admin.categories.toggleSuccess'));
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
     onError: (error: any) => {
-      message.error(error.message || t('admin.categories.toggleError') || 'שגיאה בשינוי סטטוס קטגוריה');
+      message.error(error.message || t('admin.categories.toggleError'));
     },
   });
 
@@ -80,7 +80,7 @@ const CategoryManagementTab: React.FC = () => {
   if (error) {
     return (
       <Alert
-        message="שגיאה בטעינת קטגוריות"
+        message={t('admin.categories.loadError')}
         description={(error as any).message}
         type="error"
         showIcon
@@ -97,12 +97,12 @@ const CategoryManagementTab: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <Typography.Title level={4} style={{ margin: 0 }}>
-            {t('admin.categories.subtitle') || 'ניהול קטגוריות מקורות נתונים'}
+            {t('admin.categories.subtitle')}
           </Typography.Title>
           <Typography.Text type="secondary">
-            <Badge status="success" text={`${activeCount} פעילות`} />
+            <Badge status="success" text={t('admin.categories.activeCount', { count: activeCount })} />
             {' | '}
-            <Badge status="default" text={`${inactiveCount} לא פעילות`} />
+            <Badge status="default" text={t('admin.categories.inactiveCount', { count: inactiveCount })} />
           </Typography.Text>
         </div>
         <Button
@@ -110,7 +110,7 @@ const CategoryManagementTab: React.FC = () => {
           icon={<PlusOutlined />}
           onClick={handleAdd}
         >
-          {t('admin.categories.addButton') || 'הוסף קטגוריה'}
+          {t('admin.categories.addButton')}
         </Button>
       </div>
 

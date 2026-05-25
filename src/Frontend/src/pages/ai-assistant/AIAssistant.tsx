@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button, Input, Typography, Avatar } from 'antd';
 import {
   RobotOutlined,
@@ -7,6 +7,7 @@ import {
   DatabaseOutlined,
   AlertOutlined,
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -19,62 +20,24 @@ interface Message {
 }
 
 const AIAssistant: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'ai',
-      content: '👋 שלום! אני העוזר הדיגיטלי שלך לתובנות נתונים. אני יכול לעזור לך לנתח מקורות הנתונים שלך, ליצור דשבורדים ולחקור בעיות. מה תרצה לדעת?',
-      timestamp: '2025-09-17 10:30:00',
-    },
-    {
-      id: '2',
-      type: 'user',
-      content: 'הצג לי את מגמות שגיאות האימות לשבוע האחרון',
-      timestamp: '2025-09-17 10:31:15',
-    },
-    {
-      id: '3',
-      type: 'ai',
-      content: `ניתחתי את שגיאות האימות לשבוע האחרון. הנה מה שמצאתי:
 
-📊 **סיכום שגיאות:**
-• סך שגיאות: 1,247 (↓ 15% מהשבוע הקודם)
-• הנפוצות ביותר: שדות חובה חסרים (45%)
-• שעת שיא שגיאות: יום שני 9-11 בבוקר
-• מקור ביצועים גרועים ביותר: טפסי משוב לקוחות
+  // Mock conversation seeded from i18n so it switches with language.
+  const messages_init = useMemo<Message[]>(() => [
+    { id: '1', type: 'ai',   content: t('aiAssistant.greeting'),    timestamp: '2025-09-17 10:30:00' },
+    { id: '2', type: 'user', content: t('aiAssistant.mock.q1'),     timestamp: '2025-09-17 10:31:15' },
+    { id: '3', type: 'ai',   content: t('aiAssistant.mock.a1'),     timestamp: '2025-09-17 10:32:00' },
+    { id: '4', type: 'user', content: t('aiAssistant.mock.q2'),     timestamp: '2025-09-17 10:33:20' },
+    { id: '5', type: 'ai',   content: t('aiAssistant.mock.a2'),     timestamp: '2025-09-17 10:34:10' },
+  ], [t]);
 
-תרצה שאצור דשבורד Grafana לניטור המגמות האלה?`,
-      timestamp: '2025-09-17 10:32:00',
-    },
-    {
-      id: '4',
-      type: 'user',
-      content: 'למה לטפסי משוב לקוחות יש כל כך הרבה שגיאות?',
-      timestamp: '2025-09-17 10:33:20',
-    },
-    {
-      id: '5',
-      type: 'ai',
-      content: `חקרתי את מקור הנתונים טפסי משוב לקוחות. הבעיות העיקריות הן:
-
-🔍 **סיבות שורש:**
-• Schema עודכן ב-15 בספטמבר, אבל פורמט ישן עדיין מתקבל
-• שדה חובה חדש 'satisfaction_score' חסר ב-67% מהרשומות
-• תבנית אימות אימייל השתנתה, גורמת לשגיאות פורמט
-
-**פעולות מומלצות:**
-1. פנה ל-Survey Monkey לעדכון פורמט הייצוא שלהם
-2. שקול להפוך את 'satisfaction_score' לא חובה זמנית
-3. בדוק תבנית regex לאימות אימייל`,
-      timestamp: '2025-09-17 10:34:10',
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(messages_init);
 
   const quickActions = [
-    { label: 'הצג מדדי היום', icon: <BarChartOutlined /> },
-    { label: 'צור דשבורד שגיאות', icon: <AlertOutlined /> },
-    { label: 'נתח מגמות איכות נתונים', icon: <DatabaseOutlined /> },
+    { label: t('aiAssistant.actions.todayMetrics'),   icon: <BarChartOutlined /> },
+    { label: t('aiAssistant.actions.errorDashboard'), icon: <AlertOutlined /> },
+    { label: t('aiAssistant.actions.qualityTrends'),  icon: <DatabaseOutlined /> },
   ];
 
   const handleSendMessage = () => {
@@ -83,7 +46,7 @@ const AIAssistant: React.FC = () => {
         id: Date.now().toString(),
         type: 'user',
         content: inputValue,
-        timestamp: new Date().toLocaleString('he-IL'),
+        timestamp: new Date().toLocaleString(i18n.language),
       };
       setMessages([...messages, newMessage]);
       setInputValue('');
@@ -93,8 +56,8 @@ const AIAssistant: React.FC = () => {
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
           type: 'ai',
-          content: 'תודה על שאלתך! אני עובד על הנתונים ואחזור אליך עם תשובה מפורטת בקרוב.',
-          timestamp: new Date().toLocaleString('he-IL'),
+          content: t('aiAssistant.mock.thinkingResponse'),
+          timestamp: new Date().toLocaleString(i18n.language),
         };
         setMessages(prev => [...prev, aiResponse]);
       }, 1000);
@@ -110,7 +73,7 @@ const AIAssistant: React.FC = () => {
       <div className="page-header">
         <div>
           <Title level={2} style={{ margin: 0 }}>
-            עוזר AI - תובנות נתונים
+            {t('aiAssistant.title')}
           </Title>
         </div>
       </div>
@@ -120,12 +83,12 @@ const AIAssistant: React.FC = () => {
         {/* Dark Sidebar */}
         <div className="chat-sidebar">
           <div>
-            <h3>🤖 עוזר AI</h3>
-            <p>שאל אותי על מקורות הנתונים, מדדים ותובנות שלך!</p>
+            <h3>{t('aiAssistant.heading')}</h3>
+            <p>{t('aiAssistant.intro')}</p>
           </div>
 
           <div className="quick-actions">
-            <strong>פעולות מהירות:</strong>
+            <strong>{t('aiAssistant.quickActions')}</strong>
             <div>
               {quickActions.map((action, index) => (
                 <Button
@@ -141,7 +104,7 @@ const AIAssistant: React.FC = () => {
           </div>
 
           <div className="connection-status">
-            <strong>מחובר:</strong>
+            <strong>{t('aiAssistant.connectedLabel')}</strong>
             <div>
               <div>✅ MongoDB</div>
               <div>✅ Grafana</div>
@@ -174,7 +137,7 @@ const AIAssistant: React.FC = () => {
             <TextArea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="שאל על הנתונים, מדדים או בקש תובנות..."
+              placeholder={t('aiAssistant.placeholder')}
               autoSize={{ minRows: 1, maxRows: 3 }}
               onPressEnter={(e) => {
                 if (!e.shiftKey) {
@@ -189,7 +152,7 @@ const AIAssistant: React.FC = () => {
               onClick={handleSendMessage}
               disabled={!inputValue.trim()}
             >
-              שלח
+              {t('aiAssistant.send')}
             </Button>
           </div>
         </div>

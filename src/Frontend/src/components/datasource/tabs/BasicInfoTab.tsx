@@ -29,12 +29,12 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
             label={t('datasources.fields.name')}
             rules={[
               { required: true, message: t('errors.required') },
-              { min: 2, message: 'שם מקור הנתונים חייב להיות לפחות 2 תווים' },
-              { max: 100, message: 'שם מקור הנתונים לא יכול להיות ארוך מ-100 תווים' }
+              { min: 2, message: t('datasources.validation.nameMinLength') },
+              { max: 100, message: t('datasources.validation.nameMaxLength') }
             ]}
           >
-            <Input 
-              placeholder="לדוגמה: נתוני מכירות חודשיים" 
+            <Input
+              placeholder={t('datasources.placeholders.name')}
               maxLength={100}
             />
           </Form.Item>
@@ -46,12 +46,12 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
             label={t('datasources.fields.supplierName')}
             rules={[
               { required: true, message: t('errors.required') },
-              { min: 2, message: 'שם הספק חייב להיות לפחות 2 תווים' },
-              { max: 50, message: 'שם הספק לא יכול להיות ארוך מ-50 תווים' }
+              { min: 2, message: t('datasources.validation.supplierMinLength') },
+              { max: 50, message: t('datasources.validation.supplierMaxLength') }
             ]}
           >
-            <Input 
-              placeholder="לדוגמה: חברת ABC" 
+            <Input
+              placeholder={t('datasources.placeholders.supplier')}
               maxLength={50}
             />
           </Form.Item>
@@ -67,18 +67,18 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
           >
             {categoriesError ? (
               <Alert
-                message="שגיאה בטעינת קטגוריות"
+                message={t('admin.categories.loadError')}
                 description={(categoriesError as any).message}
                 type="error"
                 showIcon
               />
             ) : categories.length === 0 && !categoriesLoading ? (
               <Alert
-                message="לא קיימות קטגוריות פעילות"
+                message={t('datasources.noActiveCategories')}
                 description={
                   <>
-                    יש ליצור קטגוריה אחת לפחות בטרם יצירת מקור נתונים.{' '}
-                    <Link to="/admin/settings">עבור להגדרות מערכת</Link>
+                    {t('datasources.noActiveCategoriesDescription')}{' '}
+                    <Link to="/admin/settings">{t('datasources.goToAdminSettings')}</Link>
                   </>
                 }
                 type="warning"
@@ -86,9 +86,9 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
               />
             ) : (
               <Select
-                placeholder="בחר קטגוריה"
+                placeholder={t('datasources.placeholders.category')}
                 loading={categoriesLoading}
-                notFoundContent={categoriesLoading ? <Spin size="small" /> : 'לא נמצאו קטגוריות'}
+                notFoundContent={categoriesLoading ? <Spin size="small" /> : t('datasources.noCategoriesFound')}
               >
                 {categories.map(cat => (
                   <Option key={cat.ID} value={cat.Name}>
@@ -103,15 +103,15 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
         <Col xs={24} lg={12}>
           <Form.Item
             name="retentionDays"
-            label="תקופת שמירה (ימים)"
-            tooltip="כמה ימים לשמור קבצים מעובדים לפני מחיקה"
+            label={t('datasources.fields.invalidRecordsTtlDays')}
+            tooltip={t('datasources.fields.invalidRecordsTtlTooltip')}
           >
-            <InputNumber 
-              min={1} 
-              max={3650} 
-              placeholder="30" 
+            <InputNumber
+              min={1}
+              max={3650}
+              placeholder="30"
               style={{ width: '100%' }}
-              addonAfter="ימים"
+              addonAfter={t('datasources.fields.days')}
             />
           </Form.Item>
         </Col>
@@ -129,7 +129,7 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
               max={365}
               placeholder="4"
               style={{ width: '100%' }}
-              addonAfter={t('common.days') || '\u05D9\u05DE\u05D9\u05DD'}
+              addonAfter={t('common.days')}
             />
           </Form.Item>
         </Col>
@@ -138,11 +138,11 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
       <Form.Item
         name="description"
         label={t('datasources.fields.description')}
-        rules={[{ max: 500, message: 'התיאור לא יכול להיות ארוך מ-500 תווים' }]}
+        rules={[{ max: 500, message: t('datasources.validation.descriptionMaxLength') }]}
       >
-        <TextArea 
+        <TextArea
           rows={3}
-          placeholder="הוסף תיאור מפורט על מקור הנתונים, מה הוא מכיל ואיך הוא משמש"
+          placeholder={t('datasources.placeholders.description')}
           maxLength={500}
           showCount
         />
@@ -153,9 +153,9 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ form, t }) => {
         valuePropName="checked"
         label={t('datasources.fields.status')}
       >
-        <Switch 
-          checkedChildren="פעיל" 
-          unCheckedChildren="לא פעיל"
+        <Switch
+          checkedChildren={t('datasources.fields.activeLabel')}
+          unCheckedChildren={t('datasources.fields.inactiveLabel')}
         />
       </Form.Item>
     </>

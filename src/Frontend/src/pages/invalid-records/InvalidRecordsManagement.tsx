@@ -35,7 +35,7 @@ interface DataSource {
 }
 
 const InvalidRecordsManagement: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [revalidating, setRevalidating] = useState(false);
   const [selectedDataSource, setSelectedDataSource] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -55,18 +55,19 @@ const InvalidRecordsManagement: React.FC = () => {
   const pageSize = 10;
 
   // Error type labels for Corvus JSON Schema validation errors
-  // These map to specific validation types extracted from error messages
-  const errorTypeConfig: Record<string, { label: string; color: string }> = {
-    SchemaValidation: { label: 'כל שגיאות Schema', color: 'red' },
-    minimum: { label: 'ערך קטן מהמותר', color: 'magenta' },
-    maximum: { label: 'ערך גדול מהמותר', color: 'volcano' },
-    format: { label: 'פורמט שגוי (תאריך/אימייל)', color: 'orange' },
-    pattern: { label: 'תבנית לא תקינה', color: 'geekblue' },
-    enum: { label: 'ערך לא ברשימה המותרת', color: 'cyan' },
-    required: { label: 'שדה חובה חסר', color: 'red' },
-    minLength: { label: 'טקסט קצר מדי', color: 'purple' },
-    maxLength: { label: 'טקסט ארוך מדי', color: 'gold' },
-    type: { label: 'סוג נתונים שגוי', color: 'lime' },
+  // These map to specific validation types extracted from error messages.
+  // Labels are resolved via t() at render time so they switch with language.
+  const errorTypeConfig: Record<string, { labelKey: string; color: string }> = {
+    SchemaValidation: { labelKey: 'invalidRecords.errorTypes.schemaValidation', color: 'red' },
+    minimum: { labelKey: 'invalidRecords.errorTypes.minimum', color: 'magenta' },
+    maximum: { labelKey: 'invalidRecords.errorTypes.maximum', color: 'volcano' },
+    format: { labelKey: 'invalidRecords.errorTypes.format', color: 'orange' },
+    pattern: { labelKey: 'invalidRecords.errorTypes.pattern', color: 'geekblue' },
+    enum: { labelKey: 'invalidRecords.errorTypes.enum', color: 'cyan' },
+    required: { labelKey: 'invalidRecords.errorTypes.required', color: 'red' },
+    minLength: { labelKey: 'invalidRecords.errorTypes.minLength', color: 'purple' },
+    maxLength: { labelKey: 'invalidRecords.errorTypes.maxLength', color: 'gold' },
+    type: { labelKey: 'invalidRecords.errorTypes.type', color: 'lime' },
   };
 
   // Extract specific validation type from Corvus error message
@@ -127,7 +128,7 @@ const InvalidRecordsManagement: React.FC = () => {
 
   const renderErrorType = (errorType: string) => {
     const config = errorTypeConfig[errorType];
-    return <Tag color={config?.color || 'red'}>{config?.label || errorType}</Tag>;
+    return <Tag color={config?.color || 'red'}>{config?.labelKey ? t(config.labelKey) : errorType}</Tag>;
   };
 
   // Fetch datasources for filter dropdown
@@ -593,7 +594,7 @@ const InvalidRecordsManagement: React.FC = () => {
       <Row justify="space-between" align="top">
         <Col flex="auto">
           <Space align="center" style={{ marginBottom: 4 }}>
-            <Title level={5} style={{ margin: 0 }}>רשומה #{record.id}</Title>
+            <Title level={5} style={{ margin: 0 }}>{t('invalidRecords.recordNumber', { id: record.id })}</Title>
             {record.validatedWithSchemaVersion != null && (
               <Tag color="blue">
                 {t('revalidation.schemaVersionLabel')} v{record.validatedWithSchemaVersion}
@@ -606,11 +607,11 @@ const InvalidRecordsManagement: React.FC = () => {
             )}
           </Space>
           <Descriptions size="small" column={1}>
-            <Descriptions.Item label="מקור נתונים">{record.dataSourceName}</Descriptions.Item>
-            <Descriptions.Item label="קובץ">{record.fileName}</Descriptions.Item>
-            <Descriptions.Item label="חותמת זמן">{new Date(record.createdAt).toLocaleString('he-IL')}</Descriptions.Item>
+            <Descriptions.Item label={t('invalidRecords.fields.dataSource')}>{record.dataSourceName}</Descriptions.Item>
+            <Descriptions.Item label={t('invalidRecords.fields.file')}>{record.fileName}</Descriptions.Item>
+            <Descriptions.Item label={t('invalidRecords.fields.timestamp')}>{new Date(record.createdAt).toLocaleString(i18n.language)}</Descriptions.Item>
             {record.lineNumber && (
-              <Descriptions.Item label="שורה">{record.lineNumber}</Descriptions.Item>
+              <Descriptions.Item label={t('invalidRecords.fields.line')}>{record.lineNumber}</Descriptions.Item>
             )}
           </Descriptions>
         </Col>
@@ -621,22 +622,22 @@ const InvalidRecordsManagement: React.FC = () => {
               icon={<ReloadOutlined />}
               onClick={() => handleReprocess(record)}
             >
-              עבד מחדש
+              {t('invalidRecords.reprocess')}
             </Button>
-            <Button 
-              size="small" 
-              danger 
-              icon={<DeleteOutlined />} 
+            <Button
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
               onClick={() => handleDelete(record.id)}
             >
-              מחק
+              {t('invalidRecords.delete')}
             </Button>
           </Space>
         </Col>
       </Row>
 
       <div style={{ marginTop: 12, color: '#e74c3c' }}>
-        <Text strong>שגיאות אימות:</Text>
+        <Text strong>{t('invalidRecords.fields.validationErrors')}</Text>
         <div style={{ marginTop: 8 }}>
           {translateErrors(record.errors).map((translated, index) => (
             <Tooltip
@@ -657,7 +658,7 @@ const InvalidRecordsManagement: React.FC = () => {
       </div>
 
       <Collapse ghost style={{ marginTop: 10 }}>
-        <Panel header="הצג נתוני רשומה מקורית" key="1">
+        <Panel header={t('invalidRecords.fields.viewOriginalRecord')} key="1">
           {renderOriginalRecord(record)}
         </Panel>
       </Collapse>
@@ -669,7 +670,7 @@ const InvalidRecordsManagement: React.FC = () => {
       <div className="page-header">
         <div>
           <Title level={2} style={{ margin: 0 }}>
-            ניהול רשומות לא תקינות
+            {t('invalidRecords.title')}
           </Title>
         </div>
         <Space>
@@ -690,11 +691,11 @@ const InvalidRecordsManagement: React.FC = () => {
             </Button>
           </Popconfirm>
           <Popconfirm
-            title="מחק רשומות מסוננות?"
-            description={`פעולה זו תמחק ${totalCount} רשומות לא תקינות לפי הפילטרים הנוכחיים ותעדכן את הסטטיסטיקות. האם להמשיך?`}
+            title={t('invalidRecords.confirmDelete.title')}
+            description={t('invalidRecords.confirmDelete.description', { count: totalCount })}
             onConfirm={handleDeleteAll}
-            okText="מחק"
-            cancelText="ביטול"
+            okText={t('invalidRecords.delete')}
+            cancelText={t('invalidRecords.cancel')}
             okButtonProps={{ danger: true }}
           >
             <Button
@@ -703,7 +704,7 @@ const InvalidRecordsManagement: React.FC = () => {
               disabled={totalCount === 0}
               loading={loading}
             >
-              מחק הכל ({totalCount})
+              {t('invalidRecords.deleteAll', { count: totalCount })}
             </Button>
           </Popconfirm>
           <Button
@@ -711,7 +712,7 @@ const InvalidRecordsManagement: React.FC = () => {
             onClick={handleExport}
             disabled={totalCount === 0}
           >
-            יצא JSON ({totalCount})
+            {t('invalidRecords.exportJson', { count: totalCount })}
           </Button>
         </Space>
       </div>
@@ -719,12 +720,12 @@ const InvalidRecordsManagement: React.FC = () => {
       {/* Global Statistics Dashboard */}
       {statistics && (
         <>
-          <Title level={4} style={{ marginBottom: 16 }}>סטטיסטיקות כלליות</Title>
+          <Title level={4} style={{ marginBottom: 16 }}>{t('invalidRecords.stats.globalTitle')}</Title>
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
             <Col span={6}>
               <Card>
                 <Statistic
-                  title="סה״כ רשומות לא תקינות"
+                  title={t('invalidRecords.stats.totalRecords')}
                   value={statistics.totalInvalidRecords}
                   prefix={<ExclamationCircleOutlined />}
                   valueStyle={{ color: '#ff4d4f' }}
@@ -734,7 +735,7 @@ const InvalidRecordsManagement: React.FC = () => {
             <Col span={6}>
               <Card>
                 <Statistic
-                  title="רשומות שנבדקו"
+                  title={t('invalidRecords.stats.reviewedRecords')}
                   value={statistics.reviewedRecords}
                   prefix={<CheckCircleOutlined />}
                   valueStyle={{ color: '#52c41a' }}
@@ -744,7 +745,7 @@ const InvalidRecordsManagement: React.FC = () => {
             <Col span={6}>
               <Card>
                 <Statistic
-                  title="רשומות שהתעלמו"
+                  title={t('invalidRecords.stats.ignoredRecords')}
                   value={statistics.ignoredRecords}
                   prefix={<EyeInvisibleOutlined />}
                   valueStyle={{ color: '#faad14' }}
@@ -754,7 +755,7 @@ const InvalidRecordsManagement: React.FC = () => {
             <Col span={6}>
               <Card>
                 <Statistic
-                  title="סוגי שגיאות"
+                  title={t('invalidRecords.stats.errorTypes')}
                   value={Object.keys(statistics.byErrorType).length}
                   prefix={<BarChartOutlined />}
                   valueStyle={{ color: '#1890ff' }}
@@ -768,12 +769,12 @@ const InvalidRecordsManagement: React.FC = () => {
       {/* Filtered Statistics Dashboard */}
       {filteredStatistics && (
         <>
-          <Title level={4} style={{ marginBottom: 16 }}>סטטיסטיקות מסוננות (תצוגה נוכחית)</Title>
+          <Title level={4} style={{ marginBottom: 16 }}>{t('invalidRecords.stats.filteredTitle')}</Title>
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
             <Col span={6}>
               <Card style={{ borderColor: '#1890ff', borderWidth: 2 }}>
                 <Statistic
-                  title="רשומות מוצגות"
+                  title={t('invalidRecords.stats.recordsShown')}
                   value={filteredStatistics.totalInvalidRecords}
                   prefix={<SearchOutlined />}
                   valueStyle={{ color: '#1890ff' }}
@@ -783,7 +784,7 @@ const InvalidRecordsManagement: React.FC = () => {
             <Col span={6}>
               <Card style={{ borderColor: '#52c41a', borderWidth: 2 }}>
                 <Statistic
-                  title="נבדקו (מסוננות)"
+                  title={t('invalidRecords.stats.reviewedFiltered')}
                   value={filteredStatistics.reviewedRecords}
                   prefix={<CheckCircleOutlined />}
                   valueStyle={{ color: '#52c41a' }}
@@ -793,7 +794,7 @@ const InvalidRecordsManagement: React.FC = () => {
             <Col span={6}>
               <Card style={{ borderColor: '#faad14', borderWidth: 2 }}>
                 <Statistic
-                  title="התעלמו (מסוננות)"
+                  title={t('invalidRecords.stats.ignoredFiltered')}
                   value={filteredStatistics.ignoredRecords}
                   prefix={<EyeInvisibleOutlined />}
                   valueStyle={{ color: '#faad14' }}
@@ -803,7 +804,7 @@ const InvalidRecordsManagement: React.FC = () => {
             <Col span={6}>
               <Card style={{ borderColor: '#1890ff', borderWidth: 2 }}>
                 <Statistic
-                  title="סוגי שגיאות (מסוננות)"
+                  title={t('invalidRecords.stats.errorTypesFiltered')}
                   value={Object.keys(filteredStatistics.byErrorType).length}
                   prefix={<BarChartOutlined />}
                   valueStyle={{ color: '#1890ff' }}
@@ -819,13 +820,13 @@ const InvalidRecordsManagement: React.FC = () => {
         <Row gutter={[16, 16]}>
           <Col span={6}>
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text>קטגוריה:</Text>
+              <Text>{t('invalidRecords.filters.category')}</Text>
               <Select
                 style={{ width: '100%' }}
                 value={selectedCategory}
                 onChange={handleCategoryChange}
               >
-                <Option value="all">כל הקטגוריות</Option>
+                <Option value="all">{t('invalidRecords.filters.allCategories')}</Option>
                 {categories.map(cat => (
                   <Option key={cat} value={cat}>{cat}</Option>
                 ))}
@@ -834,7 +835,7 @@ const InvalidRecordsManagement: React.FC = () => {
           </Col>
           <Col span={6}>
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text>מקור נתונים:</Text>
+              <Text>{t('invalidRecords.filters.dataSource')}</Text>
               <Select
                 style={{ width: '100%' }}
                 value={selectedDataSource}
@@ -842,7 +843,7 @@ const InvalidRecordsManagement: React.FC = () => {
                 showSearch
                 optionFilterProp="children"
               >
-                <Option value="all">כל מקורות הנתונים</Option>
+                <Option value="all">{t('invalidRecords.filters.allDataSources')}</Option>
                 {getFilteredDataSources().map(ds => (
                   <Option key={ds.ID} value={ds.ID}>{ds.Name}</Option>
                 ))}
@@ -851,13 +852,13 @@ const InvalidRecordsManagement: React.FC = () => {
           </Col>
           <Col span={6}>
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text>סוג שגיאה:</Text>
+              <Text>{t('invalidRecords.filters.errorType')}</Text>
               <Select
                 style={{ width: '100%' }}
                 value={selectedErrorType}
                 onChange={setSelectedErrorType}
               >
-                <Option value="all">כל השגיאות</Option>
+                <Option value="all">{t('invalidRecords.filters.allErrors')}</Option>
                 {(() => {
                   const errorTypeCounts = getErrorTypeCountsFromRecords();
                   return getAvailableErrorTypes().map(type => {
@@ -865,7 +866,7 @@ const InvalidRecordsManagement: React.FC = () => {
                     const count = errorTypeCounts[type] || 0;
                     return (
                       <Option key={type} value={type}>
-                        {config?.label || type} {count > 0 && `(${count})`}
+                        {config?.labelKey ? t(config.labelKey) : type} {count > 0 && `(${count})`}
                       </Option>
                     );
                   });
@@ -875,7 +876,7 @@ const InvalidRecordsManagement: React.FC = () => {
           </Col>
           <Col span={6}>
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text>טווח זמן:</Text>
+              <Text>{t('invalidRecords.filters.timeRange')}</Text>
               <Select
                 style={{ width: '100%' }}
                 value={selectedTimeRange}
@@ -884,12 +885,12 @@ const InvalidRecordsManagement: React.FC = () => {
                   if (value !== 'custom') setDateRange(null);
                 }}
               >
-                <Option value="all">כל הזמנים</Option>
-                <Option value="hour">שעה אחרונה</Option>
-                <Option value="day">יום אחרון</Option>
-                <Option value="week">שבוע אחרון</Option>
-                <Option value="month">חודש אחרון</Option>
-                <Option value="custom">טווח מותאם אישית</Option>
+                <Option value="all">{t('invalidRecords.filters.allTimes')}</Option>
+                <Option value="hour">{t('invalidRecords.filters.lastHour')}</Option>
+                <Option value="day">{t('invalidRecords.filters.lastDay')}</Option>
+                <Option value="week">{t('invalidRecords.filters.lastWeek')}</Option>
+                <Option value="month">{t('invalidRecords.filters.lastMonth')}</Option>
+                <Option value="custom">{t('invalidRecords.filters.customRange')}</Option>
               </Select>
             </Space>
           </Col>
@@ -898,7 +899,7 @@ const InvalidRecordsManagement: React.FC = () => {
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
             <Col span={12}>
               <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                <Text>תאריכים מותאמים:</Text>
+                <Text>{t('invalidRecords.filters.customDates')}</Text>
                 <RangePicker
                   style={{ width: '100%' }}
                   value={dateRange}
@@ -915,7 +916,7 @@ const InvalidRecordsManagement: React.FC = () => {
                 onClick={fetchRecords}
                 loading={loading}
               >
-                חפש
+                {t('invalidRecords.search')}
               </Button>
             </Col>
           </Row>
@@ -923,12 +924,12 @@ const InvalidRecordsManagement: React.FC = () => {
       </Card>
 
       {/* Invalid Records List */}
-      <Spin spinning={loading} tip="טוען רשומות לא תקינות...">
+      <Spin spinning={loading} tip={t('invalidRecords.loading')}>
         {invalidRecords.length === 0 && !loading ? (
           <Card style={{ textAlign: 'center', padding: '40px' }}>
             <ExclamationCircleOutlined style={{ fontSize: '48px', color: '#bbb', marginBottom: '16px' }} />
-            <Title level={4}>אין רשומות לא תקינות</Title>
-            <Text type="secondary">לא נמצאו רשומות לא תקינות עם הפילטרים הנבחרים</Text>
+            <Title level={4}>{t('invalidRecords.empty.title')}</Title>
+            <Text type="secondary">{t('invalidRecords.empty.subtitle')}</Text>
           </Card>
         ) : (
           <div>
@@ -956,7 +957,7 @@ const InvalidRecordsManagement: React.FC = () => {
                       <Space>
                         <DatabaseOutlined />
                         <Text strong>{group.dataSourceName}</Text>
-                        <Tag color="red">{group.records.length} רשומות</Tag>
+                        <Tag color="red">{t('invalidRecords.recordCount', { count: group.records.length })}</Tag>
                       </Space>
                     ),
                     children: (
@@ -978,7 +979,7 @@ const InvalidRecordsManagement: React.FC = () => {
                 total={totalCount}
                 onChange={(page) => setCurrentPage(page)}
                 showSizeChanger={false}
-                showTotal={(total) => `סה"כ ${total} רשומות לא תקינות`}
+                showTotal={(total) => t('invalidRecords.totalCount', { count: total })}
                 style={{ marginTop: 24, textAlign: 'center' }}
               />
             )}

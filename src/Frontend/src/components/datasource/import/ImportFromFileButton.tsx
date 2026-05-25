@@ -83,7 +83,7 @@ const ImportFromFileButton: React.FC<ImportFromFileButtonProps> = ({
       disabled={loading}
     >
       <Button type="primary" icon={<FileAddOutlined />} loading={loading} style={{ backgroundColor: '#13c2c2', borderColor: '#13c2c2' }}>
-        {t('datasources.import.newFromFile', { defaultValue: 'מקור נתונים חדש מקובץ' })}
+        {t('datasources.import.newFromFile')}
       </Button>
     </Upload>
   );

@@ -281,7 +281,7 @@ const DataSourceFormEnhanced: React.FC = () => {
 
   const handleCronHelperSelect = (expression: string) => {
     form.setFieldsValue({ cronExpression: expression });
-    message.success('ביטוי Cron עודכן');
+    message.success(t('datasources.messages.cronUpdated'));
   };
 
   const handleTestConnection = async () => {
@@ -478,7 +478,7 @@ const DataSourceFormEnhanced: React.FC = () => {
         const errorMsg = data.Error?.Message || '';
         const errorCode = data.Error?.Code || '';
         if (response.status === 409 || errorCode.includes('DUPLICATE') || errorMsg.includes('duplicate') || errorMsg.includes('already exists') || errorCode.includes('DATABASE_ERROR')) {
-          throw new Error(t('errors.duplicateName', { defaultValue: 'שם מקור הנתונים כבר קיים. שנה את השם ונסה שוב.' }));
+          throw new Error(t('errors.duplicateName'));
         }
         throw new Error(errorMsg || `HTTP error! status: ${response.status}`);
       }
@@ -501,11 +501,11 @@ const DataSourceFormEnhanced: React.FC = () => {
             {importData
               ? t('datasources.import.formTitle', { name: importData.name })
               : cloneData
-                ? t('datasources.clone.confirmTitle', { defaultValue: 'שכפול מקור נתונים' })
+                ? t('datasources.clone.confirmTitle')
                 : t('datasources.create')}
           </Title>
           <Paragraph className="page-subtitle">
-            צור מקור נתונים חדש עם הגדרות מלאות לחיבור, עיבוד, ותזמון
+            {t('datasources.form.createSubtitle')}
           </Paragraph>
         </div>
         <Space>
@@ -533,7 +533,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                   items={[
                     {
                       key: 'basic',
-                      label: <span><FileOutlined /> מידע בסיסי</span>,
+                      label: <span><FileOutlined /> {t('datasources.form.tabs.basicInfo')}</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="basic" className="completeness-tab">
@@ -544,7 +544,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                     },
                     {
                       key: 'connection',
-                      label: <span><ApiOutlined /> הגדרות קלט</span>,
+                      label: <span><ApiOutlined /> {t('datasources.form.tabs.inputSettings')}</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="connection" className="completeness-tab">
@@ -566,7 +566,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                     },
                     {
                       key: 'file',
-                      label: <span><FileOutlined /> הגדרות קובץ</span>,
+                      label: <span><FileOutlined /> {t('datasources.form.tabs.fileSettings')}</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="file" className="completeness-tab">
@@ -577,7 +577,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                     },
                     {
                       key: 'schema',
-                      label: <span><FileTextOutlined /> הגדרת Schema</span>,
+                      label: <span><FileTextOutlined /> {t('datasources.form.tabs.schemaSettings')}</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="schema" className="completeness-tab" onSubmit={(e) => { e.stopPropagation(); e.preventDefault(); }}>
@@ -588,7 +588,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                     },
                     {
                       key: 'schedule',
-                      label: <span><ClockCircleOutlined /> תזמון</span>,
+                      label: <span><ClockCircleOutlined /> {t('datasources.form.tabs.schedule')}</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="schedule" className="completeness-tab completeness-tab--recommended">
@@ -605,7 +605,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                     },
                     {
                       key: 'validation',
-                      label: <span><SafetyOutlined /> כללי אימות</span>,
+                      label: <span><SafetyOutlined /> {t('datasources.form.tabs.validationRules')}</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="validation" className="completeness-tab completeness-tab--optional">
@@ -616,7 +616,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                     },
                     {
                       key: 'notifications',
-                      label: <span><BellOutlined /> התראות</span>,
+                      label: <span><BellOutlined /> {t('datasources.form.tabs.alerts')}</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="notifications" className="completeness-tab completeness-tab--optional">
@@ -627,7 +627,7 @@ const DataSourceFormEnhanced: React.FC = () => {
                     },
                     {
                       key: 'output',
-                      label: <span><ExportOutlined /> פלט</span>,
+                      label: <span><ExportOutlined /> {t('datasources.form.tabs.output')}</span>,
                       children: (
                         <Suspense fallback={<Skeleton active />}>
                           <div data-tab-key="output" className="completeness-tab completeness-tab--recommended">

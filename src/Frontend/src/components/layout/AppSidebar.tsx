@@ -38,7 +38,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ collapsed = false }) => {
     {
       key: '/alerts',
       icon: <BellOutlined />,
-      label: 'התרעות',
+      label: t('navigation.notifications'),
     },
     {
       key: '/dashboard',
@@ -53,7 +53,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ collapsed = false }) => {
     {
       key: '/admin/settings',
       icon: <SettingOutlined />,
-      label: t('navigation.adminSettings') || 'הגדרות מערכת',
+      label: t('navigation.adminSettings'),
     },
     {
       key: '/monitoring',

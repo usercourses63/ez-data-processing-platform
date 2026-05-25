@@ -454,6 +454,8 @@
     "delete": "מחק מקור נתונים",
     "search": "חיפוש מקורות נתונים...",
     "filter": "סינון",
+    "filterByCategory": "סנן לפי קטגוריה",
+    "filterByStatus": "סנן לפי סטטוס",
     "category": "קטגוריה",
     "status": {
       "active": "פעיל",
@@ -468,7 +470,18 @@
       "fileSettings": "הגדרות קובץ",
       "schedule": "הגדרות תזמון",
       "validation": "כללי אימות",
-      "notifications": "הגדרות התראות"
+      "notifications": "הגדרות התראות",
+      "createSubtitle": "צור מקור נתונים חדש עם הגדרות מלאות לחיבור, עיבוד, ותזמון",
+      "tabs": {
+        "basicInfo": "מידע בסיסי",
+        "inputSettings": "הגדרות קלט",
+        "fileSettings": "הגדרות קובץ",
+        "schemaSettings": "הגדרת Schema",
+        "schedule": "תזמון",
+        "validationRules": "כללי אימות",
+        "alerts": "התראות",
+        "output": "פלט"
+      }
     },
     "protocols": {
       "nas": "NAS - אחסון רשת"
@@ -501,7 +514,15 @@
       "archiveType": "סוג ארכיון",
       "archivePassword": "סיסמת ארכיון",
       "extractionPattern": "תבנית חילוץ",
-      "processNestedArchives": "עבד ארכיונים מקוננים"
+      "processNestedArchives": "עבד ארכיונים מקוננים",
+      "id": "מזהה",
+      "files": "קבצים",
+      "schedule": "תזמון",
+      "invalidRecordsTtlDays": "תקופת שמירה (ימים)",
+      "days": "ימים",
+      "activeLabel": "פעיל",
+      "inactiveLabel": "לא פעיל",
+      "invalidRecordsTtlTooltip": "כמה ימים לשמור קבצים מעובדים לפני מחיקה"
     },
     "sections": {
       "serverSelection": "בחירת שרת",
@@ -586,7 +607,8 @@
     },
     "messages": {
       "deleteSuccess": "מקור הנתונים '{{name}}' נמחק בהצלחה",
-      "deleteError": "שגיאה במחיקת מקור הנתונים '{{name}}'"
+      "deleteError": "שגיאה במחיקת מקור הנתונים '{{name}}'",
+      "cronUpdated": "ביטוי Cron עודכן"
     },
     "confirmDelete": {
       "title": "מחיקת מקור נתונים",
@@ -643,8 +665,25 @@
       "noDataFilesInArchive": "לא נמצאו קבצי נתונים נתמכים בארכיון",
       "autoCreated": "מקור הנתונים \"{{name}}\" נוצר. פותח עורך...",
       "autoCreateFailed": "שגיאה ביצירת מקור נתונים אוטומטית: {{error}}",
-      "autoCreatedDescription": "נוצר אוטומטית מקובץ מיובא: {{name}}"
-    }
+      "autoCreatedDescription": "נוצר אוטומטית מקובץ מיובא: {{name}}",
+      "newFromFile": "מקור נתונים חדש מקובץ"
+    },
+    "validation": {
+      "nameMinLength": "שם מקור הנתונים חייב להיות לפחות 2 תווים",
+      "nameMaxLength": "שם מקור הנתונים לא יכול להיות ארוך מ-100 תווים",
+      "supplierMinLength": "שם הספק חייב להיות לפחות 2 תווים",
+      "supplierMaxLength": "שם הספק לא יכול להיות ארוך מ-50 תווים",
+      "descriptionMaxLength": "התיאור לא יכול להיות ארוך מ-500 תווים"
+    },
+    "placeholders": {
+      "name": "לדוגמה: נתוני מכירות חודשיים",
+      "supplier": "לדוגמה: חברת ABC",
+      "category": "בחר קטגוריה",
+      "description": "הוסף תיאור מפורט על מקור הנתונים, מה הוא מכיל ואיך הוא משמש"
+    },
+    "noActiveCategories": "לא קיימות קטגוריות פעילות",
+    "noActiveCategoriesDescription": "יש ליצור קטגוריה אחת לפחות בטרם יצירת מקור נתונים.",
+    "noCategoriesFound": "לא נמצאו קטגוריות"
   },
   "completeness": {
     "required": "חובה",
@@ -1065,6 +1104,25 @@
       "jsonSyntaxError": "שגיאת תחביר ב-JSON",
       "networkError": "שגיאת רשת - נסה שוב מאוחר יותר",
       "serverError": "שגיאת שרת - פנה למנהל המערכת"
+    },
+    "create": "צור Schema חדש",
+    "edit": "ערוך Schema",
+    "delete": "מחק Schema",
+    "duplicate": "שכפל Schema",
+    "publish": "פרסם Schema",
+    "visual": "עורך חזותי",
+    "json": "עורך JSON",
+    "properties": "מאפיינים",
+    "required": "שדות חובה",
+    "dataTypes": {
+      "string": "מחרוזת",
+      "number": "מספר",
+      "integer": "מספר שלם",
+      "boolean": "בוליאני",
+      "array": "מערך",
+      "object": "אובייקט",
+      "date": "תאריך",
+      "null": "null"
     }
   },
   "common": {
@@ -1100,7 +1158,14 @@
     "showing": "מציג",
     "to": "עד",
     "actions": "פעולות",
-    "days": "ימים"
+    "days": "ימים",
+    "noData": "אין נתונים",
+    "records": "רשומות",
+    "total": "סך הכל",
+    "status": "סטטוס",
+    "date": "תאריך",
+    "time": "שעה",
+    "duration": "משך"
   },
   "errors": {
     "required": "שדה זה הוא חובה",
@@ -1110,12 +1175,22 @@
     "maxLength": "אורך מקסימלי הוא {{max}} תווים",
     "networkError": "שגיאת רשת - אנא נסה שוב",
     "serverError": "שגיאת שרת - אנא צור קשר עם התמיכה",
-    "duplicateName": "שם זה כבר קיים במערכת"
+    "duplicateName": "שם מקור הנתונים כבר קיים. שנה את השם ונסה שוב.",
+    "generic": "אירעה שגיאת מערכת",
+    "notFound": "הנתונים לא נמצאו",
+    "unauthorized": "אין הרשאה לבצע פעולה זו",
+    "validationFailed": "האימות נכשל",
+    "timeout": "תם הזמן הקצוב לפעולה",
+    "invalidData": "נתונים לא תקינים",
+    "invalidFormat": "פורמט לא תקין"
   },
   "messages": {
     "dataSourceCreated": "מקור הנתונים נוצר בהצלחה",
     "dataSourceUpdated": "מקור הנתונים עודכן בהצלחה",
-    "dataSourceDeleted": "מקור הנתונים נמחק בהצלחה"
+    "dataSourceDeleted": "מקור הנתונים נמחק בהצלחה",
+    "operationCompleted": "הפעולה הושלמה בהצלחה",
+    "confirmDelete": "האם אתה בטוח שברצונך למחוק פריט זה?",
+    "unsavedChanges": "יש שינויים שלא נשמרו, האם אתה בטוח שברצונך לעזוב?"
   },
   "admin": {
     "title": "הגדרות מערכת",
@@ -1312,7 +1387,10 @@
         "nameMaxLength": "שם לא יכול להיות ארוך מ-100 תווים",
         "nameEnMaxLength": "שם לא יכול להיות ארוך מ-100 תווים",
         "descriptionMaxLength": "תיאור לא יכול להיות ארוך מ-500 תווים"
-      }
+      },
+      "loadError": "שגיאה בטעינת קטגוריות",
+      "activeCount": "{{count}} פעילות",
+      "inactiveCount": "{{count}} לא פעילות"
     }
   },
   "revalidation": {
@@ -1336,5 +1414,250 @@
     "version": "גרסה",
     "environment": "סביבה",
     "documentation": "תיעוד"
+  },
+  "realtime": {
+    "connected": "מחובר",
+    "disconnected": "מנותק",
+    "connecting": "מתחבר...",
+    "reconnecting": "מתחבר מחדש...",
+    "liveUpdates": "עדכונים בזמן אמת",
+    "lastUpdate": "עדכון אחרון"
+  },
+  "invalidRecords": {
+    "title": "ניהול רשומות לא תקינות",
+    "deleteAll": "מחק הכל ({{count}})",
+    "exportJson": "יצא JSON ({{count}})",
+    "search": "חפש",
+    "recordNumber": "רשומה #{{id}}",
+    "reprocess": "עבד מחדש",
+    "delete": "מחק",
+    "cancel": "ביטול",
+    "recordCount": "{{count}} רשומות",
+    "totalCount": "סה\"כ {{count}} רשומות לא תקינות",
+    "loading": "טוען רשומות לא תקינות...",
+    "empty": {
+      "title": "אין רשומות לא תקינות",
+      "subtitle": "לא נמצאו רשומות לא תקינות עם הפילטרים הנבחרים"
+    },
+    "confirmDelete": {
+      "title": "מחק רשומות מסוננות?",
+      "description": "פעולה זו תמחק {{count}} רשומות לא תקינות לפי הפילטרים הנוכחיים ותעדכן את הסטטיסטיקות. האם להמשיך?"
+    },
+    "fields": {
+      "dataSource": "מקור נתונים",
+      "file": "קובץ",
+      "timestamp": "חותמת זמן",
+      "line": "שורה",
+      "validationErrors": "שגיאות אימות:",
+      "viewOriginalRecord": "הצג נתוני רשומה מקורית"
+    },
+    "stats": {
+      "globalTitle": "סטטיסטיקות כלליות",
+      "totalRecords": "סה״כ רשומות לא תקינות",
+      "reviewedRecords": "רשומות שנבדקו",
+      "ignoredRecords": "רשומות שהתעלמו",
+      "errorTypes": "סוגי שגיאות",
+      "filteredTitle": "סטטיסטיקות מסוננות (תצוגה נוכחית)",
+      "recordsShown": "רשומות מוצגות",
+      "reviewedFiltered": "נבדקו (מסוננות)",
+      "ignoredFiltered": "התעלמו (מסוננות)",
+      "errorTypesFiltered": "סוגי שגיאות (מסוננות)"
+    },
+    "filters": {
+      "category": "קטגוריה:",
+      "allCategories": "כל הקטגוריות",
+      "dataSource": "מקור נתונים:",
+      "allDataSources": "כל מקורות הנתונים",
+      "errorType": "סוג שגיאה:",
+      "allErrors": "כל השגיאות",
+      "timeRange": "טווח זמן:",
+      "allTimes": "כל הזמנים",
+      "lastHour": "שעה אחרונה",
+      "lastDay": "יום אחרון",
+      "lastWeek": "שבוע אחרון",
+      "lastMonth": "חודש אחרון",
+      "customRange": "טווח מותאם אישית",
+      "customDates": "תאריכים מותאמים:"
+    },
+    "errorTypes": {
+      "schemaValidation": "כל שגיאות Schema",
+      "minimum": "ערך קטן מהמותר",
+      "maximum": "ערך גדול מהמותר",
+      "format": "פורמט שגוי (תאריך/אימייל)",
+      "pattern": "תבנית לא תקינה",
+      "enum": "ערך לא ברשימה המותרת",
+      "required": "שדה חובה חסר",
+      "minLength": "טקסט קצר מדי",
+      "maxLength": "טקסט ארוך מדי",
+      "type": "סוג נתונים שגוי"
+    }
+  },
+  "alerts": {
+    "title": "ניהול התרעות",
+    "subtitle": "הגדר וניהל התרעות על מדדים עסקיים ומדדי מערכת",
+    "refresh": "רענן",
+    "create": "יצירת התרעה",
+    "createFirst": "צור התרעה ראשונה",
+    "tabs": {
+      "alerts": "התרעות",
+      "settings": "הגדרות"
+    },
+    "section": {
+      "title": "ניהול התרעות מרכזי",
+      "description": "דף זה מאפשר לנהל את כל ההתרעות במערכת. ניתן ליצור התרעות חדשות על מדדים קיימים, לשלב ביטויים ממספר מדדים, ולנהל את ההתרעות הפעילות."
+    },
+    "columns": {
+      "status": "סטטוס",
+      "severity": "חומרה",
+      "category": "קטגוריה",
+      "dataSource": "מקור נתונים",
+      "name": "שם התרעה",
+      "expression": "ביטוי",
+      "tags": "תוויות",
+      "actions": "פעולות"
+    },
+    "list": {
+      "headerCount": "התרעות (",
+      "headerCountSuffix": "{{count}})"
+    },
+    "empty": "אין התרעות מוגדרות",
+    "settings": {
+      "title": "הגדרות התרעה גלובליות",
+      "defaultEmailRecipients": "נמעני Email ברירת מחדל",
+      "emailHint": "כתובות דוא״ל מופרדות בפסיקים",
+      "frequency": "תדירות התרעות",
+      "immediate": "מיידי",
+      "every5min": "כל 5 דקות",
+      "every15min": "כל 15 דקות",
+      "everyHour": "כל שעה",
+      "enableAlerts": "הפעל התרעות",
+      "save": "שמור הגדרות"
+    },
+    "types": {
+      "system": "מערכת",
+      "business": "עסקי",
+      "general": "כללי"
+    },
+    "severity": {
+      "critical": "קריטי",
+      "warning": "אזהרה",
+      "info": "מידע",
+      "criticalDesc": "קריטי - דורש טיפול מיידי",
+      "warningDesc": "אזהרה - דורש תשומת לב",
+      "infoDesc": "מידע - לידיעה בלבד"
+    },
+    "status": {
+      "enabled": "פעיל",
+      "disabled": "מושבת",
+      "alertActive": "התרעה פעילה"
+    },
+    "actions": {
+      "edit": "ערוך",
+      "delete": "מחק",
+      "create": "צור",
+      "update": "עדכן",
+      "cancel": "ביטול"
+    },
+    "createNew": "יצירת התרעה חדשה",
+    "edit": "עריכת התרעה",
+    "modal": {
+      "name": "שם ההתרעה",
+      "description": "תיאור קצר של ההתרעה",
+      "descriptionLabel": "תיאור",
+      "descriptionPlaceholder": "לדוגמה: ערך חריג בשדה סכום",
+      "severityLevel": "רמת חומרה",
+      "promqlExpression": "ביטוי PromQL",
+      "promqlHint": "ביטוי Prometheus לבדיקת ההתרעה",
+      "promqlPlaceholder": "לדוגמה: metric_name > 100&#10;לחץ על 'עוזר PromQL' לבניית ביטוי אינטראקטיבית",
+      "promqlHelper": "עוזר PromQL",
+      "promqlHelperTitle": "פתח עוזר PromQL לבניית ביטויים אינטראקטיבית",
+      "forDuration": "משך זמן לפני הפעלה (For)",
+      "forDurationHint": "כמה זמן הביטוי צריך להתקיים לפני שההתרעה תופעל",
+      "forDurationPlaceholder": "לדוגמה: 5m, 1h",
+      "labelsLabel": "תוויות (Labels) - אופציונלי",
+      "labelsHint": "הוסף תוויות לסינון ביטוי PromQL. השתמש ב-$variable לערכים דינמיים"
+    },
+    "templates": {
+      "title": "תבניות התרעה",
+      "email": "תבנית Email",
+      "slack": "תבנית Slack",
+      "recipients": "נמענים להודעה",
+      "alertReceived": "התקבלה התרעה במערכת:",
+      "greeting": "שלום,",
+      "signoff": "בברכה,",
+      "systemName": "מערכת עיבוד נתונים",
+      "dashboardLink": "🔗 לינק לדשבורד",
+      "subject": "נושא: [{{system}}] {alertName}",
+      "ruleLine": "כלל: {alertName}",
+      "conditionLine": "תנאי: {condition}",
+      "timeLine": "זמן: {timestamp}",
+      "slackAlert": "🚨 *התרעה: {alertName}*",
+      "slackCondition": "📋 תנאי: {condition}",
+      "slackTime": "⏰ זמן: {timestamp}"
+    },
+    "helper": {
+      "title": "עזרה ליצירת ביטוי",
+      "availableMetrics": "Metrics זמינים לשימוש בביטוי:",
+      "availableMetricsClick": "Metrics זמינים (לחץ להוספה):",
+      "prometheusType": "סוג Prometheus",
+      "expressionExamples": "דוגמאות לביטויים:",
+      "filterMetrics": "סינון Metrics:",
+      "selectBusiness": "בחר מדדים עסקיים...",
+      "selectSystem": "בחר מדדי מערכת...",
+      "selectDatasource": "בחר מדדי מקור נתונים...",
+      "businessHeader": "📈 מדדים עסקיים (Business Metrics)",
+      "systemHeader": "⚙️ מדדי מערכת (System Metrics)",
+      "datasourceHeader": "📊 מדדי מקור נתונים (Datasource Metrics)",
+      "typePrefix": "סוג:",
+      "modalSubtitle": "מציג {{shown}} מתוך {{total}} Metrics",
+      "datasourceMetricsExtra": "מדדים ספציפיים למקורות נתונים - {{count}} זמינים",
+      "businessMetricsExtra": "מדדים עסקיים גלובליים - {{count}} זמינים",
+      "systemMetricsExtra": "מדדי תשתית ומערכת - {{count}} זמינים"
+    },
+    "noFilterMatch": "אין תוצאות מתאימות לסינון",
+    "searchPlaceholder": "חיפוש חופשי...",
+    "searchShort": "חיפוש...",
+    "filterByCategory": "סנן לפי קטגוריה",
+    "clearShort": "נקה",
+    "clearFilters": "נקה מסננים",
+    "messages": {
+      "loadError": "שגיאה בטעינת התרעות",
+      "deleteError": "שגיאה במחיקת ההתרעה",
+      "saveError": "שגיאה בשמירת ההתרעה",
+      "createSuccess": "ההתרעה נוצרה בהצלחה",
+      "updateSuccess": "ההתרעה עודכנה בהצלחה",
+      "formInvalid": "טופס לא תקין - בדוק את השדות המודגשים",
+      "validationError": "שגיאת אימות",
+      "deleteSuccess": "ההתרעה \"{{name}}\" נמחקה בהצלחה"
+    },
+    "validation": {
+      "nameRequired": "יש להזין שם להתרעה",
+      "expressionRequired": "יש להזין ביטוי",
+      "atLeastOneMetric": "יש לבחור לפחות Metric אחד"
+    },
+    "confirmDelete": "האם למחוק את ההתרעה \"{{name}}\"?",
+    "alertWord": "התרעה"
+  },
+  "aiAssistant": {
+    "title": "עוזר AI - תובנות נתונים",
+    "heading": "🤖 עוזר AI",
+    "intro": "שאל אותי על מקורות הנתונים, מדדים ותובנות שלך!",
+    "quickActions": "פעולות מהירות:",
+    "actions": {
+      "todayMetrics": "הצג מדדי היום",
+      "errorDashboard": "צור דשבורד שגיאות",
+      "qualityTrends": "נתח מגמות איכות נתונים"
+    },
+    "connectedLabel": "מחובר:",
+    "greeting": "👋 שלום! אני העוזר הדיגיטלי שלך לתובנות נתונים. אני יכול לעזור לך לנתח מקורות הנתונים שלך, ליצור דשבורדים ולחקור בעיות. במה תרצה להתחיל היום?",
+    "mock": {
+      "q1": "הצג לי את מגמות שגיאות האימות לשבוע האחרון",
+      "a1": "ניתחתי את שגיאות האימות לשבוע האחרון. הנה מה שמצאתי:\n\n📊 **סיכום שגיאות:**\n• סך שגיאות: 1,247 (↓ 15% מהשבוע הקודם)\n• הנפוץ ביותר: שדה חובה חסר (42%)\n• מקור הנתונים הגרוע ביותר: טפסי משוב לקוחות (28%)",
+      "q2": "למה לטפסי משוב לקוחות יש כל כך הרבה שגיאות?",
+      "a2": "חקרתי את מקור הנתונים טפסי משוב לקוחות. הבעיות העיקריות הן:\n\n🔍 **סיבות שורש:**\n• Schema עודכן ב-15 בספטמבר, אבל פורמט ישן עדיין נשלח\n• 67% מהשגיאות בשדה האימייל (אי-התאמה של תבנית האימות)\n• רוב ההגשות מהתקנים ניידים עם בעיות של autofill",
+      "thinkingResponse": "תודה על שאלתך! אני עובד על הנתונים ואחזור אליך עם תשובה מפורטת בקרוב."
+    },
+    "send": "שלח",
+    "placeholder": "שאל על הנתונים, מדדים או בקש תובנות..."
   }
 }

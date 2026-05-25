@@ -312,7 +312,7 @@ const DataSourceList: React.FC = () => {
   // Define table columns
   const columns: ColumnsType<DataSource> = [
     {
-      title: 'מזהה',
+      title: t('datasources.fields.id'),
       dataIndex: 'ID',
       key: 'ID',
       width: 240,
@@ -351,7 +351,7 @@ const DataSourceList: React.FC = () => {
       ),
     },
     {
-      title: t('datasources.fields.status', { defaultValue: 'סטטוס' }),
+      title: t('datasources.fields.status'),
       dataIndex: 'IsActive',
       key: 'status',
       width: 150,
@@ -432,7 +432,7 @@ const DataSourceList: React.FC = () => {
       ),
     },
     {
-      title: 'קבצים',
+      title: t('datasources.fields.files'),
       dataIndex: 'TotalFilesProcessed',
       key: 'TotalFilesProcessed',
       width: 80,
@@ -440,7 +440,7 @@ const DataSourceList: React.FC = () => {
       render: (count: number) => <span style={{ fontWeight: 'bold' }}>{count.toLocaleString(i18n.language)}</span>,
     },
     {
-      title: 'תזמון',
+      title: t('datasources.fields.schedule'),
       key: 'schedule',
       width: 150,
       render: (_, record: DataSource) => {
@@ -680,7 +680,7 @@ const DataSourceList: React.FC = () => {
         </div>
         <Space>
           <Select
-            placeholder={<><FilterOutlined /> סנן לפי קטגוריה</>}
+            placeholder={<><FilterOutlined /> {t('datasources.filterByCategory')}</>}
             allowClear
             style={{ width: 200 }}
             loading={categoriesLoading}
@@ -694,7 +694,7 @@ const DataSourceList: React.FC = () => {
             ))}
           </Select>
           <Select
-            placeholder={<><FilterOutlined /> סנן לפי סטטוס</>}
+            placeholder={<><FilterOutlined /> {t('datasources.filterByStatus')}</>}
             allowClear
             style={{ width: 150 }}
             value={statusFilter}

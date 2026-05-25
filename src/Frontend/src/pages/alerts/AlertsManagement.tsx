@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Typography, Button, Space, Card, Spin, message, Table, Tag, Empty, Modal, Form, Input, Select, Alert as AntAlert, Collapse, Checkbox, Divider, Tabs, Switch, Row, Col, Tooltip, notification } from 'antd';
 import { PlusOutlined, ReloadOutlined, EditOutlined, DeleteOutlined, BellOutlined, InfoCircleOutlined, SearchOutlined, SettingOutlined, CodeOutlined } from '@ant-design/icons';
 import metricsApi, {
@@ -60,6 +61,7 @@ interface ExtendedAlertRule extends AlertRule {
 }
 
 const AlertsManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [allMetrics, setAllMetrics] = useState<MetricConfiguration[]>([]);
   const [alerts, setAlerts] = useState<ExtendedAlertRule[]>([]);
@@ -155,7 +157,7 @@ const AlertsManagement: React.FC = () => {
 
       setAlerts(allAlerts);
     } catch (error) {
-      message.error('שגיאה בטעינת התרעות');
+      message.error(t('alerts.messages.loadError'));
       console.error('Error loading alerts:', error);
     } finally {
       setLoading(false);
@@ -214,7 +216,7 @@ const AlertsManagement: React.FC = () => {
   };
 
   const handleDeleteAlert = async (alert: ExtendedAlertRule) => {
-    if (!window.confirm(`האם למחוק את ההתרעה "${alert.name}"?`)) {
+    if (!window.confirm(t('alerts.confirmDelete', { name: alert.name }))) {
       return;
     }
 
@@ -223,7 +225,7 @@ const AlertsManagement: React.FC = () => {
       if (alert.globalAlertId && (alert.sourceType === 'business' || alert.sourceType === 'system')) {
         // Delete via global alerts API
         await metricsApi.deleteGlobalAlert(alert.globalAlertId);
-        message.success(`ההתרעה "${alert.name}" נמחקה בהצלחה`);
+        message.success(t('alerts.messages.deleteSuccess', { name: alert.name }));
         loadData();
         return;
       }
@@ -240,11 +242,11 @@ const AlertsManagement: React.FC = () => {
           alertRules
         } as any);
 
-        message.success(`ההתרעה "${alert.name}" נמחקה בהצלחה`);
+        message.success(t('alerts.messages.deleteSuccess', { name: alert.name }));
         loadData();
       }
     } catch (error) {
-      message.error('שגיאה במחיקת ההתרעה');
+      message.error(t('alerts.messages.deleteError'));
       console.error('Error deleting alert:', error);
     }
   };
@@ -253,7 +255,7 @@ const AlertsManagement: React.FC = () => {
   const handleFormFailed = (errorInfo: any) => {
     console.log('=== Form validation FAILED ===');
     console.log('Error info:', JSON.stringify(errorInfo, null, 2));
-    message.error('טופס לא תקין - בדוק את השדות המודגשים');
+    message.error(t('alerts.messages.formInvalid'));
   };
 
   // Manual form submission handler - bypasses potential onFinish issues
@@ -269,7 +271,7 @@ const AlertsManagement: React.FC = () => {
       // Show validation error message
       const errorFields = errorInfo?.errorFields || [];
       if (errorFields.length > 0) {
-        const firstError = errorFields[0]?.errors?.[0] || 'שגיאת אימות';
+        const firstError = errorFields[0]?.errors?.[0] || t('alerts.messages.validationError');
         message.error(firstError);
       }
     }
@@ -333,7 +335,7 @@ const AlertsManagement: React.FC = () => {
           const updateRequest = {
             displayName: metric.displayName || metric.name || '',
             description: metric.description || '',
-            category: metric.category || 'כללי',
+            category: metric.category || t('alerts.types.general'),
             scope: metric.scope || 'global',
             dataSourceId: metric.dataSourceId || null,
             dataSourceName: metric.dataSourceName || null,
@@ -421,20 +423,20 @@ const AlertsManagement: React.FC = () => {
         }
       }
 
-      message.success(editingAlert ? 'ההתרעה עודכנה בהצלחה' : 'ההתרעה נוצרה בהצלחה');
+      message.success(editingAlert ? t('alerts.messages.updateSuccess') : t('alerts.messages.createSuccess'));
       setIsModalOpen(false);
       loadData();
     } catch (error) {
-      message.error('שגיאה בשמירת ההתרעה');
+      message.error(t('alerts.messages.saveError'));
       console.error('Error saving alert:', error);
     }
   };
 
   const getSeverityTag = (severity: string) => {
     const severityMap: Record<string, { text: string; color: string }> = {
-      critical: { text: 'קריטי', color: 'red' },
-      warning: { text: 'אזהרה', color: 'orange' },
-      info: { text: 'מידע', color: 'blue' }
+      critical: { text: t('alerts.severity.critical'), color: 'red' },
+      warning: { text: t('alerts.severity.warning'), color: 'orange' },
+      info: { text: t('alerts.severity.info'), color: 'blue' }
     };
     const info = severityMap[severity] || { text: severity, color: 'default' };
     return <Tag color={info.color}>{info.text}</Tag>;
@@ -578,7 +580,7 @@ const AlertsManagement: React.FC = () => {
 
   const columns = [
     {
-      title: 'שם התרעה',
+      title: t('alerts.columns.name'),
       dataIndex: 'name',
       key: 'name',
       render: (text: string, record: ExtendedAlertRule) => (
@@ -600,9 +602,9 @@ const AlertsManagement: React.FC = () => {
           system: 'orange'
         };
         const labelMap = {
-          datasource: 'מקור נתונים',
-          business: 'עסקי',
-          system: 'מערכת'
+          datasource: t('alerts.columns.dataSource'),
+          business: t('alerts.types.business'),
+          system: t('alerts.types.system')
         };
         return (
           <Space direction="vertical" size={0}>
@@ -617,13 +619,13 @@ const AlertsManagement: React.FC = () => {
       }
     },
     {
-      title: 'חומרה',
+      title: t('alerts.columns.severity'),
       dataIndex: 'severity',
       key: 'severity',
       render: (severity: string) => getSeverityTag(severity)
     },
     {
-      title: 'ביטוי',
+      title: t('alerts.columns.expression'),
       dataIndex: 'expression',
       key: 'expression',
       render: (text: string) => (
@@ -633,16 +635,16 @@ const AlertsManagement: React.FC = () => {
       )
     },
     {
-      title: 'סטטוס',
+      title: t('alerts.columns.status'),
       key: 'status',
       render: (_: any, record: AlertRule) => (
         <Tag color={record.isEnabled ? 'green' : 'default'}>
-          {record.isEnabled ? 'פעיל' : 'מושבת'}
+          {record.isEnabled ? t('alerts.status.enabled') : t('alerts.status.disabled')}
         </Tag>
       )
     },
     {
-      title: 'תוויות',
+      title: t('alerts.columns.tags'),
       key: 'labels',
       render: (_: any, record: AlertRule) => {
         const labels = record.labels;
@@ -668,7 +670,7 @@ const AlertsManagement: React.FC = () => {
       }
     },
     {
-      title: 'פעולות',
+      title: t('alerts.columns.actions'),
       key: 'actions',
       width: 120,
       render: (_: any, record: ExtendedAlertRule) => (
@@ -678,7 +680,7 @@ const AlertsManagement: React.FC = () => {
             size="small"
             icon={<EditOutlined />}
             onClick={() => handleEditAlert(record)}
-            title="ערוך"
+            title={t('alerts.actions.edit')}
           />
           <Button
             type="text"
@@ -686,7 +688,7 @@ const AlertsManagement: React.FC = () => {
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteAlert(record)}
-            title="מחק"
+            title={t('alerts.actions.delete')}
           />
         </Space>
       )
@@ -715,9 +717,9 @@ const AlertsManagement: React.FC = () => {
 
     return (
       <Collapse size="small" style={{ marginTop: 8 }}>
-        <Collapse.Panel header="עזרה ליצירת ביטוי" key="1">
+        <Collapse.Panel header={t('alerts.helper.title')} key="1">
           <Space direction="vertical" size="small" style={{ width: '100%' }}>
-            <Text type="secondary">Metrics זמינים לשימוש בביטוי:</Text>
+            <Text type="secondary">{t('alerts.helper.availableMetrics')}</Text>
             {allSelectedMetrics.map((metric, idx) => (
               <Card
                 key={`${metric.type}-${idx}`}
@@ -735,19 +737,19 @@ const AlertsManagement: React.FC = () => {
                         metric.type === 'system' ? 'orange' : 'blue'}
                       style={{ fontSize: 9 }}
                     >
-                      {metric.type === 'business' ? 'עסקי' :
-                        metric.type === 'system' ? 'מערכת' : 'מקור נתונים'}
+                      {metric.type === 'business' ? t('alerts.types.business') :
+                        metric.type === 'system' ? t('alerts.types.system') : t('alerts.columns.dataSource')}
                     </Tag>
                   </Space>
                   <Text code copyable style={{ fontSize: 11 }}>{metric.name}</Text>
                   {metric.prometheusType && (
-                    <Text type="secondary" style={{ fontSize: 10 }}>סוג: {metric.prometheusType}</Text>
+                    <Text type="secondary" style={{ fontSize: 10 }}>{t('alerts.helper.typePrefix')} {metric.prometheusType}</Text>
                   )}
                 </Space>
               </Card>
             ))}
             <Divider style={{ margin: '8px 0' }} />
-            <Text type="secondary">דוגמאות לביטויים:</Text>
+            <Text type="secondary">{t('alerts.helper.expressionExamples')}</Text>
             <Space direction="vertical" size={4}>
               <Text code style={{ fontSize: 11 }}>{`${allSelectedMetrics[0]?.name || 'metric_name'} > 100`}</Text>
               <Text code style={{ fontSize: 11 }}>{`rate(${allSelectedMetrics[0]?.name || 'metric_name'}[5m]) > 10`}</Text>
@@ -765,12 +767,12 @@ const AlertsManagement: React.FC = () => {
   const renderSettingsTab = () => (
     <div>
       <Card style={{ marginBottom: 16 }}>
-        <Title level={4}>הגדרות התרעה גלובליות</Title>
+        <Title level={4}>{t('alerts.settings.title')}</Title>
         <Form form={settingsForm} layout="vertical">
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                label="נמעני Email ברירת מחדל"
+                label={t('alerts.settings.defaultEmailRecipients')}
                 name="defaultEmails"
               >
                 <Input placeholder="admin@company.com, data-team@company.com" />
@@ -789,20 +791,20 @@ const AlertsManagement: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                label="תדירות התרעות"
+                label={t('alerts.settings.frequency')}
                 name="frequency"
               >
                 <Select defaultValue="immediate">
-                  <Option value="immediate">מיידי</Option>
-                  <Option value="5min">כל 5 דקות</Option>
-                  <Option value="15min">כל 15 דקות</Option>
-                  <Option value="1hour">כל שעה</Option>
+                  <Option value="immediate">{t('alerts.settings.immediate')}</Option>
+                  <Option value="5min">{t('alerts.settings.every5min')}</Option>
+                  <Option value="15min">{t('alerts.settings.every15min')}</Option>
+                  <Option value="1hour">{t('alerts.settings.everyHour')}</Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
-                label="הפעל התרעות"
+                label={t('alerts.settings.enableAlerts')}
                 name="enabled"
                 valuePropName="checked"
               >
@@ -813,7 +815,7 @@ const AlertsManagement: React.FC = () => {
 
           <Form.Item>
             <Button type="primary">
-              שמור הגדרות
+              {t('alerts.settings.save')}
             </Button>
           </Form.Item>
         </Form>
@@ -821,35 +823,35 @@ const AlertsManagement: React.FC = () => {
 
       {/* Email Templates */}
       <Card>
-        <Title level={4}>תבניות התרעה</Title>
+        <Title level={4}>{t('alerts.templates.title')}</Title>
         <Row gutter={16}>
           <Col span={12}>
-            <Card size="small" title="תבנית Email">
+            <Card size="small" title={t('alerts.templates.email')}>
               <div style={{ backgroundColor: '#f5f5f5', padding: 12, borderRadius: 4 }}>
                 <Text style={{ fontFamily: 'monospace', fontSize: '12px' }}>
-                  נושא: [מערכת עיבוד נתונים] {'{alertName}'}<br />
+                  {t('alerts.templates.subject', { system: t('alerts.templates.systemName') })}<br />
                   <br />
-                  שלום,<br />
+                  {t('alerts.templates.greeting')}<br />
                   <br />
-                  התקבלה התרעה במערכת:<br />
-                  כלל: {'{alertName}'}<br />
-                  תנאי: {'{condition}'}<br />
-                  זמן: {'{timestamp}'}<br />
+                  {t('alerts.templates.alertReceived')}<br />
+                  {t('alerts.templates.ruleLine')}<br />
+                  {t('alerts.templates.conditionLine')}<br />
+                  {t('alerts.templates.timeLine')}<br />
                   <br />
-                  בברכה,<br />
-                  מערכת עיבוד נתונים
+                  {t('alerts.templates.signoff')}<br />
+                  {t('alerts.templates.systemName')}
                 </Text>
               </div>
             </Card>
           </Col>
           <Col span={12}>
-            <Card size="small" title="תבנית Slack">
+            <Card size="small" title={t('alerts.templates.slack')}>
               <div style={{ backgroundColor: '#f5f5f5', padding: 12, borderRadius: 4 }}>
                 <Text style={{ fontFamily: 'monospace', fontSize: '12px' }}>
-                  🚨 *התרעה: {'{alertName}'}*<br />
-                  📋 תנאי: {'{condition}'}<br />
-                  ⏰ זמן: {'{timestamp}'}<br />
-                  🔗 לינק לדשבורד
+                  {t('alerts.templates.slackAlert')}<br />
+                  {t('alerts.templates.slackCondition')}<br />
+                  {t('alerts.templates.slackTime')}<br />
+                  {t('alerts.templates.dashboardLink')}
                 </Text>
               </div>
             </Card>
@@ -864,8 +866,8 @@ const AlertsManagement: React.FC = () => {
     <Spin spinning={loading}>
       {/* Info alert */}
       <Alert
-        message="ניהול התרעות מרכזי"
-        description="דף זה מאפשר לנהל את כל ההתרעות במערכת. ניתן ליצור התרעות חדשות על מדדים קיימים, לשלב ביטויים ממספר מדדים, ולנהל את ההתרעות הקיימות."
+        message={t('alerts.section.title')}
+        description={t('alerts.section.description')}
         type="info"
         showIcon
         icon={<InfoCircleOutlined />}
@@ -876,7 +878,7 @@ const AlertsManagement: React.FC = () => {
       <Card size="small" style={{ marginBottom: 16 }}>
         <Space wrap>
           <Input
-            placeholder="חיפוש..."
+            placeholder={t('alerts.searchShort')}
             prefix={<SearchOutlined />}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -884,28 +886,28 @@ const AlertsManagement: React.FC = () => {
             allowClear
           />
           <Select
-            placeholder="סטטוס"
+            placeholder={t('alerts.columns.status')}
             style={{ width: 120 }}
             allowClear
             value={statusFilter}
             onChange={setStatusFilter}
           >
-            <Option value="enabled">פעיל</Option>
-            <Option value="disabled">מושבת</Option>
+            <Option value="enabled">{t('alerts.status.enabled')}</Option>
+            <Option value="disabled">{t('alerts.status.disabled')}</Option>
           </Select>
           <Select
-            placeholder="חומרה"
+            placeholder={t('alerts.columns.severity')}
             style={{ width: 120 }}
             allowClear
             value={severityFilter}
             onChange={setSeverityFilter}
           >
-            <Option value="critical">קריטי</Option>
-            <Option value="warning">אזהרה</Option>
-            <Option value="info">מידע</Option>
+            <Option value="critical">{t('alerts.severity.critical')}</Option>
+            <Option value="warning">{t('alerts.severity.warning')}</Option>
+            <Option value="info">{t('alerts.severity.info')}</Option>
           </Select>
           <Select
-            placeholder="קטגוריה"
+            placeholder={t('alerts.columns.category')}
             style={{ width: 140 }}
             allowClear
             showSearch
@@ -923,7 +925,7 @@ const AlertsManagement: React.FC = () => {
             ))}
           </Select>
           <Select
-            placeholder="מקור נתונים"
+            placeholder={t('alerts.columns.dataSource')}
             style={{ width: 160 }}
             allowClear
             showSearch
@@ -964,7 +966,7 @@ const AlertsManagement: React.FC = () => {
                 setDatasourceSupplierFilter(null);
               }}
             >
-              נקה מסננים
+              {t('alerts.clearFilters')}
             </Button>
           )}
         </Space>
@@ -975,18 +977,18 @@ const AlertsManagement: React.FC = () => {
         title={
           <Space>
             <BellOutlined />
-            <span>התרעות ({filteredAlerts.length})</span>
+            <span>{t('alerts.tabs.alerts')} ({filteredAlerts.length})</span>
           </Space>
         }
       >
         {filteredAlerts.length === 0 ? (
           <Empty
-            description={alerts.length === 0 ? "אין התרעות מוגדרות" : "אין תוצאות מתאימות לסינון"}
+            description={alerts.length === 0 ? t('alerts.empty') : t('alerts.noFilterMatch')}
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           >
             {alerts.length === 0 && (
               <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateAlert}>
-                צור התרעה ראשונה
+                {t('alerts.createFirst')}
               </Button>
             )}
           </Empty>
@@ -1015,10 +1017,10 @@ const AlertsManagement: React.FC = () => {
       <div className="page-header">
         <div>
           <Title level={2} style={{ margin: 0 }}>
-            ניהול התרעות
+            {t('alerts.title')}
           </Title>
           <Paragraph className="page-subtitle">
-            הגדר וניהל התרעות על מדדים עסקיים ומדדי מערכת
+            {t('alerts.subtitle')}
           </Paragraph>
         </div>
         <Space>
@@ -1027,14 +1029,14 @@ const AlertsManagement: React.FC = () => {
             onClick={loadData}
             loading={loading}
           >
-            רענן
+            {t('alerts.refresh')}
           </Button>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleCreateAlert}
           >
-            יצירת התרעה
+            {t('alerts.create')}
           </Button>
         </Space>
       </div>
@@ -1048,7 +1050,7 @@ const AlertsManagement: React.FC = () => {
             label: (
               <Space>
                 <BellOutlined />
-                התרעות
+                {t('alerts.tabs.alerts')}
               </Space>
             ),
             children: renderAlertsTab()
@@ -1058,7 +1060,7 @@ const AlertsManagement: React.FC = () => {
             label: (
               <Space>
                 <SettingOutlined />
-                הגדרות
+                {t('alerts.tabs.settings')}
               </Space>
             ),
             children: renderSettingsTab()
@@ -1068,7 +1070,7 @@ const AlertsManagement: React.FC = () => {
 
       {/* Create/Edit Modal */}
       <Modal
-        title={editingAlert ? 'עריכת התרעה' : 'יצירת התרעה חדשה'}
+        title={editingAlert ? t('alerts.edit') : t('alerts.createNew')}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
@@ -1085,11 +1087,11 @@ const AlertsManagement: React.FC = () => {
           {/* Smart Filters for Metric Selection */}
           <Card size="small" style={{ marginBottom: 16, backgroundColor: '#fafafa' }}>
             <Space direction="vertical" style={{ width: '100%' }} size="small">
-              <Text type="secondary" style={{ fontSize: 12 }}>סינון Metrics:</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>{t('alerts.helper.filterMetrics')}</Text>
               <Row gutter={8}>
                 <Col span={6}>
                   <Input
-                    placeholder="חיפוש חופשי..."
+                    placeholder={t('alerts.searchPlaceholder')}
                     prefix={<SearchOutlined />}
                     value={modalSearchQuery}
                     onChange={e => setModalSearchQuery(e.target.value)}
@@ -1099,7 +1101,7 @@ const AlertsManagement: React.FC = () => {
                 </Col>
                 <Col span={5}>
                   <Select
-                    placeholder="קטגוריה"
+                    placeholder={t('alerts.columns.category')}
                     style={{ width: '100%' }}
                     allowClear
                     value={modalCategoryFilter}
@@ -1113,7 +1115,7 @@ const AlertsManagement: React.FC = () => {
                 </Col>
                 <Col span={5}>
                   <Select
-                    placeholder="סוג Prometheus"
+                    placeholder={t('alerts.helper.prometheusType')}
                     style={{ width: '100%' }}
                     allowClear
                     value={modalTypeFilter}
@@ -1127,7 +1129,7 @@ const AlertsManagement: React.FC = () => {
                 </Col>
                 <Col span={5}>
                   <Select
-                    placeholder="מקור נתונים"
+                    placeholder={t('alerts.columns.dataSource')}
                     style={{ width: '100%' }}
                     allowClear
                     value={modalDatasourceFilter}
@@ -1142,13 +1144,13 @@ const AlertsManagement: React.FC = () => {
                 <Col span={3}>
                   {(modalCategoryFilter || modalTypeFilter || modalDatasourceFilter || modalSearchQuery) && (
                     <Button type="link" size="small" onClick={resetModalFilters}>
-                      נקה
+                      {t('alerts.clearShort')}
                     </Button>
                   )}
                 </Col>
               </Row>
               <Text type="secondary" style={{ fontSize: 11 }}>
-                מציג {filteredModalMetrics.length} מתוך {allMetrics.length} Metrics
+                {t('alerts.helper.modalSubtitle', { shown: filteredModalMetrics.length, total: allMetrics.length })}
               </Text>
             </Space>
           </Card>
@@ -1156,8 +1158,8 @@ const AlertsManagement: React.FC = () => {
           {/* 1. Datasource-specific Metrics Dropdown */}
           <Form.Item
             name="datasourceMetricIds"
-            label={<span style={{ color: '#1890ff', fontWeight: 500 }}>📊 מדדי מקור נתונים (Datasource Metrics)</span>}
-            extra={`מדדים ספציפיים למקורות נתונים - ${filteredModalMetrics.length} זמינים`}
+            label={<span style={{ color: '#1890ff', fontWeight: 500 }}>{t('alerts.helper.datasourceHeader')}</span>}
+            extra={t('alerts.helper.datasourceMetricsExtra', { count: filteredModalMetrics.length })}
             dependencies={['businessMetricIds', 'systemMetricIds']}
             rules={[{
               validator: async (_, value) => {
@@ -1168,14 +1170,14 @@ const AlertsManagement: React.FC = () => {
                 console.log('businessMetricIds from form:', businessIds);
                 console.log('systemMetricIds from form:', systemIds);
                 if ([...(value || []), ...businessIds, ...systemIds].length === 0) {
-                  throw new Error('יש לבחור לפחות Metric אחד');
+                  throw new Error(t('alerts.validation.atLeastOneMetric'));
                 }
               }
             }]}
           >
             <Select
               mode="multiple"
-              placeholder="בחר מדדי מקור נתונים..."
+              placeholder={t('alerts.helper.selectDatasource')}
               showSearch
               optionFilterProp="children"
               style={{ width: '100%' }}
@@ -1199,10 +1201,10 @@ const AlertsManagement: React.FC = () => {
             dependencies={['datasourceMetricIds', 'systemMetricIds']}
             label={
               <Space>
-                <span style={{ color: '#52c41a', fontWeight: 500 }}>📈 מדדים עסקיים (Business Metrics)</span>
+                <span style={{ color: '#52c41a', fontWeight: 500 }}>{t('alerts.helper.businessHeader')}</span>
                 <Select
                   size="small"
-                  placeholder="סנן לפי קטגוריה"
+                  placeholder={t('alerts.filterByCategory')}
                   style={{ width: 140, fontSize: 10 }}
                   allowClear
                   value={businessCategoryFilter}
@@ -1215,11 +1217,11 @@ const AlertsManagement: React.FC = () => {
                 </Select>
               </Space>
             }
-            extra={`מדדים עסקיים גלובליים - ${filteredBusinessMetrics.length} זמינים`}
+            extra={t('alerts.helper.businessMetricsExtra', { count: filteredBusinessMetrics.length })}
           >
             <Select
               mode="multiple"
-              placeholder="בחר מדדים עסקיים..."
+              placeholder={t('alerts.helper.selectBusiness')}
               showSearch
               optionFilterProp="children"
               style={{ width: '100%' }}
@@ -1264,10 +1266,10 @@ const AlertsManagement: React.FC = () => {
             dependencies={['datasourceMetricIds', 'businessMetricIds']}
             label={
               <Space>
-                <span style={{ color: '#fa8c16', fontWeight: 500 }}>⚙️ מדדי מערכת (System Metrics)</span>
+                <span style={{ color: '#fa8c16', fontWeight: 500 }}>{t('alerts.helper.systemHeader')}</span>
                 <Select
                   size="small"
-                  placeholder="סנן לפי קטגוריה"
+                  placeholder={t('alerts.filterByCategory')}
                   style={{ width: 140, fontSize: 10 }}
                   allowClear
                   value={systemCategoryFilter}
@@ -1280,11 +1282,11 @@ const AlertsManagement: React.FC = () => {
                 </Select>
               </Space>
             }
-            extra={`מדדי תשתית ומערכת - ${filteredSystemMetrics.length} זמינים`}
+            extra={t('alerts.helper.systemMetricsExtra', { count: filteredSystemMetrics.length })}
           >
             <Select
               mode="multiple"
-              placeholder="בחר מדדי מערכת..."
+              placeholder={t('alerts.helper.selectSystem')}
               showSearch
               optionFilterProp="children"
               style={{ width: '100%' }}
@@ -1327,28 +1329,28 @@ const AlertsManagement: React.FC = () => {
 
           <Form.Item
             name="name"
-            label="שם ההתרעה"
-            rules={[{ required: true, message: 'יש להזין שם להתרעה' }]}
+            label={t('alerts.modal.name')}
+            rules={[{ required: true, message: t('alerts.validation.nameRequired') }]}
           >
-            <Input placeholder="לדוגמה: ערך חריג בשדה סכום" />
+            <Input placeholder={t('alerts.modal.descriptionPlaceholder')} />
           </Form.Item>
 
           <Form.Item
             name="description"
-            label="תיאור"
+            label={t('alerts.modal.descriptionLabel')}
           >
-            <TextArea rows={2} placeholder="תיאור קצר של ההתרעה" />
+            <TextArea rows={2} placeholder={t('alerts.modal.description')} />
           </Form.Item>
 
           <Form.Item
             name="severity"
-            label="רמת חומרה"
+            label={t('alerts.modal.severityLevel')}
             rules={[{ required: true }]}
           >
             <Select>
-              <Option value="critical">קריטי - דורש טיפול מיידי</Option>
-              <Option value="warning">אזהרה - דורש תשומת לב</Option>
-              <Option value="info">מידע - לידיעה בלבד</Option>
+              <Option value="critical">{t('alerts.severity.criticalDesc')}</Option>
+              <Option value="warning">{t('alerts.severity.warningDesc')}</Option>
+              <Option value="info">{t('alerts.severity.infoDesc')}</Option>
             </Select>
           </Form.Item>
 
@@ -1356,8 +1358,8 @@ const AlertsManagement: React.FC = () => {
             name="expression"
             label={
               <Space>
-                <span>ביטוי PromQL</span>
-                <Tooltip title="פתח עוזר PromQL לבניית ביטויים אינטראקטיבית">
+                <span>{t('alerts.modal.promqlExpression')}</span>
+                <Tooltip title={t('alerts.modal.promqlHelperTitle')}>
                   <Button
                     type="link"
                     size="small"
@@ -1365,15 +1367,15 @@ const AlertsManagement: React.FC = () => {
                     onClick={() => setShowPromQLHelper(true)}
                     style={{ padding: '0 4px' }}
                   >
-                    עוזר PromQL
+                    {t('alerts.modal.promqlHelper')}
                   </Button>
                 </Tooltip>
               </Space>
             }
-            rules={[{ required: true, message: 'יש להזין ביטוי' }]}
+            rules={[{ required: true, message: t('alerts.validation.expressionRequired') }]}
             extra={
               <Space direction="vertical" size={0}>
-                <Text type="secondary">ביטוי Prometheus לבדיקת ההתרעה</Text>
+                <Text type="secondary">{t('alerts.modal.promqlHint')}</Text>
                 {(() => {
                   // Get selections from separate dropdowns
                   const datasourceIds: string[] = form.getFieldValue('datasourceMetricIds') || [];
@@ -1396,7 +1398,7 @@ const AlertsManagement: React.FC = () => {
                   if (allSelectedMetrics.length > 0) {
                     return (
                       <Space wrap size={4} style={{ marginTop: 4 }}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>Metrics זמינים (לחץ להוספה):</Text>
+                        <Text type="secondary" style={{ fontSize: 11 }}>{t('alerts.helper.availableMetricsClick')}</Text>
                         {allSelectedMetrics.map((m, idx) => (
                           <Tag
                             key={`${m.type}-${idx}`}
@@ -1420,25 +1422,25 @@ const AlertsManagement: React.FC = () => {
           >
             <TextArea
               rows={3}
-              placeholder="לדוגמה: metric_name > 100&#10;לחץ על 'עוזר PromQL' לבניית ביטוי אינטראקטיבית"
+              placeholder={t('alerts.modal.promqlPlaceholder')}
               style={{ fontFamily: 'monospace' }}
             />
           </Form.Item>
 
           <Form.Item
             name="for"
-            label="משך זמן לפני הפעלה (For)"
-            extra="כמה זמן הביטוי צריך להתקיים לפני שההתרעה תופעל"
+            label={t('alerts.modal.forDuration')}
+            extra={t('alerts.modal.forDurationHint')}
           >
-            <Input placeholder="לדוגמה: 5m, 1h" style={{ width: 120 }} />
+            <Input placeholder={t('alerts.modal.forDurationPlaceholder')} style={{ width: 120 }} />
           </Form.Item>
 
           {/* Labels Configuration - Optional */}
           <Form.Item
             label={
               <Space>
-                <span>תוויות (Labels) - אופציונלי</span>
-                <Tooltip title="הוסף תוויות לסינון ביטוי PromQL. השתמש ב-$variable לערכים דינמיים">
+                <span>{t('alerts.modal.labelsLabel')}</span>
+                <Tooltip title={t('alerts.modal.labelsHint')}>
                   <InfoCircleOutlined style={{ color: '#1890ff' }} />
                 </Tooltip>
               </Space>
@@ -1458,8 +1460,8 @@ const AlertsManagement: React.FC = () => {
 
           <Form.Item
             name="notificationRecipients"
-            label="נמענים להודעה"
-            extra="כתובות דוא״ל מופרדות בפסיקים"
+            label={t('alerts.templates.recipients')}
+            extra={t('alerts.settings.emailHint')}
           >
             <Input placeholder="user1@example.com, user2@example.com" />
           </Form.Item>
@@ -1468,20 +1470,20 @@ const AlertsManagement: React.FC = () => {
             name="isEnabled"
             valuePropName="checked"
           >
-            <Checkbox>התרעה פעילה</Checkbox>
+            <Checkbox>{t('alerts.status.alertActive')}</Checkbox>
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'left' }}>
             <Space>
               <Button onClick={() => setIsModalOpen(false)}>
-                ביטול
+                {t('alerts.actions.cancel')}
               </Button>
               <Button
                 type="primary"
                 htmlType="button"
                 onClick={handleManualSubmit}
               >
-                {editingAlert ? 'עדכן' : 'צור'} התרעה
+                {editingAlert ? t('alerts.actions.update') : t('alerts.actions.create')} {t('alerts.alertWord')}
               </Button>
             </Space>
           </Form.Item>
