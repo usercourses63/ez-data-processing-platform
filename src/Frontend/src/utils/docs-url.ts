@@ -1,13 +1,24 @@
 /**
  * Documentation URL Utility
  *
- * Runtime environment detection for Docusaurus documentation portal URLs.
- * Supports both development and production environments.
+ * Resolution order for getDocsBaseUrl():
+ *   1. window.EZ_CONFIG.docsUrl  — Helm-injected runtime config (production primary path)
+ *   2. http://{hostname}:30800   — auto-detect for dev/local against a K8s NodePort
+ *   3. /docs                     — last-resort fallback for path-routed ingress
  *
- * Per project decisions:
- * - Development: {minikubeIP}:30800/docs (K8s-deployed Docusaurus container via NodePort)
- * - Production: /docs (path-based routing in K8s Ingress/OCP Route)
+ * The runtime-config path is set per-deploy via Helm:
+ *   helm install ... --set services.frontend.config.docsUrl=https://docs.example.com
+ * which becomes EZ_DOCS_URL env var on the frontend pod, which docker-entrypoint.sh
+ * writes into /usr/share/nginx/html/config.js before exec-ing nginx.
  */
+
+declare global {
+  interface Window {
+    EZ_CONFIG?: {
+      docsUrl?: string;
+    };
+  }
+}
 
 /**
  * Check if hostname is in RFC1918 private IP range or localhost
@@ -42,11 +53,18 @@ export const isDevelopment = (): boolean => !isProduction();
  * @returns The base URL for the documentation portal
  */
 export const getDocsBaseUrl = (): string => {
+  // 1. Runtime config injected by Helm at deploy time wins.
+  const configured = window.EZ_CONFIG?.docsUrl;
+  if (configured) {
+    return configured.replace(/\/+$/, '');
+  }
+
+  // 2. Dev/local fallback: K8s NodePort heuristic.
   if (isDevelopment()) {
-    // Dev: use same hostname (minikube IP) with docs NodePort
     return `http://${window.location.hostname}:30800`;
   }
-  // Production: path-based routing via ingress
+
+  // 3. Last-resort: path-based ingress route.
   return '/docs';
 };
 

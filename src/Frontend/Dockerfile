@@ -23,11 +23,15 @@ COPY --chown=nginx-user:nginx-group build /usr/share/nginx/html
 # Copy nginx server configuration
 COPY --chown=nginx-user:nginx-group nginx.conf /etc/nginx/conf.d/default.conf
 
+# Copy runtime-config entrypoint (generates /usr/share/nginx/html/config.js from env vars)
+COPY --chown=nginx-user:nginx-group docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # Switch to non-root user
 USER nginx-user
 
 # Expose non-privileged port 8080 (OCP compatible)
 EXPOSE 8080
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start via runtime-config entrypoint (which then execs nginx)
+CMD ["/docker-entrypoint.sh"]
