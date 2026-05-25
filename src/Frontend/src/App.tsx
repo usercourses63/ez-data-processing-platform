@@ -97,7 +97,11 @@ const App: React.FC = () => {
         theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
-          fontFamily: isRTL ? 'Rubik, sans-serif' : undefined,
+          // Hebrew → Rubik (now self-hosted via @fontsource/rubik).
+          // English → system UI fonts (zero external download, native to OS).
+          fontFamily: isRTL
+            ? 'Rubik, sans-serif'
+            : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
           borderRadius: 6,
           
           // Mockup color palette

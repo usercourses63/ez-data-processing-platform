@@ -5,16 +5,14 @@
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="מערכת עיבוד נתונים - Data Processing Platform" />
+    <meta name="description" content="EZ Data Processing Platform" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Hebrew fonts support -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>EZ Data Processing Platform</title>
 
-    <title>מערכת עיבוד נתונים</title>
+    <!-- Runtime config (generated at container start by docker-entrypoint.sh; stubbed empty in dev) -->
+    <script src="/config.js"></script>
 
     <style>
       body {
@@ -24,8 +22,8 @@
           sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        direction: rtl;
-        text-align: right;
+        /* Direction is controlled at runtime by React (App.tsx) via document.documentElement.dir.
+           Do not hardcode direction/text-align here — it traps the body in RTL even after switching to English. */
       }
 
       code {
@@ -33,22 +31,17 @@
           monospace;
       }
 
-      /* RTL override for Ant Design */
-      .ant-layout {
-        direction: rtl;
-      }
-
-      .ant-menu-horizontal {
-        direction: rtl;
-      }
-
-      .ant-table {
+      /* RTL overrides for Ant Design — gated to Hebrew mode only.
+         Without the [dir='rtl'] qualifier these force RTL on Antd components even in English. */
+      html[dir='rtl'] .ant-layout,
+      html[dir='rtl'] .ant-menu-horizontal,
+      html[dir='rtl'] .ant-table {
         direction: rtl;
       }
     </style>
   </head>
   <body>
-    <noscript>עליך להפעיל JavaScript כדי להריץ אפליקציה זו.</noscript>
+    <noscript>You need to enable JavaScript to run this app. &nbsp; / &nbsp; עליך להפעיל JavaScript כדי להריץ אפליקציה זו.</noscript>
     <div id="root"></div>
     <!-- Vite entry point -->
     <script type="module" src="/src/index.tsx"></script>
