@@ -520,4 +520,37 @@ Plans:
 - [x] 32-03-PLAN.md -- Pipeline acceptance test (full cycle + no-output) + Help button -> Docusaurus v0.5.0 (D-18, D-19, D-25 through D-28)
 
 ---
-*Roadmap updated: 2026-03-27 after Phase 32 planned, v0.6 clean install acceptance test*
+
+### Phase 33: Frontend i18n + Foundation Deploy & Cluster Validation
+
+**Goal:** Build the frontend Docker image with the i18n/foundation/font/Workstream-A changes from commits f139193, 3d8fa19, 28586da, 2164d9d; load into minikube; Helm-upgrade the EZ platform (with `--set services.frontend.config.docsUrl=...`); then validate the deployed frontend against the running cluster in both English and Hebrew modes via Playwright. Coordinates with the parallel file-simulator-suite deployment for connector flows.
+
+**Depends on:** Phase 32 (clean install baseline)
+
+**Source commits to ship:**
+- `f139193` build(frontend): add @fontsource/rubik for self-hosted fonts
+- `3d8fa19` feat(helm): runtime config injection for configurable docs URL
+- `28586da` fix(frontend): English-mode rendering — fonts, RTL/LTR, language detection
+- `2164d9d` feat(i18n): complete English locale parity (+720 keys), refactor 280+ hardcoded literals
+
+**Success Criteria** (what must be TRUE):
+  1. `npm run build` produces a clean Vite bundle with @fontsource/rubik WOFF2 files hashed into `build/assets/`
+  2. Frontend Docker image builds with the new `docker-entrypoint.sh` and writes `/usr/share/nginx/html/config.js` at container start from `$EZ_DOCS_URL`
+  3. `minikube image load` succeeds; `kubectl get pod -l app=frontend` shows the new image rolled out
+  4. `helm upgrade ez ./release-package/helm/ez-platform --set services.frontend.config.docsUrl=<url>` succeeds; rendered Deployment shows the `EZ_DOCS_URL` env var set to the provided URL
+  5. Deployed `curl http://<frontend>:<port>/config.js` returns `window.EZ_CONFIG = { docsUrl: "<url>" };`
+  6. Deployed `curl http://<frontend>:<port>/` returns HTML with **zero** Google Fonts (`googleapis`/`gstatic`) references
+  7. Playwright audit (Edge channel, `?lng=en`) across 8 routes against the deployed cluster URL shows ≤2 Hebrew text nodes per route (NOSCRIPT bilingual + `עב` toggle label only)
+  8. Same audit in Hebrew mode (`?lng=he`) shows the inverse (no untranslated English-only labels in deeply translated UI)
+  9. Help / footer "Documentation" links navigate to the configured `docsUrl` (visual click test)
+  10. Sanity test suite (`npm run test:e2e:sanity`) passes against the deployed cluster
+
+**Plans:** 3 plans (Wave 1: 33-01; Wave 2: 33-02, 33-03 parallel)
+
+Plans:
+- [ ] 33-01-PLAN.md — Build frontend Docker image (with entrypoint + fontsource bundle), `minikube image load`, `helm upgrade --set services.frontend.config.docsUrl=...`, wait for rollout, port-forward, verify `/config.js` + zero external font requests
+- [ ] 33-02-PLAN.md — Playwright multi-route audit against deployed cluster URL in **English mode** (8 routes × screenshot + Hebrew-leak count) + verify deployed `config.js` matches Helm value
+- [ ] 33-03-PLAN.md — Playwright multi-route audit in **Hebrew mode** (regression check — no untranslated English-only labels) + Help/footer docs link click test + sanity test suite run
+
+---
+*Roadmap updated: 2026-05-25 after Phase 33 added for i18n/foundation deploy + cluster validation*
