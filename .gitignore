@@ -24,7 +24,13 @@ dist/
 .idea/
 
 # AI Assistant folders
-.claude/
+# Ignore everything in .claude/ EXCEPT project-scoped agent definitions, which
+# are shared across the team. Per-user settings (.claude/settings.local.json)
+# stay ignored. Note: `.claude/` (with trailing slash) is wrong because it
+# excludes the directory and prevents re-inclusion of children — use `.claude/*`
+# (path-glob, not directory) so the negation below actually applies.
+.claude/*
+!.claude/agents/
 .serena/
 
 # Log files
