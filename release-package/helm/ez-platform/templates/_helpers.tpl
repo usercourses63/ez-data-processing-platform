@@ -132,14 +132,35 @@ Image pull policy
 
 {{/*
 Generate full image name
+
+Behavior:
+  - Per-image .image.registry (when set, even to empty string via --set) takes precedence
+    over the global registry. An explicitly empty per-image registry → bare <repo>:<tag>.
+  - Otherwise fall back to .Values.global.imageRegistry. Empty global → bare <repo>:<tag>.
+  - Non-empty resolved registry → "<registry>/<repo>:<tag>".
+
+The previous implementation used `| default "docker.io"` on the global registry, which
+silently re-substituted the default when an operator passed `--set global.imageRegistry=""`.
+That broke locally-loaded minikube images (the rendered image string carried a `docker.io/`
+prefix that did not match the bare tag in the minikube image store). This conditional form
+honors an empty override end-to-end.
 */}}
 {{- define "ez-platform.image" -}}
-{{- $registry := .Values.global.imageRegistry | default "docker.io" }}
 {{- $repository := .image.repository }}
 {{- $tag := .image.tag | default .Chart.AppVersion }}
-{{- if .image.registry }}
-{{- printf "%s/%s:%s" .image.registry $repository $tag }}
+{{- if hasKey .image "registry" }}
+{{- $perImageRegistry := .image.registry }}
+{{- if $perImageRegistry }}
+{{- printf "%s/%s:%s" $perImageRegistry $repository $tag }}
 {{- else }}
+{{- printf "%s:%s" $repository $tag }}
+{{- end }}
+{{- else }}
+{{- $registry := .Values.global.imageRegistry }}
+{{- if $registry }}
 {{- printf "%s/%s:%s" $registry $repository $tag }}
+{{- else }}
+{{- printf "%s:%s" $repository $tag }}
+{{- end }}
 {{- end }}
 {{- end }}
