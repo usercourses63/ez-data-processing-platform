@@ -144,15 +144,20 @@ describe('Phase 33: SC-06 unit-level guard — no external font CDN refs anywher
     return out;
   };
 
-  test('zero matches for googleapis|gstatic across src/**', () => {
+  test('zero matches for googleapis|gstatic in production src/ files (test files excluded)', () => {
     const files = collectScannableFiles(join(projectRoot, 'src'));
     expect(files.length, 'expected to scan at least 50 files under src/').toBeGreaterThan(50);
 
+    // Skip test files — they may legitimately reference the CDN patterns
+    // (regex literals, anti-pattern docs, etc.). The point of this gate is
+    // catching production code that imports/links external font URLs.
+    const isTestFile = (f: string) =>
+      /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(f) ||
+      /[\\/](__tests__|__integration__|test|tests)[\\/]/.test(f);
+
     const hits: { file: string; line: number; text: string }[] = [];
     for (const file of files) {
-      // Skip the test file itself — it intentionally references the regex
-      // patterns by name (false positive otherwise).
-      if (file.endsWith('phase-33-static-shell.test.ts')) continue;
+      if (isTestFile(file)) continue;
       const content = readFileSync(file, 'utf8');
       const lines = content.split(/\r?\n/);
       lines.forEach((ln, i) => {
@@ -161,6 +166,6 @@ describe('Phase 33: SC-06 unit-level guard — no external font CDN refs anywher
         }
       });
     }
-    expect(hits, `unexpected font-CDN refs:\n${hits.map(h => `${h.file}:${h.line} ${h.text}`).join('\n')}`).toEqual([]);
+    expect(hits, `unexpected font-CDN refs in production src/:\n${hits.map(h => `${h.file}:${h.line} ${h.text}`).join('\n')}`).toEqual([]);
   });
 });
