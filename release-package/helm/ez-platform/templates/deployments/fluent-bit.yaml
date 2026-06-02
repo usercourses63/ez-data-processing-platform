@@ -24,7 +24,7 @@ data:
         Tag               kube.*
         Path              {{ .Values.observability.fluentBit.config.tailPath }}
         Parser            docker
-        DB                /var/log/flb_kube.db
+        DB                /tmp/flb_kube.db   # /var/log is root-owned hostPath; non-root container can't create the SQLite DB there
         Mem_Buf_Limit     {{ .Values.observability.fluentBit.config.memBufLimit }}
         Skip_Long_Lines   On
         Refresh_Interval  10

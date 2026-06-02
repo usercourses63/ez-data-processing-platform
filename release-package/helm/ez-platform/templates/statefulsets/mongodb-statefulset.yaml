@@ -83,7 +83,8 @@ spec:
             - "db.adminCommand('ping')"
           initialDelaySeconds: {{ .Values.mongodb.livenessProbe.initialDelaySeconds | default 60 }}
           periodSeconds: {{ .Values.mongodb.livenessProbe.periodSeconds | default 10 }}
-          failureThreshold: {{ .Values.mongodb.livenessProbe.failureThreshold | default 3 }}
+          timeoutSeconds: {{ .Values.mongodb.livenessProbe.timeoutSeconds | default 10 }}   # mongosh cold-start exceeds k8s default 1s under load
+          failureThreshold: {{ .Values.mongodb.livenessProbe.failureThreshold | default 6 }}
         readinessProbe:
           exec:
             command:
@@ -92,7 +93,8 @@ spec:
             - "db.adminCommand('ping')"
           initialDelaySeconds: {{ .Values.mongodb.readinessProbe.initialDelaySeconds | default 30 }}
           periodSeconds: {{ .Values.mongodb.readinessProbe.periodSeconds | default 10 }}
-          failureThreshold: {{ .Values.mongodb.readinessProbe.failureThreshold | default 3 }}
+          timeoutSeconds: {{ .Values.mongodb.readinessProbe.timeoutSeconds | default 10 }}   # mongosh cold-start exceeds k8s default 1s under load
+          failureThreshold: {{ .Values.mongodb.readinessProbe.failureThreshold | default 6 }}
   volumeClaimTemplates:
   - metadata:
       name: mongodb-data

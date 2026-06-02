@@ -1,0 +1,116 @@
+{{- if .Values.rabbitmq.enabled }}
+# RabbitMQ — MassTransit base bus. The .NET service images attach Kafka as a *rider* but
+# still open the underlying bus over AMQP at rabbitmq://rabbitmq:5672 as guest/guest.
+# `loopback_users = none` is REQUIRED so remote pods (not just localhost) can auth as guest.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: rabbitmq
+    tier: infrastructure
+data:
+  rabbitmq.conf: |
+    loopback_users = none
+    default_user = {{ .Values.rabbitmq.auth.username }}
+    default_pass = {{ .Values.rabbitmq.auth.password }}
+    listeners.tcp.default = 5672
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: rabbitmq
+    tier: infrastructure
+spec:
+  replicas: {{ .Values.rabbitmq.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+        tier: infrastructure
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: rabbitmq
+        image: {{ include "ez-platform.image" (dict "Values" .Values "image" .Values.rabbitmq.image "Chart" .Chart) }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+        ports:
+        - containerPort: 5672
+          name: amqp
+          protocol: TCP
+        - containerPort: 15672
+          name: management
+          protocol: TCP
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: {{ .Values.rabbitmq.auth.username | quote }}
+        - name: RABBITMQ_DEFAULT_PASS
+          value: {{ .Values.rabbitmq.auth.password | quote }}
+        resources:
+          {{- toYaml .Values.rabbitmq.resources | nindent 10 }}
+        livenessProbe:
+          exec:
+            command: ["rabbitmq-diagnostics", "ping"]
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+        readinessProbe:
+          exec:
+            command: ["rabbitmq-diagnostics", "check_port_connectivity"]
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 10
+        volumeMounts:
+        - name: config
+          mountPath: /etc/rabbitmq/conf.d/10-ez.conf
+          subPath: rabbitmq.conf
+        - name: data
+          mountPath: /var/lib/rabbitmq
+      volumes:
+      - name: config
+        configMap:
+          name: rabbitmq-config
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "ez-platform.labels" . | nindent 4 }}
+    app: rabbitmq
+    tier: infrastructure
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+  - name: amqp
+    port: 5672
+    targetPort: 5672
+  - name: management
+    port: 15672
+    targetPort: 15672
+{{- end }}

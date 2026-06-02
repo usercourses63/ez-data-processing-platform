@@ -120,8 +120,10 @@ spec:
             value: {{ .Values.observability.jaeger.config.storage.elasticsearchIndexPrefix | quote }}
           - name: ES_TAGS_AS_FIELDS_ALL
             value: "true"
-          - name: SAMPLING_STRATEGIES_FILE
-            value: "/etc/jaeger/sampling.json"
+          {{- /* SAMPLING_STRATEGIES_FILE removed: chart mounts no sampling.json ConfigMap, so
+                 pointing at /etc/jaeger/sampling.json crashed all-in-one. Jaeger falls back to
+                 its built-in default sampling strategy. Re-add via extraEnv + a mounted file if
+                 a custom strategy is ever needed. */}}
         {{- with .Values.observability.jaeger.extraEnv }}
         {{- toYaml . | nindent 10 }}
         {{- end }}

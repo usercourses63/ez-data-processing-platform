@@ -122,7 +122,7 @@ spec:
   type: ClusterIP
   ports:
   - port: 5006
-    targetPort: 5006
+    targetPort: 5007   # container listens on 5007 (was 5006 → dead port)
     protocol: TCP
     name: http
   selector:
