@@ -1,0 +1,73 @@
+# Phase-33 single-node minikube override.
+# Layer LAST: helm install ... -f values.yaml -f values-dev.yaml -f values-phase33-minikube.yaml
+# Purpose: fit the full platform on one ~20-CPU / 30Gi minikube node and pin the
+# locally-loaded frontend image. Default values request ~75Gi (hazelcast alone 3x8Gi).
+
+global:
+  # Bare image refs so locally-loaded minikube images match (see ez-platform.image helper
+  # + commit 4417474). Observability images keep their explicit per-image registry.
+  imageRegistry: ""
+
+# All application services to a single replica for a dev cluster.
+services:
+  filediscovery:
+    replicas: 1
+  fileprocessor:
+    replicas: 1
+  validation:
+    replicas: 1
+  output:
+    replicas: 1
+  datasourceManagement:
+    replicas: 1
+  metricsConfiguration:
+    replicas: 1
+  invalidrecords:
+    replicas: 1
+  scheduling:
+    replicas: 1
+  frontend:
+    replicas: 1
+    image:
+      repository: frontend
+      tag: v0.5.0-phase33
+      pullPolicy: IfNotPresent
+    config:
+      # Docs are reached from the Windows host via `kubectl port-forward svc/ezplatform-docs 7100:80`.
+      # The Docker-driver node IP (192.168.49.2) is NOT host-routable and host port 30800 is in a
+      # Windows reserved range, so localhost:7100 is the reachable docs URL on this dev host.
+      docsUrl: "http://localhost:7100"
+
+# Single MongoDB node. The connection-string helper now uses a single seed (mongodb-0)
+# with replicaSet=rs0, and rs.initiate only adds mongodb-0, so extra replicas are dead weight.
+mongodb:
+  replicas: 1
+  # mongosh is a heavy Node.js shell; its cold-start exceeds the chart's default 5s probe
+  # timeout under load, so kubelet kept killing mongo (flapping). Give the probes room.
+  livenessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 20
+    timeoutSeconds: 20
+    failureThreshold: 6
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 20
+    failureThreshold: 6
+
+# Single Kafka broker + single ZooKeeper (replication factors are already 1 in values.yaml).
+kafka:
+  replicas: 1
+  zookeeper:
+    replicas: 1
+
+# Single Hazelcast member with a sane memory request (default 8Gi x3 is the main offender).
+hazelcast:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+    limits:
+      cpu: 1000m
+      memory: 3Gi

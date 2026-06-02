@@ -276,14 +276,31 @@ test('@Sanity SANITY-09: Hebrew user guide loads with Hebrew content', async ({ 
 // SANITY-10: Frontend Help button navigates to docs
 test('@Sanity SANITY-10: Frontend Help button navigates to docs', async ({ page }) => {
   await page.goto(FRONTEND_URL);
+  // AppHeader's Help uses window.open(url, '_blank', 'noopener,noreferrer'). With `noopener`
+  // Chromium does not reliably fire Playwright's 'popup' event, so we intercept window.open and
+  // assert on the URL it is called with — the value that actually decides where the user lands.
+  await page.evaluate(() => {
+    (window as any).__openedUrls = [];
+    window.open = ((url?: string | URL) => {
+      (window as any).__openedUrls.push(String(url ?? ''));
+      return { closed: false, close() {}, focus() {} } as any;
+    }) as typeof window.open;
+  });
+  // Source of truth: the runtime-injected docsUrl (config.js → window.EZ_CONFIG.docsUrl),
+  // falling back to the test's DOCS_URL. No hardcoded port/host.
+  const configuredDocsUrl = await page.evaluate(
+    () => (window as any).EZ_CONFIG?.docsUrl as string | undefined
+  );
+  const expectedBase = configuredDocsUrl || DOCS_URL;
   const helpButton = page.locator('button[aria-label="Open user guide"], button[aria-label="פתח מדריך למשתמש"]');
   await expect(helpButton).toBeVisible();
-  const [popup] = await Promise.all([
-    page.waitForEvent('popup'),
-    helpButton.click(),
-  ]);
-  await popup.waitForLoadState();
-  expect(popup.url(), 'Help button should open docs portal').toContain(':30800');
+  await helpButton.click();
+  const opened: string[] = await page.evaluate(() => (window as any).__openedUrls);
+  expect(opened.length, 'Help button should trigger window.open').toBeGreaterThan(0);
+  expect(
+    opened.some((u) => u.startsWith(expectedBase)),
+    `Help should open the configured docsUrl (${expectedBase}); got ${JSON.stringify(opened)}`
+  ).toBe(true);
 });
 
 // SANITY-11: NAS Pipeline — create datasource with NAS device via UI, verify creation

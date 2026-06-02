@@ -1,8 +1,8 @@
 /**
  * Phase 33 — Help-link click test (SC-09).
  *
- * Verifies the AppHeader Help button opens the Helm-injected docsUrl host
- * (192.168.49.2:30800). Closes the end-to-end chain:
+ * Verifies the AppHeader Help button opens the Helm-injected docsUrl
+ * (whatever config.js → window.EZ_CONFIG.docsUrl resolves to). Closes the end-to-end chain:
  *   operator Helm value → EZ_DOCS_URL env → docker-entrypoint.sh → /config.js
  *   → window.EZ_CONFIG.docsUrl → getDocsBaseUrl() → window.open URL.
  *
@@ -18,8 +18,6 @@
 import { test, expect } from '@playwright/test';
 
 test.use({ channel: 'chrome' });
-
-const DOCS_HOST = '192.168.49.2:30800';
 
 test('Help link opens docsUrl matching Helm-injected value', async ({ browser }) => {
   const context = await browser.newContext({ storageState: undefined });
@@ -52,12 +50,17 @@ test('Help link opens docsUrl matching Helm-injected value', async ({ browser })
   const openedUrls = await page.evaluate(
     () => (window as unknown as { __openedUrls: string[] }).__openedUrls
   );
+  // Source of truth: the runtime-injected docsUrl (config.js → window.EZ_CONFIG.docsUrl).
+  const docsUrl = await page.evaluate(
+    () => (window as unknown as { EZ_CONFIG?: { docsUrl?: string } }).EZ_CONFIG?.docsUrl
+  );
 
   // SC-09: the Help button must open the Helm-injected docsUrl.
+  expect(docsUrl, 'config.js must inject a docsUrl (window.EZ_CONFIG.docsUrl)').toBeTruthy();
   expect(openedUrls.length, 'Help button should trigger window.open').toBeGreaterThan(0);
   expect(
-    openedUrls.some((u) => u.includes(DOCS_HOST)),
-    `window.open URL should contain ${DOCS_HOST}; got ${JSON.stringify(openedUrls)}`
+    openedUrls.some((u) => u.startsWith(docsUrl as string)),
+    `window.open URL should start with the injected docsUrl ${docsUrl}; got ${JSON.stringify(openedUrls)}`
   ).toBe(true);
 
   await context.close();
