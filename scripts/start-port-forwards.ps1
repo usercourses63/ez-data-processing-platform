@@ -36,13 +36,16 @@ $portForwards = @(
     @{Name="RabbitMQ"; Port=5672; Service="rabbitmq"; TargetPort=5672},
     @{Name="Hazelcast"; Port=5701; Service="hazelcast"; TargetPort=5701},
     # Documentation Portal
-    @{Name="Docs Portal"; Port=30800; Service="docs"; TargetPort=80}
+    # Host port 7100 (NOT 30800: that node-port is in a Windows reserved range and won't bind;
+    # the node IP 192.168.49.2 is also not host-routable on the Docker driver). The frontend's
+    # docsUrl is set to http://localhost:7100 to match. Service is ezplatform-docs (port 80).
+    @{Name="Docs Portal"; Port=7100; Service="ezplatform-docs"; TargetPort=80}
 )
 
 # Start each port forward in background
 foreach ($pf in $portForwards) {
     Write-Host "Forwarding $($pf.Name): localhost:$($pf.Port) -> $($pf.Service):$($pf.TargetPort)" -ForegroundColor Green
-    Start-Process -WindowStyle Hidden kubectl -ArgumentList "port-forward -n ez-platform svc/$($pf.Service) $($pf.Port):$($pf.TargetPort)"
+    Start-Process -WindowStyle Hidden kubectl -ArgumentList "port-forward --context=minikube -n ez-platform svc/$($pf.Service) $($pf.Port):$($pf.TargetPort)"
     Start-Sleep -Milliseconds 500
 }
 
@@ -70,7 +73,7 @@ Write-Host "  Elasticsearch:        http://localhost:9200" -ForegroundColor Whit
 Write-Host "  Jaeger UI:            http://localhost:16686" -ForegroundColor White
 Write-Host "  OTEL Collector:       http://localhost:4318 (HTTP) / localhost:4317 (gRPC)" -ForegroundColor White
 Write-Host "`nDocumentation:" -ForegroundColor Cyan
-Write-Host "  Docs Portal:          http://localhost:30800" -ForegroundColor White
+Write-Host "  Docs Portal:          http://localhost:7100" -ForegroundColor White
 Write-Host "`nAPIs:" -ForegroundColor Cyan
 Write-Host "  Datasource API:       http://localhost:5001/api/v1/datasource" -ForegroundColor White
 Write-Host "  Invalid Records API:  http://localhost:5007/api/v1/invalid-records" -ForegroundColor White
