@@ -8,6 +8,10 @@ obj/
 *.suo
 *.cache
 
+# Throwaway audit/validation screenshots & scratch JSON (not versioned)
+tmp-screenshots/
+src/Frontend/tmp-screenshots/
+
 # Frontend build artifacts
 node_modules/
 build/

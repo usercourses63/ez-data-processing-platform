@@ -548,9 +548,11 @@ Plans:
 **Plans:** 3 plans (Wave 1: 33-01; Wave 2: 33-02, 33-03 parallel)
 
 Plans:
-- [ ] 33-01-PLAN.md — Build frontend Docker image (with entrypoint + fontsource bundle), `minikube image load`, `helm upgrade --set services.frontend.config.docsUrl=...`, wait for rollout, port-forward, verify `/config.js` + zero external font requests
-- [ ] 33-02-PLAN.md — Playwright multi-route audit against deployed cluster URL in **English mode** (8 routes × screenshot + Hebrew-leak count) + verify deployed `config.js` matches Helm value
-- [ ] 33-03-PLAN.md — Playwright multi-route audit in **Hebrew mode** (regression check — no untranslated English-only labels) + Help/footer docs link click test + sanity test suite run
+- [x] 33-01-PLAN.md — Frontend image `frontend:v0.5.0-phase33` deployed (entrypoint+fontsource), `minikube image load` done, surgical deploy (existing frontend deployment image+`EZ_DOCS_URL`; no helm re-render to protect stabilized backends), `/config.js` + zero external fonts verified. SC-01..06 PASS.
+- [x] 33-02-PLAN.md — Playwright **English** audit 9/9 green, all 8 routes ≤2 Hebrew nodes; deployed `config.js` = `http://192.168.49.2:30800`. SC-07 PASS.
+- [x] 33-03-PLAN.md — Playwright **Hebrew** audit (all 8 routes `dir=rtl`/`lang=he`), Help→docsUrl click test PASS; sanity suite 11/21 (10 fails all non-frontend: docs portal not deployed, port-forward saturation). SC-08/09 PASS, SC-10 PARTIAL.
+
+**Validation:** see `33-VALIDATION-REPORT.md` — disposition **READY-FOR-VERIFY** (9.5/10). Executed surgically (no `helm upgrade`) against a cluster with a pre-existing `ez-platform` release. Gap-closure items (out of phase scope): deploy docs portal (SANITY-08/09/10), invalidrecords Service port fixed live (chart pending).
 
 ---
 *Roadmap updated: 2026-05-25 after Phase 33 added for i18n/foundation deploy + cluster validation*
