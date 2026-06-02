@@ -233,7 +233,7 @@ public class ServerService : IServerService
             existing.BasePath = server.BasePath;
             existing.CredentialSecretRef = server.CredentialSecretRef;
             existing.KafkaConfig = server.KafkaConfig;
-            existing.TypeSpecificConfig = server.TypeSpecificConfig;
+            existing.TypeSpecificConfig = PreserveExistingSecret(server.TypeSpecificConfig, existing.TypeSpecificConfig);
             existing.ConnectionTimeoutSeconds = server.ConnectionTimeoutSeconds;
             existing.RetryCount = server.RetryCount;
             existing.UpdatedAt = DateTime.UtcNow;
@@ -461,6 +461,55 @@ public class ServerService : IServerService
     public List<ServerTypeDefinition> GetAvailableServerTypes()
     {
         return _serverTypes;
+    }
+
+    /// <summary>
+    /// Implements the write-only secret contract on update (SC-03, Pitfall 3).
+    /// When the inbound <c>TypeSpecificConfig.SecretKey</c> is the masked sentinel
+    /// (<see cref="Controllers.ServersController.MaskedSecretSentinel"/>) or is empty/absent while a
+    /// secret already exists on the stored document, the previously stored (already-encrypted)
+    /// <c>SecretKey</c> is retained instead of being overwritten with the mask. A real new
+    /// <c>SecretKey</c> (already encrypted by the controller) flows through unchanged.
+    /// </summary>
+    /// <param name="incoming">The config submitted by the client (SecretKey may be masked/empty).</param>
+    /// <param name="existing">The config currently persisted on the stored server.</param>
+    /// <returns>The config to persist, with the secret preserved when appropriate.</returns>
+    private static MongoDB.Bson.BsonDocument? PreserveExistingSecret(
+        MongoDB.Bson.BsonDocument? incoming,
+        MongoDB.Bson.BsonDocument? existing)
+    {
+        if (incoming == null)
+        {
+            return incoming;
+        }
+
+        // Determine whether the existing document holds a real stored secret.
+        var hasExistingSecret = existing != null
+            && existing.TryGetValue("SecretKey", out var existingSecret)
+            && existingSecret.IsString
+            && !string.IsNullOrEmpty(existingSecret.AsString);
+
+        if (!hasExistingSecret)
+        {
+            // No prior secret to preserve — accept the incoming config verbatim.
+            return incoming;
+        }
+
+        // Inbound secret is "unchanged" when it is the mask sentinel or empty/absent.
+        var incomingHasRealSecret = incoming.TryGetValue("SecretKey", out var incomingSecret)
+            && incomingSecret.IsString
+            && !string.IsNullOrEmpty(incomingSecret.AsString)
+            && incomingSecret.AsString != Controllers.ServersController.MaskedSecretSentinel;
+
+        if (incomingHasRealSecret)
+        {
+            // Client supplied a genuinely new secret (already encrypted by the controller).
+            return incoming;
+        }
+
+        // Keep-existing: retain the stored (already-encrypted) SecretKey on the inbound document.
+        incoming["SecretKey"] = existing!["SecretKey"];
+        return incoming;
     }
 
     /// <summary>
