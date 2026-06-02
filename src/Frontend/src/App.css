@@ -131,11 +131,16 @@ body {
 /* Page Header Styling */
 .page-header {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.page-header > div:first-child {
+  text-align: left;
 }
 
 .rtl .page-header {
