@@ -108,3 +108,7 @@ AES-256 field encryption of the S3 `SecretKey` at rest plus a frozen, unit-teste
 
 - A new encryption key (`Credentials__FieldEncryptionKey`) must be provisioned for DataSourceManagementService (and any other service that decrypts the SecretKey, e.g. FileDiscovery/Output) before production. Without it the documented dev fallback is used and a warning is logged.
 - The decrypt-on-read wiring (`ServerService.TestConnectionAsync` calling `ServerCredentialProtector.DecryptSecretInPlace` before `FromBsonDocument`) and the GET read-mask (Pitfall 3) are downstream plan concerns — this plan provides the protector and `DecryptSecretInPlace` helper they will call.
+
+## Self-Check: PASSED
+
+All created files present; all 10 task/deviation/summary commits found in history; working tree clean.
