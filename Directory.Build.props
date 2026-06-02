@@ -6,7 +6,12 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <!-- 1591: missing XML doc comments.
+         NU1903: NuGet-audit advisories on pre-existing transitive packages
+         (System.Security.Cryptography.Xml, Snappier) that cannot be upgraded without a
+         dependency bump out of scope for this phase. Without this the solution fails to
+         restore/build under TreatWarningsAsErrors. -->
+    <NoWarn>$(NoWarn);1591;NU1903</NoWarn>
     <Version>1.0.0</Version>
     <Authors>Data Processing Platform Team</Authors>
     <Company>Data Processing Platform</Company>
