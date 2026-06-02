@@ -5,7 +5,6 @@ using DataProcessing.Shared.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
-using System.Text.Json;
 
 namespace DataProcessing.DataSourceManagement.Controllers;
 
@@ -469,49 +468,10 @@ public class ServersController : ControllerBase
 
     /// <summary>
     /// Converts a Dictionary&lt;string, object&gt; (which may contain JsonElement values
-    /// from System.Text.Json deserialization) to a BsonDocument.
+    /// from System.Text.Json deserialization) to a BsonDocument. Delegates to the shared,
+    /// unit-tested <see cref="ServerConfigConverter"/> so the PascalCase S3 key contract is
+    /// preserved verbatim (Phase 34, Pitfall 2).
     /// </summary>
     private static BsonDocument? ConvertToBsonDocument(Dictionary<string, object>? dict)
-    {
-        if (dict == null) return null;
-
-        var doc = new BsonDocument();
-        foreach (var kvp in dict)
-        {
-            doc[kvp.Key] = ConvertToBsonValue(kvp.Value);
-        }
-        return doc;
-    }
-
-    private static BsonValue ConvertToBsonValue(object? value)
-    {
-        if (value == null) return BsonNull.Value;
-
-        if (value is JsonElement je)
-        {
-            return je.ValueKind switch
-            {
-                JsonValueKind.String => new BsonString(je.GetString()!),
-                JsonValueKind.Number when je.TryGetInt32(out var i) => new BsonInt32(i),
-                JsonValueKind.Number when je.TryGetInt64(out var l) => new BsonInt64(l),
-                JsonValueKind.Number => new BsonDouble(je.GetDouble()),
-                JsonValueKind.True => new BsonBoolean(true),
-                JsonValueKind.False => new BsonBoolean(false),
-                JsonValueKind.Null => BsonNull.Value,
-                JsonValueKind.Object => BsonDocument.Parse(je.GetRawText()),
-                JsonValueKind.Array => new BsonArray(je.EnumerateArray().Select(e => ConvertToBsonValue(e))),
-                _ => new BsonString(je.GetRawText()),
-            };
-        }
-
-        return value switch
-        {
-            string s => new BsonString(s),
-            int i => new BsonInt32(i),
-            long l => new BsonInt64(l),
-            double d => new BsonDouble(d),
-            bool b => new BsonBoolean(b),
-            _ => new BsonString(value.ToString() ?? string.Empty),
-        };
-    }
+        => ServerConfigConverter.ConvertToBsonDocument(dict);
 }

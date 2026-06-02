@@ -75,7 +75,24 @@ public class UpdateServerRequest
     // ========== Type-Specific Configuration ==========
 
     /// <summary>
-    /// Additional type-specific configuration
+    /// Additional type-specific configuration. Keys are persisted verbatim into
+    /// <c>AdminServer.TypeSpecificConfig</c> and read by
+    /// <c>ServerCredentials.FromBsonDocument</c> at connection-establish time, so the casing
+    /// must match exactly.
+    ///
+    /// <para>S3 / MinIO contract (PascalCase — Phase 34):</para>
+    /// <list type="bullet">
+    ///   <item><c>AccessKey</c> — S3 access key id.</item>
+    ///   <item><c>SecretKey</c> — S3 secret access key. <b>Write-only</b>: encrypted at rest
+    ///   and never echoed back in plaintext on read. On update, a masked/unchanged value is
+    ///   treated as "keep existing" rather than overwriting with the mask.</item>
+    ///   <item><c>Bucket</c> — target bucket name.</item>
+    ///   <item><c>Region</c> — AWS region (e.g. <c>us-east-1</c>).</item>
+    ///   <item><c>ForcePathStyle</c> — <c>true</c> for MinIO / raw-IP endpoints.</item>
+    ///   <item><c>UseHttp</c> — <c>true</c> for http-only endpoints.</item>
+    ///   <item><c>SessionToken</c> (optional) — temporary-credential session token.</item>
+    ///   <item><c>Endpoint</c> (optional) — explicit S3 endpoint URL.</item>
+    /// </list>
     /// </summary>
     public Dictionary<string, object>? TypeSpecificConfig { get; set; }
 
