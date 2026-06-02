@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Executing Phase 34
-stopped_at: Completed 34-02-PLAN.md (write-only SecretKey masking)
+stopped_at: Completed 34-03-PLAN.md (ServerModal S3 credential fields + PascalCase TypeSpecificConfig)
 last_updated: "2026-06-02T16:06:32.928Z"
 progress:
   total_phases: 35
   completed_phases: 33
   total_plans: 132
-  completed_plans: 127
-  percent: 96
+  completed_plans: 128
+  percent: 97
 ---
 
 ## Current Position
 
 Phase: 34 (s3-minio-connector-iam-credentials-bug-fix) — EXECUTING
-Plan: 2 of 6 complete (wave 2)
+Plan: 3 of 6 complete (wave 2)
 
 ## Project Reference
 
@@ -82,6 +82,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 32-03]: Docusaurus NodePort 30800 verified at HTTP 200, v0.5.0 content, getDocsBaseUrl() auto-detection confirmed working
 - [Phase 34-02]: SecretKey is write-only — masked to "********" on all five AdminServer GET endpoints (deep-cloned config, persisted document never mutated)
 - [Phase 34-02]: Update treats re-submitted mask sentinel (or empty) as "keep existing secret"; MaskedSecretSentinel const shared by controller, service, and frontend
+- [Phase 34-03]: ServerModal renders a dedicated {isS3} S3/MinIO section (masked Secret Key via Input.Password, LTR ltr-field inputs) reusing the shared Host/Port block; handleSubmit packs exact PascalCase TypeSpecificConfig (AccessKey/SecretKey/Bucket/Region/ForcePathStyle/UseHttp)
+- [Phase 34-03]: Edit pre-fills SecretKey with frontend-local MASKED_SECRET_SENTINEL ('********'); unchanged sentinel is posted back so the backend keep-existing logic retains the stored secret; form field UsePathStyle maps to contract key ForcePathStyle at submit
 
 ### Roadmap Evolution
 
@@ -103,5 +105,5 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Session Continuity
 
 Last session: 2026-06-02T16:06:32.928Z
-Stopped at: Completed 34-02-PLAN.md (write-only SecretKey masking)
+Stopped at: Completed 34-03-PLAN.md (ServerModal S3 credential fields + PascalCase TypeSpecificConfig)
 Resume file: None
