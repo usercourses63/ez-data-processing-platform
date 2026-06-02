@@ -124,7 +124,7 @@ test('@Sanity SANITY-03: Create and delete datasource via UI (all tabs)', async 
   await page.waitForLoadState('networkidle');
 
   // Click "Add new datasource" button
-  await page.getByRole('button', { name: /הוסף מקור נתונים חדש/i }).click();
+  await page.getByRole('button', { name: /(?:הוסף מקור נתונים חדש|Add New Data Source)$/i }).click();
   await page.waitForURL(/\/datasources\/new/);
   await page.waitForLoadState('networkidle');
 
@@ -336,7 +336,7 @@ test('@Sanity SANITY-11: NAS pipeline — create datasource with NAS device via 
   console.log(`SANITY-11: Using NAS device: ${inputNas.Name || inputNas.name} (ID: ${inputNas.ID || inputNas.id})`);
 
   // Step 2: Click "Add new datasource" button
-  await page.getByRole('button', { name: /הוסף מקור נתונים חדש/i }).click();
+  await page.getByRole('button', { name: /(?:הוסף מקור נתונים חדש|Add New Data Source)$/i }).click();
   await page.waitForURL(/\/datasources\/new/);
   await page.waitForLoadState('networkidle');
 
