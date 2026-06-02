@@ -5,9 +5,14 @@
 
 Write-Host "Starting persistent port forwards for EZ Platform..." -ForegroundColor Cyan
 
-# Kill any existing port forwards
-Write-Host "Cleaning up existing port forwards..." -ForegroundColor Yellow
-taskkill /F /IM kubectl.exe 2>$null
+# Kill ONLY this project's existing port forwards (ez-platform namespace).
+# IMPORTANT: do NOT `taskkill /IM kubectl.exe` — this host runs a parallel Claude session
+# with its own `file-simulator` kubectl port-forwards; a blanket kill would tear those down.
+# We match kubectl processes whose command line is a port-forward into the ez-platform ns.
+Write-Host "Cleaning up existing ez-platform port forwards..." -ForegroundColor Yellow
+Get-CimInstance Win32_Process -Filter "Name = 'kubectl.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -and $_.CommandLine -match 'port-forward' -and $_.CommandLine -match 'ez-platform' } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 
 Start-Sleep -Seconds 2
 
@@ -79,4 +84,6 @@ Write-Host "  Datasource API:       http://localhost:5001/api/v1/datasource" -Fo
 Write-Host "  Invalid Records API:  http://localhost:5007/api/v1/invalid-records" -ForegroundColor White
 Write-Host "  Metrics API:          http://localhost:5002/api/v1/metrics" -ForegroundColor White
 Write-Host "`nPort forwards are running in background. Keep this terminal open or they will stop." -ForegroundColor Yellow
-Write-Host "To stop all port forwards: taskkill /F /IM kubectl.exe" -ForegroundColor Yellow
+Write-Host "To stop ONLY these ez-platform port forwards (not the file-simulator session's):" -ForegroundColor Yellow
+Write-Host "  kill the kubectl.exe processes whose command line contains both 'port-forward' and 'ez-platform'." -ForegroundColor DarkGray
+Write-Host "  Do NOT run taskkill /IM kubectl.exe -- it also kills the other session's forwards." -ForegroundColor Yellow
