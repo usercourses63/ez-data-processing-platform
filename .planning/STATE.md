@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Executing Phase 34
-stopped_at: Completed quick task 260602-odp (page header RTL/LTR alignment)
+stopped_at: Completed 34-02-PLAN.md (write-only SecretKey masking)
 last_updated: "2026-06-02T16:06:32.928Z"
 progress:
   total_phases: 35
   completed_phases: 33
   total_plans: 132
-  completed_plans: 125
-  percent: 94
+  completed_plans: 127
+  percent: 96
 ---
 
 ## Current Position
 
 Phase: 34 (s3-minio-connector-iam-credentials-bug-fix) — EXECUTING
-Plan: 1 of 6
+Plan: 2 of 6 complete (wave 2)
 
 ## Project Reference
 
@@ -80,6 +80,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 32-03]: MassTransit uses RabbitMQ (not Kafka) for pipeline messaging — CLAUDE.md docs are inaccurate; pipeline tasks confirmed via 28 RabbitMQ message acks
 - [Phase 32-03]: FTP passive mode blocked by NodePort (data channel not exposed); NFS connector needs pod mount path; full file cycle test deferred
 - [Phase 32-03]: Docusaurus NodePort 30800 verified at HTTP 200, v0.5.0 content, getDocsBaseUrl() auto-detection confirmed working
+- [Phase 34-02]: SecretKey is write-only — masked to "********" on all five AdminServer GET endpoints (deep-cloned config, persisted document never mutated)
+- [Phase 34-02]: Update treats re-submitted mask sentinel (or empty) as "keep existing secret"; MaskedSecretSentinel const shared by controller, service, and frontend
 
 ### Roadmap Evolution
 
@@ -100,6 +102,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-03-27T20:00:00.000Z
-Stopped at: Completed quick task 260602-odp (page header RTL/LTR alignment)
+Last session: 2026-06-02T16:06:32.928Z
+Stopped at: Completed 34-02-PLAN.md (write-only SecretKey masking)
 Resume file: None

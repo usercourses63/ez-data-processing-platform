@@ -658,12 +658,12 @@ Plans:
   7. **Tests** — unit (credential mapping/validation), integration (controller↔Mongo + connector↔MinIO), and E2E (UI create S3 source → test connection → success) all pass.
   8. **Validation check** — an end-to-end run (simulation + backends) confirms an S3 source can be discovered/pulled with the new credentials.
 
-**Plans:** 1/6 plans executed
+**Plans:** 2/6 plans executed
 
 Plans:
 
 - [x] 34-01-PLAN.md — Backend credential contract: PascalCase TypeSpecificConfig keys + AES encrypt-at-rest for SecretKey + decrypt-on-read (SC-03/04/05)
-- [ ] 34-02-PLAN.md — Guard A: mask SecretKey on all GET responses + keep-existing-secret on update (write-only, SC-03)
+- [x] 34-02-PLAN.md — Guard A: mask SecretKey on all GET responses + keep-existing-secret on update (write-only, SC-03)
 - [ ] 34-03-PLAN.md — Frontend: ServerModal S3 branch (masked Access/Secret + Bucket/Region/path-style, LTR) -> PascalCase TypeSpecificConfig (SC-02)
 - [ ] 34-04-PLAN.md — Backend tests: ServerCredentials mapping/redaction + controller mask + connector<->MinIO end-to-end (SC-04/05/06/07)
 - [ ] 34-05-PLAN.md — Frontend tests: Vitest ServerModal S3 branch + Playwright create->Test Connection E2E (SC-02/07)
