@@ -121,8 +121,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 5006
-    targetPort: 5007   # container listens on 5007 (was 5006 → dead port)
+  - port: 5007
+    targetPort: 5007   # invalidrecords app listens on 5007 (service port was wrongly 5006 = filediscovery's port)
     protocol: TCP
     name: http
   selector:
