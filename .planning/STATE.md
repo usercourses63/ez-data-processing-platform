@@ -91,8 +91,14 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - Lazy tab + Form.setFieldsValue bug: requires retry at 500ms/1500ms for unmounted tabs
 - Ant Design Input.Password in lazy tabs needs same retry pattern
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260602-odp | in the UI page header: when Hebrew, align text and title RTL; when English, LTR | 2026-06-02 | 29ff994 | [260602-odp-in-the-ui-page-header-when-hebrew-align-](./quick/260602-odp-in-the-ui-page-header-when-hebrew-align-/) |
+
 ## Session Continuity
 
 Last session: 2026-03-27T20:00:00.000Z
-Stopped at: Completed 32-03-PLAN.md
+Stopped at: Completed quick task 260602-odp (page header RTL/LTR alignment)
 Resume file: None
