@@ -555,4 +555,32 @@ Plans:
 **Validation:** see `33-VALIDATION-REPORT.md` — disposition **READY-FOR-VERIFY** (9.5/10). Executed surgically (no `helm upgrade`) against a cluster with a pre-existing `ez-platform` release. Gap-closure items (out of phase scope): deploy docs portal (SANITY-08/09/10), invalidrecords Service port fixed live (chart pending).
 
 ---
-*Roadmap updated: 2026-05-25 after Phase 33 added for i18n/foundation deploy + cluster validation*
+
+### Phase 34: S3/MinIO Connector — IAM Credentials Bug Fix
+
+**Goal:** Fix the **"IAM credentials is missing"** error when configuring and using an S3 (MinIO) input data source. Add **Access Key + Secret Key** credential support across the full stack — the UI data-source connection form, the backend request/response DTOs, MongoDB persistence, and the S3 connection-establish flow — so the connector authenticates to the S3 endpoint. Validate end-to-end against the **file-simulator MinIO** (S3 API), with unit, integration, and E2E coverage.
+
+**Depends on:** Phase 33 (deployed cluster baseline). **Coordinates with Session B** file-simulator MinIO (S3 API `172.24.80.23:30900`, Console `:30901`) — a bucket + access/secret key must be requested via `CLUSTER-COORDINATION.md`.
+
+**Success Criteria** (what must be TRUE):
+  1. **Root cause documented** — how the S3/MinIO input resource gets its config, where the connection is established, and exactly why "IAM credentials is missing" fires (RESEARCH.md).
+  2. **UI** — the data-source connection form exposes **Access Key** + **Secret Key** fields when connection type = S3/MinIO (technical LTR fields; secret masked).
+  3. **Backend DTO** — create/update request + response DTOs carry `AccessKey`/`SecretKey` (secret is write-only — never echoed back in plaintext).
+  4. **Persistence** — the DataSource entity persists the credentials (secret secured at rest, never logged).
+  5. **Connection flow** — the S3 connection-establish function uses the stored Access Key/Secret Key to authenticate; the "IAM credentials is missing" error no longer occurs for a configured S3 source.
+  6. **Live MinIO request** — a connection/test request succeeds against the file-simulator S3 endpoint (test-connection returns success; a bucket/object listing or file poll works).
+  7. **Tests** — unit (credential mapping/validation), integration (controller↔Mongo + connector↔MinIO), and E2E (UI create S3 source → test connection → success) all pass.
+  8. **Validation check** — an end-to-end run (simulation + backends) confirms an S3 source can be discovered/pulled with the new credentials.
+
+**Plans:** 6 plans in 4 waves
+
+Plans:
+- [ ] 34-01-PLAN.md — Backend credential contract: PascalCase TypeSpecificConfig keys + AES encrypt-at-rest for SecretKey + decrypt-on-read (SC-03/04/05)
+- [ ] 34-02-PLAN.md — Guard A: mask SecretKey on all GET responses + keep-existing-secret on update (write-only, SC-03)
+- [ ] 34-03-PLAN.md — Frontend: ServerModal S3 branch (masked Access/Secret + Bucket/Region/path-style, LTR) -> PascalCase TypeSpecificConfig (SC-02)
+- [ ] 34-04-PLAN.md — Backend tests: ServerCredentials mapping/redaction + controller mask + connector<->MinIO end-to-end (SC-04/05/06/07)
+- [ ] 34-05-PLAN.md — Frontend tests: Vitest ServerModal S3 branch + Playwright create->Test Connection E2E (SC-02/07)
+- [ ] 34-06-PLAN.md — Live validation: bring backends up + Session-B MinIO creds -> Test Connection + discovery (SC-06/08)
+
+---
+*Roadmap updated: 2026-06-02 — Phase 34 added (S3/MinIO IAM credentials bug fix)*
