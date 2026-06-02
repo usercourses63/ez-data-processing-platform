@@ -2,9 +2,11 @@
 # OCP-compatible: runs as non-root user on non-privileged port 8080
 FROM nginx:alpine
 
-# Create non-root user for OCP compatibility
-RUN addgroup -g 1001 -S nginx-group && \
-    adduser -u 1001 -S nginx-user -G nginx-group && \
+# Create non-root user for OCP compatibility.
+# UID/GID 1000 to match the Helm chart's securityContext (runAsUser/runAsGroup/fsGroup: 1000);
+# the entrypoint writes /usr/share/nginx/html/config.js at start, so the runtime UID must own it.
+RUN addgroup -g 1000 -S nginx-group && \
+    adduser -u 1000 -S nginx-user -G nginx-group && \
     # Create necessary directories with correct permissions
     mkdir -p /tmp/client_temp /tmp/proxy_temp /tmp/fastcgi_temp /tmp/uwsgi_temp /tmp/scgi_temp && \
     chown -R nginx-user:nginx-group /tmp && \
