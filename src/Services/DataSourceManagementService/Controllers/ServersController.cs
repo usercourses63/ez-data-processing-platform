@@ -16,6 +16,14 @@ namespace DataProcessing.DataSourceManagement.Controllers;
 [Route("api/v1/[controller]")]
 public class ServersController : ControllerBase
 {
+    /// <summary>
+    /// Sentinel returned in place of a stored <c>SecretKey</c> on every GET response so the
+    /// real secret (plaintext or ciphertext) is never echoed to the client (SC-03, write-only).
+    /// Re-submitting this value on update is treated as "keep the existing secret"
+    /// (see <see cref="ServerService.UpdateServerAsync"/>).
+    /// </summary>
+    internal const string MaskedSecretSentinel = "********";
+
     private readonly IServerService _serverService;
     private readonly IHubContext<MonitoringHub> _hubContext;
     private readonly ServerCredentialProtector _credentialProtector;
@@ -48,7 +56,7 @@ public class ServersController : ControllerBase
         try
         {
             var servers = await _serverService.GetAllServersAsync(includeInactive, cancellationToken);
-            return Ok(servers);
+            return Ok(MaskSecret(servers));
         }
         catch (Exception ex)
         {
@@ -72,7 +80,7 @@ public class ServersController : ControllerBase
         try
         {
             var servers = await _serverService.GetInputServersAsync(includeInactive, cancellationToken);
-            return Ok(servers);
+            return Ok(MaskSecret(servers));
         }
         catch (Exception ex)
         {
@@ -96,7 +104,7 @@ public class ServersController : ControllerBase
         try
         {
             var servers = await _serverService.GetOutputServersAsync(includeInactive, cancellationToken);
-            return Ok(servers);
+            return Ok(MaskSecret(servers));
         }
         catch (Exception ex)
         {
@@ -147,7 +155,7 @@ public class ServersController : ControllerBase
                 return NotFound(new { message = $"שרת לא נמצא: {id}" });
             }
 
-            return Ok(server);
+            return Ok(MaskSecret(server));
         }
         catch (Exception ex)
         {
@@ -173,7 +181,7 @@ public class ServersController : ControllerBase
         try
         {
             var servers = await _serverService.GetServersByTypeAsync(serverType, includeInactive, cancellationToken);
-            return Ok(servers);
+            return Ok(MaskSecret(servers));
         }
         catch (Exception ex)
         {
@@ -456,6 +464,75 @@ public class ServersController : ControllerBase
             _logger.LogError(ex, "שגיאה בקבלת מספר שימושים בשרת: {ServerId}", id);
             return StatusCode(500, new { message = "שגיאה בקבלת מספר שימושים", error = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Returns a masked copy of each server suitable for a GET response: any non-empty
+    /// <c>SecretKey</c> in <c>TypeSpecificConfig</c> is replaced with
+    /// <see cref="MaskedSecretSentinel"/> so the secret (plaintext or ciphertext) is never
+    /// echoed to the client (SC-03, write-only). Non-secret S3 config — <c>AccessKey</c>,
+    /// <c>Bucket</c>, <c>Region</c>, <c>ForcePathStyle</c>, <c>UseHttp</c> — stays visible.
+    /// The persisted document is never mutated (T-34-07): masking happens on a deep copy.
+    /// </summary>
+    private static List<AdminServer> MaskSecret(List<AdminServer> servers)
+    {
+        if (servers == null) return new List<AdminServer>();
+        var masked = new List<AdminServer>(servers.Count);
+        foreach (var server in servers)
+        {
+            var copy = MaskSecret(server);
+            if (copy != null) masked.Add(copy);
+        }
+        return masked;
+    }
+
+    /// <summary>
+    /// Returns a masked copy of a single server (see the list overload). When no
+    /// <c>SecretKey</c> is present the original instance is returned unchanged.
+    /// Never mutates the persisted document.
+    /// </summary>
+    private static AdminServer? MaskSecret(AdminServer? server)
+    {
+        if (server?.TypeSpecificConfig == null) return server;
+
+        if (!server.TypeSpecificConfig.TryGetValue("SecretKey", out var secretValue)
+            || !secretValue.IsString
+            || string.IsNullOrEmpty(secretValue.AsString))
+        {
+            // No stored secret to hide — return as-is.
+            return server;
+        }
+
+        // Deep-clone the config so masking never touches the tracked/persisted document.
+        var maskedConfig = (BsonDocument)server.TypeSpecificConfig.DeepClone();
+        maskedConfig["SecretKey"] = MaskedSecretSentinel;
+
+        // Shallow-copy the entity with the masked config substituted.
+        return new AdminServer
+        {
+            ID = server.ID,
+            Name = server.Name,
+            Description = server.Description,
+            ServerType = server.ServerType,
+            Direction = server.Direction,
+            IsActive = server.IsActive,
+            Host = server.Host,
+            Port = server.Port,
+            BasePath = server.BasePath,
+            CredentialSecretRef = server.CredentialSecretRef,
+            KafkaConfig = server.KafkaConfig,
+            TypeSpecificConfig = maskedConfig,
+            ConnectionTimeoutSeconds = server.ConnectionTimeoutSeconds,
+            RetryCount = server.RetryCount,
+            LastConnectionTest = server.LastConnectionTest,
+            LastConnectionSuccess = server.LastConnectionSuccess,
+            LastConnectionError = server.LastConnectionError,
+            CreatedAt = server.CreatedAt,
+            UpdatedAt = server.UpdatedAt,
+            IsDeleted = server.IsDeleted,
+            CorrelationId = server.CorrelationId,
+            Version = server.Version
+        };
     }
 
     /// <summary>
