@@ -110,6 +110,9 @@ services.AddScoped<ICategoryService, CategoryService>();
 services.AddConnectorFactory();  // Includes HttpClient registration for HttpApiConnector
 services.AddScoped<IServerService, ServerService>();
 
+// Phase 34: field-level encryption of the S3 SecretKey in AdminServer.TypeSpecificConfig
+services.AddSingleton<DataProcessing.Shared.Services.ServerCredentialProtector>();
+
 // Register file operations proxy service (v0.2.0: SIM-TEST-01 - Protocol testing endpoints)
 services.AddScoped<IFileOperationsService, FileOperationsService>();
 

@@ -2,6 +2,7 @@ using DataProcessing.DataSourceManagement.Hubs;
 using DataProcessing.DataSourceManagement.Models.Requests;
 using DataProcessing.DataSourceManagement.Services;
 using DataProcessing.Shared.Entities;
+using DataProcessing.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MongoDB.Bson;
@@ -17,15 +18,18 @@ public class ServersController : ControllerBase
 {
     private readonly IServerService _serverService;
     private readonly IHubContext<MonitoringHub> _hubContext;
+    private readonly ServerCredentialProtector _credentialProtector;
     private readonly ILogger<ServersController> _logger;
 
     public ServersController(
         IServerService serverService,
         IHubContext<MonitoringHub> hubContext,
+        ServerCredentialProtector credentialProtector,
         ILogger<ServersController> logger)
     {
         _serverService = serverService;
         _hubContext = hubContext;
+        _credentialProtector = credentialProtector;
         _logger = logger;
     }
 
@@ -198,6 +202,9 @@ public class ServersController : ControllerBase
                 return BadRequest(ModelState);
             }
 
+            var typeSpecificConfig = ConvertToBsonDocument(request.TypeSpecificConfig);
+            EncryptSecretKey(typeSpecificConfig);
+
             var server = new AdminServer
             {
                 Name = request.Name,
@@ -210,7 +217,7 @@ public class ServersController : ControllerBase
                 BasePath = request.BasePath,
                 CredentialSecretRef = request.CredentialSecretRef,
                 KafkaConfig = request.KafkaConfig != null ? MapKafkaConfig(request.KafkaConfig) : null,
-                TypeSpecificConfig = ConvertToBsonDocument(request.TypeSpecificConfig),
+                TypeSpecificConfig = typeSpecificConfig,
                 ConnectionTimeoutSeconds = request.ConnectionTimeoutSeconds,
                 RetryCount = request.RetryCount
             };
@@ -257,6 +264,9 @@ public class ServersController : ControllerBase
                 return BadRequest(ModelState);
             }
 
+            var typeSpecificConfig = ConvertToBsonDocument(request.TypeSpecificConfig);
+            EncryptSecretKey(typeSpecificConfig);
+
             var server = new AdminServer
             {
                 Name = request.Name,
@@ -269,7 +279,7 @@ public class ServersController : ControllerBase
                 BasePath = request.BasePath,
                 CredentialSecretRef = request.CredentialSecretRef,
                 KafkaConfig = request.KafkaConfig != null ? MapKafkaConfig(request.KafkaConfig) : null,
-                TypeSpecificConfig = ConvertToBsonDocument(request.TypeSpecificConfig),
+                TypeSpecificConfig = typeSpecificConfig,
                 ConnectionTimeoutSeconds = request.ConnectionTimeoutSeconds,
                 RetryCount = request.RetryCount
             };
@@ -474,4 +484,24 @@ public class ServersController : ControllerBase
     /// </summary>
     private static BsonDocument? ConvertToBsonDocument(Dictionary<string, object>? dict)
         => ServerConfigConverter.ConvertToBsonDocument(dict);
+
+    /// <summary>
+    /// Encrypts a non-empty, not-yet-protected <c>SecretKey</c> in <paramref name="config"/>
+    /// so only ciphertext reaches persistence (Phase 34, SC-04 — secret secured at rest).
+    /// No-op when the key is absent, empty, or already protected. The secret value is never logged.
+    /// </summary>
+    private void EncryptSecretKey(BsonDocument? config)
+    {
+        if (config == null) return;
+
+        if (config.TryGetValue("SecretKey", out var secretValue)
+            && secretValue.IsString)
+        {
+            var secret = secretValue.AsString;
+            if (!string.IsNullOrEmpty(secret) && !_credentialProtector.IsProtected(secret))
+            {
+                config["SecretKey"] = _credentialProtector.Protect(secret);
+            }
+        }
+    }
 }
