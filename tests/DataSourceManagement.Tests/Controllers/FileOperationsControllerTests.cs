@@ -53,8 +53,8 @@ public class FileOperationsControllerTests
 
         var files = new List<DiscoveredFile>
         {
-            new DiscoveredFile { FileName = "file1.csv", FilePath = "/data/imports/file1.csv" },
-            new DiscoveredFile { FileName = "file2.csv", FilePath = "/data/imports/file2.csv" }
+            new DiscoveredFile { FileName = "file1.csv", FullPath = "/data/imports/file1.csv" },
+            new DiscoveredFile { FileName = "file2.csv", FullPath = "/data/imports/file2.csv" }
         };
 
         _fileOpServiceMock

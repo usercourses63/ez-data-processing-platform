@@ -4,11 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using FluentAssertions;
 using DataProcessing.DataSourceManagement.Controllers;
+using DataProcessing.DataSourceManagement.Hubs;
 using DataProcessing.DataSourceManagement.Models.Requests;
 using DataProcessing.DataSourceManagement.Services;
 using DataProcessing.Shared.Entities;
@@ -24,13 +26,18 @@ public class CategoriesControllerTests
 {
     private readonly Mock<ICategoryService> _categoryServiceMock;
     private readonly Mock<ILogger<CategoriesController>> _loggerMock;
+    private readonly Mock<IHubContext<MonitoringHub>> _hubContextMock;
     private readonly CategoriesController _controller;
 
     public CategoriesControllerTests()
     {
         _categoryServiceMock = new Mock<ICategoryService>();
         _loggerMock = new Mock<ILogger<CategoriesController>>();
-        _controller = new CategoriesController(_categoryServiceMock.Object, _loggerMock.Object);
+        _hubContextMock = new Mock<IHubContext<MonitoringHub>>();
+        _controller = new CategoriesController(
+            _categoryServiceMock.Object,
+            _hubContextMock.Object,
+            _loggerMock.Object);
 
         _controller.ControllerContext = new ControllerContext
         {
