@@ -87,6 +87,7 @@ const ServerModal: React.FC<ServerModalProps> = ({
   useEffect(() => {
     if (visible) {
       if (server) {
+        const s3Config = server.TypeSpecificConfig || {};
         form.setFieldsValue({
           ...server,
           // Flatten Kafka config if present
@@ -95,6 +96,16 @@ const ServerModal: React.FC<ServerModalProps> = ({
           KafkaSaslMechanism: server.KafkaConfig?.SaslMechanism,
           KafkaEnableSsl: server.KafkaConfig?.EnableSsl || false,
           KafkaDefaultConsumerGroup: server.KafkaConfig?.DefaultConsumerGroup,
+          // Flatten S3/MinIO TypeSpecificConfig back onto the form. The API returns
+          // the SecretKey masked as the sentinel (write-only, 34-02); pre-fill it so
+          // the field shows a placeholder, and if left unchanged it is sent back as-is
+          // and the backend keep-existing logic retains the stored secret.
+          AccessKey: s3Config.AccessKey,
+          SecretKey: server.ServerType?.toLowerCase() === 's3' ? MASKED_SECRET_SENTINEL : undefined,
+          Bucket: s3Config.Bucket,
+          Region: s3Config.Region,
+          UsePathStyle: s3Config.ForcePathStyle ?? true,
+          UseHttp: s3Config.UseHttp ?? true,
         });
       } else {
         form.resetFields();
@@ -138,6 +149,22 @@ const ServerModal: React.FC<ServerModalProps> = ({
           SslCaLocation: values.KafkaSslCaLocation,
           AcksRequired: values.KafkaAcksRequired || 1,
           DefaultConsumerGroup: values.KafkaDefaultConsumerGroup,
+        };
+      }
+
+      // Add S3/MinIO TypeSpecificConfig with exact PascalCase keys (34-01 contract).
+      // Casing must match ServerCredentials.FromBsonDocument or the connector reads
+      // empty creds and the AWS SDK throws "IAM credentials is missing" (Pitfall 2).
+      // SecretKey is sent as-is: if the admin left the masked sentinel unchanged, the
+      // backend keep-existing logic (34-02) retains the stored secret.
+      if (values.ServerType?.toLowerCase() === 's3') {
+        requestData.TypeSpecificConfig = {
+          AccessKey: values.AccessKey,
+          SecretKey: values.SecretKey,
+          Bucket: values.Bucket,
+          Region: values.Region,
+          ForcePathStyle: values.UsePathStyle ?? true,
+          UseHttp: values.UseHttp ?? true,
         };
       }
 
