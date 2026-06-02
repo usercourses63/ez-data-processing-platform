@@ -847,12 +847,19 @@
         "securityProtocol": "Security Protocol",
         "saslMechanism": "SASL Mechanism",
         "defaultConsumerGroup": "Default Consumer Group",
-        "enableSsl": "Enable SSL"
+        "enableSsl": "Enable SSL",
+        "accessKey": "Access Key",
+        "secretKey": "Secret Key",
+        "bucket": "Bucket",
+        "region": "Region",
+        "usePathStyle": "Path-Style Addressing (recommended for MinIO)",
+        "useHttp": "Use HTTP (not HTTPS)"
       },
       "sections": {
         "connection": "Connection Settings",
         "path": "Path Settings",
         "kafka": "Kafka Settings",
+        "s3": "S3 / MinIO Settings",
         "advanced": "Advanced Settings"
       },
       "filterAll": "All",

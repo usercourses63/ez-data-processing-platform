@@ -23,6 +23,13 @@ import { createServer, updateServer, getServerTypes, serverQueryKeys } from '../
 const { Option } = Select;
 const { TextArea } = Input;
 
+/**
+ * Sentinel the API returns in place of a real SecretKey (write-only field, see 34-02).
+ * If the admin leaves the Secret Key field as this value on edit, it is sent back
+ * unchanged and the backend keep-existing logic retains the stored secret.
+ */
+const MASKED_SECRET_SENTINEL = '********';
+
 interface ServerModalProps {
   visible: boolean;
   server: AdminServer | null;
@@ -154,6 +161,7 @@ const ServerModal: React.FC<ServerModalProps> = ({
   const requiresHostPort = ['ftp', 'sftp', 's3', 'http'].includes(serverType?.toLowerCase() || '');
   const requiresBasePath = ['local', 'nfs', 'folder'].includes(serverType?.toLowerCase() || '');
   const isKafka = serverType?.toLowerCase() === 'kafka';
+  const isS3 = serverType?.toLowerCase() === 's3';
 
   return (
     <Modal
@@ -262,6 +270,73 @@ const ServerModal: React.FC<ServerModalProps> = ({
                 placeholder="ez-platform/ftp-credentials"
               />
             </Form.Item>
+          </>
+        )}
+
+        {/* S3 / MinIO credential fields */}
+        {isS3 && (
+          <>
+            <Divider>{t('admin.servers.sections.s3') || 'הגדרות S3 / MinIO'}</Divider>
+            <Form.Item
+              name="AccessKey"
+              label={t('admin.servers.fields.accessKey') || 'Access Key (מפתח גישה)'}
+              rules={[{ required: true, message: 'Access Key הוא שדה חובה' }]}
+            >
+              <Input className="ltr-field" placeholder="AKIAIOSFODNN7EXAMPLE" autoComplete="off" />
+            </Form.Item>
+
+            <Form.Item
+              name="SecretKey"
+              label={t('admin.servers.fields.secretKey') || 'Secret Key (מפתח סודי)'}
+              rules={[{ required: true, message: 'Secret Key הוא שדה חובה' }]}
+            >
+              <Input.Password
+                className="ltr-field"
+                placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                autoComplete="new-password"
+                visibilityToggle
+              />
+            </Form.Item>
+
+            <Space style={{ width: '100%' }} size="middle">
+              <Form.Item
+                name="Bucket"
+                label={t('admin.servers.fields.bucket') || 'Bucket (דלי)'}
+                rules={[{ required: true, message: 'Bucket הוא שדה חובה' }]}
+                style={{ flex: 2 }}
+              >
+                <Input className="ltr-field" placeholder="my-bucket" />
+              </Form.Item>
+
+              <Form.Item
+                name="Region"
+                label={t('admin.servers.fields.region') || 'Region (אזור)'}
+                style={{ flex: 1 }}
+                initialValue="us-east-1"
+              >
+                <Input className="ltr-field" placeholder="us-east-1" />
+              </Form.Item>
+            </Space>
+
+            <Space style={{ width: '100%' }} size="large">
+              <Form.Item
+                name="UsePathStyle"
+                label={t('admin.servers.fields.usePathStyle') || 'כתובות Path-Style (מומלץ ל-MinIO)'}
+                valuePropName="checked"
+                initialValue={true}
+              >
+                <Switch />
+              </Form.Item>
+
+              <Form.Item
+                name="UseHttp"
+                label={t('admin.servers.fields.useHttp') || 'השתמש ב-HTTP (לא HTTPS)'}
+                valuePropName="checked"
+                initialValue={true}
+              >
+                <Switch />
+              </Form.Item>
+            </Space>
           </>
         )}
 

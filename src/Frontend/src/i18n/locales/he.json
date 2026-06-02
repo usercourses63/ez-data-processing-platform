@@ -1255,12 +1255,19 @@
         "securityProtocol": "Security Protocol",
         "saslMechanism": "SASL Mechanism",
         "defaultConsumerGroup": "Default Consumer Group",
-        "enableSsl": "הפעל SSL"
+        "enableSsl": "הפעל SSL",
+        "accessKey": "Access Key (מפתח גישה)",
+        "secretKey": "Secret Key (מפתח סודי)",
+        "bucket": "Bucket (דלי)",
+        "region": "Region (אזור)",
+        "usePathStyle": "כתובות Path-Style (מומלץ ל-MinIO)",
+        "useHttp": "השתמש ב-HTTP (לא HTTPS)"
       },
       "sections": {
         "connection": "הגדרות חיבור",
         "path": "הגדרות נתיב",
         "kafka": "הגדרות Kafka",
+        "s3": "הגדרות S3 / MinIO",
         "advanced": "הגדרות מתקדמות"
       }
     },
