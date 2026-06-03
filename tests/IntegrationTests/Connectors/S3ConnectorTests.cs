@@ -191,4 +191,76 @@ public class S3ConnectorTests : IClassFixture<FileSimulatorFixture>
         csvFiles.Should().OnlyContain(f => f.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase),
             "CSV filter should only return CSV files");
     }
+
+    // ========== Phase 34: credential regression + end-to-end (SC-05/SC-06) ==========
+
+    /// <summary>
+    /// Empty-credentials regression (SC-05): when the AdminServer's <c>TypeSpecificConfig</c> carries
+    /// no <c>AccessKey</c>/<c>SecretKey</c>, <see cref="ServerCredentials.FromBsonDocument"/> yields no
+    /// S3 auth and <see cref="S3Connector.TestConnectionAsync(AdminServer, ServerCredentials?, System.Threading.CancellationToken)"/>
+    /// returns <c>IsSuccess == false</c>. This documents the original bug: missing keys silently fell
+    /// through to the AWS SDK "IAM credentials is missing" path against a MinIO server that demands them.
+    /// Guarded by the file-simulator so the failure is an authentication failure (not connectivity).
+    /// </summary>
+    [SkippableFact(DisplayName = "S3: empty credentials fail to connect (IAM-missing regression)")]
+    [Trait("Scenario", "EmptyCredentialsRegression")]
+    public async Task S3Connector_EmptyCredentials_TestConnectionFails()
+    {
+        SkipIfFileSimulatorUnavailable();
+
+        // Arrange — server with NO AccessKey/SecretKey in TypeSpecificConfig.
+        var server = CreateAdminServer();
+        var emptyConfigCredentials = ServerCredentials.FromBsonDocument(server.TypeSpecificConfig!);
+        emptyConfigCredentials.HasS3Auth.Should().BeFalse(
+            "the config has no AccessKey/SecretKey, so no S3 auth should be derived");
+
+        _output.WriteLine($"Testing S3 connection with empty credentials to {server.Host}:{server.Port}");
+
+        // Act
+        var result = await _connector.TestConnectionAsync(server, emptyConfigCredentials);
+
+        // Assert — the IAM-missing path must NOT silently succeed.
+        result.IsSuccess.Should().BeFalse(
+            "with no access/secret key the connector must fail rather than fall through to the IAM path");
+
+        _output.WriteLine($"Connection correctly failed: {result.ErrorMessage}");
+    }
+
+    /// <summary>
+    /// End-to-end (SC-05/SC-06): build <see cref="ServerCredentials"/> from the PascalCase
+    /// <c>TypeSpecificConfig</c> via <see cref="ServerCredentials.FromBsonDocument"/> — exactly the
+    /// establish-path the production code takes — and authenticate to the file-simulator MinIO.
+    /// Proves real keys reach the connector and the live request succeeds.
+    /// </summary>
+    [SkippableFact(DisplayName = "S3 (S3EndToEnd): credentials from TypeSpecificConfig authenticate to MinIO")]
+    [Trait("Category", "S3EndToEnd")]
+    public async Task S3Connector_CredentialsFromTypeSpecificConfig_AuthenticatesToMinIO()
+    {
+        SkipIfFileSimulatorUnavailable();
+
+        // Arrange — populate TypeSpecificConfig with the PascalCase S3 key contract
+        // (Pitfall 2) and derive credentials the same way the production establish-path does.
+        var (accessKey, secretKey) = FileSimulatorFixture.Credentials.S3;
+        var server = CreateAdminServer();
+        server.TypeSpecificConfig!["AccessKey"] = accessKey;
+        server.TypeSpecificConfig["SecretKey"] = secretKey;
+
+        var credentials = ServerCredentials.FromBsonDocument(server.TypeSpecificConfig);
+        credentials.HasS3Auth.Should().BeTrue("FromBsonDocument must read the PascalCase keys");
+        credentials.AccessKey.Should().Be(accessKey);
+        credentials.SecretKey.Should().Be(secretKey);
+
+        _output.WriteLine($"End-to-end S3 auth to {server.Host}:{server.Port}, bucket {DefaultBucket}");
+        _output.WriteLine($"Credentials (redacted): {credentials}");
+
+        // Act
+        var result = await _connector.TestConnectionAsync(server, credentials);
+
+        // Assert — real keys from TypeSpecificConfig must authenticate.
+        result.IsSuccess.Should().BeTrue(
+            "credentials derived from TypeSpecificConfig must authenticate to MinIO (SC-05/SC-06)");
+        result.ServerInfo.Should().NotBeNullOrEmpty();
+
+        _output.WriteLine($"End-to-end connection successful in {result.ConnectionTimeMs}ms: {result.ServerInfo}");
+    }
 }
