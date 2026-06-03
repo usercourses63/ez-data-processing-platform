@@ -24,6 +24,11 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <!-- Versions are governed by Central Package Management (Directory.Packages.props);
+         these references add no new package versions — they reuse already-declared ones
+         so the live secret round-trip test can probe the API and read persisted ciphertext. -->
+    <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="xunit.SkippableFact" />
   </ItemGroup>
 
   <ItemGroup>
