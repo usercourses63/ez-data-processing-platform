@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Executing Phase 34
-stopped_at: Completed 34-03-PLAN.md (ServerModal S3 credential fields + PascalCase TypeSpecificConfig)
-last_updated: "2026-06-02T16:06:32.928Z"
+stopped_at: Completed 34-04-PLAN.md (Backend credential test tier — unit pass, live controller/S3 tiers skip cleanly, deferred to 34-06)
+last_updated: "2026-06-03T00:00:00.000Z"
 progress:
   total_phases: 35
   completed_phases: 33
   total_plans: 132
-  completed_plans: 128
+  completed_plans: 129
   percent: 97
 ---
 
@@ -84,6 +84,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 34-02]: Update treats re-submitted mask sentinel (or empty) as "keep existing secret"; MaskedSecretSentinel const shared by controller, service, and frontend
 - [Phase 34-03]: ServerModal renders a dedicated {isS3} S3/MinIO section (masked Secret Key via Input.Password, LTR ltr-field inputs) reusing the shared Host/Port block; handleSubmit packs exact PascalCase TypeSpecificConfig (AccessKey/SecretKey/Bucket/Region/ForcePathStyle/UseHttp)
 - [Phase 34-03]: Edit pre-fills SecretKey with frontend-local MASKED_SECRET_SENTINEL ('********'); unchanged sentinel is posted back so the backend keep-existing logic retains the stored secret; form field UsePathStyle maps to contract key ForcePathStyle at submit
+- [Phase 34-04]: Backend credential test tier authored — ServerCredentials unit tests pass (10/10); controller GET-masks/encrypt-at-rest/keep-existing integration + S3 empty-creds-regression + S3EndToEnd are SkippableFacts that skip cleanly when API/Mongo/MinIO are unreachable or the deployed build predates 34-01/34-02 (live tier verified in 34-06)
 
 ### Roadmap Evolution
 
@@ -104,6 +105,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-06-02T16:06:32.928Z
-Stopped at: Completed 34-03-PLAN.md (ServerModal S3 credential fields + PascalCase TypeSpecificConfig)
+Last session: 2026-06-03T00:00:00.000Z
+Stopped at: Completed 34-04-PLAN.md (Backend credential test tier — unit pass, live tiers skip/deferred to 34-06)
 Resume file: None
