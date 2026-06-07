@@ -13,18 +13,21 @@ public class FileOperationsService : IFileOperationsService
     private readonly IServerService _serverService;
     private readonly IConnectorFactory _connectorFactory;
     private readonly ICredentialResolver? _credentialResolver;
+    private readonly ServerCredentialProtector? _credentialProtector;
     private readonly ILogger<FileOperationsService> _logger;
 
     public FileOperationsService(
         IServerService serverService,
         IConnectorFactory connectorFactory,
         ILogger<FileOperationsService> logger,
-        ICredentialResolver? credentialResolver = null)
+        ICredentialResolver? credentialResolver = null,
+        ServerCredentialProtector? credentialProtector = null)
     {
         _serverService = serverService;
         _connectorFactory = connectorFactory;
         _logger = logger;
         _credentialResolver = credentialResolver;
+        _credentialProtector = credentialProtector;
     }
 
     public async Task<List<DiscoveredFile>> ListFilesAsync(string serverId, string? path, string pattern, CancellationToken cancellationToken = default)
@@ -111,11 +114,18 @@ public class FileOperationsService : IFileOperationsService
             }
         }
 
-        // Fallback: extract credentials from TypeSpecificConfig
+        // Fallback: extract credentials from TypeSpecificConfig.
+        // Decrypt the at-rest SecretKey (Phase 34, SC-05) on a clone so the encrypted
+        // value reaches the connector as plaintext without mutating the tracked entity.
         if (credentials == null && server.TypeSpecificConfig != null)
         {
-            credentials = ServerCredentials.FromBsonDocument(server.TypeSpecificConfig);
-            _logger.LogDebug("Using credentials from TypeSpecificConfig for server {ServerName}", server.Name);
+            var configForCreds = server.TypeSpecificConfig.DeepClone().AsBsonDocument;
+            if (_credentialProtector != null)
+            {
+                ServerCredentialProtector.DecryptSecretInPlace(configForCreds, _credentialProtector);
+            }
+            credentials = ServerCredentials.FromBsonDocument(configForCreds);
+            _logger.LogDebug("Using credentials from TypeSpecificConfig for server {ServerName} (secret decrypted on read)", server.Name);
         }
 
         return (server, serverConnector, credentials);
