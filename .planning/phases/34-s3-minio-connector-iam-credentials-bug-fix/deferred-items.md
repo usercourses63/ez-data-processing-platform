@@ -115,3 +115,62 @@ sets ServiceURL, which is why discovery works but output failed.
 WORKAROUND (used): omit `region` in the output S3Config.
 PERMANENT FIX: when Endpoint is set, do NOT also set RegionEndpoint (or set
 AuthenticationRegion only). Mirror S3Connector.CreateS3Client.
+
+## 34-06 — OPEN TASKS: datasource UX bugs found during self-service E2E (2026-06-07)
+
+### TASK A — CSV numeric data fails validation against a string-typed schema (bug #1)
+**Symptom:** A CSV with numeric columns (e.g. id,amount) is marked invalid when the
+datasource schema types those fields as `string` (the default when fields are added
+manually in the Schema tab). Only true-string columns (name) pass; every numeric record
+is rejected (ValidRecords=0). Reproduced on datasource `e2e`
+(schema: id/name/amount all `"type":"string"`, required).
+**Root cause:** `src/Services/Shared/Converters/CsvToJsonConverter.cs` lines 109-127
+ALWAYS infers numeric/bool JSON types from the raw text (`double.TryParse`→number,
+`int.TryParse`→int, `bool.TryParse`→bool). So `"501"` becomes JSON `501` (number). JSON
+Schema validation then sees number≠string → invalid. The converter is schema-UNAWARE
+(it only reads `SchemaPropertyNames` from metadata for headerless mapping). The frontend
+type inferrer (`utils/fileAnalyzer/schemaInferrer.ts`) actually types numeric columns
+correctly, but it isn't applied when a user hand-builds the schema (fields default to
+`string`), so the converter's numbers collide with the string schema.
+**Possible solutions (pick one):**
+  - A (recommended): make CsvToJsonConverter SCHEMA-AWARE — pass the datasource JsonSchema
+    (or a field→type map) into ConvertToJsonAsync; for a field typed `string`, keep the raw
+    string; only number/integer/boolean fields get parsed. Guarantees converted data always
+    matches declared types.
+  - B (simplest): stop auto-inferring — emit all CSV values as strings. Matches the common
+    string-default schema, but number-typed schemas would then need coercion.
+  - C: coerce in the Validation service (accept numeric-string for string fields and v.v.).
+  Also recommended UX: in the Schema tab, offer "infer types from sample file" (wire the
+  existing schemaInferrer) so users don't hand-type every field as `string`.
+**Touch points:** `CsvToJsonConverter.cs` (+ pass schema from
+`FileProcessorService/Consumers/FileDiscoveredEventConsumer.cs`); rebuild+redeploy
+fileprocessor. Verify: numeric CSV → valid records → output.
+
+### TASK B — Connection config lost when updating a datasource's schema (bug #2)
+**Symptom:** Editing a datasource to change the schema and saving makes the connection
+configuration (input server) appear unsaved; repeatable every time.
+**Root cause (frontend, strong hypothesis — confirm by UI repro):** The edit form
+(`pages/datasources/DataSourceEditEnhanced.tsx`) hydrates `inputServerId` into the Ant
+Form only AFTER the input-servers list loads and only conditionally
+(`components/datasource/tabs/ConnectionTab.tsx:83-84`:
+`connectionType!=='NAS' && inputServers.length>0 && savedFieldValues.inputServerId`).
+This is the known lazy-tab/async `setFieldsValue` race (already noted in STATE.md
+Blockers). If the user edits the schema on another tab and saves before the Connection
+tab fully hydrates, the submitted `values.inputServerId` is empty. The save merge at
+`DataSourceEditEnhanced.tsx:387` (`values.inputServerId ?? existingConfig.connectionConfig?.inputServerId`)
+then writes a connection-less `ConfigurationSettings` (line 443), and the backend
+OVERWRITES `AdditionalConfiguration["ConfigurationSettings"]`
+(`DataSourceService.cs` ~825) — which the frontend reads back for display — so the
+connection shows as wiped. NOTE the backend `FileServerId` field itself is guarded
+(`DataSourceService.cs:1006` only overwrites when non-empty), so the pipeline keeps
+working; it's the stored/displayed ConfigurationSettings that loses connectionConfig.
+**Possible solutions:**
+  - Frontend (recommended): ensure `inputServerId` is always present at submit — bind it
+    from `parsedConfig.connectionConfig.inputServerId` / `dataSource.FileServerId` even when
+    the Connection tab hasn't mounted (don't gate on `inputServers.length>0`); or make the
+    save merge use the loaded `dataSource` as the fallback rather than only form `values`.
+  - Backend hardening: on update, MERGE the incoming connectionConfig into the existing
+    stored ConfigurationSettings instead of overwriting, so a partial update can't drop it.
+**Touch points:** `ConnectionTab.tsx`, `DataSourceEditEnhanced.tsx` (and optionally the
+update path in `DataSourceService.cs`); rebuild+redeploy frontend. Verify: edit schema →
+save → reopen → connection still set.
