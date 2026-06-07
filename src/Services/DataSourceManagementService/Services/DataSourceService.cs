@@ -26,6 +26,7 @@ public class DataSourceService : IDataSourceService
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly INasDeviceService _nasDeviceService;
     private readonly IServerService _serverService;
+    private readonly DataProcessing.Shared.Services.ServerCredentialProtector? _credentialProtector;
     private static readonly ActivitySource ActivitySource = new("DataProcessing.DataSourceManagement.Service");
 
     public DataSourceService(
@@ -34,7 +35,8 @@ public class DataSourceService : IDataSourceService
         BusinessMetrics metrics,
         IPublishEndpoint publishEndpoint,
         INasDeviceService nasDeviceService,
-        IServerService serverService)
+        IServerService serverService,
+        DataProcessing.Shared.Services.ServerCredentialProtector? credentialProtector = null)
     {
         _repository = repository;
         _logger = logger;
@@ -42,6 +44,7 @@ public class DataSourceService : IDataSourceService
         _publishEndpoint = publishEndpoint;
         _nasDeviceService = nasDeviceService;
         _serverService = serverService;
+        _credentialProtector = credentialProtector;
     }
 
     /// <summary>
@@ -1143,6 +1146,38 @@ public class DataSourceService : IDataSourceService
         }
         dataSource.AdditionalConfiguration["FtpServer"] = server.Host;
         dataSource.AdditionalConfiguration["FtpPort"] = server.Port;
+
+        // S3/MinIO: bridge the AdminServer credential contract into the lowercase keys
+        // S3Connector.GetS3Config reads for the async pipeline (Phase 34 pipeline wiring).
+        // SecretKey is encrypted at rest — decrypt it so the connector authenticates.
+        if (server.ServerType?.ToLowerInvariant() == "s3" && server.TypeSpecificConfig != null)
+        {
+            var s3 = server.TypeSpecificConfig;
+            if (s3.Contains("AccessKey"))
+                dataSource.AdditionalConfiguration["accessKey"] = s3["AccessKey"].AsString;
+            if (s3.Contains("SecretKey"))
+            {
+                var secret = s3["SecretKey"].AsString;
+                if (_credentialProtector != null && _credentialProtector.IsProtected(secret))
+                    secret = _credentialProtector.Unprotect(secret);
+                dataSource.AdditionalConfiguration["secretKey"] = secret;
+            }
+            if (s3.Contains("Bucket"))
+                dataSource.AdditionalConfiguration["bucket"] = s3["Bucket"].AsString;
+            dataSource.AdditionalConfiguration["region"] =
+                s3.Contains("Region") ? s3["Region"].AsString : "us-east-1";
+            var useHttp = s3.Contains("UseHttp") && s3["UseHttp"].AsBoolean;
+            dataSource.AdditionalConfiguration["endpoint"] =
+                $"{(useHttp ? "http" : "https")}://{server.Host}:{server.Port}";
+            // MinIO requires path-style addressing; default true when unset.
+            dataSource.AdditionalConfiguration["usePathStyle"] =
+                !s3.Contains("ForcePathStyle") || s3["ForcePathStyle"].AsBoolean;
+            // For S3 the bucket is supplied separately (above), so FilePath must be the
+            // in-bucket object-key prefix only — NOT the s3://host:port/... URI built by the
+            // switch, which S3Connector.NormalizePrefix would treat as a literal prefix and
+            // match zero objects. Empty => list the whole bucket.
+            dataSource.FilePath = path;
+        }
 
         _logger.LogInformation(
             "Resolved FileServerId {ServerId} ({ServerType}) for datasource {Name}: FilePath={FilePath}",
