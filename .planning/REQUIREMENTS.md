@@ -75,6 +75,7 @@ Requirements for Datasource Productivity Features milestone. Each maps to roadma
 Deferred to future release. Tracked but not in current roadmap.
 
 ### Datasource Management
+
 - **DS-FUTURE-01**: Export datasource configuration as JSON file
 - **DS-FUTURE-02**: Bulk clone multiple datasources
 - **DS-FUTURE-03**: Excel file import support (in addition to CSV/JSON/XML)
@@ -148,6 +149,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REVAL-26 | Phase 29 | Complete |
 
 **Coverage:**
+
 - v0.4.0 requirements: 45 total
 - Mapped to phases: 45
 - Unmapped: 0

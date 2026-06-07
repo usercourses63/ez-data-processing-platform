@@ -658,7 +658,7 @@ Plans:
   7. **Tests** — unit (credential mapping/validation), integration (controller↔Mongo + connector↔MinIO), and E2E (UI create S3 source → test connection → success) all pass.
   8. **Validation check** — an end-to-end run (simulation + backends) confirms an S3 source can be discovered/pulled with the new credentials.
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 
@@ -667,7 +667,7 @@ Plans:
 - [x] 34-03-PLAN.md — Frontend: ServerModal S3 branch (masked Access/Secret + Bucket/Region/path-style, LTR) -> PascalCase TypeSpecificConfig (SC-02)
 - [x] 34-04-PLAN.md — Backend tests: ServerCredentials mapping/redaction + controller mask + connector<->MinIO end-to-end (SC-04/05/06/07)
 - [x] 34-05-PLAN.md — Frontend tests: Vitest ServerModal S3 branch + Playwright create->Test Connection E2E (SC-02/07)
-- [ ] 34-06-PLAN.md — Live validation: bring backends up + Session-B MinIO creds -> Test Connection + discovery (SC-06/08)
+- [x] 34-06-PLAN.md — Live validation: bring backends up + Session-B MinIO creds -> Test Connection + discovery (SC-06/08)
 
 ---
 *Roadmap updated: 2026-06-02 — Phase 34 added (S3/MinIO IAM credentials bug fix)*
