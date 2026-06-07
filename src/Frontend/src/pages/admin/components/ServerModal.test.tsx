@@ -3,10 +3,10 @@
  *
  * Phase 34 plan 05 (SC-02). Proves the S3 branch authored in 34-03:
  *  - Selecting ServerType "s3" renders Access Key, a MASKED Secret Key
- *    (Input.Password → input[type=password]), Bucket, Region, and the
+ *    (Input.Password → input[type=password]), Bucket, and the
  *    path-style / http switches — technical inputs carry className "ltr-field".
  *  - handleSubmit packs requestData.TypeSpecificConfig with exact PascalCase
- *    keys { AccessKey, SecretKey, Bucket, Region, ForcePathStyle, UseHttp }
+ *    keys { AccessKey, SecretKey, Bucket, ForcePathStyle, UseHttp }
  *    (the 34-01 contract — casing drift = "IAM credentials is missing").
  *  - In edit mode the Secret Key shows the masked sentinel "********" and is
  *    NOT pre-filled with any real value; leaving it unchanged posts the
@@ -89,7 +89,7 @@ describe('ServerModal — S3/MinIO branch', () => {
     updateServerMock.mockClear();
   });
 
-  it('renders the masked Secret Key plus Access Key / Bucket / Region / switches when type=s3', async () => {
+  it('renders the masked Secret Key plus Access Key / Bucket / switches when type=s3', async () => {
     renderModal();
     await selectS3Type();
 
@@ -102,16 +102,17 @@ describe('ServerModal — S3/MinIO branch', () => {
 
     const secretKey = document.querySelector('#SecretKey') as HTMLInputElement;
     const bucket = document.querySelector('#Bucket') as HTMLInputElement;
-    const region = document.querySelector('#Region') as HTMLInputElement;
     const usePathStyle = document.querySelector('#UsePathStyle') as HTMLInputElement;
     const useHttp = document.querySelector('#UseHttp') as HTMLInputElement;
 
     expect(accessKey, 'Access Key input').toBeTruthy();
     expect(secretKey, 'Secret Key input').toBeTruthy();
     expect(bucket, 'Bucket input').toBeTruthy();
-    expect(region, 'Region input').toBeTruthy();
     expect(usePathStyle, 'UsePathStyle switch').toBeTruthy();
     expect(useHttp, 'UseHttp switch').toBeTruthy();
+
+    // Region field was intentionally removed from the S3 form — backend defaults it to us-east-1.
+    expect(document.querySelector('#Region'), 'Region input should be gone').toBeNull();
 
     // Secret Key is masked (Ant Input.Password → input[type=password]).
     expect(secretKey.getAttribute('type')).toBe('password');
@@ -121,17 +122,13 @@ describe('ServerModal — S3/MinIO branch', () => {
     // the affix wrapper span, so we check the secret field's closest ltr-field host.
     expect(accessKey.className).toContain('ltr-field');
     expect(bucket.className).toContain('ltr-field');
-    expect(region.className).toContain('ltr-field');
     expect(
       secretKey.closest('.ltr-field'),
       'Secret Key affix wrapper should carry ltr-field'
     ).toBeTruthy();
-
-    // Region defaults to us-east-1 (initialValue on the form item).
-    expect(region.value).toBe('us-east-1');
   });
 
-  it('packs PascalCase TypeSpecificConfig on submit (AccessKey/SecretKey/Bucket/Region/ForcePathStyle/UseHttp)', async () => {
+  it('packs PascalCase TypeSpecificConfig on submit (AccessKey/SecretKey/Bucket/ForcePathStyle/UseHttp)', async () => {
     renderModal();
     await selectS3Type();
 
@@ -168,12 +165,12 @@ describe('ServerModal — S3/MinIO branch', () => {
     // Exact PascalCase key set — no camelCase drift.
     const cfg = requestData.TypeSpecificConfig;
     expect(Object.keys(cfg).sort()).toEqual(
-      ['AccessKey', 'Bucket', 'ForcePathStyle', 'Region', 'SecretKey', 'UseHttp'].sort()
+      ['AccessKey', 'Bucket', 'ForcePathStyle', 'SecretKey', 'UseHttp'].sort()
     );
     expect(cfg.AccessKey).toBe('minioadmin');
     expect(cfg.SecretKey).toBe('minioadmin123');
     expect(cfg.Bucket).toBe('test-bucket');
-    expect(cfg.Region).toBe('us-east-1');
+    expect(cfg.Region).toBeUndefined();
     // Switches default to true → ForcePathStyle/UseHttp true.
     expect(cfg.ForcePathStyle).toBe(true);
     expect(cfg.UseHttp).toBe(true);
@@ -213,10 +210,11 @@ describe('ServerModal — S3/MinIO branch', () => {
     // Masked sentinel pre-filled; NOT any real secret.
     expect(secretKey.value).toBe('********');
 
-    // Access Key / Bucket / Region are flattened back from TypeSpecificConfig.
+    // Access Key / Bucket are flattened back from TypeSpecificConfig.
     expect((document.querySelector('#AccessKey') as HTMLInputElement).value).toBe('minioadmin');
     expect((document.querySelector('#Bucket') as HTMLInputElement).value).toBe('existing-bucket');
-    expect((document.querySelector('#Region') as HTMLInputElement).value).toBe('eu-west-1');
+    // Region was removed from the form; a legacy stored Region is simply ignored (no input rendered).
+    expect(document.querySelector('#Region')).toBeNull();
   });
 
   it('edit mode: leaving the sentinel unchanged posts it back verbatim (keep-existing secret)', async () => {

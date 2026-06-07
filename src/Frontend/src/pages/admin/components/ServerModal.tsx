@@ -103,7 +103,6 @@ const ServerModal: React.FC<ServerModalProps> = ({
           AccessKey: s3Config.AccessKey,
           SecretKey: server.ServerType?.toLowerCase() === 's3' ? MASKED_SECRET_SENTINEL : undefined,
           Bucket: s3Config.Bucket,
-          Region: s3Config.Region,
           UsePathStyle: s3Config.ForcePathStyle ?? true,
           UseHttp: s3Config.UseHttp ?? true,
         });
@@ -162,7 +161,6 @@ const ServerModal: React.FC<ServerModalProps> = ({
           AccessKey: values.AccessKey,
           SecretKey: values.SecretKey,
           Bucket: values.Bucket,
-          Region: values.Region,
           ForcePathStyle: values.UsePathStyle ?? true,
           UseHttp: values.UseHttp ?? true,
         };
@@ -325,25 +323,13 @@ const ServerModal: React.FC<ServerModalProps> = ({
               />
             </Form.Item>
 
-            <Space style={{ width: '100%' }} size="middle">
-              <Form.Item
-                name="Bucket"
-                label={t('admin.servers.fields.bucket') || 'Bucket (דלי)'}
-                rules={[{ required: true, message: 'Bucket הוא שדה חובה' }]}
-                style={{ flex: 2 }}
-              >
-                <Input className="ltr-field" placeholder="my-bucket" />
-              </Form.Item>
-
-              <Form.Item
-                name="Region"
-                label={t('admin.servers.fields.region') || 'Region (אזור)'}
-                style={{ flex: 1 }}
-                initialValue="us-east-1"
-              >
-                <Input className="ltr-field" placeholder="us-east-1" />
-              </Form.Item>
-            </Space>
+            <Form.Item
+              name="Bucket"
+              label={t('admin.servers.fields.bucket') || 'Bucket (דלי)'}
+              rules={[{ required: true, message: 'Bucket הוא שדה חובה' }]}
+            >
+              <Input className="ltr-field" placeholder="my-bucket" />
+            </Form.Item>
 
             <Space style={{ width: '100%' }} size="large">
               <Form.Item
