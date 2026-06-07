@@ -102,3 +102,16 @@ Also fixed (infra, unrelated to S3): rabbitmq liveness probe `rabbitmq-diagnosti
 restarts); replaced with a tcpSocket:5672 probe. And renewed EXPIRED kubeadm control-plane
 certs (see CLUSTER-COORDINATION.md). All four are CHART/CONFIG defects that a clean
 `helm install` will re-introduce.
+
+## 34-06 — S3 OUTPUT handler bug (region overrides custom endpoint)
+
+`OutputService/Handlers/S3OutputHandler.CreateS3Client` sets BOTH
+`s3Config.ServiceURL = Endpoint` AND `s3Config.RegionEndpoint =
+GetBySystemName(Region)` when both are provided. The AWS .NET SDK lets
+RegionEndpoint override ServiceURL, so with a custom MinIO endpoint + a real
+region (e.g. us-east-1) the client connects to REAL AWS S3 -> "The AWS Access
+Key Id you provided does not exist in our records". Input-side S3Connector only
+sets ServiceURL, which is why discovery works but output failed.
+WORKAROUND (used): omit `region` in the output S3Config.
+PERMANENT FIX: when Endpoint is set, do NOT also set RegionEndpoint (or set
+AuthenticationRegion only). Mirror S3Connector.CreateS3Client.
