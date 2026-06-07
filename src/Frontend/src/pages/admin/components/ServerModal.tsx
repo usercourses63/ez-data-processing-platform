@@ -286,15 +286,20 @@ const ServerModal: React.FC<ServerModalProps> = ({
               </Form.Item>
             </Space>
 
-            <Form.Item
-              name="CredentialSecretRef"
-              label={t('admin.servers.fields.credentials') || 'הפניה לסוד (K8s Secret)'}
-            >
-              <Input
-                className="ltr-field"
-                placeholder="ez-platform/ftp-credentials"
-              />
-            </Form.Item>
+            {/* S3/MinIO uses the inline Access/Secret Key fields below, so the
+                K8s-Secret reference is hidden for S3 to avoid a redundant,
+                confusing credential path. It remains available for FTP/SFTP/HTTP. */}
+            {!isS3 && (
+              <Form.Item
+                name="CredentialSecretRef"
+                label={t('admin.servers.fields.credentials') || 'הפניה לסוד (K8s Secret)'}
+              >
+                <Input
+                  className="ltr-field"
+                  placeholder="ez-platform/ftp-credentials"
+                />
+              </Form.Item>
+            )}
           </>
         )}
 
@@ -453,9 +458,11 @@ const ServerModal: React.FC<ServerModalProps> = ({
           </Form.Item>
         )}
 
-        <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-          {t('admin.servers.credentialsNote') || 'הערה: אישורים מאוחסנים ב-Kubernetes Secrets ומוזכרים באמצעות CredentialSecretRef'}
-        </Typography.Text>
+        {!isS3 && (
+          <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+            {t('admin.servers.credentialsNote') || 'הערה: אישורים מאוחסנים ב-Kubernetes Secrets ומוזכרים באמצעות CredentialSecretRef'}
+          </Typography.Text>
+        )}
       </Form>
     </Modal>
   );
