@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Executing Phase 34
-stopped_at: Completed 34-04-PLAN.md (Backend credential test tier — unit pass, live controller/S3 tiers skip cleanly, deferred to 34-06)
-last_updated: "2026-06-03T00:00:00.000Z"
+stopped_at: Completed 34-05-PLAN.md (Frontend test tier — Vitest 4/4 green; Playwright + webapp-testing authored & statically validated, live runs deferred to 34-06)
+last_updated: "2026-06-07T00:00:00.000Z"
 progress:
   total_phases: 35
   completed_phases: 33
   total_plans: 132
-  completed_plans: 129
-  percent: 97
+  completed_plans: 130
+  percent: 98
 ---
 
 ## Current Position
 
 Phase: 34 (s3-minio-connector-iam-credentials-bug-fix) — EXECUTING
-Plan: 3 of 6 complete (wave 2)
+Plan: 5 of 6 complete (wave 3)
 
 ## Project Reference
 
@@ -85,6 +85,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 34-03]: ServerModal renders a dedicated {isS3} S3/MinIO section (masked Secret Key via Input.Password, LTR ltr-field inputs) reusing the shared Host/Port block; handleSubmit packs exact PascalCase TypeSpecificConfig (AccessKey/SecretKey/Bucket/Region/ForcePathStyle/UseHttp)
 - [Phase 34-03]: Edit pre-fills SecretKey with frontend-local MASKED_SECRET_SENTINEL ('********'); unchanged sentinel is posted back so the backend keep-existing logic retains the stored secret; form field UsePathStyle maps to contract key ForcePathStyle at submit
 - [Phase 34-04]: Backend credential test tier authored — ServerCredentials unit tests pass (10/10); controller GET-masks/encrypt-at-rest/keep-existing integration + S3 empty-creds-regression + S3EndToEnd are SkippableFacts that skip cleanly when API/Mongo/MinIO are unreachable or the deployed build predates 34-01/34-02 (live tier verified in 34-06)
+- [Phase 34-05]: Frontend test tier — Vitest ServerModal.test.tsx 4/4 green (S3 field render, PascalCase TypeSpecificConfig packing, masked '********' sentinel on edit, keep-existing on unchanged secret); added matchMedia + ResizeObserver jsdom polyfills to src/test/setup.ts so antd components mount under Vitest. Playwright s3-server.spec.ts + webapp-testing s3_server_comprehensive_test.py (T1 masking, T2 keep-secret, T3 cancel-discard, T4 messaging, T5 tooltips) authored, statically validated (playwright --list / py_compile), and gated to skip cleanly when backends/MinIO are down — live runs deferred to 34-06
 
 ### Roadmap Evolution
 
@@ -105,6 +106,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-06-03T00:00:00.000Z
-Stopped at: Completed 34-04-PLAN.md (Backend credential test tier — unit pass, live tiers skip/deferred to 34-06)
+Last session: 2026-06-07T00:00:00.000Z
+Stopped at: Completed 34-05-PLAN.md (Frontend test tier — Vitest 4/4 green; Playwright + webapp-testing authored & statically validated, live runs deferred to 34-06)
 Resume file: None

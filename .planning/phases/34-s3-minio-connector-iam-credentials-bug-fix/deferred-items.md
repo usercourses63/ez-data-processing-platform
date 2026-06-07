@@ -44,3 +44,29 @@ Out-of-scope discoveries logged during execution (not fixed; outside the current
   port-forwarded, set `FILE_SIMULATOR_IP`, then:
   `dotnet test tests/DataSourceManagement.Tests --filter "FullyQualifiedName~ServersControllerSecret"`
   and `dotnet test tests/IntegrationTests --filter "Protocol=S3"`.
+
+## 34-05
+
+### Live E2E (Playwright) + webapp-testing (Python) runs deferred to 34-06
+- **Files:** `src/Frontend/tests/e2e/s3-server.spec.ts`,
+  `src/Frontend/tests/webapp-testing/s3_server_comprehensive_test.py`
+- **What ran in this session:**
+  - **Vitest** unit suite `ServerModal.test.tsx` — **4/4 passed** (no server needed). Asserts the S3
+    branch renders a masked Secret Key, packs PascalCase `TypeSpecificConfig`, shows the `********`
+    sentinel on edit, and posts it back verbatim (keep-existing secret).
+  - **Playwright** `s3-server.spec.ts` — **authored + statically validated** via
+    `npx playwright test tests/e2e/s3-server.spec.ts --list` (2 tests enumerate, no compile errors).
+    NOT run live.
+  - **webapp-testing** `s3_server_comprehensive_test.py` — **authored + `py_compile`-clean**. NOT run live.
+- **What was deferred (cleanly, not failed):** the live E2E + webapp-testing executions. This Session A
+  environment has **no running frontend dev server (port 7000) and no backend cluster**, so the
+  live-dependent assertions (UI create → Test Connection → success; T1–T5 DOM/API edge cases) cannot
+  be exercised. Both specs are built to **skip cleanly** when the servers API / MinIO is unreachable, so
+  they will not fail a pre-live CI gate.
+- **Why deferred:** No live frontend + backends + file-simulator MinIO in this session (same constraint
+  as 34-04). The authoritative live pass is **plan 34-06**.
+- **To run live (after the app + backends are up on port 7000 / NodePort):**
+  - `cd src/Frontend && npx playwright test s3-server` (or `--headed`)
+  - `cd src/Frontend && python tests/webapp-testing/s3_server_comprehensive_test.py`
+  - Override targets via env if needed: `BASE_URL`, `SERVERS_API`, `MINIO_HOST`, `MINIO_PORT`,
+    `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`.
