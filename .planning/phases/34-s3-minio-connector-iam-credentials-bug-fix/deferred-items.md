@@ -70,3 +70,35 @@ Out-of-scope discoveries logged during execution (not fixed; outside the current
   - `cd src/Frontend && python tests/webapp-testing/s3_server_comprehensive_test.py`
   - Override targets via env if needed: `BASE_URL`, `SERVERS_API`, `MINIO_HOST`, `MINIO_PORT`,
     `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`.
+
+## 34-06 — S3 async-pipeline end-to-end (post-validation findings)
+
+Verified a real MinIO file flowing through the WHOLE pipeline
+(MinIO -> FileDiscovery -> FileProcessor -> Validation -> Output JSON file).
+Three bugs blocked it; all distinct from the Phase-34 Servers-UX fix:
+
+1. **S3 pipeline credential bridge missing (FIXED, code, commit in 34-06).**
+   `PopulateFileServerConnectionAsync` only bridged FTP creds from a FileServerId
+   AdminServer into the datasource `AdditionalConfiguration`; S3 datasources got
+   empty creds. Now bridges AccessKey/SecretKey (DECRYPTED)/Bucket/endpoint/
+   usePathStyle + resets FilePath to a clean in-bucket prefix.
+
+2. **Hazelcast servers config is comma-joined but added as ONE address (chart/code bug, runtime-patched).**
+   ConfigMap `services-config.hazelcast-server` = `hazelcast-0,...,hazelcast-1,...,hazelcast-2,...:5701`
+   but `HazelcastConfiguration.cs:75` does `Addresses.Add(server)` without splitting on
+   ','. Also only `hazelcast-0` exists. Runtime fix: `kubectl set env Hazelcast__Server=
+   hazelcast-0.hazelcast-service.ez-platform.svc.cluster.local:5701` on filediscovery/
+   fileprocessor/validation/output. PERMANENT FIX NEEDED: split on ',' in code, or fix the
+   ConfigMap to a single address.
+
+3. **FileDiscovery:DeduplicationTTLHours read as Int32 but configured `0.25` (chart/code bug, runtime-patched).**
+   `FilePollingEventConsumer.DiscoverFilesAsync` does `GetValue<int>("FileDiscovery:
+   DeduplicationTTLHours", 24)` but the value is `0.25` -> InvalidOperationException faults
+   the whole poll. Runtime fix: `kubectl set env FileDiscovery__DeduplicationTTLHours=1`.
+   PERMANENT FIX NEEDED: read as double, or set an integer in the ConfigMap.
+
+Also fixed (infra, unrelated to S3): rabbitmq liveness probe `rabbitmq-diagnostics ping`
+(heavy Erlang exec) timing out under node memory pressure -> SIGTERM crashloop (924
+restarts); replaced with a tcpSocket:5672 probe. And renewed EXPIRED kubeadm control-plane
+certs (see CLUSTER-COORDINATION.md). All four are CHART/CONFIG defects that a clean
+`helm install` will re-introduce.
