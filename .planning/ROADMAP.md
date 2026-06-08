@@ -671,3 +671,43 @@ Plans:
 
 ---
 *Roadmap updated: 2026-06-02 — Phase 34 added (S3/MinIO IAM credentials bug fix)*
+
+### Phase 35: MinIO MVP Flow — End-to-End Through the UI
+
+**Mode:** mvp
+
+**Goal:** Prove the platform works by delivering the **MVP flow entirely through the UI**: create a **MinIO input server**, create a **MinIO output server**, create a **data source** wired to that MinIO input + MinIO output, then **run the data source** and confirm a CSV from the input bucket is processed through the full pipeline and a converted JSON object lands in the **MinIO output bucket**. First **map** the three forms (MinIO input-server form, MinIO output-server form, new-data-source form using MinIO in+out), record every missing field / loose end as a **bug-must-fix**, then close the gaps with unit tests, updated integration tests, and live E2E — iterating review→fix until the flow works. **If this flow does not work, the MVP does not work.**
+
+**Depends on:** Phase 34 (S3 credential contract + connector). Coordinates with Session B file-simulator MinIO (S3 API `172.24.80.23:30900`, Console `:30901`, path-style, `appuser`).
+
+**Known gaps already mapped (Phase-34 session, seed the bugs-must-fix register):**
+- **G1 (FIXED, deployed):** new-data-source form defaulted protocol to `NFS` (unmapped) → "can't allocate input". Default now `FTP`.
+- **G2 (FIXED, deploy-pending verify):** edit form `filePath` vs phantom `connectionPath` mismatch → "file path missing" with no recognizable box + bucket not saved. Unified to `filePath`.
+- **G3 (FIXED, deployed):** connection config lost when editing a datasource's schema (lazy-tab merge). Hardened merge with `FileServerId` fallback.
+- **G4 (OPEN):** MinIO **input-server** form lets you set the **Console port (30901)** → Test Connection fails "S3 API Requests must be made to API port". Needs API-port UX/validation.
+- **G5 (OPEN, primary blocker):** the data-source create flow does **not persist the S3 *output* destination `S3Config`** (bucket null in Mongo) → output never writes to MinIO.
+- **G6 (FIXED, deployed):** S3 region-override bug (region beats custom endpoint) in `S3Connector.cs` + `S3OutputHandler.cs`. Permanent fix applied.
+- **Note:** the live pipeline runs over the **RabbitMQ** base bus, not the Kafka topics the integration tests watch — integration assertions must verify the **MinIO output object**, not intermediate Kafka topics.
+
+**Success Criteria** (what must be TRUE):
+
+  1. **Form audit documented** — the MinIO input-server, MinIO output-server, and new-data-source (input+output) forms are mapped field-by-field in CONTEXT/RESEARCH; every missing field, validation gap, and loose end is filed in a **bugs-must-fix** register.
+  2. **MinIO input server via UI** — created through the form; **Test Connection succeeds** against file-simulator MinIO; the form prevents or clearly surfaces the console-port (30901) misconfiguration (G4).
+  3. **MinIO output server via UI** — created through the form; its S3 config (bucket/endpoint/creds/path-style/region-omitted) **persists** and a write succeeds.
+  4. **Data source via UI** — created using the MinIO input + MinIO output; the bucket/`filePath` persists (G2), the **output `S3Config` persists** (G5), the connection survives schema edits (G3), and there is no spurious "file path missing" / "can't allocate input" (G1).
+  5. **Run the flow** — triggering the data source pulls a CSV from the MinIO input bucket through the full pipeline and **writes converted JSON to the MinIO output bucket** (verified object content).
+  6. **Tests** — unit tests for the fixed field/config mappings; integration tests updated to the RabbitMQ pipeline reality and asserting the MinIO output object; Playwright E2E for UI create→run→verify; webapp-testing comprehensive pass.
+  7. **Bugs-must-fix closed** — every discovered bug is tracked, fixed, and re-reviewed; zero open blockers for the MVP flow.
+  8. **MVP proof** — a clean, repeatable, UI-driven demo produces a fresh MinIO output object end-to-end.
+
+**Plans:** 5 plans
+
+Plans:
+- [ ] 35-01-PLAN.md — Seed bugs-must-fix register + G4 MinIO input-server API-port (30900 vs 30901) UX/validation
+- [ ] 35-02-PLAN.md — G5 primary blocker: persist output S3Config (frontend s3Config build + backend OutputServerId->S3Config bridge)
+- [ ] 35-03-PLAN.md — Live run-and-verify: UI create input+output server+datasource -> run -> fresh JSON object in MinIO output bucket
+- [ ] 35-04-PLAN.md — Tests: integration asserts MinIO output object (not Kafka) + Playwright E2E + webapp-testing comprehensive
+- [ ] 35-05-PLAN.md — Bugs-must-fix closure review + repeatable MVP proof sign-off
+
+---
+*Roadmap updated: 2026-06-08 — Phase 35 added (MinIO MVP flow end-to-end through the UI)*

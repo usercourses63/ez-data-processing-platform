@@ -1,0 +1,55 @@
+# Phase 35 — Bugs-Must-Fix Register
+
+**Created:** 2026-06-08
+**Purpose:** The single source of truth for every bug / loose end blocking the MinIO MVP flow
+(UI: create MinIO input server → create MinIO output server → create data source → run → fresh
+JSON object in the MinIO output bucket). The phase closes only when **zero MVP-blocking bugs**
+remain `OPEN` in this register. This is the iterate review→fix backlog (per the user methodology:
+map forms → file every gap → close with tests + live E2E → re-review until the flow works).
+
+## Status legend
+
+- `OPEN` — not fixed, blocks the MVP flow.
+- `FIX-IN-CODE` — code fix landed, not yet verified live against the running cluster.
+- `VERIFIED` — fixed AND proven live (UI repro or asserted MinIO output object / persisted Mongo).
+- `WONTFIX-MVP` — out of MVP scope (recorded for traceability; must NOT block phase closure).
+
+## Severity legend
+
+- `BLOCKER` — the MVP flow cannot complete until this is closed.
+- `MAJOR` — UX/correctness gap that degrades the flow but has a workaround.
+- `MINOR` — cosmetic / non-blocking.
+
+---
+
+## Seed register (G1–G6, mapped during the Phase-34 session)
+
+| ID | Sev | Status | Area | Description | Closing plan |
+|----|-----|--------|------|-------------|--------------|
+| G1 | BLOCKER | VERIFIED | FE create form | New-data-source form defaulted protocol to `NFS` (unmapped in `protocolToServerType`) → input-server list always empty → "can't allocate input". Default changed to `FTP` in `constants.ts` + `DataSourceFormEnhanced.tsx` fallbacks; regression test added. Deployed `frontend:inputfix-20260608`. Re-verify in the live create flow. | 35-03 (re-verify) |
+| G2 | BLOCKER | FIX-IN-CODE | FE edit form | Edit form wrote the bucket into a phantom `connectionPath` while the rendered field + completeness check use `filePath` → "file path missing" + bucket not saved on create. Unified ALL plumbing (hydrate/save/validate/connection-string/clone) to `filePath`. Deploy-pending live verify. | 35-03 (re-verify) |
+| G3 | BLOCKER | FIX-IN-CODE | FE edit merge | Connection config lost when editing a datasource's schema — lazy Connection tab not hydrated → empty `inputServerId` overwrote stored value. Hardened `mergeConnectionConfig` (`||` + `dataSource.FileServerId` fallback) + Vitest. Re-verify: edit schema → save → reopen → connection still set. | 35-03 (re-verify) |
+| G4 | MAJOR | OPEN | FE input-server form | `ServerModal` S3 branch accepts the **Console port 30901**; Test Connection then fails "S3 API Requests must be made to API port". The form must default/validate/guide to the **API port 30900**. | 35-01 |
+| G5 | BLOCKER | OPEN | FE+BE output mapping | **PRIMARY BLOCKER.** The data-source create flow does **not persist the S3 output destination `S3Config`** (`bucket` came out `null` in Mongo → output write fails). `DestinationEditorModal` only sets `folderConfig.path` for S3 and the TS `OutputDestination` type has no `s3Config` field; the backend never bridges the output `OutputServerId` AdminServer creds into `Output.Destinations[].S3Config`. | 35-02 |
+| G6 | BLOCKER | VERIFIED | BE S3 region | S3 region-override bug (region beats custom endpoint) in `S3Connector.cs` + `S3OutputHandler.cs`. Permanent fix applied (set `ServiceURL`+`ForcePathStyle`+`AuthenticationRegion`, do NOT set `RegionEndpoint` when Endpoint present); `filediscovery`/`output` redeployed `s3regionfix-20260608`. Regression-guard in tests; do not regress. | 35-04 (regression guard) |
+
+---
+
+## Newly discovered bugs (append during execution)
+
+> Executors append a row here whenever a new gap/loose end is found while mapping forms or running
+> the flow. Every new BLOCKER/MAJOR must be assigned a closing plan (or split into a new plan) and
+> driven to `VERIFIED` before phase closure. Reference the plan + commit that closes it.
+
+| ID | Sev | Status | Area | Description | Closing plan |
+|----|-----|--------|------|-------------|--------------|
+| (none yet) | | | | | |
+
+---
+
+## Closure gate (SC-7)
+
+Phase 35 may close ONLY when:
+- Every `BLOCKER` and `MAJOR` row is `VERIFIED` or `WONTFIX-MVP`.
+- The MVP proof (SC-8) ran end-to-end through the UI and produced a fresh MinIO output object.
+- The closure review (plan 35-05) recorded the final status of every row here.
