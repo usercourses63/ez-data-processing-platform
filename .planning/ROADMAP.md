@@ -706,7 +706,7 @@ Plans:
 - [x] 35-01-PLAN.md — Seed bugs-must-fix register + G4 MinIO input-server API-port (30900 vs 30901) UX/validation (DONE 2026-06-08: register finalized; ServerModal rejects console port 30901, guides to 30900; Vitest 3/3; G4 FIX-IN-CODE, live re-verify 35-03)
 - [x] 35-02-PLAN.md — G5 primary blocker: persist output S3Config (frontend s3Config build + backend OutputServerId->S3Config bridge) (DONE 2026-06-08: FE OutputDestination.s3Config built from Bucket/Prefix path; BE PopulateOutputDestinationS3Async bridges output AdminServer creds/endpoint/decrypted SecretKey, Region omitted per G6, in Create+Update; Vitest 6/6 + xUnit 4/4; G5 FIX-IN-CODE, live write proof 35-03)
 - [ ] 35-03-PLAN.md — Live run-and-verify: UI create input+output server+datasource -> run -> fresh JSON object in MinIO output bucket
-- [ ] 35-04-PLAN.md — Tests: integration asserts MinIO output object (not Kafka) + Playwright E2E + webapp-testing comprehensive
+- [x] 35-04-PLAN.md — Tests: integration asserts MinIO output object (not Kafka) + Playwright E2E + webapp-testing comprehensive (DONE 2026-06-08: MinioOutputPipelineTests.cs asserts the converted JSON object in ez-phase34-output via S3 ListObjectsV2+GetObject, skips offline; s3-mvp-flow.spec.ts create input+output server->datasource->run + G4/G5 UI guards; minio_mvp_flow_comprehensive_test.py G2/G3/G4/G5+masked-secret; statically valid — dotnet build OK, playwright --list 4 tests, py_compile OK; live runs deferred to 35-03)
 - [ ] 35-05-PLAN.md — Bugs-must-fix closure review + repeatable MVP proof sign-off
 
 ---

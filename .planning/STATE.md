@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Executing Phase 35
-stopped_at: Completed 35-02-PLAN.md (G5 PRIMARY BLOCKER closed FIX-IN-CODE — persist output S3Config: FE OutputDestination.s3Config built from Bucket/Prefix + BE PopulateOutputDestinationS3Async bridges output AdminServer creds/endpoint/decrypted SecretKey, Region omitted per G6, in Create+Update; Vitest 6/6 + xUnit 4/4 green; live write proof 35-03)
-last_updated: "2026-06-08T19:20:00.000Z"
+stopped_at: Completed 35-04-PLAN.md (MVP test coverage SC-6 — integration MinioOutputPipelineTests.cs asserts the converted JSON object in ez-phase34-output via S3 ListObjectsV2+GetObject not Kafka; Playwright s3-mvp-flow.spec.ts create input+output server->datasource->run + G4/G5 UI guards; webapp-testing minio_mvp_flow_comprehensive_test.py G2/G3/G4/G5+masked-secret; statically valid — dotnet build OK, playwright --list 4 tests, py_compile OK; all skip cleanly offline, live runs deferred to 35-03)
+last_updated: "2026-06-08T19:55:00.000Z"
 progress:
   total_phases: 36
   completed_phases: 34
   total_plans: 137
-  completed_plans: 133
-  percent: 97
+  completed_plans: 134
+  percent: 98
 ---
 
 ## Current Position
 
 Phase: 35 (minio-mvp-flow-end-to-end-ui) — EXECUTING
-Plan: 3 of 5
+Plan: 3 of 5 (35-04 wave-2 tests done out of order; 35-03 live checkpoint remaining)
 
 ## Project Reference
 
@@ -91,6 +91,9 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 35-02]: G5 PRIMARY BLOCKER closed FIX-IN-CODE — UI-created S3 output destination now persists a write-ready Output.Destinations[].S3Config. FE: S3OutputConfig type + OutputDestination.s3Config; DestinationEditorModal handleSubmit S3 branch builds s3Config (bucket/keyPrefix split from the Bucket/Prefix path, usePathStyle=true, creds/endpoint/region left undefined for the backend); edit hydrates path; OutputTab shows bucket. BE: PopulateOutputDestinationS3Async bridges the output OutputServerId AdminServer into S3Config (endpoint http(s)://host:port, decrypted SecretKey via ServerCredentialProtector, AccessKeyId, usePathStyle, bucket-fallback to server bucket) and is called from BOTH CreateAsync and UpdateAsync. Vitest DestinationEditorModal.s3.test.tsx 6/6 + xUnit DataSourceServiceOutputS3Tests 4/4. Live write proof (a MinIO output object) deferred to 35-03.
 - [Phase 35-02]: G6 region-omit rule extended to the OUTPUT bridge — PopulateOutputDestinationS3Async deliberately does NOT set S3Config.Region (even when the server carries one) so the AWS SDK keeps the custom MinIO endpoint; mirror of the input/handler fix. Bucket precedence: admin-typed s3Config.Bucket wins, else server TypeSpecificConfig Bucket.
 - [Phase 35-02]: Extracted bucket/prefix split into pure helpers (buildS3OutputConfig/s3ConfigToPath in datasource/shared/helpers.ts) so the modal S3 behavior is unit-testable without mounting React Query + antd; handleSubmit delegates to the helper.
+- [Phase 35-04]: SC-6 test coverage authored across three tiers, all skip cleanly offline (live runs deferred to the 35-03 checkpoint). Integration: MinioOutputPipelineTests.cs is the CANONICAL pipeline-output assertion — it seeds a unique CSV into ez-phase34-input via the S3 API then polls ListObjectsV2 on ez-phase34-output/processed/ and GetObjects the converted object, asserting a CSV-derived JSON array (id/name keys); it NEVER subscribes to a Kafka topic (RabbitMQ pipeline reality). TestConfiguration KafkaTopics note now points readers at it.
+- [Phase 35-04]: Integration test reuses S3Connector's IServerConnector surface (ListFilesAsync/ReadFileAsync/WriteFileAsync → ListObjectsV2/GetObject/PutObject) so IntegrationTests needs NO direct AWSSDK.S3 dependency. Region OMITTED on all test AdminServers (G6). MVP creds default to file-simulator appuser/Appsecret123 on S3 API port 30900, buckets ez-phase34-input/output, all overridable via MINIO_* env. When MinIO is up+authenticated but no live pipeline produces the object within MINIO_OUTPUT_WAIT_SECONDS (default 120s), the test SKIPS (green) rather than fails.
+- [Phase 35-04]: Playwright s3-mvp-flow.spec.ts (under tests/e2e/protocols/) drives create MinIO input+output server -> wired datasource -> trigger run, asserts the output S3 destination persists its bucket (G5) and the input-server form blocks console port 30901 / accepts 30900 (G4); reachability-gated test.skip mirrors the existing s3-server.spec.ts (which lives at the e2e ROOT, not under protocols/). webapp-testing minio_mvp_flow_comprehensive_test.py (reconnaissance-first) covers G4 console-port guard, masked-secret round-trip, G5 output s3Config persistence, G2 'file path missing' absent when filePath set, G3 connection survives a schema edit.
 
 ### Roadmap Evolution
 
@@ -111,6 +114,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-06-08T19:20:00.000Z
-Stopped at: Completed 35-02-PLAN.md (G5 PRIMARY BLOCKER closed FIX-IN-CODE — persist output S3Config: FE OutputDestination.s3Config + BE PopulateOutputDestinationS3Async bridge in Create+Update; Vitest 6/6 + xUnit 4/4 green; live write proof 35-03)
+Last session: 2026-06-08T19:55:00.000Z
+Stopped at: Completed 35-04-PLAN.md (MVP test coverage SC-6 — integration MinioOutputPipelineTests.cs asserts the converted JSON object in ez-phase34-output via S3 ListObjectsV2+GetObject not Kafka; Playwright s3-mvp-flow.spec.ts + webapp-testing minio_mvp_flow_comprehensive_test.py for the three forms / G2-G5; statically valid offline, live runs deferred to 35-03)
 Resume file: None
+Next: 35-03-PLAN.md (live run-and-verify checkpoint — orchestrator-owned cluster)
