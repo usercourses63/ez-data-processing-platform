@@ -228,18 +228,25 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
         nasDeviceId: values.nasDeviceId, // v0.2.0: NAS device reference
       };
 
-      // Add type-specific applicative configuration
-      if (values.type === 'kafka') {
+      // Add type-specific applicative configuration.
+      // G9 (Phase 35): the protocol <Select> emits UPPERCASE values ('S3', 'Kafka',
+      // 'FTP', 'SFTP', 'HTTP', 'NAS'), but these branches previously compared against
+      // lowercase literals — so for S3 (and kafka/ftp/sftp/http) the branch never matched
+      // and s3Config was never built. The bucket/prefix the user typed was silently dropped
+      // (the backend then fell back to the server bucket with a null keyPrefix). Compare on
+      // a lowercased key so the correct config object is always constructed.
+      const typeKey = (values.type || '').toLowerCase();
+      if (typeKey === 'kafka') {
         updatedDestination.kafkaConfig = {
           topic: values.kafkaTopic,
           messageKey: values.kafkaMessageKey,
         };
-      } else if (values.type === 'ftp' || values.type === 'sftp' || values.type === 'NAS') {
+      } else if (typeKey === 'ftp' || typeKey === 'sftp' || typeKey === 'nas') {
         updatedDestination.folderConfig = {
           path: values.path,
           fileNamePattern: values.fileNamePattern,
         };
-      } else if (values.type === 's3') {
+      } else if (typeKey === 's3') {
         // Build a write-ready s3Config from the typed "Bucket / Prefix" path.
         // Credentials/endpoint/region are intentionally omitted here — the backend
         // bridges them (decrypted) from the selected output AdminServer (outputServerId).
@@ -247,7 +254,7 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
           ...buildS3OutputConfig(values.path),
           keyPattern: values.fileNamePattern || undefined,
         };
-      } else if (values.type === 'http') {
+      } else if (typeKey === 'http') {
         updatedDestination.httpConfig = {
           url: values.path, // Endpoint path
           method: 'POST',

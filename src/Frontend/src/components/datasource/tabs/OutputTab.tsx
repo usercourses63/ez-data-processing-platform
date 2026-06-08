@@ -109,9 +109,12 @@ export const OutputTab: React.FC<OutputTabProps> = ({ output, onChange }) => {
       title: 'תצורה',
       key: 'config',
       render: (_: any, dest: OutputDestination) => {
-        if (dest.type === 'kafka' && dest.kafkaConfig) {
+        // G9 (Phase 35): destination.type is stored in the Select's case ('S3', 'Kafka', …),
+        // so compare case-insensitively or the S3 row always rendered "לא מוגדר".
+        const typeKey = dest.type?.toLowerCase();
+        if (typeKey === 'kafka' && dest.kafkaConfig) {
           return <Text type="secondary">{dest.kafkaConfig.topic}</Text>;
-        } else if (dest.type === 's3' && dest.s3Config) {
+        } else if (typeKey === 's3' && dest.s3Config) {
           const prefix = dest.s3Config.keyPrefix ? `/${dest.s3Config.keyPrefix}` : '';
           return <Text type="secondary">{`${dest.s3Config.bucket}${prefix}`}</Text>;
         } else if (dest.folderConfig) {
