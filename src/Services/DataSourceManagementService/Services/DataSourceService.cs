@@ -221,6 +221,9 @@ public class DataSourceService : IDataSourceService
             // Resolve FileServer and build proper FilePath if FileServerId is set
             await PopulateFileServerConnectionAsync(dataSource, request.ConfigurationSettings);
 
+            // Bridge S3 output destinations' OutputServerId AdminServer creds/endpoint into S3Config (G5)
+            await PopulateOutputDestinationS3Async(dataSource);
+
             // Create the data source
             var createdDataSource = await _repository.CreateAsync(dataSource, correlationId);
 
@@ -330,6 +333,9 @@ public class DataSourceService : IDataSourceService
 
             // Resolve FileServer and build proper FilePath if FileServerId is set
             await PopulateFileServerConnectionAsync(existingDataSource, request.ConfigurationSettings);
+
+            // Bridge S3 output destinations' OutputServerId AdminServer creds/endpoint into S3Config (G5)
+            await PopulateOutputDestinationS3Async(existingDataSource);
 
             // Debug logging after mapping
             var additionalConfig = existingDataSource.AdditionalConfiguration;
@@ -1182,6 +1188,88 @@ public class DataSourceService : IDataSourceService
         _logger.LogInformation(
             "Resolved FileServerId {ServerId} ({ServerType}) for datasource {Name}: FilePath={FilePath}",
             server.ID, server.ServerType, dataSource.Name, dataSource.FilePath);
+    }
+
+    /// <summary>
+    /// Bridges each S3 output destination's selected OutputServerId (an S3 AdminServer) into a
+    /// complete, write-ready <see cref="S3OutputConfig"/> on the destination.
+    ///
+    /// Phase 35 (G5): the create flow stored <c>entity.Output = request.Output</c> verbatim, but the
+    /// frontend never sends credentials/endpoint and the backend never bridged them — so
+    /// <c>Output.Destinations[].S3Config.Bucket</c> came out null in Mongo and
+    /// <c>S3OutputHandler.WriteAsync</c> threw "S3Config is required". This mirrors the INPUT bridge
+    /// (<see cref="PopulateFileServerConnectionAsync"/>, the S3 block): same PascalCase
+    /// TypeSpecificConfig key reads, the same decrypt of the at-rest SecretKey, the same path-style
+    /// default, and the same <b>Region-omitted</b> rule (G6 — leaving Region null keeps the AWS SDK
+    /// pinned to the custom MinIO endpoint).
+    /// </summary>
+    private async Task PopulateOutputDestinationS3Async(
+        DataProcessingDataSource dataSource,
+        CancellationToken ct = default)
+    {
+        var destinations = dataSource.Output?.Destinations;
+        if (destinations == null || destinations.Count == 0)
+            return;
+
+        foreach (var destination in destinations)
+        {
+            if (destination.Type?.ToLowerInvariant() != "s3" ||
+                string.IsNullOrEmpty(destination.OutputServerId))
+            {
+                // Non-S3 (kafka/folder/...) or no server reference — leave untouched.
+                continue;
+            }
+
+            var server = await _serverService.GetServerByIdAsync(destination.OutputServerId, ct);
+            if (server == null)
+            {
+                _logger.LogWarning(
+                    "Output AdminServer {ServerId} not found for S3 destination {DestName} on datasource {Name}",
+                    destination.OutputServerId, destination.Name, dataSource.Name);
+                continue;
+            }
+
+            var s3 = server.TypeSpecificConfig;
+            // Create the config if the frontend did not supply one; otherwise augment in place
+            // (preserving any bucket/keyPrefix the admin typed).
+            destination.S3Config ??= new S3OutputConfig();
+            var cfg = destination.S3Config;
+
+            // Endpoint: {http|https}://{host}:{port} from the server + its UseHttp flag.
+            var useHttp = s3 != null && s3.Contains("UseHttp") && s3["UseHttp"].AsBoolean;
+            cfg.Endpoint = $"{(useHttp ? "http" : "https")}://{server.Host}:{server.Port}";
+
+            // MinIO requires path-style addressing; default true when ForcePathStyle is unset.
+            cfg.UsePathStyle = s3 == null || !s3.Contains("ForcePathStyle") || s3["ForcePathStyle"].AsBoolean;
+
+            // Access key from the server contract.
+            if (s3 != null && s3.Contains("AccessKey"))
+                cfg.AccessKeyId = s3["AccessKey"].AsString;
+
+            // Secret key is encrypted at rest — decrypt it (mirror the input bridge) so the
+            // S3 output handler can authenticate.
+            if (s3 != null && s3.Contains("SecretKey"))
+            {
+                var secret = s3["SecretKey"].AsString;
+                if (_credentialProtector != null && _credentialProtector.IsProtected(secret))
+                    secret = _credentialProtector.Unprotect(secret);
+                cfg.SecretAccessKey = secret;
+            }
+
+            // Bucket: keep the admin-typed bucket if the frontend supplied one; otherwise fall
+            // back to the server's configured bucket.
+            if (string.IsNullOrEmpty(cfg.Bucket) && s3 != null && s3.Contains("Bucket"))
+                cfg.Bucket = s3["Bucket"].AsString;
+
+            // Region MUST stay null/empty (G6) — setting it makes the AWS SDK rewrite the host and
+            // abandon the custom MinIO endpoint. The frontend KeyPrefix is preserved as-is.
+
+            _logger.LogInformation(
+                "Bridged OutputServerId {ServerId} into S3Config for destination {DestName} on datasource {Name}: " +
+                "Endpoint={Endpoint}, Bucket={Bucket}, UsePathStyle={UsePathStyle}, Region={Region}",
+                server.ID, destination.Name, dataSource.Name,
+                cfg.Endpoint, cfg.Bucket, cfg.UsePathStyle, cfg.Region ?? "(null)");
+        }
     }
 
     /// <summary>
