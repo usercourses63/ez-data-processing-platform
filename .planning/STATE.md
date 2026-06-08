@@ -2,28 +2,28 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
-status: Milestone complete
-stopped_at: Completed 34-05-PLAN.md (Frontend test tier — Vitest 4/4 green; Playwright + webapp-testing authored & statically validated, live runs deferred to 34-06)
-last_updated: "2026-06-07T08:51:27.547Z"
+status: Executing Phase 35
+stopped_at: Completed 35-01-PLAN.md (MinIO console-port 30901 guard on ServerModal + bugs-must-fix register finalized; Vitest 3/3 + existing 4/4 green; G4 FIX-IN-CODE, live re-verify 35-03)
+last_updated: "2026-06-08T19:05:00.000Z"
 progress:
-  total_phases: 35
+  total_phases: 36
   completed_phases: 34
-  total_plans: 132
-  completed_plans: 131
-  percent: 97
+  total_plans: 137
+  completed_plans: 132
+  percent: 96
 ---
 
 ## Current Position
 
-Phase: 34
-Plan: Not started
+Phase: 35 (minio-mvp-flow-end-to-end-ui) — EXECUTING
+Plan: 2 of 5
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Files flow reliably from any source through validation to any destination
-**Current focus:** Phase 34 — s3-minio-connector-iam-credentials-bug-fix
+**Current focus:** Phase 35 — minio-mvp-flow-end-to-end-ui
 
 ## Performance Metrics
 
@@ -86,6 +86,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 34-03]: Edit pre-fills SecretKey with frontend-local MASKED_SECRET_SENTINEL ('********'); unchanged sentinel is posted back so the backend keep-existing logic retains the stored secret; form field UsePathStyle maps to contract key ForcePathStyle at submit
 - [Phase 34-04]: Backend credential test tier authored — ServerCredentials unit tests pass (10/10); controller GET-masks/encrypt-at-rest/keep-existing integration + S3 empty-creds-regression + S3EndToEnd are SkippableFacts that skip cleanly when API/Mongo/MinIO are unreachable or the deployed build predates 34-01/34-02 (live tier verified in 34-06)
 - [Phase 34-05]: Frontend test tier — Vitest ServerModal.test.tsx 4/4 green (S3 field render, PascalCase TypeSpecificConfig packing, masked '********' sentinel on edit, keep-existing on unchanged secret); added matchMedia + ResizeObserver jsdom polyfills to src/test/setup.ts so antd components mount under Vitest. Playwright s3-server.spec.ts + webapp-testing s3_server_comprehensive_test.py (T1 masking, T2 keep-secret, T3 cancel-discard, T4 messaging, T5 tooltips) authored, statically validated (playwright --list / py_compile), and gated to skip cleanly when backends/MinIO are down — live runs deferred to 34-06
+- [Phase 35-01]: Bugs-must-fix register (G1-G6 + closure gate SC-7/SC-8) is the Phase-35 iterate backlog (SC-1). Closed G4 (FIX-IN-CODE): ServerModal Port field has an S3-only validator rejecting MinIO console port 30901 with a message naming the S3 API port 30900 + inline apiPortHint under the S3 divider; i18n admin.servers.s3.consolePortError/apiPortHint added to he/en. Vitest ServerModal.s3port.test.tsx 3/3 + existing 4/4 green. Live Test-Connection re-verify deferred to 35-03.
+- [Phase 35-01]: Translation files live at src/Frontend/src/i18n/locales/{he,en}.json (NOT the plan's src/locales/{he,en}/translation.json); new Vitest test placed in components/__tests__/ (imports one level deeper than the sibling ServerModal.test.tsx in components/).
 
 ### Roadmap Evolution
 
@@ -106,6 +108,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-06-07T00:00:00.000Z
-Stopped at: Completed 34-05-PLAN.md (Frontend test tier — Vitest 4/4 green; Playwright + webapp-testing authored & statically validated, live runs deferred to 34-06)
+Last session: 2026-06-08T19:05:00.000Z
+Stopped at: Completed 35-01-PLAN.md (MinIO console-port 30901 guard on ServerModal + bugs-must-fix register finalized; Vitest 3/3 + existing 4/4 green; G4 FIX-IN-CODE, live re-verify 35-03)
 Resume file: None

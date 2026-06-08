@@ -703,7 +703,7 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 35-01-PLAN.md — Seed bugs-must-fix register + G4 MinIO input-server API-port (30900 vs 30901) UX/validation
+- [x] 35-01-PLAN.md — Seed bugs-must-fix register + G4 MinIO input-server API-port (30900 vs 30901) UX/validation (DONE 2026-06-08: register finalized; ServerModal rejects console port 30901, guides to 30900; Vitest 3/3; G4 FIX-IN-CODE, live re-verify 35-03)
 - [ ] 35-02-PLAN.md — G5 primary blocker: persist output S3Config (frontend s3Config build + backend OutputServerId->S3Config bridge)
 - [ ] 35-03-PLAN.md — Live run-and-verify: UI create input+output server+datasource -> run -> fresh JSON object in MinIO output bucket
 - [ ] 35-04-PLAN.md — Tests: integration asserts MinIO output object (not Kafka) + Playwright E2E + webapp-testing comprehensive
