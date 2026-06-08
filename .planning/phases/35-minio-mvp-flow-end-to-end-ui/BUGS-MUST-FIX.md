@@ -45,6 +45,10 @@ map forms → file every gap → close with tests + live E2E → re-review until
 |----|-----|--------|------|-------------|--------------|
 | (none yet) | | | | | |
 
+> **Executors:** append a row above whenever mapping a form or running the flow surfaces a new
+> gap/loose end. Every new BLOCKER/MAJOR must be assigned a closing plan and driven to `VERIFIED`
+> (with plan + commit ref) before phase closure.
+
 ---
 
 ## Closure gate (SC-7)
