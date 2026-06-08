@@ -76,7 +76,7 @@ const DataSourceFormEnhanced: React.FC = () => {
       hasHeaders: cloneData.fileConfig?.hasHeaders ?? true,
       excelSheet: cloneData.fileConfig?.sheetName || '',
       encoding: cloneData.fileConfig?.encoding || 'UTF-8',
-      connectionType: cloneData.connectionConfig?.type || 'NFS',
+      connectionType: cloneData.connectionConfig?.type || 'FTP',
       inputServerId: cloneData.connectionConfig?.inputServerId,
       nasDeviceId: cloneData.connectionConfig?.nasDeviceId,
       kafkaTopic: cloneData.connectionConfig?.topic || '',
@@ -174,12 +174,12 @@ const DataSourceFormEnhanced: React.FC = () => {
       excelSheet: cloneData.fileConfig?.sheetName || '',
       encoding: cloneData.fileConfig?.encoding || 'UTF-8',
       // Connection settings
-      connectionType: cloneData.connectionConfig?.type || 'NFS',
+      connectionType: cloneData.connectionConfig?.type || 'FTP',
       connectionHost: cloneData.connectionConfig?.host || '',
       connectionPort: cloneData.connectionConfig?.port || undefined,
       connectionUsername: cloneData.connectionConfig?.username || '',
       connectionPassword: cloneData.connectionConfig?.password || '',
-      connectionPath: cloneData.connectionConfig?.path || '',
+      filePath: cloneData.connectionConfig?.path || '',
       connectionUrl: cloneData.connectionConfig?.url || '',
       inputServerId: cloneData.connectionConfig?.inputServerId,
       nasDeviceId: cloneData.connectionConfig?.nasDeviceId,
@@ -289,7 +289,7 @@ const DataSourceFormEnhanced: React.FC = () => {
     setConnectionTestResult(null);
 
     try {
-      await form.validateFields(['connectionType', 'connectionHost', 'connectionPort', 'connectionUsername', 'connectionPassword', 'connectionPath']);
+      await form.validateFields(['connectionType', 'connectionHost', 'connectionPort', 'connectionUsername', 'connectionPassword', 'filePath']);
       await new Promise(resolve => setTimeout(resolve, 2000));
       setConnectionTestResult('success');
       message.success(t('datasources.form.connectionSuccess'));
@@ -308,12 +308,12 @@ const DataSourceFormEnhanced: React.FC = () => {
     // Merge clone data for lazy-loaded tab fields that may not be mounted yet
     // Form.setFieldsValue silently drops values for unmounted Form.Items
     const values = cloneData ? {
-      connectionType: cloneData.connectionConfig?.type || 'NFS',
+      connectionType: cloneData.connectionConfig?.type || 'FTP',
       connectionHost: cloneData.connectionConfig?.host || '',
       connectionPort: cloneData.connectionConfig?.port || undefined,
       connectionUsername: cloneData.connectionConfig?.username || '',
       connectionPassword: cloneData.connectionConfig?.password || '',
-      connectionPath: cloneData.connectionConfig?.path || '',
+      filePath: cloneData.connectionConfig?.path || '',
       connectionUrl: cloneData.connectionConfig?.url || '',
       inputServerId: cloneData.connectionConfig?.inputServerId,
       nasDeviceId: cloneData.connectionConfig?.nasDeviceId,
@@ -391,7 +391,7 @@ const DataSourceFormEnhanced: React.FC = () => {
             port: values.connectionPort,
             username: values.connectionUsername,
             password: values.connectionPassword,
-            path: values.connectionPath,
+            path: values.filePath,
             url: values.connectionUrl,
             filePattern: values.filePattern || '*.*',
             // Kafka-specific fields
@@ -446,6 +446,10 @@ const DataSourceFormEnhanced: React.FC = () => {
             FolderConfig: d.folderConfig,
             SftpConfig: d.sftpConfig,
             HttpConfig: d.httpConfig,
+            // G10 (Phase 35): the create-request mapping dropped S3Config entirely, so a
+            // correctly-built S3 output destination (G9) lost its bucket/keyPrefix on the way
+            // to the backend — which then fell back to the server bucket with a null prefix.
+            S3Config: d.s3Config,
           }))
         },
         fileFormat: values.fileType,

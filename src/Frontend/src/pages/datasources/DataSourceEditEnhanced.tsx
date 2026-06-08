@@ -453,6 +453,9 @@ const DataSourceEditEnhanced: React.FC = () => {
             FolderConfig: d.folderConfig,
             SftpConfig: d.sftpConfig,
             HttpConfig: d.httpConfig,
+            // G10 (Phase 35): the update-request mapping also dropped S3Config (twin of the
+            // create-form bug), so saving an edited S3 output destination lost its bucket/prefix.
+            S3Config: d.s3Config,
           }))
         },
         ValidationRules: null,

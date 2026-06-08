@@ -141,6 +141,7 @@ export const prepareCloneData = (
       folderConfig: d.FolderConfig || d.folderConfig,
       sftpConfig: d.SftpConfig || d.sftpConfig,
       httpConfig: d.HttpConfig || d.httpConfig,
+      s3Config: d.S3Config || d.s3Config, // G10 (Phase 35): clone must carry S3 output config too
     })) ||
     dataSource?.Output?.Destinations?.map((d: any) => ({
       id: d.Id || d.id,
@@ -156,6 +157,7 @@ export const prepareCloneData = (
       folderConfig: d.FolderConfig || d.folderConfig,
       sftpConfig: d.SftpConfig || d.sftpConfig,
       httpConfig: d.HttpConfig || d.httpConfig,
+      s3Config: d.S3Config || d.s3Config, // G10 (Phase 35): clone must carry S3 output config too
     })) ||
     []
   ).map((dest: OutputDestination) => ({
