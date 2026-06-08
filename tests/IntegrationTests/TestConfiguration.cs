@@ -49,6 +49,30 @@ public static class TestConfiguration
         Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
 
     // Kafka Topics
+    //
+    // IMPORTANT (verified against the live ez-platform cluster, 2026-06-08):
+    // The internal processing pipeline (FileDiscovery -> FileProcessor -> Validation
+    // -> Output) is driven over the **RabbitMQ base bus** via MassTransit
+    // (UsingRabbitMq + ConfigureEndpoints in each service's Program.cs), NOT over
+    // these plain Kafka topics. No deployed service publishes a `FileDiscoveredEvent`
+    // to the Kafka `file-discovered` topic, consumes it, or produces a `file-processed`
+    // topic (which does not exist on the broker at all). These topic names exist on the
+    // broker only because the integration tests themselves auto-create them on
+    // produce/subscribe. Consequently, the Pipeline*/Format* tests that publish to
+    // `file-discovered` and then wait on `file-processed`/`record-validated`/
+    // `record-output` will NEVER observe a downstream message and would otherwise hang
+    // for the full timeout on every test. They are kept as soft (best-effort) probes
+    // (`if (result != null)`); the AUTHORITATIVE end-to-end proof is the MinIO->MinIO
+    // round-trip verified out-of-band (input bucket -> Output writes converted JSON to
+    // the output bucket). See PipelineWaitTimeout below.
+    //
+    // CANONICAL PIPELINE-OUTPUT ASSERTION (Phase 35-04, SC-6):
+    //   tests/IntegrationTests/Pipeline/MinioOutputPipelineTests.cs is the canonical
+    //   test that asserts the converted output object directly in the MinIO **output**
+    //   bucket (ez-phase34-output/processed/) via S3 ListObjectsV2 + GetObject — never a
+    //   Kafka topic. New pipeline-output assertions should follow that pattern, NOT the
+    //   Kafka-topic soft-probes below. (The MinIO env defaults — buckets/creds/wait —
+    //   live in that test file and are overridable via MINIO_* environment variables.)
     public static class KafkaTopics
     {
         public const string FileDiscovered = "file-discovered";
@@ -72,6 +96,16 @@ public static class TestConfiguration
     public static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(30);
     public static TimeSpan KafkaMessageTimeout => TimeSpan.FromSeconds(60);
     public static TimeSpan PipelineProcessingTimeout => TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// Short, bounded wait used by the pipeline soft-probes that watch the Kafka
+    /// intermediate topics. Because the live pipeline runs over RabbitMQ (see the
+    /// KafkaTopics note above), those probes will never observe a downstream message,
+    /// so a long wait only makes the suite hang. Override with PIPELINE_WAIT_SECONDS.
+    /// </summary>
+    public static TimeSpan PipelineWaitTimeout =>
+        TimeSpan.FromSeconds(
+            int.TryParse(Environment.GetEnvironmentVariable("PIPELINE_WAIT_SECONDS"), out var s) ? s : 5);
 
     // ========== File-Simulator Configuration ==========
 
