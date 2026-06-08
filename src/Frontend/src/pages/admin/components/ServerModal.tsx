@@ -275,6 +275,25 @@ const ServerModal: React.FC<ServerModalProps> = ({
                 label={t('admin.servers.fields.port') || 'פורט'}
                 style={{ flex: 1 }}
                 initialValue={defaultPort}
+                rules={[
+                  {
+                    // G4: MinIO Console port 30901 is NOT an S3 endpoint. Steer the admin
+                    // to the S3 API port (default 30900) before submit, otherwise Test
+                    // Connection fails with the cryptic "S3 API Requests must be made to
+                    // API port". S3-only — other protocols may legitimately use 30901.
+                    validator: (_rule, value) => {
+                      if (isS3 && Number(value) === 30901) {
+                        return Promise.reject(
+                          new Error(
+                            t('admin.servers.s3.consolePortError') ||
+                              'פורט 30901 הוא פורט הקונסולה של MinIO ואינו נקודת קצה של S3. השתמשו בפורט ה-API של S3 (ברירת מחדל 30900).'
+                          )
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  },
+                ]}
               >
                 <InputNumber
                   className="ltr-field"
@@ -307,6 +326,14 @@ const ServerModal: React.FC<ServerModalProps> = ({
         {isS3 && (
           <>
             <Divider>{t('admin.servers.sections.s3') || 'הגדרות S3 / MinIO'}</Divider>
+            <Typography.Text
+              type="secondary"
+              className="ltr-field"
+              style={{ display: 'block', marginBottom: 12, fontSize: '12px' }}
+            >
+              {t('admin.servers.s3.apiPortHint') ||
+                'MinIO: use the S3 API port (e.g. 30900). The console port (30901) is not an S3 endpoint.'}
+            </Typography.Text>
             <Form.Item
               name="AccessKey"
               label={t('admin.servers.fields.accessKey') || 'Access Key (מפתח גישה)'}

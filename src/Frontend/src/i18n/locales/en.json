@@ -862,6 +862,10 @@
         "s3": "S3 / MinIO Settings",
         "advanced": "Advanced Settings"
       },
+      "s3": {
+        "consolePortError": "Port 30901 is the MinIO console port, not an S3 endpoint. Use the S3 API port (default 30900).",
+        "apiPortHint": "MinIO: use the S3 API port (e.g. 30900). The console port (30901) is not an S3 endpoint."
+      },
       "filterAll": "All",
       "filterInput": "Input",
       "filterOutput": "Output"
