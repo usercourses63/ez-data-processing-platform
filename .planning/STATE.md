@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Executing Phase 35
-stopped_at: Completed 35-01-PLAN.md (MinIO console-port 30901 guard on ServerModal + bugs-must-fix register finalized; Vitest 3/3 + existing 4/4 green; G4 FIX-IN-CODE, live re-verify 35-03)
-last_updated: "2026-06-08T19:05:00.000Z"
+stopped_at: Completed 35-02-PLAN.md (G5 PRIMARY BLOCKER closed FIX-IN-CODE — persist output S3Config: FE OutputDestination.s3Config built from Bucket/Prefix + BE PopulateOutputDestinationS3Async bridges output AdminServer creds/endpoint/decrypted SecretKey, Region omitted per G6, in Create+Update; Vitest 6/6 + xUnit 4/4 green; live write proof 35-03)
+last_updated: "2026-06-08T19:20:00.000Z"
 progress:
   total_phases: 36
   completed_phases: 34
   total_plans: 137
-  completed_plans: 132
-  percent: 96
+  completed_plans: 133
+  percent: 97
 ---
 
 ## Current Position
 
 Phase: 35 (minio-mvp-flow-end-to-end-ui) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Project Reference
 
@@ -88,6 +88,9 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 34-05]: Frontend test tier — Vitest ServerModal.test.tsx 4/4 green (S3 field render, PascalCase TypeSpecificConfig packing, masked '********' sentinel on edit, keep-existing on unchanged secret); added matchMedia + ResizeObserver jsdom polyfills to src/test/setup.ts so antd components mount under Vitest. Playwright s3-server.spec.ts + webapp-testing s3_server_comprehensive_test.py (T1 masking, T2 keep-secret, T3 cancel-discard, T4 messaging, T5 tooltips) authored, statically validated (playwright --list / py_compile), and gated to skip cleanly when backends/MinIO are down — live runs deferred to 34-06
 - [Phase 35-01]: Bugs-must-fix register (G1-G6 + closure gate SC-7/SC-8) is the Phase-35 iterate backlog (SC-1). Closed G4 (FIX-IN-CODE): ServerModal Port field has an S3-only validator rejecting MinIO console port 30901 with a message naming the S3 API port 30900 + inline apiPortHint under the S3 divider; i18n admin.servers.s3.consolePortError/apiPortHint added to he/en. Vitest ServerModal.s3port.test.tsx 3/3 + existing 4/4 green. Live Test-Connection re-verify deferred to 35-03.
 - [Phase 35-01]: Translation files live at src/Frontend/src/i18n/locales/{he,en}.json (NOT the plan's src/locales/{he,en}/translation.json); new Vitest test placed in components/__tests__/ (imports one level deeper than the sibling ServerModal.test.tsx in components/).
+- [Phase 35-02]: G5 PRIMARY BLOCKER closed FIX-IN-CODE — UI-created S3 output destination now persists a write-ready Output.Destinations[].S3Config. FE: S3OutputConfig type + OutputDestination.s3Config; DestinationEditorModal handleSubmit S3 branch builds s3Config (bucket/keyPrefix split from the Bucket/Prefix path, usePathStyle=true, creds/endpoint/region left undefined for the backend); edit hydrates path; OutputTab shows bucket. BE: PopulateOutputDestinationS3Async bridges the output OutputServerId AdminServer into S3Config (endpoint http(s)://host:port, decrypted SecretKey via ServerCredentialProtector, AccessKeyId, usePathStyle, bucket-fallback to server bucket) and is called from BOTH CreateAsync and UpdateAsync. Vitest DestinationEditorModal.s3.test.tsx 6/6 + xUnit DataSourceServiceOutputS3Tests 4/4. Live write proof (a MinIO output object) deferred to 35-03.
+- [Phase 35-02]: G6 region-omit rule extended to the OUTPUT bridge — PopulateOutputDestinationS3Async deliberately does NOT set S3Config.Region (even when the server carries one) so the AWS SDK keeps the custom MinIO endpoint; mirror of the input/handler fix. Bucket precedence: admin-typed s3Config.Bucket wins, else server TypeSpecificConfig Bucket.
+- [Phase 35-02]: Extracted bucket/prefix split into pure helpers (buildS3OutputConfig/s3ConfigToPath in datasource/shared/helpers.ts) so the modal S3 behavior is unit-testable without mounting React Query + antd; handleSubmit delegates to the helper.
 
 ### Roadmap Evolution
 
@@ -108,6 +111,6 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-06-08T19:05:00.000Z
-Stopped at: Completed 35-01-PLAN.md (MinIO console-port 30901 guard on ServerModal + bugs-must-fix register finalized; Vitest 3/3 + existing 4/4 green; G4 FIX-IN-CODE, live re-verify 35-03)
+Last session: 2026-06-08T19:20:00.000Z
+Stopped at: Completed 35-02-PLAN.md (G5 PRIMARY BLOCKER closed FIX-IN-CODE — persist output S3Config: FE OutputDestination.s3Config + BE PopulateOutputDestinationS3Async bridge in Create+Update; Vitest 6/6 + xUnit 4/4 green; live write proof 35-03)
 Resume file: None

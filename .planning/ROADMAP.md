@@ -549,7 +549,7 @@ Note: Phases 14 and 17 can run in parallel with earlier phases as they have no s
 | 31. Feature Test Coverage | v0.6 | 4/4 | Complete   | 2026-03-26 |
 | 32. Clean Install & E2E Acceptance Test | v0.6 | 3/3 | Complete    | 2026-03-27 |
 
-**v0.2 Totals:** 12/35 plans complete (34%)
+**v0.2 Totals:** 13/35 plans complete (37%)
 **v0.3 Totals:** 1/3 plans complete (33%)
 **v0.4 Totals:** 14/30 plans complete (47%)
 
@@ -704,7 +704,7 @@ Plans:
 
 Plans:
 - [x] 35-01-PLAN.md — Seed bugs-must-fix register + G4 MinIO input-server API-port (30900 vs 30901) UX/validation (DONE 2026-06-08: register finalized; ServerModal rejects console port 30901, guides to 30900; Vitest 3/3; G4 FIX-IN-CODE, live re-verify 35-03)
-- [ ] 35-02-PLAN.md — G5 primary blocker: persist output S3Config (frontend s3Config build + backend OutputServerId->S3Config bridge)
+- [x] 35-02-PLAN.md — G5 primary blocker: persist output S3Config (frontend s3Config build + backend OutputServerId->S3Config bridge) (DONE 2026-06-08: FE OutputDestination.s3Config built from Bucket/Prefix path; BE PopulateOutputDestinationS3Async bridges output AdminServer creds/endpoint/decrypted SecretKey, Region omitted per G6, in Create+Update; Vitest 6/6 + xUnit 4/4; G5 FIX-IN-CODE, live write proof 35-03)
 - [ ] 35-03-PLAN.md — Live run-and-verify: UI create input+output server+datasource -> run -> fresh JSON object in MinIO output bucket
 - [ ] 35-04-PLAN.md — Tests: integration asserts MinIO output object (not Kafka) + Playwright E2E + webapp-testing comprehensive
 - [ ] 35-05-PLAN.md — Bugs-must-fix closure review + repeatable MVP proof sign-off
