@@ -1182,7 +1182,22 @@ public class DataSourceService : IDataSourceService
             // in-bucket object-key prefix only — NOT the s3://host:port/... URI built by the
             // switch, which S3Connector.NormalizePrefix would treat as a literal prefix and
             // match zero objects. Empty => list the whole bucket.
-            dataSource.FilePath = path;
+            //
+            // G8 (Phase 35): the "Bucket / Prefix" input field placeholder is "bucket-name/prefix/",
+            // so users (and the MVP runbook) type the bucket name as the first path segment. Left
+            // as-is it became a bogus in-bucket prefix (e.g. " ez-phase34-input") that matched zero
+            // objects and produced no output. Trim stray whitespace and strip a leading bucket
+            // segment so only the true object-key prefix remains (empty => whole bucket).
+            var s3Prefix = (path ?? string.Empty).Trim().Trim('/');
+            var s3Bucket = s3.Contains("Bucket") ? s3["Bucket"].AsString?.Trim() : null;
+            if (!string.IsNullOrEmpty(s3Bucket))
+            {
+                if (string.Equals(s3Prefix, s3Bucket, StringComparison.OrdinalIgnoreCase))
+                    s3Prefix = string.Empty;
+                else if (s3Prefix.StartsWith(s3Bucket + "/", StringComparison.OrdinalIgnoreCase))
+                    s3Prefix = s3Prefix.Substring(s3Bucket.Length + 1);
+            }
+            dataSource.FilePath = s3Prefix;
         }
 
         _logger.LogInformation(

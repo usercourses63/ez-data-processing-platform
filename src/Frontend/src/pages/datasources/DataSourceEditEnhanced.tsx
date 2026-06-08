@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeftOutlined, SaveOutlined, FileOutlined, ApiOutlined, ClockCircleOutlined, SafetyOutlined, BellOutlined, FileTextOutlined, ExportOutlined, BarChartOutlined } from '@ant-design/icons';
 import { type JSONSchema } from 'jsonjoy-builder';
-import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern } from '../../components/datasource/shared/helpers';
+import { buildConnectionString, frequencyToCron, extractFileTypeFromPattern, mergeConnectionConfig } from '../../components/datasource/shared/helpers';
 import { DataSource, ApiResponse, OutputConfiguration } from '../../components/datasource/shared/types';
 import { useCompletenessTracker, CompletenessPanel, TAB_FIELD_CONFIG, REQUIRED_TABS } from '../../components/datasource/completeness';
 import '../../components/datasource/completeness/completeness.css';
@@ -160,7 +160,7 @@ const DataSourceEditEnhanced: React.FC = () => {
     setConnectionTestResult(null);
 
     try {
-      await form.validateFields(['connectionType', 'connectionHost', 'connectionPort', 'connectionUsername', 'connectionPassword', 'connectionPath']);
+      await form.validateFields(['connectionType', 'connectionHost', 'connectionPort', 'connectionUsername', 'connectionPassword', 'filePath']);
       await new Promise(resolve => setTimeout(resolve, 2000));
       setConnectionTestResult('success');
       message.success('חיבור הצליח');
@@ -234,7 +234,7 @@ const DataSourceEditEnhanced: React.FC = () => {
           connectionPort: connectionConfig.port,
           connectionUsername: connectionConfig.username,
           connectionPassword: connectionConfig.password,
-          connectionPath: connectionConfig.path || data.Data.FilePath,
+          filePath: connectionConfig.path || data.Data.FilePath,
           connectionUrl: connectionConfig.url,
           filePattern: connectionConfig.filePattern || data.Data.FilePattern || '*.*',
           // Server reference (v0.2.0)
@@ -326,7 +326,20 @@ const DataSourceEditEnhanced: React.FC = () => {
                 overwriteExisting: dest.FolderConfig.OverwriteExisting
               } : undefined,
               sftpConfig: dest.SftpConfig,
-              httpConfig: dest.HttpConfig
+              httpConfig: dest.HttpConfig,
+              // G7 (Phase 35): map the PascalCase S3Config back to camelCase so editing an
+              // existing S3 destination re-hydrates the "Bucket / Prefix" field (s3ConfigToPath
+              // reads s3Config.bucket/keyPrefix). Without this the field rendered blank on reopen,
+              // making a correctly-persisted S3 output look like it "wasn't saved".
+              s3Config: dest.S3Config ? {
+                endpoint: dest.S3Config.Endpoint,
+                bucket: dest.S3Config.Bucket,
+                keyPrefix: dest.S3Config.KeyPrefix,
+                region: dest.S3Config.Region,
+                accessKeyId: dest.S3Config.AccessKeyId,
+                usePathStyle: dest.S3Config.UsePathStyle,
+                keyPattern: dest.S3Config.KeyPattern
+              } : (dest.s3Config || undefined)
             }))
           };
         }
@@ -367,28 +380,10 @@ const DataSourceEditEnhanced: React.FC = () => {
       }
 
       const mergedConfig = {
-        connectionConfig: {
-          ...(existingConfig.connectionConfig || {}),
-          type: values.connectionType || existingConfig.connectionConfig?.type,
-          host: values.connectionHost ?? existingConfig.connectionConfig?.host,
-          port: values.connectionPort ?? existingConfig.connectionConfig?.port,
-          username: values.connectionUsername ?? existingConfig.connectionConfig?.username,
-          password: values.connectionPassword ?? existingConfig.connectionConfig?.password,
-          path: values.connectionPath ?? existingConfig.connectionConfig?.path,
-          url: values.connectionUrl ?? existingConfig.connectionConfig?.url,
-          filePattern: values.filePattern ?? existingConfig.connectionConfig?.filePattern ?? '*.*',
-          // Kafka-specific fields
-          brokers: values.kafkaBrokers ?? existingConfig.connectionConfig?.brokers,
-          topic: values.kafkaTopic ?? existingConfig.connectionConfig?.topic,
-          consumerGroup: values.kafkaConsumerGroup ?? existingConfig.connectionConfig?.consumerGroup,
-          securityProtocol: values.kafkaSecurityProtocol ?? existingConfig.connectionConfig?.securityProtocol,
-          offsetReset: values.kafkaOffsetReset ?? existingConfig.connectionConfig?.offsetReset,
-          // Server reference (v0.2.0)
-          inputServerId: values.inputServerId ?? existingConfig.connectionConfig?.inputServerId,
-          // NAS-specific fields
-          nasDeviceId: values.nasDeviceId ?? existingConfig.connectionConfig?.nasDeviceId,
-          nasSubPath: values.nasSubPath ?? existingConfig.connectionConfig?.nasSubPath
-        },
+        // Bug #2 (TASK B): merge via helper so a partial submit (lazy Connection tab not yet
+        // hydrated) can never wipe the stored server reference — falls back to existing config
+        // then the authoritative FileServerId/NasDeviceId on the loaded dataSource.
+        connectionConfig: mergeConnectionConfig(values, existingConfig.connectionConfig, dataSource),
         fileConfig: {
           ...(existingConfig.fileConfig || {}),
           type: values.fileType || existingConfig.fileConfig?.type,
