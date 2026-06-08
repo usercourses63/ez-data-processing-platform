@@ -258,8 +258,14 @@ public class ValidationCompletedEventConsumer : IConsumer<ValidationCompletedEve
             outputFormat,
             formatMetadata);
 
-        // Find appropriate handler
-        var handler = _outputHandlers.FirstOrDefault(h => h.CanHandle(destination.Type));
+        // Find appropriate handler.
+        // G11 (Phase 35): destination.Type is persisted in the frontend protocol-Select's case
+        // ('S3', 'Kafka', 'FTP', ...), but every IOutputHandler.CanHandle compares against a
+        // lowercase literal ("s3", "kafka", ...). Without normalization "S3" != "s3" so no handler
+        // was found and the validated records were silently dropped (no MinIO output object).
+        // Normalize to lower-invariant so dispatch is case-insensitive for all destination types.
+        var normalizedType = destination.Type?.ToLowerInvariant() ?? string.Empty;
+        var handler = _outputHandlers.FirstOrDefault(h => h.CanHandle(normalizedType));
 
         if (handler == null)
         {
