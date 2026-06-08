@@ -1,6 +1,6 @@
 // Helper functions for DataSource forms
 import cronstrue from 'cronstrue/i18n';
-import type { ClonePayload, OutputDestination } from './types';
+import type { ClonePayload, OutputDestination, S3OutputConfig } from './types';
 
 /**
  * Humanizes a cron expression into Hebrew description using cronstrue library
@@ -53,11 +53,11 @@ export const buildConnectionString = (values: any): string => {
   switch (values.connectionType) {
     case 'SFTP':
     case 'FTP':
-      return `${values.connectionType.toLowerCase()}://${values.connectionHost}:${values.connectionPort}${values.connectionPath}`;
+      return `${values.connectionType.toLowerCase()}://${values.connectionHost}:${values.connectionPort}${values.filePath}`;
     case 'HTTP':
       return values.connectionUrl;
     case 'Local':
-      return values.connectionPath;
+      return values.filePath;
     case 'Kafka':
       return `kafka://${values.kafkaBrokers}/${values.kafkaTopic}`;
     default:
@@ -187,4 +187,82 @@ export const prepareCloneData = (
       cronExpression: parsedConfig.schedule.cronExpression,
     } : undefined,
   };
+};
+
+/**
+ * Merges submitted form values with the existing stored connectionConfig when updating a datasource.
+ *
+ * Bug #2 fix (TASK B): the edit form lazy-loads the Connection tab, so if the user changes the
+ * schema on another tab and saves before that tab mounts/hydrates, `values.inputServerId` is
+ * missing OR an empty string. The previous merge used `??`, which does not catch `''`, so the
+ * stored server reference was overwritten with an empty value and the connection appeared wiped.
+ *
+ * The server/device references therefore fall back with `||` (catches both `undefined` and `''`)
+ * to the existing stored config and finally to the authoritative `FileServerId`/`NasDeviceId`
+ * columns on the loaded dataSource — so a partial submit can never drop the connection.
+ */
+export const mergeConnectionConfig = (
+  values: any,
+  existingConnectionConfig: any,
+  dataSource?: any
+): Record<string, any> => {
+  const existing = existingConnectionConfig || {};
+  return {
+    ...existing,
+    type: values.connectionType || existing.type,
+    host: values.connectionHost ?? existing.host,
+    port: values.connectionPort ?? existing.port,
+    username: values.connectionUsername ?? existing.username,
+    password: values.connectionPassword ?? existing.password,
+    path: values.filePath ?? existing.path,
+    url: values.connectionUrl ?? existing.url,
+    filePattern: values.filePattern ?? existing.filePattern ?? '*.*',
+    // Kafka-specific fields
+    brokers: values.kafkaBrokers ?? existing.brokers,
+    topic: values.kafkaTopic ?? existing.topic,
+    consumerGroup: values.kafkaConsumerGroup ?? existing.consumerGroup,
+    securityProtocol: values.kafkaSecurityProtocol ?? existing.securityProtocol,
+    offsetReset: values.kafkaOffsetReset ?? existing.offsetReset,
+    // Server reference (v0.2.0) — never drop it on a partial submit (lazy ConnectionTab).
+    // `||` so an empty string also falls through to the stored value / authoritative column.
+    inputServerId: values.inputServerId || existing.inputServerId || dataSource?.FileServerId,
+    // NAS-specific fields
+    nasDeviceId: values.nasDeviceId || existing.nasDeviceId || dataSource?.NasDeviceId,
+    nasSubPath: values.nasSubPath ?? existing.nasSubPath,
+  };
+};
+
+/**
+ * Builds the S3 output config from the typed "Bucket / Prefix" path field.
+ *
+ * Splits the path on the FIRST '/' into:
+ *   - bucket:    the segment before the slash (e.g. "ez-phase34-output")
+ *   - keyPrefix: the remainder, or undefined when there is no prefix
+ *
+ * Credentials/endpoint/region are intentionally left undefined — the backend bridges
+ * them (decrypted) from the selected output AdminServer (outputServerId). usePathStyle
+ * defaults to true (MinIO requires path-style addressing).
+ */
+export const buildS3OutputConfig = (path: string | undefined | null): S3OutputConfig => {
+  const trimmed = (path || '').trim().replace(/^\/+/, '');
+  const slashIdx = trimmed.indexOf('/');
+  const bucket = slashIdx >= 0 ? trimmed.slice(0, slashIdx) : trimmed;
+  const rest = slashIdx >= 0 ? trimmed.slice(slashIdx + 1) : '';
+  const keyPrefix = rest.length > 0 ? rest : undefined;
+  return {
+    bucket,
+    keyPrefix,
+    usePathStyle: true,
+  };
+};
+
+/**
+ * Reconstructs the editable "Bucket / Prefix" path string from a persisted s3Config
+ * so an edit round-trips (bucket + '/' + keyPrefix).
+ */
+export const s3ConfigToPath = (s3Config?: S3OutputConfig): string => {
+  if (!s3Config) return '';
+  const bucket = s3Config.bucket || '';
+  const prefix = s3Config.keyPrefix;
+  return prefix ? `${bucket}/${prefix}` : bucket;
 };

@@ -27,6 +27,7 @@ import {
 } from '@ant-design/icons';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import type { OutputDestination } from '../shared/types';
+import { buildS3OutputConfig, s3ConfigToPath } from '../shared/helpers';
 import { getOutputServers, serverQueryKeys, AdminServer } from '../../../services/servers-api-client';
 import { getNasDevices, nasDeviceQueryKeys, NasDevice, testNasDeviceConnection } from '../../../services/nas-devices-api-client';
 
@@ -181,8 +182,12 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
         outputServerId: destination.outputServerId,
         nasDeviceId: nasId,
         // Applicative fields
-        path: destination.folderConfig?.path || destination.kafkaConfig?.topic,
-        fileNamePattern: destination.folderConfig?.fileNamePattern,
+        path: destination.type?.toLowerCase() === 's3'
+          ? s3ConfigToPath(destination.s3Config)
+          : (destination.folderConfig?.path || destination.kafkaConfig?.topic),
+        fileNamePattern: destination.type?.toLowerCase() === 's3'
+          ? destination.s3Config?.keyPattern
+          : destination.folderConfig?.fileNamePattern,
         kafkaTopic: destination.kafkaConfig?.topic,
         kafkaMessageKey: destination.kafkaConfig?.messageKey,
       });
@@ -235,9 +240,12 @@ export const DestinationEditorModal: React.FC<DestinationEditorModalProps> = ({
           fileNamePattern: values.fileNamePattern,
         };
       } else if (values.type === 's3') {
-        updatedDestination.folderConfig = {
-          path: values.path, // S3 bucket/prefix
-          fileNamePattern: values.fileNamePattern,
+        // Build a write-ready s3Config from the typed "Bucket / Prefix" path.
+        // Credentials/endpoint/region are intentionally omitted here — the backend
+        // bridges them (decrypted) from the selected output AdminServer (outputServerId).
+        updatedDestination.s3Config = {
+          ...buildS3OutputConfig(values.path),
+          keyPattern: values.fileNamePattern || undefined,
         };
       } else if (values.type === 'http') {
         updatedDestination.httpConfig = {

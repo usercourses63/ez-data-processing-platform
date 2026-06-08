@@ -122,6 +122,24 @@ export interface OutputDestination {
   folderConfig?: FolderOutputConfig;
   sftpConfig?: SftpOutputConfig;
   httpConfig?: HttpOutputConfig;
+  // v0.2.0: S3/MinIO output destination configuration (when type === 's3').
+  // The frontend only supplies bucket/keyPrefix (+ usePathStyle); the backend
+  // bridges endpoint/region/credentials from the selected output AdminServer.
+  s3Config?: S3OutputConfig;
+}
+
+// Mirrors the backend DataProcessing.Shared.Entities.S3OutputConfig (camelCase keys).
+// Credentials/endpoint/region are intentionally left undefined on the frontend so the
+// backend can bridge them (decrypted) from the selected output AdminServer.
+export interface S3OutputConfig {
+  endpoint?: string;
+  bucket: string;
+  keyPrefix?: string;
+  region?: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  usePathStyle?: boolean;
+  keyPattern?: string;
 }
 
 export interface KafkaOutputConfig {

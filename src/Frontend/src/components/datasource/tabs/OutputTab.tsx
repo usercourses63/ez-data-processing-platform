@@ -111,6 +111,9 @@ export const OutputTab: React.FC<OutputTabProps> = ({ output, onChange }) => {
       render: (_: any, dest: OutputDestination) => {
         if (dest.type === 'kafka' && dest.kafkaConfig) {
           return <Text type="secondary">{dest.kafkaConfig.topic}</Text>;
+        } else if (dest.type === 's3' && dest.s3Config) {
+          const prefix = dest.s3Config.keyPrefix ? `/${dest.s3Config.keyPrefix}` : '';
+          return <Text type="secondary">{`${dest.s3Config.bucket}${prefix}`}</Text>;
         } else if (dest.folderConfig) {
           return <Text type="secondary">{dest.folderConfig.path}</Text>;
         }
