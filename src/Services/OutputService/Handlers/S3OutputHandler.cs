@@ -48,7 +48,7 @@ public class S3OutputHandler : IOutputHandler
                 config.Bucket, config.KeyPrefix, fileName, destination.Name);
 
             // Build the S3 key (path)
-            var key = BuildS3Key(config, fileName, destination.Name);
+            var key = BuildS3Key(config, fileName, destination.Name, destination.OutputFormat);
 
             // Create S3 client
             using var client = CreateS3Client(config);
@@ -100,15 +100,22 @@ public class S3OutputHandler : IOutputHandler
     {
         var s3Config = new AmazonS3Config();
 
-        // Configure endpoint for MinIO or custom S3-compatible storage
+        // Configure endpoint for MinIO or custom S3-compatible storage.
+        // IMPORTANT: when a custom ServiceURL/Endpoint is set we must NOT also set
+        // RegionEndpoint — the AWS SDK lets RegionEndpoint override ServiceURL, which
+        // makes the client connect to (and SigV4-sign for) the real AWS S3 region
+        // instead of MinIO ("Access Key Id does not exist" / 403 Forbidden).
+        // AuthenticationRegion is sufficient for SigV4 signing against a custom endpoint.
         if (!string.IsNullOrEmpty(config.Endpoint))
         {
             s3Config.ServiceURL = config.Endpoint;
             s3Config.ForcePathStyle = config.UsePathStyle;
+            if (!string.IsNullOrEmpty(config.Region))
+            {
+                s3Config.AuthenticationRegion = config.Region;
+            }
         }
-
-        // Configure region
-        if (!string.IsNullOrEmpty(config.Region))
+        else if (!string.IsNullOrEmpty(config.Region))
         {
             s3Config.RegionEndpoint = RegionEndpoint.GetBySystemName(config.Region);
         }
@@ -123,28 +130,36 @@ public class S3OutputHandler : IOutputHandler
         return new AmazonS3Client(s3Config);
     }
 
-    private string BuildS3Key(S3OutputConfig config, string fileName, string datasourceName)
+    private string BuildS3Key(S3OutputConfig config, string fileName, string datasourceName, string? outputFormat)
     {
-        // If a key pattern is provided, use it
-        if (!string.IsNullOrEmpty(config.KeyPattern))
-        {
-            return ReplaceKeyPlaceholders(config.KeyPattern, fileName, datasourceName);
-        }
+        // G12 (Phase 35): always honor KeyPrefix. Previously, when a KeyPattern was present the
+        // method returned the pattern result and ignored KeyPrefix entirely, so objects landed at
+        // the bucket root instead of under e.g. "processed/". Compute the object name (from the
+        // pattern if set, otherwise the source filename) and ALWAYS prepend the prefix.
+        var prefix = config.KeyPrefix?.Trim().Trim('/') ?? "";
 
-        // Otherwise, use prefix + filename
-        var prefix = config.KeyPrefix?.TrimEnd('/') ?? "";
-        return string.IsNullOrEmpty(prefix) ? fileName : $"{prefix}/{fileName}";
+        var objectName = !string.IsNullOrEmpty(config.KeyPattern)
+            ? ReplaceKeyPlaceholders(config.KeyPattern, fileName, datasourceName, outputFormat)
+            : fileName;
+
+        return string.IsNullOrEmpty(prefix) ? objectName : $"{prefix}/{objectName}";
     }
 
-    private string ReplaceKeyPlaceholders(string pattern, string fileName, string datasourceName)
+    private string ReplaceKeyPlaceholders(string pattern, string fileName, string datasourceName, string? outputFormat)
     {
         var now = DateTime.UtcNow;
         var ext = Path.GetExtension(fileName);
         var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+        // G12: substitute {format} (was left literal). Use the destination's output format
+        // (json/csv/xml); fall back to the source file extension when format is unset/"original".
+        var format = !string.IsNullOrEmpty(outputFormat) && outputFormat.ToLowerInvariant() != "original"
+            ? outputFormat.ToLowerInvariant()
+            : ext.TrimStart('.');
 
         return pattern
             .Replace("{filename}", nameWithoutExt)
             .Replace("{ext}", ext.TrimStart('.'))
+            .Replace("{format}", format)
             .Replace("{date}", now.ToString("yyyy-MM-dd"))
             .Replace("{year}", now.ToString("yyyy"))
             .Replace("{month}", now.ToString("MM"))
