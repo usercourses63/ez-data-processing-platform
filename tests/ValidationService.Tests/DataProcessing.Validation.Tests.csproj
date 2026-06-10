@@ -23,6 +23,13 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Newtonsoft.Json.Schema" />
+    <!-- Phase 36-01: exercise the REAL production validator (Corvus.Json, JSON Schema 2020-12),
+         not the Newtonsoft.Json.Schema re-implementation, so B1/B2 mechanism tests prove the
+         exact behavior ValidationService.cs runs. Also available transitively via the
+         DataProcessing.Validation ProjectReference; referenced explicitly here to make the
+         dependency self-documenting and version-pinned to the central 4.3.9. -->
+    <PackageReference Include="Corvus.Json.ExtendedTypes" />
+    <PackageReference Include="Corvus.Json.Validator" />
   </ItemGroup>
 
   <ItemGroup>
