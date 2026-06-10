@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Ready to execute
-stopped_at: Completed 36-02-PLAN.md (B4 RED contracts in tests/InvalidRecordsService.Tests — reused existing project; paging green, index + broadcast RED for 36-07/36-08)
-last_updated: "2026-06-10T10:32:18.985Z"
+stopped_at: Completed 36-04-PLAN.md (B1/B2 frontend RED Vitest specs — schemaInferrer.optional + schemaAutoSuggest.optionalDate; 4 RED assertions + 2 no-regression guards; 36-05 turns green)
+last_updated: "2026-06-10T13:37:00.000Z"
 progress:
   total_phases: 37
   completed_phases: 34
   total_plans: 146
-  completed_plans: 137
-  percent: 92
+  completed_plans: 138
+  percent: 93
 ---
 
 ## Current Position
 
 Phase: 36 (validation-logic-invalid-records-bug-fixes) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 
 ## Project Reference
 
@@ -104,6 +104,9 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase ?]: [Phase 36-03]: FileProcessorService.Tests lives ONLY under src/Services/ (no tests/ duplicate) — the 36-01/36-02 path-swap lesson was checked and did NOT apply; used the plan path verbatim
 - [Phase ?]: [Phase 36-03]: B3 reproduced as integration test over verbatim MinIO bytes + real Corvus — headed CSV keys by header 'date', never schema-required 'tararich'; 36-06 flips assertions to IsValid==true
 - [Phase ?]: [Phase 36-03]: verbatim live-bytes fixtures pinned with .gitattributes -text so core.autocrlf=true cannot corrupt byte fidelity (99-byte no-BOM LF koko fixture)
+- [Phase 36-04]: B1/B2 frontend RED specs drive generateJsonSchema (not suggestConstraintsForField in isolation) — optionality+suggestions combine in inferPropertySchema, so the generator output is what's pinned; empty-tolerant shapes mirror 36-01 Corvus targets verbatim (B1 type:[string,null]; B2 anyOf[maxLength:0, format:date])
+- [Phase 36-04]: 36-05 GREEN contract = generateJsonSchema gains 4th arg { optionalFields: string[] }; listed fields excluded from required[] regardless of sample completeness AND modeled empty-tolerant; specs alias the export via `as unknown as` (esbuild transpile-only, no type-check) so the 4th arg compiles today and is RED only on assertions
+- [Phase 36-04]: RED confirmed via npm run test:unit -- schemaInferrer.optional schemaAutoSuggest.optionalDate → 4 failed (corrected behavior) + 2 passed (no-regression guards for required-field + populated-date)
 
 ### Roadmap Evolution
 
@@ -125,7 +128,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-06-10T10:31:39.874Z
-Stopped at: Completed 36-02-PLAN.md (B4 RED contracts in tests/InvalidRecordsService.Tests — reused existing project; paging green, index + broadcast RED for 36-07/36-08)
+Last session: 2026-06-10T13:37:00.000Z
+Stopped at: Completed 36-04-PLAN.md (B1/B2 frontend RED Vitest specs — schemaInferrer.optional + schemaAutoSuggest.optionalDate; 4 RED + 2 no-regression-guard assertions; 36-05 turns green)
 Resume file: None
-Next: 36-03-PLAN.md
+Next: 36-05-PLAN.md
