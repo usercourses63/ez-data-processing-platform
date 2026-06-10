@@ -681,6 +681,7 @@ Plans:
 **Depends on:** Phase 34 (S3 credential contract + connector). Coordinates with Session B file-simulator MinIO (S3 API `172.24.80.23:30900`, Console `:30901`, path-style, `appuser`).
 
 **Known gaps already mapped (Phase-34 session, seed the bugs-must-fix register):**
+
 - **G1 (FIXED, deployed):** new-data-source form defaulted protocol to `NFS` (unmapped) → "can't allocate input". Default now `FTP`.
 - **G2 (FIXED, deploy-pending verify):** edit form `filePath` vs phantom `connectionPath` mismatch → "file path missing" with no recognizable box + bucket not saved. Unified to `filePath`.
 - **G3 (FIXED, deployed):** connection config lost when editing a datasource's schema (lazy-tab merge). Hardened merge with `FileServerId` fallback.
@@ -703,11 +704,45 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
+
 - [x] 35-01-PLAN.md — Seed bugs-must-fix register + G4 MinIO input-server API-port (30900 vs 30901) UX/validation (DONE 2026-06-08: register finalized; ServerModal rejects console port 30901, guides to 30900; Vitest 3/3; G4 FIX-IN-CODE, live re-verify 35-03)
 - [x] 35-02-PLAN.md — G5 primary blocker: persist output S3Config (frontend s3Config build + backend OutputServerId->S3Config bridge) (DONE 2026-06-08: FE OutputDestination.s3Config built from Bucket/Prefix path; BE PopulateOutputDestinationS3Async bridges output AdminServer creds/endpoint/decrypted SecretKey, Region omitted per G6, in Create+Update; Vitest 6/6 + xUnit 4/4; G5 FIX-IN-CODE, live write proof 35-03)
 - [ ] 35-03-PLAN.md — Live run-and-verify: UI create input+output server+datasource -> run -> fresh JSON object in MinIO output bucket
 - [x] 35-04-PLAN.md — Tests: integration asserts MinIO output object (not Kafka) + Playwright E2E + webapp-testing comprehensive (DONE 2026-06-08: MinioOutputPipelineTests.cs asserts the converted JSON object in ez-phase34-output via S3 ListObjectsV2+GetObject, skips offline; s3-mvp-flow.spec.ts create input+output server->datasource->run + G4/G5 UI guards; minio_mvp_flow_comprehensive_test.py G2/G3/G4/G5+masked-secret; statically valid — dotnet build OK, playwright --list 4 tests, py_compile OK; live runs deferred to 35-03)
 - [ ] 35-05-PLAN.md — Bugs-must-fix closure review + repeatable MVP proof sign-off
+
+### Phase 36: Validation Logic & Invalid-Records Bug Fixes
+
+**Goal:** Explore, root-cause, and fix four user-reported validation/invalid-records bugs, then prove each fix with the real MinIO test CSVs and a unit+integration+E2E test loop. First **understand** each bug, **map the error** to the responsible service and code path, **find the weak point** that causes it, debug against the files used in MinIO as test inputs, review fix options, fix, re-test, and **loop until green** — no bug closed without a reproducing test that now passes.
+
+**Requirements**: TBD
+**Depends on:** Phase 35 (MinIO MVP flow + S3 connector); reuses the file-simulator MinIO test inputs.
+
+**The four bugs (root-cause + fix each):**
+- **B1 — Optional field still flagged "missing data".** Validation of an *optional* field is not honored: an invalid-record error of "missing data" is raised for a field the schema marks optional. The system must NOT raise a required/missing error for optional fields.
+- **B2 — Optional `date` field + empty value → false error.** For a schema field named `date`, validation auto-applies a date-format check; when the schema defines the field as **optional** and the row's date is **empty**, it wrongly raises an error. Empty value on an optional field (even a date) must pass.
+- **B3 — `koko` data source, required field `tararich` false-invalid.** In the `koko` data source, the field `tararich` is schema-defined as **required (must have data)**; rows DO contain data in every row, yet the records are marked invalid. Root-cause why a populated required field is read as empty/invalid (encoding? header/column mapping? trimming? name match? Hebrew/RTL field-name handling?).
+- **B4 — Invalid Records page: incomplete display + high latency.** The Invalid Records page does not always show the invalid records that exist, and has high latency. Root-cause the missing rows (query/filter/pagination/SignalR refresh) and the latency (query/index/N+1/payload), and fix both.
+
+**Responsible units to map:** `ValidationService` (schema validation, optional/required handling, date-format auto-detection, Corvus.Json.Validator usage) for B1–B3; `InvalidRecordsService` + the frontend Invalid Records page (and its API/query path, SignalR `EntityChanged` refresh) for B4. The `koko` data source + its schema and the MinIO input CSVs are the live reproduction fixtures.
+
+**Success Criteria** (what must be TRUE):
+
+  1. **Each bug reproduced first** — a failing test or documented live repro (using the real MinIO test CSVs / the `koko` source) exists for B1–B4 BEFORE any fix, with the exact responsible file + line/weak-point identified in RESEARCH.
+  2. **B1 fixed** — an optional field with no value produces NO "missing data" / required error; verified by a unit test over the validator and a live run.
+  3. **B2 fixed** — an optional `date` field with an empty value passes validation (no auto date-format error); covered by a unit test for the empty-optional-date case.
+  4. **B3 fixed** — `koko`'s required `tararich` field, when populated in every row, validates as valid (zero false-invalids); root cause documented; covered by a test over the actual data shape.
+  5. **B4 fixed** — the Invalid Records page reliably shows all existing invalid records, and page/API latency is measurably reduced (before/after numbers recorded); covered by an integration/E2E assertion.
+  6. **Test loop green** — unit + integration + E2E suites for the touched areas run and pass; each closed bug has a regression test that fails before the fix and passes after.
+  7. **No regressions** — the Phase-35 MinIO MVP flow still passes after these validation changes.
+
+**Methodology:** understand → map error to service → map the service code → find the weak point → debug with the MinIO test files → review fix ideas → fix → re-run tests → loop until success → run unit + integration + E2E.
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 36 to break down)
 
 ---
 *Roadmap updated: 2026-06-08 — Phase 35 added (MinIO MVP flow end-to-end through the UI)*
