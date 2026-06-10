@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Ready to execute
-stopped_at: Completed 36-04-PLAN.md (B1/B2 frontend RED Vitest specs — schemaInferrer.optional + schemaAutoSuggest.optionalDate; 4 RED assertions + 2 no-regression guards; 36-05 turns green)
-last_updated: "2026-06-10T13:37:00.000Z"
+stopped_at: Completed 36-05-PLAN.md (B1/B2 frontend schema-generator GREEN fix — generateJsonSchema optionalFields intent + empty-tolerant modeling; FE 245/245, backend Corvus B1|B2 10/10)
+last_updated: "2026-06-10T14:00:00.000Z"
 progress:
   total_phases: 37
   completed_phases: 34
   total_plans: 146
-  completed_plans: 138
-  percent: 93
+  completed_plans: 139
+  percent: 95
 ---
 
 ## Current Position
 
 Phase: 36 (validation-logic-invalid-records-bug-fixes) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 
 ## Project Reference
 
@@ -107,6 +107,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 36-04]: B1/B2 frontend RED specs drive generateJsonSchema (not suggestConstraintsForField in isolation) — optionality+suggestions combine in inferPropertySchema, so the generator output is what's pinned; empty-tolerant shapes mirror 36-01 Corvus targets verbatim (B1 type:[string,null]; B2 anyOf[maxLength:0, format:date])
 - [Phase 36-04]: 36-05 GREEN contract = generateJsonSchema gains 4th arg { optionalFields: string[] }; listed fields excluded from required[] regardless of sample completeness AND modeled empty-tolerant; specs alias the export via `as unknown as` (esbuild transpile-only, no type-check) so the 4th arg compiles today and is RED only on assertions
 - [Phase 36-04]: RED confirmed via npm run test:unit -- schemaInferrer.optional schemaAutoSuggest.optionalDate → 4 failed (corrected behavior) + 2 passed (no-regression guards for required-field + populated-date)
+- [Phase 36-05]: B1/B2 GREEN — generateJsonSchema gained backward-compatible 4th { optionalFields } arg; optional fields excluded from required[] by intent (not sample completeness) and modeled empty-tolerant: plain → type:[<type>,'null'], date/format → anyOf[maxLength:0, format]. applySuggestionsToSchema gained optional 3rd { optional } arg for the date empty-escape. Shipped shapes equal 36-01 Corvus targets verbatim (backend B1|B2 10/10; FE 245/245)
+- [Phase 36-05]: SchemaBuilderNew.tsx manual editor confirmed OUT OF SCOPE for B1 (RESEARCH Q3) — authors required[] via jsonjoy-builder UI toggles, never derives from sample data; additionalProperties:false (:162) left unchanged (optional fields are declared properties so empty/absent validates against the union/anyOf)
 
 ### Roadmap Evolution
 
@@ -128,7 +130,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-06-10T13:37:00.000Z
-Stopped at: Completed 36-04-PLAN.md (B1/B2 frontend RED Vitest specs — schemaInferrer.optional + schemaAutoSuggest.optionalDate; 4 RED + 2 no-regression-guard assertions; 36-05 turns green)
+Last session: 2026-06-10T14:00:00.000Z
+Stopped at: Completed 36-05-PLAN.md (B1/B2 frontend schema-generator GREEN fix — generateJsonSchema optionalFields intent + empty-tolerant modeling; FE 245/245, backend Corvus B1|B2 10/10)
 Resume file: None
-Next: 36-05-PLAN.md
+Next: 36-06-PLAN.md

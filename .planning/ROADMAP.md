@@ -739,7 +739,7 @@ Plans:
 
 **Methodology:** understand → map error to service → map the service code → find the weak point → debug with the MinIO test files → review fix ideas → fix → re-run tests → loop until success → run unit + integration + E2E.
 
-**Plans:** 4/9 plans executed
+**Plans:** 5/9 plans executed
 
 Plans:
 
@@ -747,7 +747,7 @@ Plans:
 - [x] 36-02-PLAN.md — Scaffold InvalidRecordsService.Tests + B4 RED (server-side paging, indexes, missing EntityChanged broadcast)
 - [x] 36-03-PLAN.md — B3 RED in FileProcessorService.Tests: verbatim koko MinIO CSV bytes -> converter -> Corvus header/field mismatch
 - [x] 36-04-PLAN.md — Frontend Vitest RED for schema-gen (B1 required-from-intent, B2 optional-date empty-tolerance)
-- [ ] 36-05-PLAN.md — B1+B2 fix: schemaInferrer required-from-intent + optional empty-tolerant modeling; schemaAutoSuggest empty-tolerant date
+- [x] 36-05-PLAN.md — B1+B2 fix: schemaInferrer required-from-intent + optional empty-tolerant modeling; schemaAutoSuggest empty-tolerant date
 - [ ] 36-06-PLAN.md — B3 fix: header<->schema-field reconciliation (decision: data rename vs code) so koko bytes validate clean
 - [ ] 36-07-PLAN.md — B4 latency fix: server-side paging + Mongo indexes + aggregation statistics + live latency numbers
 - [ ] 36-08-PLAN.md — B4 missing-rows fix: EntityChanged broadcast on invalid-record create + frontend expand-all-groups/page-size
