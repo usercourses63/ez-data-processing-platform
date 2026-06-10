@@ -313,11 +313,11 @@ The validation write path creates records without broadcasting — a direct CLAU
 | A3 | dotnet 10 SDK present for `dotnet test` | Validation Arch | Wave 0 must verify; tests can't run otherwise. |
 | A4 | The current MinIO `…date.csv` is the file that reproduces B3 live (vs older `my-minio-test.csv` records in Mongo) | B3 | Low — the bytes + schema mismatch are deterministic regardless of which file triggered the stored records. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **B3 intended fix:** rename schema field `tararich`→`date` (data) vs add header↔field reconciliation (code)? Recommendation: confirm with user in discuss; the data rename is smallest and matches the real file, but reconciliation prevents recurrence for all sources.
-2. **Optional modeling shape (B1/B2):** `type:["string","null"]` + empty→null in converter, vs `anyOf`/`if-then` keeping `""`? Recommendation: `["string","null"]` + converter empty→null is the cleanest single fix for both.
-3. **Does SchemaBuilderNew (manual edit) reproduce B1?** It auto-populates patterns from format (`SchemaBuilderNew.tsx:54-59`) but its required[] authoring wasn't fully traced — verify during planning.
+1. **B3 intended fix:** rename schema field `tararich`→`date` (data) vs add header↔field reconciliation (code)? Recommendation: the data rename is smallest and matches the real file, but reconciliation prevents recurrence for all sources. **(RESOLVED — deferred to the `checkpoint:decision` gate in plan 36-06 Task 1; the executor confirms direction with the user at execution time.)**
+2. **Optional modeling shape (B1/B2):** `type:["string","null"]` + empty→null in converter, vs `anyOf`/`if-then` keeping `""`? Recommendation: `["string","null"]` + converter empty→null is the cleanest single fix for both. **(RESOLVED — left to planner/executor discretion in plan 36-05; the 36-01 Corvus target test pins whichever shape ships, and 36-05 Task 3 reconciles backend+frontend on the shipped shape.)**
+3. **Does SchemaBuilderNew (manual edit) reproduce B1?** It auto-populates patterns from format (`SchemaBuilderNew.tsx:54-59`) but its required[] authoring wasn't fully traced. **(RESOLVED — traced in plan 36-05 Task 1: `SchemaBuilderNew.tsx:54-59` added to read_first; the action confirms-or-excludes that path and documents the disposition in the SUMMARY so SC-2 holds regardless of schema origin.)**
 
 ## Sources
 
