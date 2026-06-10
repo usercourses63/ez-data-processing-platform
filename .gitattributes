@@ -1,0 +1,4 @@
+# Phase 36-03 (B3): the koko MinIO CSV fixture must keep its exact verbatim bytes
+# (LF line endings, no BOM, 99 bytes). Pin it so core.autocrlf=true never rewrites
+# its EOLs and corrupts the live B3 reproduction input.
+src/Services/FileProcessorService.Tests/Fixtures/koko-mvp-deploy-111138.csv -text
