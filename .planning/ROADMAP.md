@@ -738,11 +738,19 @@ Plans:
 
 **Methodology:** understand → map error to service → map the service code → find the weak point → debug with the MinIO test files → review fix ideas → fix → re-run tests → loop until success → run unit + integration + E2E.
 
-**Plans:** 0 plans
+**Plans:** 9 plans (Wave 0: 36-01, 36-02, 36-03, 36-04 parallel RED tests; Wave 1: 36-05, 36-06, 36-07 parallel fixes; Wave 2: 36-08; Wave 3: 36-09)
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 36 to break down)
+- [ ] 36-01-PLAN.md — Scaffold ValidationService.Tests + B1/B2 Corvus RED/contract tests (optional-empty + empty-date)
+- [ ] 36-02-PLAN.md — Scaffold InvalidRecordsService.Tests + B4 RED (server-side paging, indexes, missing EntityChanged broadcast)
+- [ ] 36-03-PLAN.md — B3 RED in FileProcessorService.Tests: verbatim koko MinIO CSV bytes -> converter -> Corvus header/field mismatch
+- [ ] 36-04-PLAN.md — Frontend Vitest RED for schema-gen (B1 required-from-intent, B2 optional-date empty-tolerance)
+- [ ] 36-05-PLAN.md — B1+B2 fix: schemaInferrer required-from-intent + optional empty-tolerant modeling; schemaAutoSuggest empty-tolerant date
+- [ ] 36-06-PLAN.md — B3 fix: header<->schema-field reconciliation (decision: data rename vs code) so koko bytes validate clean
+- [ ] 36-07-PLAN.md — B4 latency fix: server-side paging + Mongo indexes + aggregation statistics + live latency numbers
+- [ ] 36-08-PLAN.md — B4 missing-rows fix: EntityChanged broadcast on invalid-record create + frontend expand-all-groups/page-size
+- [ ] 36-09-PLAN.md — Full unit+integration+E2E loop + webapp-testing + B4 latency numbers + Phase-35 MVP regression check
 
 ---
-*Roadmap updated: 2026-06-08 — Phase 35 added (MinIO MVP flow end-to-end through the UI)*
+*Roadmap updated: 2026-06-10 — Phase 36 planned (9 plans, 4 waves: RED-tests -> fixes -> broadcast -> integration)*
