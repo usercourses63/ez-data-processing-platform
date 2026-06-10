@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Ready to execute
-stopped_at: Completed 36-02-PLAN.md (B4 RED contracts in tests/InvalidRecordsService.Tests — REUSED existing project not src/Services; RepositoryPagingTests pins page1=10/page3=5/total=25/desc green; InvalidRecordIndexTests RED for the four Mongo index key sets {DataSourceId},{CreatedAt},{ErrorType},{IsIgnored,IsDeleted,CreatedAt}; CreatedRecordBroadcastTests RED for EntityChanged{InvalidRecord,created} broadcast — 36-07/36-08 turn them green)
-last_updated: "2026-06-10T10:13:51.610Z"
+stopped_at: Completed 36-02-PLAN.md (B4 RED contracts in tests/InvalidRecordsService.Tests — reused existing project; paging green, index + broadcast RED for 36-07/36-08)
+last_updated: "2026-06-10T10:32:18.985Z"
 progress:
   total_phases: 37
   completed_phases: 34
   total_plans: 146
-  completed_plans: 135
+  completed_plans: 137
   percent: 92
 ---
 
 ## Current Position
 
 Phase: 36 (validation-logic-invalid-records-bug-fixes) — EXECUTING
-Plan: 3 of 9
+Plan: 4 of 9
 
 ## Project Reference
 
@@ -101,6 +101,9 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 36-02]: B4 RED contracts pinned via SOURCE-SCAN, not member-linking — MongoDB.Entities has no [Index] attribute to reflect and the broadcast seam doesn't exist; tests walk up to DataProcessingPlatform.sln then Skip (not false-pass) if source is unreachable
 - [Phase 36-02]: Paging correctness is GREEN today (in-memory GetPagedAsync is already correct); the latency/index gap it cannot satisfy is the RED InvalidRecordIndexTests — 36-07 must keep paging green while making the index test green
 - [Phase 36-02]: Required invalid-records index set = {DataSourceId},{CreatedAt},{ErrorType},{IsIgnored,IsDeleted,CreatedAt}; broadcast contract = EntityChanged{EntityType="InvalidRecord",Action="created"} on pipeline create (CLAUDE.md CRUD mandate)
+- [Phase ?]: [Phase 36-03]: FileProcessorService.Tests lives ONLY under src/Services/ (no tests/ duplicate) — the 36-01/36-02 path-swap lesson was checked and did NOT apply; used the plan path verbatim
+- [Phase ?]: [Phase 36-03]: B3 reproduced as integration test over verbatim MinIO bytes + real Corvus — headed CSV keys by header 'date', never schema-required 'tararich'; 36-06 flips assertions to IsValid==true
+- [Phase ?]: [Phase 36-03]: verbatim live-bytes fixtures pinned with .gitattributes -text so core.autocrlf=true cannot corrupt byte fidelity (99-byte no-BOM LF koko fixture)
 
 ### Roadmap Evolution
 
@@ -118,10 +121,11 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260602-odp | in the UI page header: when Hebrew, align text and title RTL; when English, LTR | 2026-06-02 | 29ff994 | [260602-odp-in-the-ui-page-header-when-hebrew-align-](./quick/260602-odp-in-the-ui-page-header-when-hebrew-align-/) |
+| Phase 36 P03 | 5min | 2 tasks | 4 files |
 
 ## Session Continuity
 
-Last session: 2026-06-10T00:00:00.000Z
+Last session: 2026-06-10T10:31:39.874Z
 Stopped at: Completed 36-02-PLAN.md (B4 RED contracts in tests/InvalidRecordsService.Tests — reused existing project; paging green, index + broadcast RED for 36-07/36-08)
 Resume file: None
 Next: 36-03-PLAN.md
