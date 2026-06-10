@@ -126,28 +126,53 @@ export function inferColumnType(values: string[]): InferredType {
 }
 
 /**
+ * Optional-intent input for {@link generateJsonSchema}.
+ *
+ * Phase 36 B1/B2 fix: prior to this, `required[]` was derived purely from SAMPLE
+ * completeness (a fully-populated import sample forced a field into `required[]`
+ * even when the user considers it optional). Any field listed in `optionalFields`
+ * is (a) excluded from `required[]` regardless of sample completeness and
+ * (b) modeled empty-tolerant so an empty/absent value validates as valid.
+ */
+export interface GenerateJsonSchemaOptions {
+  /** Field names the user intends to be optional (never forced required). */
+  optionalFields?: string[];
+}
+
+/**
  * Generate a JSON Schema 2020-12 from field names and row data.
  * Supports nested objects and arrays recursively.
  *
  * @param fieldNames - Ordered list of field/property names
  * @param rows - Array of row objects (can contain nested objects/arrays)
  * @param applySuggestions - Whether to apply schemaAutoSuggest constraints (IMPORT-04)
+ * @param options - Optional optionality intent (Phase 36 B1/B2). Backward-compatible:
+ *                   when omitted, behavior is identical to the pre-36 sample-completeness heuristic.
  * @returns JSON Schema 2020-12 object
  */
 export function generateJsonSchema(
   fieldNames: string[],
   rows: Record<string, any>[],
-  applySuggestions: boolean
+  applySuggestions: boolean,
+  options?: GenerateJsonSchemaOptions
 ): object {
   const properties: Record<string, object> = {};
   const required: string[] = [];
+  const optionalFields = new Set(options?.optionalFields ?? []);
 
   for (const fieldName of fieldNames) {
     const values = rows.map((row) => row[fieldName]);
-    const propSchema = inferPropertySchema(fieldName, values, applySuggestions);
+    const isOptional = optionalFields.has(fieldName);
+    const propSchema = inferPropertySchema(fieldName, values, applySuggestions, isOptional);
     properties[fieldName] = propSchema;
 
-    // Mark as required if no null/undefined values
+    if (isOptional) {
+      // Explicit optional intent: never required, regardless of sample completeness (B1).
+      continue;
+    }
+
+    // No explicit intent → keep the sample-completeness heuristic as the default suggestion:
+    // mark required when the sample had no null/undefined/empty values.
     const hasEmpty = values.some((v) => v === null || v === undefined || v === '');
     if (!hasEmpty && values.length > 0) {
       required.push(fieldName);
@@ -165,11 +190,17 @@ export function generateJsonSchema(
 
 /**
  * Recursively infer the schema for a single property from sample values.
+ *
+ * @param isOptional - When true (top-level optional-intent fields only, Phase 36 B1/B2),
+ *                      the produced primitive property is modeled empty-tolerant so an
+ *                      empty/absent value validates valid. Defaults to false (nested
+ *                      recursion never inherits optional intent).
  */
 function inferPropertySchema(
   fieldName: string,
   values: unknown[],
-  applySuggestions: boolean
+  applySuggestions: boolean,
+  isOptional: boolean = false
 ): Record<string, unknown> {
   const nonNull = values.filter((v) => v !== null && v !== undefined);
   if (nonNull.length === 0) {
@@ -233,6 +264,16 @@ function inferPropertySchema(
   if (applySuggestions) {
     const suggestions = suggestConstraintsForField(fieldName);
     propSchema = applySuggestionsToSchema(propSchema, suggestions);
+  }
+
+  // Empty-tolerant modeling for optional fields (B1). If the suggestion layer already
+  // produced an empty-escape (anyOf, e.g. an optional date), leave it untouched.
+  if (isOptional && !('anyOf' in propSchema)) {
+    const currentType = propSchema.type;
+    propSchema = {
+      ...propSchema,
+      type: Array.isArray(currentType) ? currentType : [(currentType as string) ?? 'string', 'null'],
+    };
   }
 
   return propSchema;
