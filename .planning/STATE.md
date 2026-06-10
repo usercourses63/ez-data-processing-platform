@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
 status: Ready to execute
-stopped_at: Completed 35-04-PLAN.md (MVP test coverage SC-6 — integration MinioOutputPipelineTests.cs asserts the converted JSON object in ez-phase34-output via S3 ListObjectsV2+GetObject not Kafka; Playwright s3-mvp-flow.spec.ts + webapp-testing minio_mvp_flow_comprehensive_test.py for the three forms / G2-G5; statically valid offline, live runs deferred to 35-03)
+stopped_at: Completed 36-02-PLAN.md (B4 RED contracts in tests/InvalidRecordsService.Tests — REUSED existing project not src/Services; RepositoryPagingTests pins page1=10/page3=5/total=25/desc green; InvalidRecordIndexTests RED for the four Mongo index key sets {DataSourceId},{CreatedAt},{ErrorType},{IsIgnored,IsDeleted,CreatedAt}; CreatedRecordBroadcastTests RED for EntityChanged{InvalidRecord,created} broadcast — 36-07/36-08 turn them green)
 last_updated: "2026-06-10T10:13:51.610Z"
 progress:
   total_phases: 37
@@ -16,7 +16,7 @@ progress:
 ## Current Position
 
 Phase: 36 (validation-logic-invalid-records-bug-fixes) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 
 ## Project Reference
 
@@ -97,6 +97,10 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase ?]: [Phase 36-01]: Reused existing tests/ValidationService.Tests project (RESEARCH 'no test project' gap was stale); added Corvus.Json.Validator package refs so B1/B2 tests run the REAL validator not the Newtonsoft re-implementation
 - [Phase ?]: [Phase 36-01]: A1 CONFIRMED via executable Corvus test - format:date is asserted, empty string fails; B1 target shape = type:[string,null] not-required, B2 target shape = anyOf[maxLength:0, format:date] (contract 36-05 must emit)
 - [Phase ?]: [Phase 36-01]: Corvus caches compiled validators by canonical URI in-process - tests derive URI from SHA256 of schema text to avoid cross-schema cache collisions
+- [Phase 36-02]: REUSED existing tests/InvalidRecordsService.Tests project (csproj + InvalidRecordControllerTests already present, ProjectReference to InvalidRecordsService) instead of the plan's src/Services/...Tests — same duplicate-assembly trap the 36-01 lesson warned about (Deviation Rule 3)
+- [Phase 36-02]: B4 RED contracts pinned via SOURCE-SCAN, not member-linking — MongoDB.Entities has no [Index] attribute to reflect and the broadcast seam doesn't exist; tests walk up to DataProcessingPlatform.sln then Skip (not false-pass) if source is unreachable
+- [Phase 36-02]: Paging correctness is GREEN today (in-memory GetPagedAsync is already correct); the latency/index gap it cannot satisfy is the RED InvalidRecordIndexTests — 36-07 must keep paging green while making the index test green
+- [Phase 36-02]: Required invalid-records index set = {DataSourceId},{CreatedAt},{ErrorType},{IsIgnored,IsDeleted,CreatedAt}; broadcast contract = EntityChanged{EntityType="InvalidRecord",Action="created"} on pipeline create (CLAUDE.md CRUD mandate)
 
 ### Roadmap Evolution
 
@@ -117,7 +121,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Session Continuity
 
-Last session: 2026-06-08T19:55:00.000Z
-Stopped at: Completed 35-04-PLAN.md (MVP test coverage SC-6 — integration MinioOutputPipelineTests.cs asserts the converted JSON object in ez-phase34-output via S3 ListObjectsV2+GetObject not Kafka; Playwright s3-mvp-flow.spec.ts + webapp-testing minio_mvp_flow_comprehensive_test.py for the three forms / G2-G5; statically valid offline, live runs deferred to 35-03)
+Last session: 2026-06-10T00:00:00.000Z
+Stopped at: Completed 36-02-PLAN.md (B4 RED contracts in tests/InvalidRecordsService.Tests — reused existing project; paging green, index + broadcast RED for 36-07/36-08)
 Resume file: None
-Next: 35-03-PLAN.md (live run-and-verify checkpoint — orchestrator-owned cluster)
+Next: 36-03-PLAN.md
