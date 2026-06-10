@@ -24,6 +24,14 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <!-- Phase 36-02 (B4 latency RED): versions governed by Central Package Management
+         (Directory.Packages.props) — these add no new versions, they reuse already-declared
+         ones. MongoDB.Driver/.Entities let the live paging SkippableFact seed + page real
+         DataProcessingInvalidRecord docs through InvalidRecordRepository.GetPagedAsync, while
+         xunit.SkippableFact skips that tier cleanly when no Mongo replica set is reachable. -->
+    <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="MongoDB.Entities" />
+    <PackageReference Include="xunit.SkippableFact" />
   </ItemGroup>
 
   <ItemGroup>
