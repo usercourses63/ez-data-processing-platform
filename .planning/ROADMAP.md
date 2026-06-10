@@ -719,6 +719,7 @@ Plans:
 **Depends on:** Phase 35 (MinIO MVP flow + S3 connector); reuses the file-simulator MinIO test inputs.
 
 **The four bugs (root-cause + fix each):**
+
 - **B1 — Optional field still flagged "missing data".** Validation of an *optional* field is not honored: an invalid-record error of "missing data" is raised for a field the schema marks optional. The system must NOT raise a required/missing error for optional fields.
 - **B2 — Optional `date` field + empty value → false error.** For a schema field named `date`, validation auto-applies a date-format check; when the schema defines the field as **optional** and the row's date is **empty**, it wrongly raises an error. Empty value on an optional field (even a date) must pass.
 - **B3 — `koko` data source, required field `tararich` false-invalid.** In the `koko` data source, the field `tararich` is schema-defined as **required (must have data)**; rows DO contain data in every row, yet the records are marked invalid. Root-cause why a populated required field is read as empty/invalid (encoding? header/column mapping? trimming? name match? Hebrew/RTL field-name handling?).
@@ -738,11 +739,11 @@ Plans:
 
 **Methodology:** understand → map error to service → map the service code → find the weak point → debug with the MinIO test files → review fix ideas → fix → re-run tests → loop until success → run unit + integration + E2E.
 
-**Plans:** 9 plans (Wave 0: 36-01, 36-02, 36-03, 36-04 parallel RED tests; Wave 1: 36-05, 36-06, 36-07 parallel fixes; Wave 2: 36-08; Wave 3: 36-09)
+**Plans:** 1/9 plans executed
 
 Plans:
 
-- [ ] 36-01-PLAN.md — Scaffold ValidationService.Tests + B1/B2 Corvus RED/contract tests (optional-empty + empty-date)
+- [x] 36-01-PLAN.md — Scaffold ValidationService.Tests + B1/B2 Corvus RED/contract tests (optional-empty + empty-date)
 - [ ] 36-02-PLAN.md — Scaffold InvalidRecordsService.Tests + B4 RED (server-side paging, indexes, missing EntityChanged broadcast)
 - [ ] 36-03-PLAN.md — B3 RED in FileProcessorService.Tests: verbatim koko MinIO CSV bytes -> converter -> Corvus header/field mismatch
 - [ ] 36-04-PLAN.md — Frontend Vitest RED for schema-gen (B1 required-from-intent, B2 optional-date empty-tolerance)

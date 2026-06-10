@@ -2,28 +2,28 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Production Validation & Release
-status: Executing Phase 35
-stopped_at: Completed 35-04-PLAN.md (MVP test coverage SC-6 — integration MinioOutputPipelineTests.cs asserts the converted JSON object in ez-phase34-output via S3 ListObjectsV2+GetObject not Kafka; Playwright s3-mvp-flow.spec.ts create input+output server->datasource->run + G4/G5 UI guards; webapp-testing minio_mvp_flow_comprehensive_test.py G2/G3/G4/G5+masked-secret; statically valid — dotnet build OK, playwright --list 4 tests, py_compile OK; all skip cleanly offline, live runs deferred to 35-03)
-last_updated: "2026-06-08T19:55:00.000Z"
+status: Ready to execute
+stopped_at: Completed 35-04-PLAN.md (MVP test coverage SC-6 — integration MinioOutputPipelineTests.cs asserts the converted JSON object in ez-phase34-output via S3 ListObjectsV2+GetObject not Kafka; Playwright s3-mvp-flow.spec.ts + webapp-testing minio_mvp_flow_comprehensive_test.py for the three forms / G2-G5; statically valid offline, live runs deferred to 35-03)
+last_updated: "2026-06-10T10:13:51.610Z"
 progress:
-  total_phases: 36
+  total_phases: 37
   completed_phases: 34
-  total_plans: 137
-  completed_plans: 134
-  percent: 98
+  total_plans: 146
+  completed_plans: 135
+  percent: 92
 ---
 
 ## Current Position
 
-Phase: 35 (minio-mvp-flow-end-to-end-ui) — EXECUTING
-Plan: 3 of 5 (35-04 wave-2 tests done out of order; 35-03 live checkpoint remaining)
+Phase: 36 (validation-logic-invalid-records-bug-fixes) — EXECUTING
+Plan: 2 of 9
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Files flow reliably from any source through validation to any destination
-**Current focus:** Phase 35 — minio-mvp-flow-end-to-end-ui
+**Current focus:** Phase 36 — validation-logic-invalid-records-bug-fixes
 
 ## Performance Metrics
 
@@ -94,6 +94,9 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 35-04]: SC-6 test coverage authored across three tiers, all skip cleanly offline (live runs deferred to the 35-03 checkpoint). Integration: MinioOutputPipelineTests.cs is the CANONICAL pipeline-output assertion — it seeds a unique CSV into ez-phase34-input via the S3 API then polls ListObjectsV2 on ez-phase34-output/processed/ and GetObjects the converted object, asserting a CSV-derived JSON array (id/name keys); it NEVER subscribes to a Kafka topic (RabbitMQ pipeline reality). TestConfiguration KafkaTopics note now points readers at it.
 - [Phase 35-04]: Integration test reuses S3Connector's IServerConnector surface (ListFilesAsync/ReadFileAsync/WriteFileAsync → ListObjectsV2/GetObject/PutObject) so IntegrationTests needs NO direct AWSSDK.S3 dependency. Region OMITTED on all test AdminServers (G6). MVP creds default to file-simulator appuser/Appsecret123 on S3 API port 30900, buckets ez-phase34-input/output, all overridable via MINIO_* env. When MinIO is up+authenticated but no live pipeline produces the object within MINIO_OUTPUT_WAIT_SECONDS (default 120s), the test SKIPS (green) rather than fails.
 - [Phase 35-04]: Playwright s3-mvp-flow.spec.ts (under tests/e2e/protocols/) drives create MinIO input+output server -> wired datasource -> trigger run, asserts the output S3 destination persists its bucket (G5) and the input-server form blocks console port 30901 / accepts 30900 (G4); reachability-gated test.skip mirrors the existing s3-server.spec.ts (which lives at the e2e ROOT, not under protocols/). webapp-testing minio_mvp_flow_comprehensive_test.py (reconnaissance-first) covers G4 console-port guard, masked-secret round-trip, G5 output s3Config persistence, G2 'file path missing' absent when filePath set, G3 connection survives a schema edit.
+- [Phase ?]: [Phase 36-01]: Reused existing tests/ValidationService.Tests project (RESEARCH 'no test project' gap was stale); added Corvus.Json.Validator package refs so B1/B2 tests run the REAL validator not the Newtonsoft re-implementation
+- [Phase ?]: [Phase 36-01]: A1 CONFIRMED via executable Corvus test - format:date is asserted, empty string fails; B1 target shape = type:[string,null] not-required, B2 target shape = anyOf[maxLength:0, format:date] (contract 36-05 must emit)
+- [Phase ?]: [Phase 36-01]: Corvus caches compiled validators by canonical URI in-process - tests derive URI from SHA256 of schema text to avoid cross-schema cache collisions
 
 ### Roadmap Evolution
 
