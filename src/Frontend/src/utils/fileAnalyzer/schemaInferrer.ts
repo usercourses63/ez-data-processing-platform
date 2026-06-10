@@ -263,7 +263,8 @@ function inferPropertySchema(
 
   if (applySuggestions) {
     const suggestions = suggestConstraintsForField(fieldName);
-    propSchema = applySuggestionsToSchema(propSchema, suggestions);
+    // Pass the optional signal so an asserted format (e.g. date) is modeled empty-tolerant (B2).
+    propSchema = applySuggestionsToSchema(propSchema, suggestions, { optional: isOptional });
   }
 
   // Empty-tolerant modeling for optional fields (B1). If the suggestion layer already

@@ -260,11 +260,32 @@ export function getSuggestionSummary(suggestions: FieldSuggestions): string {
 }
 
 /**
- * Apply suggestions to existing schema
+ * Options for {@link applySuggestionsToSchema}.
+ *
+ * Phase 36 B2 fix: an OPTIONAL field whose name implies an asserted `format`
+ * (e.g. `date`/`תאריך`) must tolerate an empty value. Without this, the
+ * generator stamped an unconditional `format:'date'` and Corvus rejected the
+ * `""` that `CsvToJsonConverter` emits for an empty cell — so an empty optional
+ * date was wrongly invalid.
+ */
+export interface ApplySuggestionsOptions {
+  /** When true, an asserted `format` is wrapped empty-tolerant (anyOf empty-or-format). */
+  optional?: boolean;
+}
+
+/**
+ * Apply suggestions to existing schema.
+ *
+ * @param options - When `optional` is true and the resulting schema asserts a `format`,
+ *                   the property is emitted empty-tolerant as
+ *                   `anyOf:[{type:'string',maxLength:0}, {<format branch>}]` (Phase 36 B2,
+ *                   matching the 36-01 Corvus `TargetDateSchema`). Populated/required date
+ *                   fields keep strict `format` enforcement (no regression).
  */
 export function applySuggestionsToSchema(
   schema: any,
-  suggestions: FieldSuggestions
+  suggestions: FieldSuggestions,
+  options?: ApplySuggestionsOptions
 ): any {
   const updated = { ...schema };
 
@@ -286,6 +307,18 @@ export function applySuggestionsToSchema(
     if (!updated[constraint.constraint]) {
       updated[constraint.constraint] = constraint.value;
     }
+  }
+
+  // B2: an optional field with an asserted format must permit an empty value.
+  // Emit the 36-01 empty-tolerant shape: anyOf of an empty string OR the format-checked value.
+  if (options?.optional && updated.format) {
+    const formatBranch = { ...updated, type: 'string' };
+    return {
+      anyOf: [
+        { type: 'string', maxLength: 0 },
+        formatBranch,
+      ],
+    };
   }
 
   return updated;
