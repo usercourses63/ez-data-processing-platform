@@ -48,6 +48,16 @@ public class CsvToJsonConverter : IFormatConverter
                 }
             }
 
+            // Read SchemaFieldTypes for schema-aware type coercion (TASK A / bug #1).
+            // When the datasource schema declares a field as "string", the raw CSV text is
+            // kept verbatim instead of being auto-inferred to a number/boolean, so numeric
+            // data validates cleanly against a string-typed schema.
+            IReadOnlyDictionary<string, string>? schemaFieldTypes = null;
+            if (metadata?.TryGetValue("SchemaFieldTypes", out var typesObj) == true)
+            {
+                schemaFieldTypes = ParseSchemaFieldTypes(typesObj);
+            }
+
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = hasHeader,
@@ -65,7 +75,7 @@ public class CsvToJsonConverter : IFormatConverter
                 // Existing behavior: use CsvHelper's dynamic record parsing with headers
                 var records = csv.GetRecords<dynamic>().ToList();
                 convertedRecords = records
-                    .Select(record => ConvertTypes((IDictionary<string, object>)record))
+                    .Select(record => ConvertTypes((IDictionary<string, object>)record, schemaFieldTypes))
                     .ToList();
             }
             else
@@ -82,7 +92,7 @@ public class CsvToJsonConverter : IFormatConverter
                             : $"Column{i + 1}";
                         record[key] = csv.GetField(i) ?? "";
                     }
-                    convertedRecords.Add(ConvertTypes(record));
+                    convertedRecords.Add(ConvertTypes(record, schemaFieldTypes));
                 }
             }
 
@@ -96,9 +106,15 @@ public class CsvToJsonConverter : IFormatConverter
     }
 
     /// <summary>
-    /// Converts string values to appropriate types (numbers, booleans) based on content
+    /// Converts string values to appropriate JSON types.
+    /// When <paramref name="schemaFieldTypes"/> declares a type for a field, the value is
+    /// coerced to that declared type (a "string" field is kept verbatim, so numeric text does
+    /// not silently become a JSON number that fails validation against a string schema).
+    /// Fields with no declared type fall back to content-based inference (legacy behavior).
     /// </summary>
-    private Dictionary<string, object> ConvertTypes(IDictionary<string, object> record)
+    private Dictionary<string, object> ConvertTypes(
+        IDictionary<string, object> record,
+        IReadOnlyDictionary<string, string>? schemaFieldTypes)
     {
         var converted = new Dictionary<string, object>();
 
@@ -106,36 +122,138 @@ public class CsvToJsonConverter : IFormatConverter
         {
             var value = kvp.Value?.ToString() ?? "";
 
-            // Try to convert to number (int or decimal)
-            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var numValue))
+            if (schemaFieldTypes != null && schemaFieldTypes.TryGetValue(kvp.Key, out var declaredType))
             {
-                // Use decimal for values with decimal points, int for whole numbers
-                if (value.Contains('.') || value.Contains(','))
-                {
-                    converted[kvp.Key] = numValue;
-                }
-                else if (int.TryParse(value, out var intValue))
-                {
-                    converted[kvp.Key] = intValue;
-                }
-                else
-                {
-                    converted[kvp.Key] = numValue;
-                }
+                converted[kvp.Key] = CoerceToDeclaredType(value, declaredType);
             }
-            // Try to convert to boolean
-            else if (bool.TryParse(value, out var boolValue))
-            {
-                converted[kvp.Key] = boolValue;
-            }
-            // Keep as string
             else
             {
-                converted[kvp.Key] = value;
+                converted[kvp.Key] = InferType(value);
             }
         }
 
         return converted;
+    }
+
+    /// <summary>
+    /// Coerces a raw CSV value to the JSON type declared in the datasource schema.
+    /// If the value cannot be coerced to a numeric/boolean declared type, the raw string is
+    /// returned so JSON Schema validation surfaces the genuine type mismatch instead of this
+    /// converter masking it.
+    /// </summary>
+    private static object CoerceToDeclaredType(string value, string declaredType)
+    {
+        switch (declaredType?.ToLowerInvariant())
+        {
+            case "string":
+                // Keep verbatim — never auto-promote string-typed columns to numbers/booleans.
+                return value;
+
+            case "integer":
+                if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var longValue))
+                {
+                    // Prefer Int32 when it fits, matching legacy output for typical ids/counts.
+                    return longValue is >= int.MinValue and <= int.MaxValue ? (int)longValue : longValue;
+                }
+                // Not a clean integer — fall through to number so validation can flag it.
+                if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var intAsNum))
+                {
+                    return intAsNum;
+                }
+                return value;
+
+            case "number":
+                if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var numValue))
+                {
+                    return numValue;
+                }
+                return value;
+
+            case "boolean":
+                if (bool.TryParse(value, out var boolValue))
+                {
+                    return boolValue;
+                }
+                return value;
+
+            default:
+                // Unknown/array/object/null declared types: fall back to content inference.
+                return InferType(value);
+        }
+    }
+
+    /// <summary>
+    /// Legacy content-based type inference used when the schema does not declare a field's type.
+    /// </summary>
+    private static object InferType(string value)
+    {
+        // Try to convert to number (int or decimal)
+        if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var numValue))
+        {
+            // Use decimal for values with decimal points, int for whole numbers
+            if (value.Contains('.') || value.Contains(','))
+            {
+                return numValue;
+            }
+            if (int.TryParse(value, out var intValue))
+            {
+                return intValue;
+            }
+            return numValue;
+        }
+        // Try to convert to boolean
+        if (bool.TryParse(value, out var boolValue))
+        {
+            return boolValue;
+        }
+        // Keep as string
+        return value;
+    }
+
+    /// <summary>
+    /// Parses the SchemaFieldTypes conversion-metadata entry (a field-name → JSON-type map) into a
+    /// case-insensitive lookup. Accepts either a live dictionary (in-process call) or a JSON object.
+    /// </summary>
+    private static IReadOnlyDictionary<string, string>? ParseSchemaFieldTypes(object? typesObj)
+    {
+        if (typesObj == null)
+        {
+            return null;
+        }
+
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        switch (typesObj)
+        {
+            case IReadOnlyDictionary<string, string> readOnly:
+                foreach (var kvp in readOnly)
+                {
+                    map[kvp.Key] = kvp.Value;
+                }
+                break;
+
+            case IDictionary<string, string> dict:
+                foreach (var kvp in dict)
+                {
+                    map[kvp.Key] = kvp.Value;
+                }
+                break;
+
+            case JsonElement json when json.ValueKind == JsonValueKind.Object:
+                foreach (var prop in json.EnumerateObject())
+                {
+                    if (prop.Value.ValueKind == JsonValueKind.String)
+                    {
+                        map[prop.Name] = prop.Value.GetString() ?? "";
+                    }
+                }
+                break;
+
+            default:
+                return null;
+        }
+
+        return map.Count > 0 ? map : null;
     }
 
     public async Task<bool> IsValidFormatAsync(Stream stream, CancellationToken cancellationToken = default)

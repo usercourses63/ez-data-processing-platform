@@ -426,15 +426,26 @@ public class S3Connector : IDataSourceConnector, IServerConnector
 
         var clientConfig = new AmazonS3Config
         {
-            RegionEndpoint = RegionEndpoint.GetBySystemName(config.Region),
             ForcePathStyle = config.UsePathStyle
         };
 
-        // Custom endpoint for MinIO/S3-compatible storage
+        // Custom endpoint for MinIO/S3-compatible storage.
+        // IMPORTANT: when a custom ServiceURL/Endpoint is set we must NOT also set
+        // RegionEndpoint — the AWS SDK lets RegionEndpoint override ServiceURL, which
+        // makes the client connect to (and SigV4-sign for) the real AWS S3 region
+        // instead of MinIO. That produced "Access Key Id does not exist" / HTTP 403
+        // Forbidden on signed operations such as GetObjectMetadata (HEAD), even though
+        // unsigned-region-tolerant ListObjectsV2 happened to succeed.
+        // For a custom endpoint, AuthenticationRegion is enough for SigV4 signing.
         if (!string.IsNullOrEmpty(config.Endpoint))
         {
             clientConfig.ServiceURL = config.Endpoint;
             clientConfig.ForcePathStyle = true;  // Always use path style for custom endpoints
+            clientConfig.AuthenticationRegion = config.Region;
+        }
+        else
+        {
+            clientConfig.RegionEndpoint = RegionEndpoint.GetBySystemName(config.Region);
         }
 
         return new AmazonS3Client(awsCredentials, clientConfig);

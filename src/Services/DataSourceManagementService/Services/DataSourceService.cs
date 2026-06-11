@@ -1166,7 +1166,12 @@ public class DataSourceService : IDataSourceService
                 var secret = s3["SecretKey"].AsString;
                 if (_credentialProtector != null && _credentialProtector.IsProtected(secret))
                     secret = _credentialProtector.Unprotect(secret);
-                dataSource.AdditionalConfiguration["secretKey"] = secret;
+                // Never persist the masked sentinel or an empty value into the datasource's embedded
+                // credentials — it silently breaks connector S3 auth (SignatureDoesNotMatch) while
+                // test-connection still passes (it uses the server creds via a different path).
+                // Treat mask/empty as "keep the existing secret" (mirrors ServerService.UpdateServerAsync).
+                if (!string.IsNullOrEmpty(secret) && secret != Controllers.ServersController.MaskedSecretSentinel)
+                    dataSource.AdditionalConfiguration["secretKey"] = secret;
             }
             if (s3.Contains("Bucket"))
                 dataSource.AdditionalConfiguration["bucket"] = s3["Bucket"].AsString;
@@ -1268,7 +1273,9 @@ public class DataSourceService : IDataSourceService
                 var secret = s3["SecretKey"].AsString;
                 if (_credentialProtector != null && _credentialProtector.IsProtected(secret))
                     secret = _credentialProtector.Unprotect(secret);
-                cfg.SecretAccessKey = secret;
+                // Guard against persisting the masked sentinel / empty secret (see input bridge above).
+                if (!string.IsNullOrEmpty(secret) && secret != Controllers.ServersController.MaskedSecretSentinel)
+                    cfg.SecretAccessKey = secret;
             }
 
             // Bucket: keep the admin-typed bucket if the frontend supplied one; otherwise fall

@@ -77,7 +77,11 @@ export const ENCODING_OPTIONS = [
 export const DEFAULT_FORM_VALUES = {
   isActive: true,
   category: 'financial',
-  connectionType: 'NFS',
+  // Must be one of the protocols offered in ConnectionTab's dropdown AND present in its
+  // protocolToServerType map (FTP/SFTP/HTTP/Kafka/S3/NAS). 'NFS' was neither, so a fresh
+  // create form opened on an unmapped protocol → input-server list always empty →
+  // "no servers available" / can't allocate input. Default to FTP (a valid, mapped option).
+  connectionType: 'FTP',
   fileType: 'CSV',
   encoding: 'UTF-8',
   hasHeaders: true,

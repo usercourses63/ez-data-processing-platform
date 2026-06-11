@@ -39,7 +39,7 @@ $portForwards = @(
     @{Name="MongoDB"; Port=27017; Service="mongodb-service"; TargetPort=27017},
     @{Name="Kafka"; Port=9094; Service="kafka-external"; TargetPort=9094},
     @{Name="RabbitMQ"; Port=5672; Service="rabbitmq"; TargetPort=5672},
-    @{Name="Hazelcast"; Port=5701; Service="hazelcast"; TargetPort=5701},
+    @{Name="Hazelcast"; Port=5701; Service="hazelcast-service"; TargetPort=5701},
     # Documentation Portal
     # Host port 7100 (NOT 30800: that node-port is in a Windows reserved range and won't bind;
     # the node IP 192.168.49.2 is also not host-routable on the Docker driver). The frontend's

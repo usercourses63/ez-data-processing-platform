@@ -75,7 +75,11 @@ MongoDB connection string
 {{- if .Values.mongodb.external.enabled }}
 {{- .Values.mongodb.external.connectionString }}
 {{- else }}
-{{- printf "mongodb://mongodb-0.mongodb-service.%s.svc.cluster.local:27017,mongodb-1.mongodb-service.%s.svc.cluster.local:27017,mongodb-2.mongodb-service.%s.svc.cluster.local:27017/?replicaSet=rs0&directConnection=true" .Values.global.namespace .Values.global.namespace .Values.global.namespace }}
+{{- /* Single seed host + replicaSet. The previous form combined directConnection=true with
+       three hosts, which the MongoDB .NET driver rejects ("Direct connect cannot be used with
+       multiple host names"). The RS is single-member (mongodb-0), so one seed is sufficient and
+       replicaSet mode preserves transaction support. */ -}}
+{{- printf "mongodb://mongodb-0.mongodb-service.%s.svc.cluster.local:27017/?replicaSet=rs0" .Values.global.namespace }}
 {{- end }}
 {{- end }}
 

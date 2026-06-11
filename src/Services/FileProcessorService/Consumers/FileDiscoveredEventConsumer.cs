@@ -484,8 +484,9 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
         }
         conversionMetadata["HasHeader"] = hasHeaders;
 
-        // Extract schema property names for headerless CSV mapping (IMPORT-06)
-        if (!hasHeaders && datasource.JsonSchema != null && datasource.JsonSchema.ElementCount > 0)
+        // Extract schema property names for headerless CSV mapping (IMPORT-06) and a
+        // field-name → JSON-type map for schema-aware type coercion (TASK A / bug #1).
+        if (datasource.JsonSchema != null && datasource.JsonSchema.ElementCount > 0)
         {
             try
             {
@@ -493,21 +494,70 @@ public class FileDiscoveredEventConsumer : IConsumer<FileDiscoveredEvent>
                 using var schemaDoc = System.Text.Json.JsonDocument.Parse(schemaJson);
                 if (schemaDoc.RootElement.TryGetProperty("properties", out var props))
                 {
-                    var propertyNames = props.EnumerateObject()
-                        .Select(p => p.Name)
-                        .ToArray();
-                    conversionMetadata["SchemaPropertyNames"] = propertyNames;
+                    // Headerless CSV needs positional property names (IMPORT-06).
+                    if (!hasHeaders)
+                    {
+                        var propertyNames = props.EnumerateObject()
+                            .Select(p => p.Name)
+                            .ToArray();
+                        conversionMetadata["SchemaPropertyNames"] = propertyNames;
+                    }
+
+                    // Field → declared-type map so the CSV converter keeps string-typed
+                    // columns as raw text instead of auto-inferring numbers/booleans.
+                    var fieldTypes = new Dictionary<string, string>();
+                    foreach (var prop in props.EnumerateObject())
+                    {
+                        var typeName = ExtractJsonSchemaType(prop.Value);
+                        if (!string.IsNullOrEmpty(typeName))
+                        {
+                            fieldTypes[prop.Name] = typeName!;
+                        }
+                    }
+                    if (fieldTypes.Count > 0)
+                    {
+                        conversionMetadata["SchemaFieldTypes"] = fieldTypes;
+                    }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex,
-                    "[{CorrelationId}] Failed to extract schema property names for headerless CSV",
+                    "[{CorrelationId}] Failed to extract schema metadata (property names / field types) from JsonSchema",
                     correlationId);
             }
         }
 
         return conversionMetadata;
+    }
+
+    /// <summary>
+    /// Reads the JSON Schema "type" keyword for a single property. Handles both the scalar
+    /// form (<c>"type": "string"</c>) and the union form (<c>"type": ["string", "null"]</c>,
+    /// returning the first non-null type). Returns null when no usable type is declared.
+    /// </summary>
+    private static string? ExtractJsonSchemaType(System.Text.Json.JsonElement propSchema)
+    {
+        if (propSchema.ValueKind != System.Text.Json.JsonValueKind.Object)
+            return null;
+
+        if (!propSchema.TryGetProperty("type", out var typeElement))
+            return null;
+
+        if (typeElement.ValueKind == System.Text.Json.JsonValueKind.String)
+            return typeElement.GetString();
+
+        if (typeElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+        {
+            foreach (var t in typeElement.EnumerateArray())
+            {
+                var typeName = t.GetString();
+                if (!string.IsNullOrEmpty(typeName) && typeName != "null")
+                    return typeName;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

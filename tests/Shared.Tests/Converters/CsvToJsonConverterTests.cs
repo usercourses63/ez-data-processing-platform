@@ -375,6 +375,147 @@ TXN-20251201-000002,CUST-1002,Jane Doe,2025-12-01 11:45:00,250.00,EUR,Refund,Pen
 
     #endregion
 
+    #region Schema-Aware Type Coercion Tests (TASK A / bug #1)
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "CSV")]
+    public async Task ConvertToJsonAsync_WithStringTypedSchema_KeepsNumericColumnsAsStrings()
+    {
+        // Arrange - numeric data, but the schema types every field as "string"
+        // (the default when fields are hand-added in the Schema tab). Reproduces the
+        // ValidRecords=0 bug: numbers must stay strings to validate against a string schema.
+        var csv = "id,name,amount\n501,Widget,1500\n502,Gadget,250";
+        using var stream = CreateStream(csv);
+        var metadata = new Dictionary<string, object>
+        {
+            ["SchemaFieldTypes"] = new Dictionary<string, string>
+            {
+                ["id"] = "string",
+                ["name"] = "string",
+                ["amount"] = "string"
+            }
+        };
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream, metadata);
+
+        // Assert - all values are JSON strings, not numbers
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        jsonArray.Should().HaveCount(2);
+
+        var first = jsonArray![0];
+        first.GetProperty("id").ValueKind.Should().Be(JsonValueKind.String);
+        first.GetProperty("id").GetString().Should().Be("501");
+        first.GetProperty("amount").ValueKind.Should().Be(JsonValueKind.String);
+        first.GetProperty("amount").GetString().Should().Be("1500");
+        first.GetProperty("name").GetString().Should().Be("Widget");
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "CSV")]
+    public async Task ConvertToJsonAsync_WithNumericTypedSchema_CoercesToNumbers()
+    {
+        // Arrange - schema declares numeric/integer types, raw text should be parsed
+        var csv = "id,amount,active\n501,1500.50,true";
+        using var stream = CreateStream(csv);
+        var metadata = new Dictionary<string, object>
+        {
+            ["SchemaFieldTypes"] = new Dictionary<string, string>
+            {
+                ["id"] = "integer",
+                ["amount"] = "number",
+                ["active"] = "boolean"
+            }
+        };
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream, metadata);
+
+        // Assert
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        var first = jsonArray![0];
+        first.GetProperty("id").GetInt32().Should().Be(501);
+        first.GetProperty("amount").GetDouble().Should().BeApproximately(1500.50, 0.01);
+        first.GetProperty("active").GetBoolean().Should().BeTrue();
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "CSV")]
+    public async Task ConvertToJsonAsync_WithSchemaFieldTypes_IsCaseInsensitiveOnHeaders()
+    {
+        // Arrange - CSV header casing differs from schema property casing
+        var csv = "Id,Amount\n501,1500";
+        using var stream = CreateStream(csv);
+        var metadata = new Dictionary<string, object>
+        {
+            ["SchemaFieldTypes"] = new Dictionary<string, string>
+            {
+                ["id"] = "string",
+                ["amount"] = "string"
+            }
+        };
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream, metadata);
+
+        // Assert - matched case-insensitively, kept as strings
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        var first = jsonArray![0];
+        first.GetProperty("Id").ValueKind.Should().Be(JsonValueKind.String);
+        first.GetProperty("Amount").ValueKind.Should().Be(JsonValueKind.String);
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "CSV")]
+    public async Task ConvertToJsonAsync_WithoutSchemaFieldTypes_FallsBackToInference()
+    {
+        // Arrange - no SchemaFieldTypes metadata: legacy content inference still applies
+        var csv = "id,amount,name\n501,1500,Widget";
+        using var stream = CreateStream(csv);
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream);
+
+        // Assert - numbers inferred (unchanged legacy behavior)
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        var first = jsonArray![0];
+        first.GetProperty("id").GetInt32().Should().Be(501);
+        first.GetProperty("amount").GetInt32().Should().Be(1500);
+        first.GetProperty("name").GetString().Should().Be("Widget");
+    }
+
+    [Fact]
+    [Trait("Category", "FormatConversion")]
+    [Trait("Format", "CSV")]
+    public async Task ConvertToJsonAsync_WithPartialSchemaFieldTypes_InfersUndeclaredFields()
+    {
+        // Arrange - only "id" declared (string); "amount" has no declared type
+        var csv = "id,amount\n501,1500";
+        using var stream = CreateStream(csv);
+        var metadata = new Dictionary<string, object>
+        {
+            ["SchemaFieldTypes"] = new Dictionary<string, string>
+            {
+                ["id"] = "string"
+            }
+        };
+
+        // Act
+        var result = await _converter.ConvertToJsonAsync(stream, metadata);
+
+        // Assert - id kept string, amount inferred to number
+        var jsonArray = JsonSerializer.Deserialize<JsonElement[]>(result);
+        var first = jsonArray![0];
+        first.GetProperty("id").ValueKind.Should().Be(JsonValueKind.String);
+        first.GetProperty("amount").GetInt32().Should().Be(1500);
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private static MemoryStream CreateStream(string content)

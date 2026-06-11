@@ -73,7 +73,11 @@ public class SftpConnectorTests : IClassFixture<FileSimulatorFixture>
             ServerType = "sftp",
             Host = _fixture.FileSimulatorIp,
             Port = _fixture.SftpPort,
-            BasePath = "/home/sftpuser",
+            // atmoz/sftp chroots the session to the user's home (/home/sftpuser), so within the
+            // SFTP session the home IS the root "/". BasePath must therefore be "/", and all path
+            // args below are RELATIVE to it — using "/home/sftpuser" again would resolve to
+            // /home/sftpuser/home/sftpuser (the connector combines BasePath + path) and 404.
+            BasePath = "/",
             ConnectionTimeoutSeconds = 30
         };
     }
@@ -125,7 +129,7 @@ public class SftpConnectorTests : IClassFixture<FileSimulatorFixture>
         var credentials = CreateCredentials();
         var fileName = GenerateTestFileName();
         var content = GenerateTestContent(5);
-        var filePath = $"/home/sftpuser/output/{fileName}";
+        var filePath = $"data/ez-input/{fileName}"; // relative to BasePath "/"; /data/ez-input is the writable (0777) dir inside the atmoz chroot
 
         _output.WriteLine($"Writing test file: {filePath}");
         _output.WriteLine($"Content size: {content.Length} bytes");
@@ -157,7 +161,7 @@ public class SftpConnectorTests : IClassFixture<FileSimulatorFixture>
         _output.WriteLine($"Listing files on SFTP server at {server.Host}:{server.Port}");
 
         // Act - List all files in home directory
-        var allFiles = await _connector.ListFilesAsync(server, credentials, "/home/sftpuser", "*.*");
+        var allFiles = await _connector.ListFilesAsync(server, credentials, "data/ez-input", "*.*");
 
         // Assert
         allFiles.Should().NotBeNull("File list should not be null");
@@ -169,7 +173,7 @@ public class SftpConnectorTests : IClassFixture<FileSimulatorFixture>
         }
 
         // Act - List CSV files only
-        var csvFiles = await _connector.ListFilesAsync(server, credentials, "/home/sftpuser", "*.csv");
+        var csvFiles = await _connector.ListFilesAsync(server, credentials, "data/ez-input", "*.csv");
 
         _output.WriteLine($"Found {csvFiles.Count} CSV files");
         csvFiles.Should().OnlyContain(f => f.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase),

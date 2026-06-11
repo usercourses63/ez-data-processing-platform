@@ -25,6 +25,7 @@ public class InvalidRecordControllerTests
 {
     private readonly Mock<IInvalidRecordService> _serviceMock;
     private readonly Mock<ICorrectionService> _correctionServiceMock;
+    private readonly Mock<IRevalidationService> _revalidationServiceMock;
     private readonly Mock<ILogger<InvalidRecordController>> _loggerMock;
     private readonly InvalidRecordController _controller;
 
@@ -32,11 +33,13 @@ public class InvalidRecordControllerTests
     {
         _serviceMock = new Mock<IInvalidRecordService>();
         _correctionServiceMock = new Mock<ICorrectionService>();
+        _revalidationServiceMock = new Mock<IRevalidationService>();
         _loggerMock = new Mock<ILogger<InvalidRecordController>>();
 
         _controller = new InvalidRecordController(
             _serviceMock.Object,
             _correctionServiceMock.Object,
+            _revalidationServiceMock.Object,
             _loggerMock.Object);
 
         _controller.ControllerContext = new ControllerContext

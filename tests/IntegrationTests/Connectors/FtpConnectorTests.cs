@@ -156,8 +156,8 @@ public class FtpConnectorTests : IClassFixture<FileSimulatorFixture>
 
         _output.WriteLine($"Listing files on FTP server at {server.Host}:{server.Port}");
 
-        // Act - List all files
-        var allFiles = await _connector.ListFilesAsync(server, credentials, "/", "*.*");
+        // Act - List all files (seeded sample CSVs live under /ez-input on the simulator)
+        var allFiles = await _connector.ListFilesAsync(server, credentials, "/ez-input", "*.*");
 
         // Assert
         allFiles.Should().NotBeNull("File list should not be null");
@@ -169,7 +169,7 @@ public class FtpConnectorTests : IClassFixture<FileSimulatorFixture>
         }
 
         // Act - List CSV files only
-        var csvFiles = await _connector.ListFilesAsync(server, credentials, "/", "*.csv");
+        var csvFiles = await _connector.ListFilesAsync(server, credentials, "/ez-input", "*.csv");
 
         _output.WriteLine($"Found {csvFiles.Count} CSV files");
         csvFiles.Should().OnlyContain(f => f.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase),

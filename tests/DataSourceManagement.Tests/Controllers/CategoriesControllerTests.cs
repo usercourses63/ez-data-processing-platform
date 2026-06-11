@@ -34,6 +34,15 @@ public class CategoriesControllerTests
         _categoryServiceMock = new Mock<ICategoryService>();
         _loggerMock = new Mock<ILogger<CategoriesController>>();
         _hubContextMock = new Mock<IHubContext<MonitoringHub>>();
+
+        // Stub the SignalR client-proxy chain so the controller's mandatory EntityChanged
+        // broadcast (_hubContext.Clients.All.SendAsync(...)) succeeds. Without this, the call
+        // chain returns null, SendAsync throws an NRE, and the controller's catch returns 500.
+        var clientProxyMock = new Mock<IClientProxy>();
+        var hubClientsMock = new Mock<IHubClients>();
+        hubClientsMock.Setup(c => c.All).Returns(clientProxyMock.Object);
+        _hubContextMock.Setup(h => h.Clients).Returns(hubClientsMock.Object);
+
         _controller = new CategoriesController(
             _categoryServiceMock.Object,
             _hubContextMock.Object,

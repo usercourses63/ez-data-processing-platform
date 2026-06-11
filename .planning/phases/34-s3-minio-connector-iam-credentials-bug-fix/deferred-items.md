@@ -118,7 +118,16 @@ AuthenticationRegion only). Mirror S3Connector.CreateS3Client.
 
 ## 34-06 — OPEN TASKS: datasource UX bugs found during self-service E2E (2026-06-07)
 
-### TASK A — CSV numeric data fails validation against a string-typed schema (bug #1)
+### TASK A — CSV numeric data fails validation against a string-typed schema (bug #1) — ✅ RESOLVED (Solution A)
+**Resolution:** Made `CsvToJsonConverter` schema-aware. `FileDiscoveredEventConsumer.BuildConversionMetadata`
+now extracts a field→JSON-type map (`SchemaFieldTypes`) from `datasource.JsonSchema.properties`
+(handling scalar and `["string","null"]` union types) and passes it in the conversion metadata.
+`CsvToJsonConverter.ConvertToJsonAsync` reads it: fields declared `string` are kept verbatim;
+`integer`/`number`/`boolean` fields are coerced (raw text retained on coercion failure so validation
+surfaces the genuine mismatch); undeclared fields fall back to the legacy content inference. Lookup is
+case-insensitive on header names. Unit tests added in `tests/Shared.Tests/Converters/CsvToJsonConverterTests.cs`
+(string-typed numeric columns stay strings; numeric-typed columns coerce; case-insensitive; partial/absent
+maps fall back). Requires rebuild+redeploy of fileprocessor to take effect live.
 **Symptom:** A CSV with numeric columns (e.g. id,amount) is marked invalid when the
 datasource schema types those fields as `string` (the default when fields are added
 manually in the Schema tab). Only true-string columns (name) pass; every numeric record
@@ -146,7 +155,24 @@ correctly, but it isn't applied when a user hand-builds the schema (fields defau
 `FileProcessorService/Consumers/FileDiscoveredEventConsumer.cs`); rebuild+redeploy
 fileprocessor. Verify: numeric CSV → valid records → output.
 
-### TASK B — Connection config lost when updating a datasource's schema (bug #2)
+### TASK B — Connection config lost when updating a datasource's schema (bug #2) — ✅ RESOLVED (frontend + test; 2026-06-08)
+**Resolution (Part 1 + Part 3; backend hardening intentionally skipped):** Confirmed root cause in code —
+`ConnectionTab` is lazy-loaded (`DataSourceEditEnhanced.tsx:14`) and hydrates `inputServerId` only after
+the input-servers query resolves (`ConnectionTab.tsx:79-86`); a save before hydration submits a
+missing/empty `inputServerId`, and the merge used `??` (doesn't catch `''`) so the stored server ref was
+overwritten empty. Backend confirms only the displayed blob is lost: update path overwrites
+`AdditionalConfiguration["ConfigurationSettings"]` (`DataSourceService.cs:826-828`) but the authoritative
+`FileServerId` column is guarded (`:1004-1007`, written only when non-empty) — pipeline keeps working.
+**Fix:** Extracted the connection merge into a pure `mergeConnectionConfig(values, existingConnectionConfig,
+dataSource)` helper in `components/datasource/shared/helpers.ts`; `inputServerId`/`nasDeviceId` now fall
+back with `||` (catches `undefined` AND `''`) → stored config → authoritative `dataSource.FileServerId`/
+`NasDeviceId`, so a partial submit can never drop the connection. Wired into `DataSourceEditEnhanced.tsx`
+(replaced the inline merge). Added Vitest regression suite `__tests__/mergeConnectionConfig.test.ts`
+(8 tests: undefined/empty fall back to stored then FileServerId; genuine change honored; nasDeviceId same;
+other fields preserved). **Verified:** 8/8 new + 15/15 existing helper tests pass; `tsc --noEmit` clean.
+Backend hardening (merge instead of overwrite on update) was scoped out per decision — not needed for the
+user-visible bug. **Requires frontend rebuild+redeploy to take effect live; final UI repro (edit schema →
+save → reopen → connection still set) pending against the running app.**
 **Symptom:** Editing a datasource to change the schema and saving makes the connection
 configuration (input server) appear unsaved; repeatable every time.
 **Root cause (frontend, strong hypothesis — confirm by UI repro):** The edit form
@@ -174,3 +200,70 @@ working; it's the stored/displayed ConfigurationSettings that loses connectionCo
 **Touch points:** `ConnectionTab.tsx`, `DataSourceEditEnhanced.tsx` (and optionally the
 update path in `DataSourceService.cs`); rebuild+redeploy frontend. Verify: edit schema →
 save → reopen → connection still set.
+
+## Test-suite failures — pre-existing test rot (surveyed 2026-06-07)
+
+Full backend unit-test run during TASK A verification. **All failures below are pre-existing
+and unrelated to the TASK A CSV change** (which touches only `CsvToJsonConverter.cs`,
+`FileDiscoveredEventConsumer.cs`, and their tests — both of those suites pass). Clean suites:
+`Shared.Tests` 89/89, `FileProcessorService.Tests` 4/4, `OutputService.Tests` 60/60,
+`ValidationService.Tests` 90/90. `IntegrationTests` not run (needs live Mongo/Kafka/MinIO;
+skips cleanly when infra unreachable). ~26 tests failing/blocked across 4 projects → 4 tasks.
+
+### TASK T1 — SchedulingService: `Mock<BusinessMetrics>` cannot instantiate (P0, 20 tests, effort S) — ✅ RESOLVED (2026-06-07)
+**Fix applied:** Replaced `new Mock<BusinessMetrics>()` with a real `new BusinessMetrics(new Meter("scheduling-controller-tests"))` (added `using System.Diagnostics.Metrics;`). 20/20 now pass.
+**Symptom:** All 20 `SchedulingControllerTests` fail in the test constructor.
+**Error:** `System.ArgumentException : Can not instantiate proxy of class:
+DataProcessing.Shared.Monitoring.BusinessMetrics. Could not find a parameterless constructor.`
+**Root cause:** `SchedulingControllerTests.cs:32` does `new Mock<BusinessMetrics>()`, but
+`BusinessMetrics` declares only `BusinessMetrics(Meter meter)` (`Shared/Monitoring/BusinessMetrics.cs:190`)
+— no parameterless ctor, so Castle DynamicProxy cannot build the proxy.
+**Fix:** Pass a ctor arg, or use a real instance:
+`new BusinessMetrics(new System.Diagnostics.Metrics.Meter("scheduling-tests"))`. Metric methods
+are non-virtual and the tests set no metric expectations, so a real instance is cleanest.
+**File:** `tests/SchedulingService.Tests/Controllers/SchedulingControllerTests.cs:25,32,37`
+
+### TASK T2 — InvalidRecordsService.Tests: build break from ctor drift (P0, whole project blocked, effort S) — ✅ RESOLVED (2026-06-07)
+**Fix applied:** Added a `Mock<IRevalidationService>` field and passed it as the 3rd ctor arg. Project builds; 24/24 tests pass.
+**Symptom:** Project fails to compile → 0 tests run.
+**Error:** `CS7036` at `InvalidRecordControllerTests.cs:37` — no argument for required param `logger`.
+**Root cause:** `InvalidRecordController` now takes 4 params
+`(IInvalidRecordService, ICorrectionService, IRevalidationService, ILogger<InvalidRecordController>)`;
+the test passes only 3 (missing `IRevalidationService`), so the `ILogger` arg binds to the
+`IRevalidationService` position and `logger` is left unfilled.
+**Fix:** Add a `Mock<IRevalidationService>` field and pass it as the 3rd ctor arg; scan the file
+for other call sites with the same drift.
+**File:** `tests/InvalidRecordsService.Tests/Controllers/InvalidRecordControllerTests.cs:28-40`
+
+### TASK T3 — DataSourceManagement: CategoriesController SignalR chain not stubbed (P1, 5 tests, effort S) — ✅ RESOLVED (2026-06-07)
+**Fix applied:** Stubbed the hub chain in the test ctor — `IHubClients` mock returning an `IClientProxy` mock from `.All`, wired via `_hubContextMock.Setup(h => h.Clients)`. Moq auto-returns a completed Task for `SendCoreAsync`, so the `EntityChanged` broadcast succeeds. 5/5 now pass (40 passed, 2 intentional skips).
+**Symptom:** `Create_ValidRequest_Returns201CreatedAtAction`,
+`Update_ExistingCategory_ReturnsOkWithUpdatedCategory`,
+`ToggleActive_ExistingCategory_ReturnsOkWithUpdatedCategory`, `Reorder_ValidRequest_ReturnsOk`,
+`Delete_ExistingCategory_ReturnsNoContent` return 500 instead of 201/200/204.
+**Root cause:** Tests mock `IHubContext<MonitoringHub>` (`CategoriesControllerTests.cs:29,36`) but
+do not stub the `Clients.All → IClientProxy.SendAsync` chain. The controller's mandatory
+`EntityChanged` broadcast throws NRE → the catch returns 500. (This is the same gap already noted
+under §34-01 above; recorded here as an actionable task.)
+**Fix:** Stub the chain — an `IHubClients` mock returning an `IClientProxy` mock from `.All`,
+wired via `_hubContextMock.Setup(h => h.Clients).Returns(clients.Object)`.
+**File:** `tests/DataSourceManagement.Tests/Controllers/CategoriesControllerTests.cs`
+**Note:** The 2 *skips* in this project (`ServersControllerSecretTests`) are intentional
+capability-guards (§34-04), NOT failures.
+
+### TASK T4 — MetricsConfiguration: `GetByDataSource` returns 500 not 200 (P2, 1 test, effort M) — ✅ RESOLVED (2026-06-07)
+**Confirmed real product bug (not just a test gap):** `BuildMetricDtosAsync` calls the static
+`DB.Find<DataProcessingDataSource>()` only when a metric carries a `DataSourceId` (datasource-name
+enrichment). Any failure there 500s the whole endpoint. **Fix applied (product):** wrapped the
+name-enrichment lookup in try/catch in `MetricController.BuildMetricDtosAsync` — on failure it logs
+a warning and names fall back to "Unknown", so the endpoint still returns the metrics. This both
+hardens the endpoint and lets the unit test pass without a live Mongo. 22/22 now pass.
+**Symptom:** `MetricControllerTests.GetByDataSource_ReturnsOkWithIsSuccessTrue` —
+*Expected `OkObjectResult`, found `ObjectResult`.*
+**Root cause:** `MetricController.GetByDataSource` (`MetricController.cs:365-386`) returns `Ok(...)`
+on success but `StatusCode(500,...)` on exception. The test stubs only `GetByDataSourceIdAsync`;
+`BuildMetricDtosAsync(metrics)` then hits an unstubbed dependency and throws → 500. Most likely a
+test setup gap (mock the deps inside `BuildMetricDtosAsync`), but could expose a real
+null-handling bug — confirm by reading `BuildMetricDtosAsync`.
+**File:** `src/Services/MetricsConfigurationService/Controllers/MetricController.cs:365-386` +
+`tests/MetricsConfiguration.Tests/Controllers/MetricControllerTests.cs:454`

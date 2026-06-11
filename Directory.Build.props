@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
+    <!-- NuGet vulnerability-audit advisories (NU1901-NU1904) are transitive-dependency CVEs disclosed
+         after these package versions were pinned. Keep them visible as warnings but don't fail the
+         build — otherwise every newly-published advisory breaks `dotnet restore` under TreatWarningsAsErrors. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- 1591: missing XML doc comments.
          NU1903: NuGet-audit advisories on pre-existing transitive packages

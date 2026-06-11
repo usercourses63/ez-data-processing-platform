@@ -10,6 +10,19 @@ EZ Platform is a data processing platform built with microservices architecture 
 
 ---
 
+## CRITICAL: Multi-Session Cluster Coordination (READ FIRST)
+
+This Windows host runs **two parallel Claude Code sessions** against **two separate Minikube clusters**. Before any `kubectl` / `helm` / `minikube` command, read and honor the shared coordination file:
+
+**`C:\Users\Brian\.claude\shared\CLUSTER-COORDINATION.md`**
+
+- **This project is Session A** → owns the **`minikube`** (Docker) profile + **`ez-platform`** namespace ONLY (cluster IP `192.168.49.2`). The other session owns the `file-simulator` profile — never touch it.
+- **Always pin context explicitly:** `kubectl --context=minikube ...`, `helm --kube-context=minikube ...`, `minikube ... -p minikube`. Never use bare `kubectl`.
+- **NEVER** run `kubectl config use-context` — it mutates the shared `~/.kube/config` and yanks the default out from under the other session.
+- After changing cluster status / ports / IP, update the shared file (status row + Last-updated line + Session Log).
+
+---
+
 ## CRITICAL: Task Orchestrator MCP Tool (MANDATORY)
 
 **⚠️ STRICT REQUIREMENT: ONLY use `task-orchestrator` MCP tool via `mcp-exec` for ALL task management.**

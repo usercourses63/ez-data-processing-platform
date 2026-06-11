@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,19 +23,22 @@ public class SchedulingControllerTests
 {
     private readonly Mock<ISchedulingManager> _schedulingManagerMock;
     private readonly Mock<ILogger<SchedulingController>> _loggerMock;
-    private readonly Mock<BusinessMetrics> _metricsMock;
+    private readonly BusinessMetrics _metrics;
     private readonly SchedulingController _controller;
 
     public SchedulingControllerTests()
     {
         _schedulingManagerMock = new Mock<ISchedulingManager>();
         _loggerMock = new Mock<ILogger<SchedulingController>>();
-        _metricsMock = new Mock<BusinessMetrics>();
+        // BusinessMetrics has no parameterless ctor and non-virtual methods, so it cannot be
+        // mocked directly. Use a real instance backed by a throwaway Meter — the controller only
+        // records telemetry fire-and-forget, so a live instance is sufficient for these tests.
+        _metrics = new BusinessMetrics(new Meter("scheduling-controller-tests"));
 
         _controller = new SchedulingController(
             _schedulingManagerMock.Object,
             _loggerMock.Object,
-            _metricsMock.Object);
+            _metrics);
 
         // Set up a default HttpContext so TraceIdentifier is available
         _controller.ControllerContext = new ControllerContext

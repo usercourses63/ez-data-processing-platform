@@ -28,8 +28,9 @@ result: pass
 
 ### 4. NAS Device List Auto-Refreshes on Remote Change
 expected: Open Admin → NAS Devices. In a second tab, create/update a NAS device. First tab refreshes automatically via EntityChanged SignalR event.
-result: skipped
-reason: No NAS devices configured in this environment — cannot test update scenario
+result: pass
+verified_by: user
+verified_at: 2026-03-27
 
 ### 5. Optimistic Locking - 409 Conflict on Stale Edit
 expected: Open a DataSource in two tabs. Save in Tab 1. Try to save in Tab 2 (old Version). Tab 2 shows Hebrew conflict error instead of silently overwriting.
@@ -38,10 +39,10 @@ result: pass
 ## Summary
 
 total: 5
-passed: 3
+passed: 4
 issues: 1
 pending: 0
-skipped: 1
+skipped: 0
 
 ## Gaps
 

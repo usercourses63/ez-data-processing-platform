@@ -76,13 +76,24 @@ public class MetricController : ControllerBase
             .ToList();
 
         Dictionary<string, string> dataSourceNames = new();
-        
+
         if (dataSourceIds.Any())
         {
-            var dataSources = await DB.Find<DataProcessingDataSource>()
-                .Match(d => dataSourceIds.Contains(d.ID))
-                .ExecuteAsync();
-            dataSourceNames = dataSources.ToDictionary(d => d.ID, d => d.Name);
+            // Datasource-name enrichment is non-essential decoration: if the lookup fails
+            // (e.g. transient DB unavailability) it must not take down the whole metrics
+            // endpoint. Degrade gracefully — names fall back to "Unknown" below.
+            try
+            {
+                var dataSources = await DB.Find<DataProcessingDataSource>()
+                    .Match(d => dataSourceIds.Contains(d.ID))
+                    .ExecuteAsync();
+                dataSourceNames = dataSources.ToDictionary(d => d.ID, d => d.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to resolve datasource names for metric enrichment; falling back to 'Unknown'");
+            }
         }
 
         return metrics.Select(metric => new
