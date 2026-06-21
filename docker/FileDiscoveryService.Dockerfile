@@ -46,6 +46,11 @@ LABEL org.opencontainers.image.revision="${COMMIT_SHA}"
 
 COPY --from=build /app/publish .
 
+# OCP arbitrary-UID compliance: group-0 owns a group-writable /app + HOME so a random UID can write DataProtection keys
+ENV HOME=/app
+RUN chgrp -R 0 /app && chmod -R g=u /app
+USER 1001
+
 # Expose port
 EXPOSE 5007
 

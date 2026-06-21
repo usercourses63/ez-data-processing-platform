@@ -37,6 +37,12 @@ LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.revision="${COMMIT_SHA}"
 
 COPY --from=build /app/publish .
+
+# OCP arbitrary-UID compliance: group-0 owns a group-writable /app + HOME so a random UID can write DataProtection keys
+ENV HOME=/app
+RUN chgrp -R 0 /app && chmod -R g=u /app
+USER 1001
+
 EXPOSE 5003
 HEALTHCHECK --interval=30s --timeout=3s CMD curl -f http://localhost:5003/health || exit 1
 ENTRYPOINT ["dotnet", "DataProcessing.Validation.dll"]
