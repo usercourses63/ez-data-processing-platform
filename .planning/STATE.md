@@ -4,7 +4,7 @@ milestone: v0.2
 milestone_name: Production Validation & Release
 status: Ready to execute
 stopped_at: Completed 36-05-PLAN.md (B1/B2 frontend schema-generator GREEN fix — generateJsonSchema optionalFields intent + empty-tolerant modeling; FE 245/245, backend Corvus B1|B2 10/10)
-last_updated: "2026-06-10T14:00:00.000Z"
+last_updated: "2026-06-21T00:00:00.000Z"
 progress:
   total_phases: 37
   completed_phases: 34
@@ -110,6 +110,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 36-05]: B1/B2 GREEN — generateJsonSchema gained backward-compatible 4th { optionalFields } arg; optional fields excluded from required[] by intent (not sample completeness) and modeled empty-tolerant: plain → type:[<type>,'null'], date/format → anyOf[maxLength:0, format]. applySuggestionsToSchema gained optional 3rd { optional } arg for the date empty-escape. Shipped shapes equal 36-01 Corvus targets verbatim (backend B1|B2 10/10; FE 245/245)
 - [Phase 36-05]: SchemaBuilderNew.tsx manual editor confirmed OUT OF SCOPE for B1 (RESEARCH Q3) — authors required[] via jsonjoy-builder UI toggles, never derives from sample data; additionalProperties:false (:162) left unchanged (optional fields are declared properties so empty/absent validates against the union/anyOf)
 - [Quick 260621-eqz]: All 12 deployable images made OCP restricted-v2 (arbitrary-UID) compliant — runtime-writable paths chgrp 0 + chmod g=u, numeric USER 1001, nginx -> 8080, .NET HOME=/app on group-0-writable /app for DataProtection keys (.NET ports 5001-5009 kept). docker/Frontend.Dockerfile (the shipped image) now carries the config.js runtime-env entrypoint. Verified via docker run --user 99999:0 (frontend+docusaurus serve 8080; validation .NET binds Kestrel + writes /app and $HOME/.aspnet keys, no permission errors). build-all-images.sh + helm untouched.
+- [Quick 260621-g6i]: ez-platform-ocp Helm chart consolidated to base values.yaml + single values-production.yaml (values-prod.yaml/values-dev.yaml git rm'd; doc refs repointed). All 10 app/docs image tags -> ocp-20260621. restricted-v2 SCC fix: pod runAsUser/runAsGroup/fsGroup unpinned via {{- with }} guards (emit only when explicitly set) across all 16 deployment templates AND the mongodb/kafka(x2)/hazelcast statefulsets (plan's "16 templates" fact missed the statefulsets, which share the same securityContext.pod pattern); base values.yaml drops the three UID/GID keys (keeps runAsNonRoot:true + seccompProfile). readOnlyRootFilesystem=false (user-locked: nginx config.js + .NET DataProtection keys). Frontend EZ_DOCS_URL wired from services.frontend.config.docsUrl (mirrors non-OCP chart). rabbitmq hardcoded 999 left untouched (infra). Verified: helm lint + helm template exit 0, zero UID/GID 1000 pins anywhere, runAsNonRoot:true x24, 10 ocp-20260621 tags. Non-OCP ez-platform chart untouched.
 
 ### Roadmap Evolution
 
@@ -128,6 +129,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 |---|-------------|------|--------|-----------|
 | 260602-odp | in the UI page header: when Hebrew, align text and title RTL; when English, LTR | 2026-06-02 | 29ff994 | [260602-odp-in-the-ui-page-header-when-hebrew-align-](./quick/260602-odp-in-the-ui-page-header-when-hebrew-align-/) |
 | 260621-eqz | make all 12 container images OpenShift restricted-v2 (arbitrary-UID) compliant | 2026-06-21 | 3444eac, 3be9f42 | [260621-eqz-make-all-images-openshift-compliant-arbi](./quick/260621-eqz-make-all-images-openshift-compliant-arbi/) |
+| 260621-g6i | consolidate ez-platform-ocp Helm chart to one values-production.yaml + restricted-v2 SCC fixes | 2026-06-21 | 94fe39f, a15e864 | [260621-g6i-consolidate-ez-platform-ocp-helm-chart-t](./quick/260621-g6i-consolidate-ez-platform-ocp-helm-chart-t/) |
 | Phase 36 P03 | 5min | 2 tasks | 4 files |
 
 ## Session Continuity
