@@ -19,9 +19,7 @@ ocp:
 securityContext:
   pod:
     runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
+    # runAsUser/runAsGroup/fsGroup intentionally unset — OpenShift restricted-v2 SCC assigns them per namespace
     seccompProfile:
       type: RuntimeDefault
   container:

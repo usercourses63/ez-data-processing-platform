@@ -111,9 +111,15 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot | default true }}
-        runAsUser: {{ .Values.securityContext.pod.runAsUser | default 1000 }}
-        runAsGroup: {{ .Values.securityContext.pod.runAsGroup | default 1000 }}
-        fsGroup: {{ .Values.securityContext.pod.fsGroup | default 1000 }}
+        {{- with .Values.securityContext.pod.runAsUser }}
+        runAsUser: {{ . }}
+        {{- end }}
+        {{- with .Values.securityContext.pod.runAsGroup }}
+        runAsGroup: {{ . }}
+        {{- end }}
+        {{- with .Values.securityContext.pod.fsGroup }}
+        fsGroup: {{ . }}
+        {{- end }}
         seccompProfile:
           type: {{ .Values.securityContext.pod.seccompProfile.type | default "RuntimeDefault" }}
       containers:
