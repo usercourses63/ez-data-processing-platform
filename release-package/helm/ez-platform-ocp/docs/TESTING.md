@@ -23,16 +23,12 @@ helm lint .
 
 **Template Generation** (verify no errors):
 ```bash
-# Default values
+# Default (base) values
 helm template ez-platform . -f values.yaml > /tmp/default-manifests.yaml
 echo "Default template: $(grep -c '^---' /tmp/default-manifests.yaml) resources"
 
-# Development values
-helm template ez-platform . -f values.yaml -f values-dev.yaml > /tmp/dev-manifests.yaml
-echo "Dev template: $(grep -c '^---' /tmp/dev-manifests.yaml) resources"
-
-# Production values
-helm template ez-platform . -f values.yaml -f values-production.yaml > /tmp/prod-manifests.yaml
+# Production values (Helm auto-loads base values.yaml first)
+helm template ez-platform . -f values-production.yaml > /tmp/prod-manifests.yaml
 echo "Prod template: $(grep -c '^---' /tmp/prod-manifests.yaml) resources"
 ```
 
@@ -101,32 +97,31 @@ kubectl get pvc -n ez-platform
 kubectl get secret grafana-credentials -n ez-platform
 ```
 
-### 3. Development Install Test
+### 3. Base (Default) Install Test
 
-**Objective**: Verify installation with reduced resources.
+**Objective**: Verify installation with the base values (no production overlay).
 
 **Procedure**:
 ```bash
-# Install with dev values
-helm install ez-platform-dev ./ez-platform-ocp \
+# Install with base values only
+helm install ez-platform ./ez-platform-ocp \
   -f values.yaml \
-  -f values-dev.yaml \
-  -n ez-platform-dev --create-namespace
+  -n ez-platform --create-namespace
 
-# Verify resource requests are reduced
-kubectl get deployment prometheus-system -n ez-platform-dev -o jsonpath='{.spec.template.spec.containers[0].resources.requests.memory}'
-# Expected: 512Mi (not 2Gi)
+# Verify resource requests
+kubectl get deployment prometheus-system -n ez-platform -o jsonpath='{.spec.template.spec.containers[0].resources.requests.memory}'
+# Expected: 2Gi (base default)
 
-# Verify alert thresholds are relaxed
-kubectl get configmap prometheus-alerts -n ez-platform-dev -o yaml | grep "threshold"
-# Expected: Lower thresholds (e.g., 50 instead of 100)
+# Verify alert thresholds
+kubectl get configmap prometheus-alerts -n ez-platform -o yaml | grep "threshold"
+# Expected: Base thresholds (e.g., 100)
 ```
 
 **Expected Results**:
-- ✅ Pods start with reduced memory limits
-- ✅ Single replicas for all components
-- ✅ Smaller PVC sizes (10Gi instead of 50Gi)
-- ✅ Relaxed alert thresholds
+- ✅ Pods start with base memory limits
+- ✅ Base replica counts for all components
+- ✅ Base PVC sizes (50Gi)
+- ✅ Base alert thresholds
 
 ### 4. Production Install Test
 

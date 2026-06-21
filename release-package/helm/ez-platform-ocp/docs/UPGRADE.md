@@ -486,20 +486,18 @@ kubectl get configmap prometheus-alerts -n ez-platform -o yaml
 
 ## Environment-Specific Upgrade Notes
 
-### Development Environment
+### Base Environment
 ```bash
-# Use values-dev.yaml for reduced resources
+# Use base values.yaml only (no overlay)
 helm upgrade ez-platform . \
   -f values.yaml \
-  -f values-dev.yaml \
   -n ez-platform
 ```
 
 ### Production Environment
 ```bash
-# Use values-production.yaml for HA
+# Use values-production.yaml for HA (Helm auto-loads base values.yaml first)
 helm upgrade ez-platform . \
-  -f values.yaml \
   -f values-production.yaml \
   -n ez-platform
 

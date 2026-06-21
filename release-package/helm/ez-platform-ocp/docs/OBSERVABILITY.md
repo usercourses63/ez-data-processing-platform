@@ -27,20 +27,18 @@ kubectl port-forward svc/ezplatform-grafana 3000:3000 -n ez-platform
 # Open http://localhost:3000 (admin / check secret for password)
 ```
 
-### Development Deployment
+### Base Deployment
 ```bash
-# Install with reduced resources for local development
+# Install with base values only
 helm install ez-platform ./ez-platform-ocp \
   -f values.yaml \
-  -f values-dev.yaml \
   -n ez-platform --create-namespace
 ```
 
 ### Production Deployment
 ```bash
-# Install with HA and strict alerts
+# Install with HA and strict alerts (Helm auto-loads base values.yaml first)
 helm install ez-platform ./ez-platform-ocp \
-  -f values.yaml \
   -f values-production.yaml \
   -n ez-platform --create-namespace
 ```
@@ -116,15 +114,15 @@ observability:
 
 ### Resource Sizing
 
-#### Small (Development / Testing)
-- **Use**: values-dev.yaml
-- **Specs**: 512Mi RAM, 100m CPU per component
-- **Storage**: 10-20Gi
-- **Retention**: 7 days
+#### Small (Base / Testing)
+- **Use**: base values.yaml (no overlay)
+- **Specs**: 512Mi-2Gi RAM, 100m-500m CPU per component
+- **Storage**: 10-50Gi
+- **Retention**: 15 days
 - **Best For**: Local development, CI/CD testing
 
 ```bash
-helm install ez-platform ./ez-platform-ocp -f values.yaml -f values-dev.yaml
+helm install ez-platform ./ez-platform-ocp -f values.yaml
 ```
 
 #### Medium (Staging / Small Production)
@@ -230,9 +228,9 @@ kubectl create secret generic elasticsearch-vault-secret \
 
 ### Customizing Alerts
 
-**Development (Relaxed Thresholds)**:
+**Relaxed Thresholds (custom overlay)**:
 ```yaml
-# values-dev.yaml
+# custom relaxed-thresholds overlay (e.g. values-relaxed.yaml)
 observability:
   alerts:
     processingPipeline:

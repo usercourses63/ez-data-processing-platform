@@ -50,6 +50,10 @@ spec:
         env:
         - name: REACT_APP_API_BASE_URL
           value: {{ .Values.services.frontend.config.apiBaseUrl | default "http://localhost:5001" | quote }}
+        # Consumed by docker-entrypoint.sh at container start; written into /usr/share/nginx/html/config.js
+        # as window.EZ_CONFIG.docsUrl. Empty string → frontend uses its auto-detect fallback.
+        - name: EZ_DOCS_URL
+          value: {{ .Values.services.frontend.config.docsUrl | default "" | quote }}
         {{- with .Values.services.frontend.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

@@ -304,6 +304,10 @@ services:
       maxUnavailable: 0
     config:
       apiBaseUrl: "http://datasource-management:5001"
+      # Override the documentation portal URL at deploy time.
+      # Empty value → frontend falls back to auto-detect (http://{hostname}:30800 for private nets, /docs otherwise).
+      # Example: --set services.frontend.config.docsUrl=https://docs.mycompany.internal
+      docsUrl: ""
     service:
       type: ClusterIP  # Changed from LoadBalancer for OCP (uses Routes instead)
       port: 8080

@@ -229,18 +229,12 @@ oc get route grafana -n ez-platform
 oc get secret grafana-credentials -n ez-platform -o jsonpath='{.data.admin-password}' | base64 -d
 ```
 
-**Environment-Specific Deployments**:
+**Production Deployment**:
 
 ```bash
-# Development (reduced resources, relaxed alerts)
-helm install ez-platform ./ez-platform-ocp \
-  -f values.yaml \
-  -f values-dev.yaml \
-  -n ez-platform --create-namespace
-
 # Production (HA, strict alerts, large storage)
+# Helm auto-loads base values.yaml first; values-production.yaml overlays the differences.
 helm install ez-platform ./ez-platform-ocp \
-  -f values.yaml \
   -f values-production.yaml \
   -n ez-platform --create-namespace
 ```

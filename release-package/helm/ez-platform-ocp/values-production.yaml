@@ -1,5 +1,71 @@
-# Production Environment Overrides
-# Usage: helm install ez-platform ./ez-platform-ocp -f values.yaml -f values-production.yaml
+# EZ Platform (OpenShift) - Production Values
+# Usage: helm install ez-platform ./ez-platform-ocp -f values-production.yaml
+# Helm always auto-loads the base values.yaml first; this file overlays only the
+# production-specific differences (HA replicas, larger resources, image tags,
+# readOnlyRootFilesystem, docsUrl, strict alert thresholds).
+#
+# OUT OF SCOPE CAVEAT: Upstream infrastructure images (mongo/kafka/elasticsearch/
+# rabbitmq) on OpenShift restricted-v2 may still need a more permissive SCC or an
+# operator-based install — that is NOT handled by this chart. This chart makes the
+# 10 EZ app/docs pods restricted-v2 compliant; the infra images are out of scope.
+
+# OCP Compatibility Settings
+ocp:
+  enabled: true
+  domain: apps.<your-cluster-domain>  # PLACEHOLDER — replace with your OpenShift cluster apps domain
+
+# Microservices Configuration — production image tags
+services:
+  filediscovery:
+    image:
+      tag: ocp-20260621
+  fileprocessor:
+    image:
+      tag: ocp-20260621
+  validation:
+    image:
+      tag: ocp-20260621
+  output:
+    image:
+      tag: ocp-20260621
+  datasourceManagement:
+    image:
+      tag: ocp-20260621
+  metricsConfiguration:
+    image:
+      tag: ocp-20260621
+  invalidrecords:
+    image:
+      tag: ocp-20260621
+  scheduling:
+    image:
+      tag: ocp-20260621
+  frontend:
+    image:
+      tag: ocp-20260621
+    config:
+      # Documentation portal URL exposed to the frontend (rendered as EZ_DOCS_URL).
+      # Empty value → frontend auto-detects. Set to the docs Route for production.
+      docsUrl: "https://ezdocs.apps.<your-cluster-domain>"
+  docs:
+    image:
+      tag: ocp-20260621
+
+# Security hardening
+# NOTE: pod runAsUser/runAsGroup/fsGroup are intentionally NOT set here — OpenShift
+# restricted-v2 SCC assigns them per namespace. This file must never reintroduce the pins.
+securityContext:
+  container:
+    # readOnlyRootFilesystem MUST be false: nginx writes config.js into the html dir at
+    # startup, and the .NET services write DataProtection keys under /app at runtime.
+    readOnlyRootFilesystem: false
+
+# Production application configuration
+config:
+  environment: Production
+  logLevel: Information
+  fileDiscovery:
+    deduplicationTTLHours: "4"  # Production: 4 hours
 
 # Production hardening with HA and larger resources
 observability:
@@ -155,22 +221,6 @@ observability:
         threshold: 0.05  # Stricter threshold (5%)
         duration: 2m
         severity: critical
-
-# Security hardening
-securityContext:
-  pod:
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
-    seccompProfile:
-      type: RuntimeDefault
-  container:
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop:
-        - ALL
 
 # Resource quotas for production
 global:
