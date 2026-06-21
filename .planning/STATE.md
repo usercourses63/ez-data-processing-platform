@@ -109,6 +109,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 - [Phase 36-04]: RED confirmed via npm run test:unit -- schemaInferrer.optional schemaAutoSuggest.optionalDate → 4 failed (corrected behavior) + 2 passed (no-regression guards for required-field + populated-date)
 - [Phase 36-05]: B1/B2 GREEN — generateJsonSchema gained backward-compatible 4th { optionalFields } arg; optional fields excluded from required[] by intent (not sample completeness) and modeled empty-tolerant: plain → type:[<type>,'null'], date/format → anyOf[maxLength:0, format]. applySuggestionsToSchema gained optional 3rd { optional } arg for the date empty-escape. Shipped shapes equal 36-01 Corvus targets verbatim (backend B1|B2 10/10; FE 245/245)
 - [Phase 36-05]: SchemaBuilderNew.tsx manual editor confirmed OUT OF SCOPE for B1 (RESEARCH Q3) — authors required[] via jsonjoy-builder UI toggles, never derives from sample data; additionalProperties:false (:162) left unchanged (optional fields are declared properties so empty/absent validates against the union/anyOf)
+- [Quick 260621-eqz]: All 12 deployable images made OCP restricted-v2 (arbitrary-UID) compliant — runtime-writable paths chgrp 0 + chmod g=u, numeric USER 1001, nginx -> 8080, .NET HOME=/app on group-0-writable /app for DataProtection keys (.NET ports 5001-5009 kept). docker/Frontend.Dockerfile (the shipped image) now carries the config.js runtime-env entrypoint. Verified via docker run --user 99999:0 (frontend+docusaurus serve 8080; validation .NET binds Kestrel + writes /app and $HOME/.aspnet keys, no permission errors). build-all-images.sh + helm untouched.
 
 ### Roadmap Evolution
 
@@ -126,6 +127,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260602-odp | in the UI page header: when Hebrew, align text and title RTL; when English, LTR | 2026-06-02 | 29ff994 | [260602-odp-in-the-ui-page-header-when-hebrew-align-](./quick/260602-odp-in-the-ui-page-header-when-hebrew-align-/) |
+| 260621-eqz | make all 12 container images OpenShift restricted-v2 (arbitrary-UID) compliant | 2026-06-21 | 3444eac, 3be9f42 | [260621-eqz-make-all-images-openshift-compliant-arbi](./quick/260621-eqz-make-all-images-openshift-compliant-arbi/) |
 | Phase 36 P03 | 5min | 2 tasks | 4 files |
 
 ## Session Continuity
