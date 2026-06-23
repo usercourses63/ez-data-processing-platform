@@ -16,10 +16,41 @@ set -e
 #    Defaults preserve the in-cluster Service names, so the image still works
 #    with zero extra configuration.
 # ---------------------------------------------------------------------------
-export BACKEND_DATASOURCE_URL="${BACKEND_DATASOURCE_URL:-http://datasource-management:5001}"
-export BACKEND_INVALIDRECORDS_URL="${BACKEND_INVALIDRECORDS_URL:-http://invalidrecords:5007}"
-export BACKEND_METRICS_URL="${BACKEND_METRICS_URL:-http://metrics-configuration:5002}"
-export BACKEND_SCHEDULING_URL="${BACKEND_SCHEDULING_URL:-http://scheduling:5004}"
+BACKEND_DATASOURCE_URL="${BACKEND_DATASOURCE_URL:-http://datasource-management:5001}"
+BACKEND_INVALIDRECORDS_URL="${BACKEND_INVALIDRECORDS_URL:-http://invalidrecords:5007}"
+BACKEND_METRICS_URL="${BACKEND_METRICS_URL:-http://metrics-configuration:5002}"
+BACKEND_SCHEDULING_URL="${BACKEND_SCHEDULING_URL:-http://scheduling:5004}"
+
+# Pod namespace (for expanding short Service names below).
+NS_FILE=/var/run/secrets/kubernetes.io/serviceaccount/namespace
+if [ -f "$NS_FILE" ]; then
+  POD_NS=$(cat "$NS_FILE")
+else
+  POD_NS="${POD_NAMESPACE:-ez-platform}"
+fi
+
+# nginx's `resolver` does NOT apply /etc/resolv.conf search domains, so a bare
+# single-label Service name (e.g. "metrics-configuration") SERVFAILs at CoreDNS
+# while its FQDN resolves. Expand single-label hosts to
+# <host>.<namespace>.svc.cluster.local. Hosts that already contain a dot (FQDN
+# or IPv4) or are "localhost" are left untouched, so explicit overrides and
+# external hosts keep working. (Image is K8s-targeted; for docker-compose set
+# FQDNs or IPs explicitly.)
+fqdnize() {
+  _scheme="${1%%://*}"
+  _after="${1#*://}"
+  _host="${_after%%[:/]*}"
+  _rest="${_after#$_host}"
+  case "$_host" in
+    *.* | localhost | "") printf '%s' "$1" ;;
+    *) printf '%s://%s.%s.svc.cluster.local%s' "$_scheme" "$_host" "$POD_NS" "$_rest" ;;
+  esac
+}
+BACKEND_DATASOURCE_URL=$(fqdnize "$BACKEND_DATASOURCE_URL")
+BACKEND_INVALIDRECORDS_URL=$(fqdnize "$BACKEND_INVALIDRECORDS_URL")
+BACKEND_METRICS_URL=$(fqdnize "$BACKEND_METRICS_URL")
+BACKEND_SCHEDULING_URL=$(fqdnize "$BACKEND_SCHEDULING_URL")
+export BACKEND_DATASOURCE_URL BACKEND_INVALIDRECORDS_URL BACKEND_METRICS_URL BACKEND_SCHEDULING_URL
 
 # ---------------------------------------------------------------------------
 # 2) DNS resolver for request-time upstream resolution.
