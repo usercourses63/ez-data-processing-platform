@@ -54,6 +54,24 @@ spec:
         # as window.EZ_CONFIG.docsUrl. Empty string → frontend uses its auto-detect fallback.
         - name: EZ_DOCS_URL
           value: {{ .Values.services.frontend.config.docsUrl | default "" | quote }}
+        # Backend service URLs proxied by the frontend nginx. Rendered into the
+        # nginx config at container start. nginx resolves these per-request (not
+        # at boot), so a backend that is down/not-yet-deployed yields a 502 on
+        # that route instead of crash-looping the frontend pod.
+        - name: BACKEND_DATASOURCE_URL
+          value: {{ .Values.services.frontend.config.backends.datasource | default "http://datasource-management:5001" | quote }}
+        - name: BACKEND_INVALIDRECORDS_URL
+          value: {{ .Values.services.frontend.config.backends.invalidRecords | default "http://invalidrecords:5007" | quote }}
+        - name: BACKEND_METRICS_URL
+          value: {{ .Values.services.frontend.config.backends.metrics | default "http://metrics-configuration:5002" | quote }}
+        - name: BACKEND_SCHEDULING_URL
+          value: {{ .Values.services.frontend.config.backends.scheduling | default "http://scheduling:5004" | quote }}
+        {{- with .Values.services.frontend.config.resolver }}
+        # Explicit DNS resolver for nginx. Empty/unset → auto-detected from the
+        # pod's /etc/resolv.conf (kube-dns).
+        - name: NGINX_RESOLVER
+          value: {{ . | quote }}
+        {{- end }}
         {{- with .Values.services.frontend.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
