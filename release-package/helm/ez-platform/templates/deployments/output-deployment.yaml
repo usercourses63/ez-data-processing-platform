@@ -92,7 +92,7 @@ spec:
           {{- toYaml .Values.services.output.resources | nindent 10 }}
         livenessProbe:
           httpGet:
-            path: /health
+            path: /health/live
             port: 5009
           initialDelaySeconds: {{ .Values.services.output.livenessProbe.initialDelaySeconds | default 30 }}
           periodSeconds: {{ .Values.services.output.livenessProbe.periodSeconds | default 10 }}
@@ -100,7 +100,7 @@ spec:
           failureThreshold: {{ .Values.services.output.livenessProbe.failureThreshold | default 3 }}
         readinessProbe:
           httpGet:
-            path: /health
+            path: /health/ready
             port: 5009
           initialDelaySeconds: {{ .Values.services.output.readinessProbe.initialDelaySeconds | default 20 }}
           periodSeconds: {{ .Values.services.output.readinessProbe.periodSeconds | default 5 }}

@@ -127,8 +127,11 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 5006
-    targetPort: 5006
+  # invalidrecords app listens on 5007 (ASPNETCORE_URLS=http://+:5007).
+  # Was wrongly 5006 (filediscovery's port) → traffic to the Service had no
+  # endpoint and the frontend /api/v1/invalid-records proxy hung.
+  - port: 5007
+    targetPort: 5007
     protocol: TCP
     name: http
   selector:
