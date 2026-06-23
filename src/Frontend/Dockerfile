@@ -14,8 +14,11 @@ COPY nginx-main.conf /etc/nginx/nginx.conf
 # Copy built React app to nginx html directory
 COPY build /usr/share/nginx/html
 
-# Copy nginx server configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx server config TEMPLATE. It is rendered to
+# /etc/nginx/conf.d/default.conf at container start by docker-entrypoint.sh,
+# injecting backend URLs from the deployment env. The base default.conf was
+# already removed above, so conf.d stays empty until the entrypoint renders it.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Copy runtime-config entrypoint (generates /usr/share/nginx/html/config.js from env vars)
 COPY docker-entrypoint.sh /docker-entrypoint.sh

@@ -47,6 +47,14 @@ services:
       # Documentation portal URL exposed to the frontend (rendered as EZ_DOCS_URL).
       # Empty value → frontend auto-detects. Set to the docs Route for production.
       docsUrl: "https://ezdocs.apps.<your-cluster-domain>"
+      # Backend service URLs proxied by the frontend nginx. These default to the
+      # in-cluster Service names; override here if backends live in a different
+      # namespace or are reached via external hostnames.
+      backends:
+        datasource: "http://datasource-management:5001"
+        invalidRecords: "http://invalidrecords:5007"
+        metrics: "http://metrics-configuration:5002"
+        scheduling: "http://scheduling:5004"
   docs:
     image:
       tag: ocp-20260621
